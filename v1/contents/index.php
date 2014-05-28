@@ -4,7 +4,7 @@
  * Content endpoint
  * /v1/content
  *
- * @author eventurers
+ * @author 
  */
 
 /**
