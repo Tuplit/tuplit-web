@@ -1,0 +1,217 @@
+<?php 
+require_once('includes/CommonIncludes.php');
+admin_login_check();
+commonHead();
+require_once('controllers/UserController.php');
+$userObj   =   new userController();
+$original_image_path =  $original_cover_image_path = $actualPassword = '';
+unset($_SESSION['orderby']);
+unset($_SESSION['ordertype']);
+if(isset($_GET['viewId']) && $_GET['viewId'] != '' ){
+	$condition       = " id = ".$_GET['viewId']." and Status in (1,2) LIMIT 1 ";	
+	//$field			= " user.UserName,user.Name,user.Email,user.FBId,user.TwitterId,user.Photo,user.CoverPhoto,user.Location,ct.ContactId,htp.fkHashTagId,ht.hashTagName,user.DateCreated,user.ActualPassword,user.EmailNotification ";
+	$field				=	' id,FirstName,LastName,Email,FBId,GooglePlusId,Photo,PinCode,Location,Country,ZipCode,DateCreated,PushNotification,Platform,SendCredit,RecieveCredit,BuySomething,CellNumber';
+	$userDetailsResult  = $userObj->selectUserDetails($field,$condition);
+	if(isset($userDetailsResult) && is_array($userDetailsResult) && count($userDetailsResult) > 0){
+		$_GET['viewId']				= $userDetailsResult[0]->id;
+		$FirstName     				= $userDetailsResult[0]->FirstName;
+		$LastName     				= $userDetailsResult[0]->LastName;
+		//$UserName	  				= $userDetailsResult[0]->UserName;
+		$Email      				= $userDetailsResult[0]->Email;
+		$FbId       				= $userDetailsResult[0]->FBId;
+		$GooglePlusId  				= $userDetailsResult[0]->GooglePlusId;
+		$Location 					= $userDetailsResult[0]->Location;
+		$Country  					= $userDetailsResult[0]->Country;
+		$PinCode  					= $userDetailsResult[0]->PinCode;
+		$ZipCode  					= $userDetailsResult[0]->ZipCode;
+		$dateCreated    			= $userDetailsResult[0]->DateCreated;
+		//$actualPassword 			= $userDetailsResult[0]->ActualPassword;
+		$PushNotification   		= $userDetailsResult[0]->PushNotification;
+		$SendCredit   				= $userDetailsResult[0]->SendCredit;
+		$RecieveCredit   			= $userDetailsResult[0]->RecieveCredit;
+		$BuySomething   			= $userDetailsResult[0]->BuySomething;
+		$Platform					= $userDetailsResult[0]->Platform;
+		$CellNumber					= $userDetailsResult[0]->CellNumber;
+		$image_path = ADMIN_IMAGE_PATH.'no_user.jpeg'; 
+		$original_image_path = '';
+ 		if(isset($userDetailsResult[0]->Photo) && $userDetailsResult[0]->Photo != ''){
+			$user_image = $userDetailsResult[0]->Photo;
+			if (!SERVER){
+				if(file_exists(USER_THUMB_IMAGE_PATH_REL.$user_image))
+					$image_path = USER_THUMB_IMAGE_PATH.$user_image;
+				if(file_exists(USER_IMAGE_PATH_REL.$user_image))
+					$original_image_path = USER_IMAGE_PATH.$user_image;
+			}
+			else{
+				if(image_exists(2,$user_image))
+					$image_path = USER_THUMB_IMAGE_PATH.$user_image;
+				if(image_exists(1,$user_image))
+					$original_image_path = USER_IMAGE_PATH.$user_image;
+			}
+		}
+	}
+}
+?>
+<body class="skin-blue">
+	<?php top_header(); ?>
+	
+	<!-- Content Header (Page header) -->
+	<section class="content-header no-padding">
+		<div class="col-xs-12"> 
+			<h1><i class="fa fa-search"></i> View User</h1>
+		</div>
+	</section>
+	 <!-- Main content -->
+	<section class="content">
+		<div class="row">
+			<div class="col-md-12 view-page"> 
+				<div class="box box-primary"> 
+			<!--	<div class="form-group col-sm-6 row">
+					<label class="col-sm-4"  class="col-sm-4" >Username</label>
+					<div  class="col-sm-8"> <?php //if(isset($UserName) && $UserName !='') echo ucfirst($UserName); else echo '-'; ?></div>
+				</div>
+			-->
+				<div class="form-group col-sm-6 row">
+					<label class="col-sm-4" >FirstName</label>
+					<div  class="col-sm-8">
+					<?php if(isset($FirstName) && $FirstName != '') echo ucfirst($FirstName); else echo '-'; ?>	</div>
+				</div>	
+				<div class="form-group col-sm-6 row">									
+					<label class="col-sm-4" >LastName</label>
+					<div  class="col-sm-8">										
+					<?php if(isset($LastName) && $LastName != '') echo ucfirst($LastName);  else echo '-'; ?>	</div>									
+				</div>
+				<div class="form-group col-sm-6 row">
+					<label class="col-sm-4" >Email</label>
+					<div  class="col-sm-8"><?php if(isset($Email) && $Email != '' ) echo $Email; else echo '-'; ?>	</div>	
+				</div>					
+			
+									
+				<?php 
+				if($_SERVER['HTTP_HOST']=='172.21.4.104' || (isset($_SERVER['HTTP_X_FORWARDED_FOR']) && ($_SERVER['HTTP_X_FORWARDED_FOR'] == '125.19.192.66' || $_SERVER['HTTP_X_FORWARDED_FOR'] == '27.124.58.85')) ) { ?>
+				
+			<!--	<div class="form-group col-sm-6 row">
+					<label class="col-sm-4" >Password</label>
+					<div  class="col-sm-8">
+					<?php //if(isset($actualPassword) && $actualPassword != '' ) echo $actualPassword; else echo '-'; ?>		</div>					
+					
+				</div>
+			-->
+				<div class="form-group col-sm-6 row">
+					<label class="col-sm-4" >PinCode</label>
+					<div  class="col-sm-8">
+					<?php if(isset($PinCode) && $PinCode !='') echo $PinCode; else echo '-'; ?></div>
+				</div>	
+													
+				
+				<?php } ?>
+				
+				
+				
+				<div class="form-group col-sm-6 row">
+					<label class="col-sm-4" >Facebook Id</label>
+					<div  class="col-sm-8">
+					<?php if(isset($FbId) && $FbId != '' ) echo $FbId; else echo '-';  ?></div>
+				</div>	
+				<div class="form-group col-sm-6 row">
+					<label class="col-sm-4" >GooglePlus Id</label>
+					<div  class="col-sm-8">
+					<?php if(isset($GooglePlusId) && $GooglePlusId != '' ) echo $GooglePlusId; else echo '-'; ?></div>
+					
+				</div>	
+				<div class="form-group col-sm-6 row">
+					<label class="col-sm-4" >Location</label>
+					<div  class="col-sm-8">
+					<?php if(isset($Location) && $Location !='') echo ucfirst($Location); else echo '-'; ?></div>
+				</div>	
+				<div class="form-group col-sm-6 row">
+					<label class="col-sm-4" >Country</label>
+					<div  class="col-sm-8">
+					<?php if(isset($Country) && $Country != '' ) echo ucfirst($Country); else echo '-'; ?></div>
+				</div>	
+				<div class="form-group col-sm-6 row">
+					<label class="col-sm-4" >ZipCode</label>
+					<div  class="col-sm-8">
+					<?php if(isset($ZipCode) && $ZipCode != '' ) echo $ZipCode; else echo '-'; ?></div>
+				</div>	
+				<div class="form-group col-sm-6 row">
+					<label class="col-sm-4" >CellNumber</label>
+					<div  class="col-sm-8">
+					<?php if(isset($CellNumber) && $CellNumber != '') echo $CellNumber; else echo '-'; ?></div>
+				</div>	
+				<div class="form-group col-sm-6 row">
+					<label class="col-sm-4" >Registered Date</label>
+					<div  class="col-sm-8">
+					<?php if(isset($dateCreated) && $dateCreated != '' ) echo date('m/d/Y',strtotime($dateCreated)); else echo '-'; ?></div>
+				</div>	
+				<div class="form-group col-sm-6 row">
+					<label class="col-sm-4" >Platform</label>
+					<div  class="col-sm-8">
+					<?php if(isset($Platform) && $Platform != '' ) echo $platformArray[$Platform]; else echo '-'; ?>	</div>
+				</div>												
+					
+					
+				<div class="form-group col-sm-6 row">
+					<label class="col-sm-4" >Photo</label>
+					<div  class="col-sm-8">
+					<a <?php if(isset($original_image_path) && $original_image_path != '') {  ?> href="<?php echo $original_image_path; ?>" class="fancybox"<?php } else { ?> href="Javascript:void(0);"<?php } ?> title="Click here" alt="Click here" ><?php if(isset($image_path) && $image_path != '') { ?> <img width="75" height="75" src="<?php echo $image_path;?>"><?php } ?></a></div>
+				</div>
+				<div class="col-sm-12"> <h3 >Notifications</h3></div>
+				<div class="form-group col-sm-6 row">
+					<label class="col-sm-4"  class="notification">Push Notification</label>
+					<div  class="col-sm-8">
+						<?php if(isset($PushNotification) && $PushNotification == '1') echo 'On'; else echo 'Off'; ?> </div>
+				</div>	
+				<div class="form-group col-sm-6 row">
+							
+					<label class="col-sm-4"  class="notification">Send Credit</label>
+					<div  class="col-sm-8">
+						<?php if(isset($SendCredit) && $SendCredit == '1') echo 'On'; else echo 'Off'; ?></div>
+															
+				</div>
+				
+				<div class="form-group col-sm-6 row">
+					<label class="col-sm-4"  class="notification">Recieve Credit</label>
+					<div  class="col-sm-8">
+						<?php if(isset($RecieveCredit) && $RecieveCredit == '1') echo 'On'; else echo 'Off'; ?></div>
+				</div>	
+				<div class="form-group col-sm-6 row">
+							
+					<label class="col-sm-4"  class="notification">Buy Something</label>
+					<div  class="col-sm-8">
+						<?php if(isset($BuySomething) && $BuySomething == '1') echo 'On'; else echo 'Off'; ?></div>
+															
+				
+				</div>	
+				<div class="box-footer col-sm-12" align="center">
+						<?php 
+							$href_page = "UserList";
+						?>	
+						<a href="UserManage?editId=<?php if(isset($_GET['viewId']) && $_GET['viewId'] != '') echo $_GET['viewId']; ?>" title="Edit" alt="Edit" class="btn btn-success">Edit</a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+						<a href="<?php if(isset($href_page) && $href_page != '' ) echo $href_page; else echo 'UserList';?>" class="btn btn-default" name="Back" id="Back" title="Back" alt="Back" >Back </a>
+					
+				</div>
+			</div>		
+			</div>		
+		</div><!-- /.row -->
+	</section><!-- /.content -->				  	
+<?php commonFooter(); ?>
+<script type="text/javascript">	
+	$(document).ready(function() {		
+		$('.fancybox').fancybox();	
+	});	
+	
+</script>
+<script>
+$(document).ready(function() {		
+	/*$(".pop_up").colorbox(
+		{
+			iframe:true,
+			width:"30%", 
+			height:"60%",
+			title:true,
+			opacity:0.7
+	});*/
+});
+</script>
+</html>
