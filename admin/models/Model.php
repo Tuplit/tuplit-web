@@ -16,7 +16,10 @@ class Model extends Database
 	var $SliderImageTable             		=   "sliderimages";
 	var $merchantTable             			=   "merchants";
 	var $productTable             			=   "products";
-	var $merchantcategoriesTable             			=   "merchantcategories";
+	var $merchantcategoriesTable            =   "merchantcategories";
+	var $productcategoriesTable            	=   "productcategories";
+	var $merchantshoppingTable           	=   "merchantshoppinghours";
+	var $orderTable			            	=   "orders";
     /*Table Name*/
 	function Model()
 	{

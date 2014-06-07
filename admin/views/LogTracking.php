@@ -149,7 +149,7 @@ $logtracksResult	=	$logObj->logtrackDetails($where);
 								echo '-';
 							} else {?>
 						<?php 	if(isset($value->url)	&&	$value->url !='') {
-									if (SERVER)		echo "https://".$value->url;
+									if (SERVER)		echo "http://".$value->url;
 									else 			echo "http://".$value->url;
 								}
 							  	else echo '-';?>

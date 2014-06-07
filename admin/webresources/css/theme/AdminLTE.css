@@ -2068,7 +2068,7 @@ Component: timeline
 }
 .nav-tabs-custom > .nav-tabs {
   margin: 0;
-  border-bottom-color: #f4f4f4
+  border-bottom-color: #01A99A
 }
 .nav-tabs-custom > .nav-tabs > li {
   border-top: 3px solid transparent;
@@ -2078,7 +2078,9 @@ Component: timeline
 .nav-tabs-custom > .nav-tabs > li > a {
   -webkit-border-radius: 0 !important;
   -moz-border-radius: 0 !important;
-  border-radius: 0 !important
+  border-radius: 0 !important;
+  
+  color : #777;
 }
 .nav-tabs-custom > .nav-tabs > li > a,
 .nav-tabs-custom > .nav-tabs > li > a:hover {
@@ -2091,7 +2093,8 @@ Component: timeline
   border-color: transparent
 }
 .nav-tabs-custom > .nav-tabs > li.active {
-  border-top-color: #01a99a
+  border-top-color: #01a99a;
+  border-left : 1px solid #01A99A;
 }
 .nav-tabs-custom > .nav-tabs > li.active > a,
 .nav-tabs-custom > .nav-tabs > li.active:hover > a {
@@ -2099,8 +2102,11 @@ Component: timeline
 }
 .nav-tabs-custom > .nav-tabs > li.active > a {
   border-top: 0;
-  border-left-color: #f4f4f4;
-  border-right-color: #f4f4f4
+  border-left-color: transparent;
+  border-right-color: #01A99A;
+  color : #01A99A;
+  font-weight : bold;
+  
 }
 .nav-tabs-custom > .nav-tabs > li:first-of-type {
   margin-left: 0 
@@ -2136,7 +2142,9 @@ Component: timeline
 }
 .nav-tabs-custom > .tab-content {
   background: #fff;
-  padding: 10px
+  padding: 10px;
+  border : 1px solid #01A99A;
+  border-top : 0px;
 }
 /* PAGINATION */
 .pagination > li > a {
@@ -3706,9 +3714,12 @@ footer {text-align :center; padding : 10px 0}
 }
 /*** sidebar icons*/
 .treeview b { font-weight : normal; }
+
+.treeview b:before  { content: "\f0f6"; }
 .Settings b:before {  content: "\f085"; }
 .User b:before {  content: "\f0c0"; }
 .Merchant b:before {  content: "\f1ad"; }
 .Product b:before {  content: "\f1b3"; }
 .Category b:before {  content: "\f02b"; }
 .Report b:before {  content: "\f080"; }
+.Order b:before {  content: "\f07a"; }

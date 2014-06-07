@@ -1,203 +1,247 @@
 <?php
 require_once('includes/CommonIncludes.php');
 merchant_login_check();
-global $discountTierArray;
-global $itemTypeArray;
-$specialProductsArray = array();
-$photoPath= '';
+$hide = 0;
+$Photo = $PhotoContent = $ProductId = '';
 
-if(isset($_SESSION['merchantInfo']['MerchantId']) && !empty($_SESSION['merchantInfo']['MerchantId'])) {
-	
-	//To get regular products list
-	$merchantId		= 	$_SESSION['merchantInfo']['MerchantId'];
-	$url			=	WEB_SERVICE.'v1/products/regularProducts/'.$merchantId;	
-	$curlMerchantResponse  = 	curlRequest($url, 'GET', null, $_SESSION['merchantInfo']['AccessToken']);
-	if(isset($curlMerchantResponse) && is_array($curlMerchantResponse) && $curlMerchantResponse['meta']['code'] == 201) {
-		$specialProductsArray   =	$curlMerchantResponse['specialproductDetails'];		
-	}	
-	//echo'<pre>';print_r();echo'</pre>';
-	//New Product POST
-	if(isset($_POST['merchant_product_submit']) && $_POST['merchant_product_submit'] == 'SAVE'){		
-		if(!empty($selectedProductsID))
-			$selectedProductsID = rtrim($selectedProductsID,',');
-		$data	=	array(
-					'ItemName' 			=> $_POST['ItemName'],
-					'ItemDescription' 	=> $_POST['ItemDescription'],
-					'Price' 			=> $_POST['Price'],
-					'ItemType' 			=> $_POST['ItemType'],
-					'DiscountTier' 		=> $_POST['DiscountTier'],
-					'DiscountPrice' 	=> $_POST['DiscountPrice'],
-					'Photo' 			=> $_POST['product_photo_upload'],				
-					'SpecialProductsIds'	=> $_POST['Special_products'],
-					'Quantity'			=> $_POST['Quantity']
-				);
-		$url	=	WEB_SERVICE.'v1/products/';
-		$method	=	'POST';
-		//echo'<pre>';print_r($data);echo'</pre>';
-		$curlResponse	=	curlRequest($url,$method,json_encode($data), $_SESSION['merchantInfo']['AccessToken']);
-		//echo'<pre>';print_r($curlResponse);echo'</pre>';
-		if(isset($curlResponse) && is_array($curlResponse) && $curlResponse['meta']['code'] == 201) {
-			
-		} else if(isset($curlResponse['meta']['errorMessage']) && $curlResponse['meta']['errorMessage'] != '') {
-			$responseMessage	=	$curlResponse['meta']['errorMessage'];
-		} else {
-			$responseMessage 	= 	"Bad Request";
-		}
+//getting merchant details
+if(isset($_SESSION['merchantDetailsInfo']) && is_array($_SESSION['merchantDetailsInfo'])) {
+	$merchantInfo  =	$_SESSION['merchantDetailsInfo'];
+	if(!empty($merchantInfo['DiscountTier']) || $merchantInfo['DiscountTier'] != 0) {
 	}
+	else {
+		$msg			=	'Please update your discount tier.';
+		$display 		= 	"block";
+		$class   		= 	"alert-danger";
+		$class_icon 	= 	"fa-warning";
+		$errorMessage 	= 	'';
+		$hide			= 	1;	
+	}
+}
+
+//getting product categories
+$url					=	WEB_SERVICE.'v1/categories/products';
+$curlCategoryResponse 	= 	curlRequest($url, 'GET', null, $_SESSION['merchantInfo']['AccessToken']);
+if(isset($curlCategoryResponse) && is_array($curlCategoryResponse) && $curlCategoryResponse['meta']['code'] == 201 && is_array($curlCategoryResponse['productCategoryDetails']) ) {
+	if(isset($curlCategoryResponse['productCategoryDetails']))
+		$productCategories = $curlCategoryResponse['productCategoryDetails'];	
+} 
+
+if(isset($_GET['add']) && !empty($_GET['add']))
+	$Category = $_GET['add'];
+
+//getting product detail
+if(isset($_GET['edit']) && !empty($_GET['edit'])) {	
+	$url					=	WEB_SERVICE.'v1/products/'.$_GET['edit'];
+	$curlCategoryResponse 	= 	curlRequest($url, 'GET', null, $_SESSION['merchantInfo']['AccessToken']);
+	if(isset($curlCategoryResponse) && is_array($curlCategoryResponse) && $curlCategoryResponse['meta']['code'] == 201 && is_array($curlCategoryResponse['ProductDetail']) ) {
+		if(isset($curlCategoryResponse['ProductDetail'])) {
+			$ProductDetail = $curlCategoryResponse['ProductDetail'];
+			if(isset($ProductDetail) && count($ProductDetail) > 0) {
+				$ProductId		= $ProductDetail[0]['id'];
+				$Photo 			= $ProductDetail[0]['Photo'];
+				$Category 		= $ProductDetail[0]['fkCategoryId'];
+				$ItemName 		= $ProductDetail[0]['ItemName'];
+				$Price 			= $ProductDetail[0]['Price'];	
+				$Status 		= $ProductDetail[0]['Status'];
+				$Discount 		= $ProductDetail[0]['DiscountApplied'];
+				if($ProductDetail[0]['DiscountApplied'] == 1) {
+					$DiscountPrice = $ProductDetail[0]['Price'] - (($ProductDetail[0]['Price']/100) * $merchantInfo['DiscountTier']);
+					floatval($DiscountPrice); 
+				}
+				else
+					$DiscountPrice = $ProductDetail[0]['Price'];
+			}
+		}		
+	}	
+}
+
+//Adding and updating Products
+if((isset($_POST['merchant_product_submit']) && $_POST['merchant_product_submit'] == 'Save') || (isset($_POST['merchant_product_update']) && $_POST['merchant_product_update'] == 'Update')){	
+	//echo "<pre>"; echo print_r($_POST); echo "</pre>";
+	if(isset($_POST['product_photo_upload']) && !empty($_POST['product_photo_upload'])) {
+		$Photo 			= TEMP_IMAGE_PATH.$_POST['product_photo_upload'];
+		$PhotoContent	= $_POST['product_photo_upload'];
+	}	
+	
+	$Category 		= $_POST['Category'];
+	$ItemName 		= $_POST['ItemName'];
+	$Price 			= $_POST['Price'];
+	$Status 		= $_POST['Status'];
+	$Discount 		= $_POST['Discount'];
+	$DiscountPrice 	= $_POST['DiscountPrice'];
+	//echo'<pre>';print_r($_POST);echo'</pre>';
+	$data	=	array(
+				'ProductId'				=> $ProductId,
+				'Photo' 				=> $PhotoContent,
+				'CategoryId'			=> $_POST['Category'],
+				'ItemName' 				=> $_POST['ItemName'],	
+				'Price' 				=> $_POST['Price'],	
+				'Status' 				=> $_POST['Status'],
+				'Discount' 				=> $_POST['Discount'],
+				'ImageAlreadyExists' 	=>	$_POST['empty_product_photo'],
+			);
+	
+	
+	
+	if(isset($_GET['edit']) && !empty($_GET['edit'])) {
+		$method	=	'PUT';
+		$url	=	WEB_SERVICE.'v1/products/'.$ProductId;
+		$curlResponse	=	curlRequest($url,$method,json_encode($data),$_SESSION['merchantInfo']['AccessToken']);	
+	}
+	else {
+		$method	=	'POST';	
+		$url	=	WEB_SERVICE.'v1/products/';
+		$curlResponse	=	curlRequest($url,$method,$data, $_SESSION['merchantInfo']['AccessToken']);		
+	}
+	
+	if(isset($curlResponse) && is_array($curlResponse) && $curlResponse['meta']['code'] == 201) {
+		$successMessage = $curlResponse['notifications'][0];
+		unset($_POST);
+	} else if(isset($curlResponse['meta']['errorMessage']) && $curlResponse['meta']['errorMessage'] != '') {
+		$errorMessage	=	$curlResponse['meta']['errorMessage'];
+	} else {
+		$errorMessage 	= 	"Bad Request";
+	}
+}
+
+//Delete Product
+if(isset($_GET['delete']) && !empty($_GET['delete'])) {
+	$url					=	WEB_SERVICE.'v1/products/'.$_GET['delete'];
+	$curlCategoryResponse 	= 	curlRequest($url, 'DELETE', null,$_SESSION['merchantInfo']['AccessToken']);
+	if(isset($curlCategoryResponse) && is_array($curlCategoryResponse) && $curlCategoryResponse['meta']['code'] == 201) {
+		$successMessage = "Product Deleted successfully";
+	}	
+}
+
+if(isset($errorMessage) && $errorMessage != ''){
+	$msg			=	$errorMessage;
+	$display 		= 	"block";
+	$class   		= 	"alert-danger";
+	$class_icon 	= 	"fa-warning";
+	$errorMessage 	= 	'';
+}else if(isset($successMessage) && $successMessage != ''){
+	$msg			=	$successMessage;
+	$display		=	"block";
+	$class 			= 	"alert-success";
+	$class_icon 	= 	"fa-check";
+	$successMessage = 	'';
+	$hide			=  1;
 }
 commonHead();
 ?>
 
-<body class="skin-blue" onload="fieldfocus('ItemName');">
-		<?php top_header(); ?>
-		<section class="content" align="center">
-		<div class="col-md-10" style="margin:auto;float:none" >		
-			<section class="content-header">
-                <h1>Product</h1>
-            </section>			
-			<form action="" name="add_product_form" id="add_product_form"  method="post">
-				<div class="row">
-				<div class="col-md-6">
-					<div class="box box-primary no-padding">
-						<div class="form-group col-md-12">
-							<label>Item Name</label>
-							<input class="form-control" type="text" name="ItemName"  id="ItemName" value="">
-						</div>
-						<div class="form-group col-md-12">
-							<label>Item Description</label>
-							<textarea class="form-control" id="ItemDescription" name="ItemDescription" cols="5"></textarea>
-						</div>
-						<div class="form-group col-md-12">
-							<label>Product Image</label>
-							<div class="row">
-						    <div class="col-md-7">	
-								<input type="file"  name="product_photo" id="product_photo" onchange="return ajaxAdminFileUploadProcess('product_photo');"  /> 
-								<p class="help-block">(Minimum dimension 100x100)</p>
-								<span class="error" for="empty_product_photo" generated="true" style="display: none">Product photo is required</span>	
-									<div id="product_photo_img">
-									</div>	
-								<input type="Hidden" name="empty_product_photo" id="empty_product_photo" value="" />
-								<input type="Hidden" name="name_product_photo" id="name_product_photo" value="" />				
-							</div>
-							
-						</div>										
-						<div class="form-group col-md-12">
-							<label>Price</label>
-							$ <input class="form-control" type="text" name="Price" style="width:50px;"  id="Price" onkeypress="return isNumberKey(event);" maxlength="10" value="" onchange="return Cal_DiscountPrice();">
-						</div>	
-						<div class="form-group col-md-12">
-							<label>ItemType</label>
-							<select class="form-control" id="ItemType" name="ItemType" onchange="return hideShowPrice();">
-								<option value="" >Select</option>
-								<?php if(isset($itemTypeArray) && is_array($itemTypeArray) && count($itemTypeArray) > 0) {
-										foreach($itemTypeArray as $key=>$value){
-								 ?>
-								<option value="<?php echo $key; ?>"><?php echo $value; ?></option>
-								<?php } } ?>
-							</select>
-						</div>		
-						<div id="Deal" class="form-group col-md-12" style="display:none;">
-							<label>DiscountTier</label>
-							<select class="form-control" id="DiscountTier" name="DiscountTier" onchange="return Cal_DiscountPrice();">
-								<option value="" >Select</option>
-								<?php if(isset($discountTierArray) && is_array($discountTierArray) && count($discountTierArray) > 0) {
-										foreach($discountTierArray as $key=>$value){
-								 ?>
-								<option value="<?php echo $key; ?>"><?php echo $value.'%'; ?></option>
-								<?php } } ?>
-							</select>
-						</div>
-						<div id="Deal1" class="form-group col-md-12" style="display:none;">
-							<label>DiscountPrice</label>
-							$ <input class="form-control" type="text" name="DiscountPrice" style="width:50px;" id="DiscountPrice" onkeypress="return isNumberKey(event);" maxlength="10" value="" readonly>
-						</div>
-						<input type="hidden" id="specialProductsCount" name="specialProductsCount">
-						<?php if(isset($specialProductsArray) && is_array($specialProductsArray) && count($specialProductsArray) > 0) { ?>						
-						<div id="Special" class="form-group col-md-12" style="display:none;">
-							<table id='SpecialTable' >
-								<tr>
-									<th width="15%">Product</th>
-									<th width="7%" style="padding-left:30px;">Quantity</th>
-									<th width="7%">Price</th>
-									<th width="7%">Total Price</th>									
-								</tr>
-								<tr>
-									<td>
-										<select class="form-control" id="Special_product_1" name="Special_products_1" onchange="return specialPrice(1);">
-										<option value="" >Select</option>
-										<?php if(isset($specialProductsArray) && is_array($specialProductsArray) && count($specialProductsArray) > 0) {
-												foreach($specialProductsArray as $key=>$value){
-										 ?>										
-										<option value="<?php echo $value['id']; ?>"><?php echo $value['ItemName']; ?></option>
-										<?php } } ?>
-									</select>										
-									</td>
-									<td style="padding-left:30px;">
-										<input type="Text" id="Product_Quantity_1" style="width:50px;" onkeypress="return isNumberKey(event);" onchange="return calculateSpecialPrice(1);" maxlength="4" name="Product_Quantity_1" value="0"/>
-									</td>
-									<td>
-										<input type="Text" id="Product_Price_1" style="width:80px;" name="Product_Price_1" value="0" readonly>										
-									</td>
-									<td>
-										<input type="Text"id="Product_Total_1" style="width:80px;" name="Product_Total_1"value="0" readonly>
-									<td>
-									<td><i class="fa fa-lg fa-plus-circle" id="addrow"></i></td>
-								</tr>
-							</table>
-							<input type="Hidden" id="totalrow" name="totalrow" value="1">
-							<?php if(isset($specialProductsArray) && is_array($specialProductsArray) && count($specialProductsArray) > 0) {
-									foreach($specialProductsArray as $key=>$value){
-							 ?>	
-							 <input type="Hidden" id ="price_<?php echo $value['id']; ?>" value="<?php echo $value['Price']; ?>">										
-							<?php } } ?>
-						</div>	
-						<?php } else { ?>
-							<span>No Regular Products</span> 
-						<?php } ?>
-						<div class="form-group col-md-12">
-							<label>Quantity</label>
-							<input class="form-control" type="text" name="Quantity"  id="Quantity" onkeypress="return isNumberKey(event);" maxlength="15" value="">
-						</div>						
-					</div>
-				</div>	
-			</div>
+<body class="skin-blue fixed" onload="fieldfocus('ItemName');">
+		<?php if(isset($_GET['show']) && $_GET['show'] ==0) {	
+				} 
+				else 
+					top_header(); 
+			if(isset($msg) && $msg != '') {
+		?>
+		<br><br><div align="center" class="alert <?php  echo $class;  ?> alert-dismissable col-xs-10">
+			<i class="fa <?php  echo $class_icon;  ?>"></i>  <?php echo $msg; ?>
 		</div>
-				<div class="footer col-md-12" align="center"> 
-						<input type="submit" name="merchant_product_submit" id="merchant_product_submit" value="SAVE" class="btn btn-success ">
-				</div>
+		<?php } if(isset($hide) & $hide == 1) {  } else { ?>			
+			<form action="" name="<?php if(isset($_GET['edit']) && !empty($_GET['edit'])) echo "edit"; else echo "add"; ?>_product_form" id="<?php if(isset($_GET['edit']) && !empty($_GET['edit'])) echo "edit"; else echo "add"; ?>_product_form"  method="post">
+				<div class="row">
+					<div class="form-group col-xs-12 no-padding" style="min-height:85px;">						   
+						<div class="col-xs-3 col-sm-3 no-padding" style="margin-left:16px;">
+							<label class="col-xs-3 " id="product_photo_img">
+							<img height="75" width="75" src="<?php if(isset($Photo) && !empty($Photo)) echo $Photo; else echo MERCHANT_SITE_IMAGE_PATH."no_photo_burger.jpg"; ?>">
+							<?php if(isset($PhotoContent) && !empty($PhotoContent)) { ?>
+								<input id="product_photo_upload" type="hidden" value="<?php echo $PhotoContent; ?>" name="product_photo_upload">
+							<?php } ?>
+						</label>
+						</div>
+						<div class="col-xs-8 col-sm-12">
+							<input type="file"  name="product_photo" id="product_photo" onchange="return ajaxAdminFileUploadProcess('product_photo');"  /> 
+							<p class="help-block">Pls upload JPG or PNG files. The best resolution is 300X300 pixels.</p>						
+							<span class="error" for="empty_product_photo" generated="true" style="display: none">Product Image is required</span>										
+							<input type="Hidden" name="empty_product_photo" id="empty_product_photo" value="<?php if(isset($Photo) && !empty($Photo)) echo "1"; ?>" />
+							<input type="Hidden" name="name_product_photo" id="name_product_photo" value="<?php echo $PhotoContent; ?>" />		
+						</div>				
+					</div>												
+					<div class="form-group col-xs-12 error_msg_hgt">
+						<label class="col-xs-3 no-padding">Category</label>
+						<p class="help-block">Item can be re-arranged into other category anytime</p>
+						<div class="col-xs-12 no-padding">
+							<select class="form-control " name="Category">
+								<option value="" >Select</option>								
+								<?php if(isset($productCategories) && !empty($productCategories)) {
+									foreach($productCategories as $key=>$val) {								
+								?>
+								<option value="<?php echo $val['CategoryId'];?>" <?php if(isset($Category) && $Category == $val['CategoryId']) echo "selected";?>><?php echo ucfirst($val['CategoryName']);?></option>
+								<?php } } ?>								
+							</select>
+						</div>
+					</div>	
+					<div class="form-group col-xs-12 error_msg_hgt ">							
+						<label class="col-xs-3 no-padding">Item Name</label>
+						<p class="help-block col-xs-9">Max. 30 characters</p>
+						<div class="col-xs-12 no-padding">
+							<input class="form-control" type="text" maxlength="30" name="ItemName" id="ItemName" value="<?php if(isset($ItemName)) echo $ItemName; ?>" />
+						</div>
+					</div>	
+					<div class="form-group col-xs-12 error_msg_hgt60">							
+						<label class="col-xs-9 no-padding">Item Price</label>
+						<div class="col-xs-3 no-padding">
+							<span class="col-xs-1 LH30 no-padding">$</span>
+							<span class="col-xs-11 no-padding">
+								<input type="text"  class="form-control text-right" name="Price" id="Price" onkeypress="return isNumberKey(event);" maxlength="10" value="<?php if(isset($Price)) echo $Price; ?>" onkeyup="return calculateDiscountPrice();">
+							</span>							
+						</div>
+					</div>	
+					<div class="form-group col-xs-12" style="padding-right:0">
+						<label class="col-xs-6 col-sm-3 no-padding" style="display:inline-block;"><span><strong>Status</strong></label>
+						<div class="col-xs-6 col-sm-12 no-padding"> 
+						<input type="radio" name="Status" id="Active" value="1" <?php if(isset($Status) && $Status == '1') echo "checked"; else echo "checked"; ?>>&nbsp;<label for="Active" class="no_bold">Active</label>&nbsp;&nbsp;&nbsp;
+						<input type="radio" name="Status"  id="Inactive" value="2" <?php if(isset($Status) && $Status == '2') echo "checked";?>>&nbsp;<label for="Inactive" class="no_bold">Inactive</label>
+						</div>
+					</div>
+					<div class="" style="display:inline-block;min-width:395px;padding-bottom:15px;">
+						<label style="display:inline-block;float:left"><span style="float:left">&nbsp;&nbsp;&nbsp;&nbsp;<strong>Discounted Item</strong></span>
+							<span class="" style="display:inline-block;font-size:11px;float:left;width:188px;padding:3px 0 0 17px;">You are in <?php if(isset($merchantInfo['DiscountTier'])) echo "<span id='discounttier'>".$merchantInfo['DiscountTier']."</span>"; ?> Tier&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+						</label>
+						<select class="Discount" name="Discount" id="Discount">
+							<option value="1" <?php if(isset($Discount) && $Discount == '1') echo "selected"; else echo "selected"; ?>>On</option>
+							<option value="0" <?php if(isset($Discount) && $Discount == '0') echo "selected"; ?>>Off</option>
+						</select>
+					</div>
+					<div class="form-group col-xs-12">
+						<label class="col-xs-4 no-padding">Discounted Price</label>
+						<p class="help-block col-xs-5">Calculated automatically</p> 
+						<div class="col-xs-3 no-padding text-right">
+							<span class="col-xs-11 LH30 no-padding" id="discount_price">
+							<?php if(isset($DiscountPrice))
+									echo "$".$DiscountPrice;
+								else
+									echo "$0";
+							?>
+							</span> 
+							<input type="Hidden"  class="form-control text-right" name="DiscountPrice" id="DiscountPrice" value="<?php if(isset($DiscountPrice)) echo $DiscountPrice; else echo "0"; ?>" readonly>
+						</div>
+					</div>						
+					<div class="footer col-xs-12 text-center clear"> 
+						<a href="#" class="link" onclick="parent.jQuery.fancybox.close();">Cancel</a>&nbsp;&nbsp;&nbsp;
+						<?php if(isset($_GET['edit']) && !empty($_GET['edit'])) { ?>
+							<input type="Hidden" name="editId" id="editId" value="<?php echo $_GET['edit']; ?>" />
+							<input type="submit" name="merchant_product_update" id="merchant_product_update" value="Update" class="btn btn-success ">&nbsp;&nbsp;&nbsp;
+							<a href="Product?show=0&delete=<?php echo $_GET['edit']; ?>" class="link" onclick="return confirm('Are you sure to delete?')">Delete</a>
+						<?php }  else {  ?>
+							<input type="submit" name="merchant_product_submit" id="merchant_product_submit" value="Save" class="btn btn-success ">
+						<?php } ?>
+					</div>
+				</div><!-- /row -->		
 			</form>
-		 </div>
-		</section>
-		<?php footerLogin(); ?>
+		<?php } if(isset($_GET['show']) && $_GET['show'] ==0) {
+				}
+				else footerLogin(); 
+		?>
 	<?php commonFooter(); ?>
 </html>
 <script type="text/javascript">
 $(document).ready(function() {
-	$('.icon_fancybox').fancybox();		
-});
-$('#addrow').live('click', function(){
-   //put jquery this context into a var
-   var $btn = $(this);
-   //use .closest() to navigate from the buttno to the closest row and clone it
-   var $clonedRow = $btn.closest('tr').clone();
-   //append the cloned row to end of the table
-	var total = parseInt($('#totalrow').val());
-	total = total + 1;
-	total = total.toString();
-	
-   //clean ids if you need to
-   $clonedRow.find('*').andSelf().filter('[id]').each( function(){
-       //clear id or change to something else
-	   var id = this.id;
-	  
-	   id = id.substring(0, id.length - 1);
-	   id +=total;
-       this.id = id;
-	   this.name = id;
-   });
-
-   //finally append new row to end of table
-   $btn.closest('tbody').append( $clonedRow );
-     $('#totalrow').val(total);
+	$('.icon_fancybox').fancybox();	
+	$('.Discount').switchify(); 	
 });
 </script>

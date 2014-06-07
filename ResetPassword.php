@@ -61,8 +61,8 @@ if(isset($requestMessage) && $requestMessage == ''){
 				);
 			$url	=	WEB_SERVICE.'v1/merchants/resetPassword';
 		}
-		$method	=	'POST';
-		$curlResponse	=	curlRequest($url,$method,$data);
+		$method	=	'PUT';
+		$curlResponse	=	curlRequest($url,$method,json_encode($data));
 		if(isset($curlResponse) && is_array($curlResponse)  && $curlResponse['meta']['code'] == 201 ) {
 			header('location:ResetPassword.php?Success=1&Type='.$_GET['Type']);
 			/*if($_GET['Type'] == 1){

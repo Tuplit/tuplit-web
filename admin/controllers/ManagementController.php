@@ -57,5 +57,33 @@ class ManagementController extends Controller
 		if ($this->ManagementModelObj)
 			return $this->ManagementModelObj->deleteCategoryReleatedEntries($delete_id);
 	}
+	function selectProductCategoryDetails($field,$condition)
+	{
+		if (!isset($this->ManagementModelObj))
+			$this->loadModel('ManagementModel', 'ManagementModelObj');
+		if ($this->ManagementModelObj)
+			return $this->ManagementModelObj->selectProductCategoryDetails($field,$condition);
+	}
+	function updateProductCategoryDetails($update_string,$condition)
+	{
+		if (!isset($this->ManagementModelObj))
+			$this->loadModel('ManagementModel', 'ManagementModelObj');
+		if ($this->ManagementModelObj)
+			return $this->ManagementModelObj->updateProductCategoryDetails($update_string,$condition);
+	}
+	function insertProductCategoryDetails($post_values)
+	{
+		if (!isset($this->ManagementModelObj))
+			$this->loadModel('ManagementModel', 'ManagementModelObj');
+		if ($this->ManagementModelObj)
+			return $this->ManagementModelObj->insertProductCategoryDetails($post_values);
+	}
+	function getProductCategoryList($fields,$condition,$join_condition)
+	{
+		if (!isset($this->ManagementModelObj))
+			$this->loadModel('ManagementModel', 'ManagementModelObj');
+		if ($this->ManagementModelObj)
+			return $this->ManagementModelObj->getProductCategoryList($fields,$condition,$join_condition);
+	}
 }
 ?>

@@ -9,11 +9,9 @@ $responseErrorMessage = $responseSuccessMessage = '';
 
 if(isset($_POST['merchant_forgot_submit']) && $_POST['merchant_forgot_submit'] == 'SUBMIT'){
 	if(isset($_POST['Email']) && $_POST['Email']){
-		$data	=	array(
-						'Email' => $_POST['Email']						
-					);
-		$url	=	WEB_SERVICE.'v1/merchants/forgetPassword';
-		$method	=	'POST';
+		$data	=	array();
+		$url	=	WEB_SERVICE.'v1/merchants/forgetPassword?Email='.$_POST['Email'];
+		$method	=	'GET';
 		$curlResponse	=	curlRequest($url,$method,$data);		
 		if(isset($curlResponse) && is_array($curlResponse)  && $curlResponse['meta']['code'] == 201 ) {
 			$responseSuccessMessage = $curlResponse['merchant']['message'];
@@ -27,7 +25,7 @@ if(isset($_POST['merchant_forgot_submit']) && $_POST['merchant_forgot_submit'] =
 }
 commonHead();
 ?>
-<body class="skin-blue" onload="fieldfocus('Email');">
+<body class="skin-blue fixed" onload="fieldfocus('Email');">
 	<?php top_header(); ?>
 	<div class="form-box" id="login-box">
 		<form action="" name="forget_password_form" id="forget_password_form"  method="post">

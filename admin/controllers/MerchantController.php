@@ -45,12 +45,28 @@ class MerchantController extends Controller
 			return $this->MerchantModelObj->selectMerchantDetail($id);
 	}
 	
-	function updateDetails($data,$icon,$img)
+	function updateDetails($data,$icon,$img,$openhours)
 	{
 		if (!isset($this->MerchantModelObj))
 			$this->loadModel('MerchantModel', 'MerchantModelObj');
 		if ($this->MerchantModelObj)
-			return $this->MerchantModelObj->updateDetails($data,$icon,$img);
+			return $this->MerchantModelObj->updateDetails($data,$icon,$img,$openhours);
+	}
+	
+	function updateShoppingHours($data)
+	{
+		if (!isset($this->MerchantModelObj))
+			$this->loadModel('MerchantModel', 'MerchantModelObj');
+		if ($this->MerchantModelObj)
+			return $this->MerchantModelObj->updateShoppingHours($data);
+	}
+	
+	function selectOpeningHoursDetail($merchantId)
+	{
+		if (!isset($this->MerchantModelObj))
+			$this->loadModel('MerchantModel', 'MerchantModelObj');
+		if ($this->MerchantModelObj)
+			return $this->MerchantModelObj->selectOpeningHoursDetail($merchantId);
 	}
 	
 	function getCategories()
@@ -75,5 +91,12 @@ class MerchantController extends Controller
 		if ($this->MerchantModelObj)
 			return $this->MerchantModelObj->selectMerchantCategory($id);
 	}
+	function selectMerchantDetails($field,$condition)
+	{
+		if (!isset($this->MerchantModelObj))
+			$this->loadModel('MerchantModel', 'MerchantModelObj');
+		if ($this->MerchantModelObj)
+			return $this->MerchantModelObj->selectMerchantDetails($field,$condition);
+	}	
 }
 ?>

@@ -46,13 +46,17 @@ else {
 	if ($_FILES[$fileElementName]['tmp_name'] != '') {
 		$res = getImageSize($_FILES[$fileElementName]['tmp_name']);
 		if( $fileElementName == 'com_photo' && ( $res[0] < '640' || $res[1] < '240' ) ){
-			$error = 'Image dimension should be greater than 640x240 - '.$_SESSION['merchantInfo']['MerchantId'];
+			$error = 'Image dimension should be greater than 640x240';
 		}
-		if( $fileElementName == 'merchant_photo' && ( $res[0] < '640' || $res[1] < '240' ) ){
-			$error = 'Image dimension should be greater than 640x240 - '.$_SESSION['merchantInfo']['MerchantId'];
+		if($fileElementName == 'product_photo'){
+			if(( $res[0] > '400' || $res[0] < '300' ) || ( $res[1] > '400' || $res[1] < '300' ))
+				$error = 'Image dimension should be greater than 300x300 and less then 400x400';
 		}
-		if( $fileElementName == 'icon_photo' && ( $res[0] < '100' || $res[1] < '100' ) ){
-			$error = 'Image dimension should be greater than 100x100';
+		if( $fileElementName == 'merchant_photo' && $res[0] != '640' && $res[1] != '260' ){
+			$error = 'Image dimension should be 640x260';
+		}
+		if( $fileElementName == 'icon_photo' && ( $res[0] != '100' && $res[1] != '100' ) ){
+			$error = 'Image dimension should be 100x100';
 		}
 		if (!in_array($_FILES[$fileElementName]['type'], $file_types_array)) {
             $error = 'Please upload JPEG, JPG and PNG images only.';

@@ -2,7 +2,8 @@
 require_once('includes/CommonIncludes.php');
 //require_once('includes/php_image_magician.php');
 admin_login_check();
-
+global $admin_days_array;
+global $admin_time_array;
 commonHead();
 require_once('controllers/MerchantController.php');
 $MerchantObj   =   new MerchantController();
@@ -16,9 +17,12 @@ if(isset($_POST['submit']) && $_POST['submit'] != ''){
 	$_POST          =   unEscapeSpecialCharacters($_POST);
    	$_POST          =   escapeSpecialCharacters($_POST);
 	$iconName = $iconPath = $imageName = $imagePath = $icimg = $imimg = '';
-	//print_r($_POST);
+	//echo'<pre>';print_r($_POST);echo'</pre>'; //die();
 	$merchantListResult  = $MerchantObj->selectMerchantDetail($_POST['merchant_id']);
 	
+	//from - name of from hour, to - name of to hour, set - validator name 
+	//$openinghours = getOpeningHoursString($_POST,'from','to','set');
+	$openinghours	= '';
 	if(isset($merchantListResult) && is_array($merchantListResult) && count($merchantListResult) > 0){
 		if (isset($_POST['icon_photo_upload']) && !empty($_POST['icon_photo_upload'])) {
 			if(file_exists(MERCHANT_ICONS_IMAGE_PATH_REL.$merchantListResult[0]->Icon))
@@ -33,7 +37,6 @@ if(isset($_POST['submit']) && $_POST['submit'] != ''){
 			$phMagick = new phMagick($tempIconPath);
 			$phMagick->setDestination($iconPath)->resize(100,100);
 			if (SERVER){
-				echo "<br/>====oldIconName==";
 				if($oldIconName!='') {
 					if(image_exists(6,$oldIconName)) {
 						deleteImages(6,$oldIconName);
@@ -50,8 +53,6 @@ if(isset($_POST['submit']) && $_POST['submit'] != ''){
 			$imageName 				= $_POST['merchant_id'] . '_' . strtotime($date_now) . '.png';
 		   	$tempImagePath 			= TEMP_USER_IMAGE_PATH_REL . $_POST['merchant_photo_upload'];
 			$imagePath 				= UPLOAD_MERCHANT_IMAGE_PATH_REL . $imageName;
-			echo "<br/>==tempImagePath============".$tempImagePath;
-			echo "<br/>==imagePath============".$imagePath;
 			$oldImageName			= $_POST['name_merchant_photo'];
 			if ( !file_exists(UPLOAD_MERCHANT_IMAGE_PATH_REL) ){
 		  		mkdir (UPLOAD_MERCHANT_IMAGE_PATH_REL, 0777);
@@ -70,16 +71,20 @@ if(isset($_POST['submit']) && $_POST['submit'] != ''){
 			}
 			//unlink(TEMP_USER_IMAGE_PATH_REL.$_POST['merchant_photo_upload']);
 		}
-		$MerchantObj->updateDetails($_POST,$iconName,$imageName);
-			
+		$MerchantObj->updateDetails($_POST,$iconName,$imageName,$openinghours);	
 	}
+	$MerchantObj->updateShoppingHours($_POST);
+	unset($_POST);
 	//die();
-	//header("location:MerchantList?cs=1&msg=2");
+	header("location:MerchantList?msg=2");
+	
 }
 
 if(isset($_GET['editId']) && $_GET['editId'] != '' ){
-	$merchantListResult  = $MerchantObj->selectMerchantDetail($_GET['editId']);
-	$merchantcategorylist  = $MerchantObj->selectMerchantCategory($_GET['editId']);	
+	$merchantListResult  		= $MerchantObj->selectMerchantDetail($_GET['editId']);
+	$merchantOpeningHoursResult = $MerchantObj->selectOpeningHoursDetail($_GET['editId']);
+	//echo "<pre>"; echo print_r($merchantOpeningHoursResult); echo "</pre>";
+	$merchantcategorylist  		= $MerchantObj->selectMerchantCategory($_GET['editId']);	
 	$cat_id_array = array(); $cat_id_values = '';
 	if(count($merchantcategorylist) > 0) {		
 		$cat_id_array  = explode(',',$merchantcategorylist[0]->cat_id);
@@ -88,7 +93,6 @@ if(isset($_GET['editId']) && $_GET['editId'] != '' ){
 	if(!empty($cat_id_values))
 		$cat_id_values = rtrim($cat_id_values,',');
 	if(isset($merchantListResult) && is_array($merchantListResult) && count($merchantListResult) > 0){
-	//echo "<pre>";   print_r($merchantListResult);   echo "</pre>";
 ?>
 <body class="skin-blue" onload="return fieldfocus('FirstName');">
 	<?php top_header(); ?>
@@ -150,12 +154,7 @@ if(isset($_GET['editId']) && $_GET['editId'] != '' ){
 					<div class="form-group col-md-6">
 						<label>Description</label>
 						<textarea class="form-control" id="Description" name="Description" cols="5"><?php echo $merchantListResult[0]->Description;?></textarea>
-					</div>
-					<div class="form-group col-md-6">
-						<label>Opening Hours</label>
-						<textarea class="form-control" id="OpeningHours" name="OpeningHours" cols="5"><?php echo $merchantListResult[0]->OpeningHours;?></textarea>	
-					</div>	
-						
+					</div>						
 					<div class="form-group col-md-6 ">
 						<label>Icon</label>
 							<div class="col-md-6 no-padding"> 
@@ -220,39 +219,39 @@ if(isset($_GET['editId']) && $_GET['editId'] != '' ){
 					<div class="form-group col-md-6 ">
 						<label>Category</label>
 						<div class="col-md-6 no-padding form-group">
-						<select name="Category" id="Category" class="form-control" onchange="showCategory()">
+						<select name="Category" id="Category" class="form-control" onchange="showCategory(this.value)">
 							<option value="">Select</option>	
 							<?php if(isset($categories) && !empty($categories)) {
 								foreach($categories as $val) {
-									if(!in_array($val->Id,$cat_id_array)) {
+									//if(!in_array($val->Id,$cat_id_array)) {
 							?>
-							<option value="<?php echo $val->Id; ?>" style="background-image:url(<?php echo CATEGORY_IMAGE_PATH.$val->CategoryIcon; ?>);"><?php echo $val->CategoryName;?></option>
-							<?php } } } ?>
+							<option value="<?php echo $val->Id; ?>" style="background-image:url(<?php echo CATEGORY_IMAGE_PATH.$val->CategoryIcon; ?>);"><?php echo ucfirst($val->CategoryName);?></option>
+							<?php } } //} ?>
 						</select>
 						</div>
 						<div class="col-md-12 no-padding">
 							<?php if(isset($categories) && !empty($categories)) {
-								foreach($categories as $val) {
+								foreach($categories as $val) {									
 							?>
 								<span id="cat_id_<?php echo $val->Id; ?>" style="<?php if(in_array($val->Id,$cat_id_array)) echo "display:block;"; else echo "display:none;";?>"  class="cat_box">
 									<img width="30" height="30" src="<?php echo CATEGORY_IMAGE_PATH.$val->CategoryIcon; ?>"/>
-									<span class="cname"><?php echo $val->CategoryName;?></i></span>
+									<span class="cname"><?php echo ucfirst($val->CategoryName);?></i></span>
 									<a class="delete" title="Remove" href="javascript:void(0)" onclick="removeCategory(<?php echo $val->Id; ?>)">
 										<i class="fa fa-trash-o "></i>
 									</a>
 								</span>
 							<?php } } ?>
-							<input type="Hidden" id="categorySelected" name="categorySelected" value="<?php echo $cat_id_values; ?>"/>
+							<input type="Hidden" id="categorySelected" name="categorySelected" value="<?php //echo $cat_id_values; ?>"/>
 						</div>
 					</div>
 					<div class="form-group col-md-6 ">
-						<div class="col-md-6 no-padding">
+						<div class="col-lg-6 no-padding">
 							<label>Price Scheme</label>
 							<div class="col-md-6 no-padding ">
 							<select class="form-control" id="DiscountTier" name="DiscountTier">
 								<option value="" >Select
-								<?php if(isset($discount_array) && is_array($discount_array) && count($discount_array) > 0) {
-										foreach($discount_array as $key=>$value){
+								<?php if(isset($discountTierArray) && is_array($discountTierArray) && count($discountTierArray) > 0) {
+										foreach($discountTierArray as $key=>$value){
 								 ?>
 								<option value="<?php echo $key; ?>" <?php if(isset($merchantListResult[0]->DiscountTier) &&  $merchantListResult[0]->DiscountTier == $key ) echo 'selected';?>><?php echo $value.'%'; ?>
 								<?php } } ?>
@@ -268,7 +267,7 @@ if(isset($_GET['editId']) && $_GET['editId'] != '' ){
 								$max_val = $pricerange[1];
 							}
 						?>
-						<div class="col-md-6 no-padding">
+						<div class="col-lg-6 no-padding form-group">
 							<label>Price Range</label>
 							<div class="col-md-12 no-padding">							
 								<div class="col-sm-5 no-padding">
@@ -282,12 +281,49 @@ if(isset($_GET['editId']) && $_GET['editId'] != '' ){
 								</div>
 								<input  type="hidden" id="priceValidation" name="priceValidation" value="">
 							</div>
-						</div>
+						</div>						
 					</div>
+					<div class="form-group col-md-7">
+						<div class="form-group col-md-12 no-padding"><label>Open Hours leave as empty for not service, HH:MM AM/PM</label></div>
+							<?php 								
+								if(isset($admin_days_array) && count($admin_days_array)>0) {
+								foreach($admin_days_array as $key=>$val){ ?>
+							<div class="col-sm-12 no-padding <?php if($key != 0) echo "rowHide";?>" <?php if(isset($merchantOpeningHoursResult[0]->DateType) && $merchantOpeningHoursResult[0]->DateType == '1' && $key != 0) echo 'style="display:none;"'; ?>>
+								<?php if($key == 0) { ?>
+									<div class="col-sm-12 no-padding">
+										<input type="checkbox" name="samehours" id="samehours"  onclick="return hideAllDays();" <?php if(isset($merchantOpeningHoursResult[0]->DateType) && $merchantOpeningHoursResult[0]->DateType == '1') echo "checked"; ?>>&nbsp;Same for all days 
+										<input type="hidden" id="showdays" name="showdays" value="<?php if(isset($merchantOpeningHoursResult[0]->id)) echo $merchantOpeningHoursResult[0]->DateType; else echo "0"; ?>"/>
+									</div>
+								<?php } ?>
+								<div class="col-sm-3 no-padding LH30"><span class="<?php if($key == 0) echo "rowshow";?>"><?php if(isset($merchantOpeningHoursResult[0]->DateType) && $merchantOpeningHoursResult[0]->DateType == '1' && $key == 0) echo "Monday to Sunday : "; else echo $val." : "; ?></span></div>
+								<div class="col-sm-3 no-padding">
+									<div class="col-sm-4 no-padding LH30">From :</div>
+									<div class="col-sm-8 no-padding">
+										<input type="text"class="form-control" id="from1_<?php echo $key; ?>" name="from1_<?php echo $key; ?>" onchange="return setTime('<?php echo $key; ?>');" value="<?php if(isset($merchantOpeningHoursResult[$key]->Start)) echo $merchantOpeningHoursResult[$key]->Start; ?>" >
+									</div>
+								</div>
+								<div class="col-sm-3 no-padding">
+									<div class="col-sm-4 no-padding text-right LH30">To :&nbsp;</div>
+									<div class="col-sm-8 no-padding"><input type="text" class="form-control" id="to1_<?php echo $key; ?>" name="to1_<?php echo $key; ?>" onchange="return setTime('<?php echo $key; ?>');" value="<?php if(isset($merchantOpeningHoursResult[$key]->End)) echo $merchantOpeningHoursResult[$key]->End; ?>" ></div>
+								</div>
+								<div class="col-sm-4">
+								<input type="hidden" style="width:90px;" id="id_<?php echo $key; ?>" name="id_<?php echo $key; ?>" value="<?php if(isset($merchantOpeningHoursResult[$key]->id)) echo $merchantOpeningHoursResult[$key]->id; ?>" >
+								</div>
+							</div>
+							<div class="form-group col-md-12">
+								<input type="hidden" id="row_<?php echo $key; ?>" name="row_<?php echo $key; ?>" value="<?php if(!empty($merchantOpeningHoursResult[$key]->Start) || !empty($merchantOpeningHoursResult[$key]->End)) echo "1"; ?>" />
+										<span id="error_<?php echo $key; ?>" style="color:red;"></span>
+							</div>
+							<?php } } ?>
+					</div>	
+					
+					</div>
+					
 					<div class="box-footer col-md-12" align="center">
 						<input type="submit" class="btn btn-success" name="submit" id="submit" value="Save" title="Save" alt="Save">&nbsp;&nbsp;&nbsp;&nbsp;
 						<?php $href_page = "MerchantList"; 	?>		
 							<a href="<?php if(isset($href_page) && $href_page != '' ) echo $href_page; else echo 'MerchantList';?>" class="btn btn-default" name="Back" id="Back" title="Back" alt="Back" >Back </a>	
+						
 					</div>
 				</div><!-- /.box -->
 			</form>	
@@ -299,6 +335,7 @@ if(isset($_GET['editId']) && $_GET['editId'] != '' ){
 }commonFooter(); ?>
 </html>
 <script type="text/javascript">
+showCategory('<?php if(isset($cat_id_values) && $cat_id_values>0) echo $cat_id_values; ?>');
 function price_val(val){
 	$("#priceValidation").val(val);
 }

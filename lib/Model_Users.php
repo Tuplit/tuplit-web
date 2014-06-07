@@ -150,6 +150,60 @@ class Model_Users extends RedBean_SimpleModel implements ModelBaseInterface {
 		}
 		return $endpointARN;
 	 }
+	 
+	 /**
+     * Check Balance
+     */
+	 public function checkBalance(){
+	 	/**
+         * Get the bean
+         * @var $bean Model_Users
+         */
+		$bean = $this->bean;
+		
+		//validate param
+		$this->validatecheckBalanceParams();
+		
+		$result = R::findOne('users', 'id = ? ', array($bean->UsersId));
+		if($result) {			
+			if($bean->PaymentAmount <= $result->CurrentBalance) 
+				$AllowPayment = 1;
+			else
+				$AllowPayment = 0;
+				
+			$AllowPaymentArray['PaymentAmount'] 	= $bean->PaymentAmount;		
+			$AllowPaymentArray['CurrentBalance'] 	= $result->CurrentBalance;
+			$AllowPaymentArray['AllowPayment'] 		= $AllowPayment;			
+			return $AllowPaymentArray;
+		}
+		else {
+			/**
+	         * throwing error when no data found
+	         */
+			throw new ApiException("No users Found", ErrorCodeType::NoResultFound);
+		}
+	 }
+	 
+	/**
+     * Validate the fields (checkBalance)
+     */
+    public function validatecheckBalanceParams()
+    {
+		$bean = $this->bean;
+	  	$rules = [
+            'required' => [
+                 ['PaymentAmount']
+            ]
+        ];
+		
+        $v = new Validator($this->bean);
+        $v->rules($rules);
+        if (!$v->validate()) {
+            $errors = $v->errors();
+			// the action was not found
+            throw new ApiException("Please check PaymentAmount field." ,  ErrorCodeType::SomeFieldsRequired, $errors);
+        }
+	}
 	
 	 /**
      * Validate the fields (Platform)
@@ -157,6 +211,7 @@ class Model_Users extends RedBean_SimpleModel implements ModelBaseInterface {
      */
     public function validateARN()
     {
+		
 		$rules = [
             'required' => [
                ['Platform']
@@ -323,13 +378,13 @@ class Model_Users extends RedBean_SimpleModel implements ModelBaseInterface {
 		/**
          * Pincode must be unique
          */
-		if($bean->PinCode != ''){
+		/*if($bean->PinCode != ''){
 	        $existingAccount = R::findOne('users', 'PinCode = ? and Status <> ? order by DateModified desc', array($bean->PinCode,StatusType::DeleteStatus));
 	        if ($existingAccount) {
 	            // an account with that pincode already exists in the system - don't create account
 	            throw new ApiException("You are not allow to use this pincode",ErrorCodeType::PincodeAlreadyExists);
 			}
-		}
+		}*/
 		/**
          * Cell number must be unique
          */
@@ -437,13 +492,13 @@ class Model_Users extends RedBean_SimpleModel implements ModelBaseInterface {
 		/**
          * Pincode must be unique
          */
-		if($bean->PinCode != ''){
+		/*if($bean->PinCode != ''){
 	        $existingAccount = R::findOne('users', 'PinCode = ? and id <> ? and Status <> ? order by DateModified desc ', array($bean->PinCode,$userId,StatusType::DeleteStatus));
 	        if ($existingAccount) {
 	            // an account with that pincode already exists in the system - don't create account
 	            throw new ApiException("You are not allow to use this pincode",ErrorCodeType::PincodeAlreadyExists);
 			}
-		}
+		}*/
 		/**
          * CellNumber must be unique
          */
@@ -470,6 +525,7 @@ class Model_Users extends RedBean_SimpleModel implements ModelBaseInterface {
         }
 		else
 		{
+			$orderArray = array();
 			$imagePath 		= '';
 			if($user[0]['Photo'] !=''){
 				if(SERVER)
@@ -480,7 +536,29 @@ class Model_Users extends RedBean_SimpleModel implements ModelBaseInterface {
 				}
 			}
 			$user[0]['Photo'] = $imagePath;
-			$userDetails = $user[0];
+			$userDetails['User'] = $user[0];
+			
+			//Recent Orders
+			$orderFields 	= ' o.id as OrderId,o.fkMerchantsId as MerchantId,o.OrderDate,m.FirstName,m.LastName,m.Icon';
+			$orderJoin 		= ' LEFT JOIN merchants m ON o.fkMerchantsId = m.id '; 			
+			$orderSql 		= "SELECT ".$orderFields." from orders o ".$orderJoin." where o.Status = 1 and o.fkUsersId=".$requestedBy." order by o.OrderDate desc limit 0 , 3";
+			//echo $orderSql;
+			$orders 		= R::getAll($orderSql);
+			if($orders){
+				foreach($orders as $key => $value){
+					$orderArray[$key]['OrderId'] 	= $value['OrderId'];
+					$orderArray[$key]['MerchantId']	= $value['MerchantId'];
+					$orderArray[$key]['FirstName'] 	= $value['FirstName'];
+					$orderArray[$key]['LastName'] 	= $value['LastName'];
+					$orderArray[$key]['Photo'] 		= MERCHANT_IMAGE_PATH.$value['Icon'];					
+					$orderArray[$key]['OrderDate'] 	= $value['OrderDate'];
+				}
+				$userDetails['Oders'] = $orderArray;
+			}			
+			
+			
+			
+			
 			return $userDetails;
 		}
     }
@@ -508,7 +586,7 @@ class Model_Users extends RedBean_SimpleModel implements ModelBaseInterface {
      */
 	public function checkResetPassword($userId){	 
 			
-			$sql 		 = " select id,ResetPassword from users where id = ".$userId." and Status = 1";
+			$sql 		 = " select id,ResetPassword from users where id = '".$userId."' and Status = 1";
 			$userDetails = R::getAll($sql);
 			if($userDetails){
 				if($userDetails[0]['ResetPassword'] == 0){
@@ -732,5 +810,171 @@ class Model_Users extends RedBean_SimpleModel implements ModelBaseInterface {
 			 }
 			 R::store($token);
 		 }
+	}
+	
+	/**
+     * @param Modify the user Pincode
+     */
+    public function setNewPin(){
+
+		/**
+         * Get the bean
+         * @var $bean Model_Users
+         */
+		$bean = $this->bean;
+		
+		// validate the model
+        $this->validatesetNewPinParams();
+
+        $bean->DateModified = date('Y-m-d H:i:s');
+				
+        // modify the bean to the database
+        $userUpdate = R::store($this);
+		if($userUpdate)
+			return $userUpdate;
+		else {
+			/**
+	         * throwing error when pincode update fails
+	         */
+			 throw new ApiException("Error occurred while updating pincode.", ErrorCodeType::UpdatePinError);
+		}
+    }
+	
+	/**
+     * Validate the fields (setNewPin)
+     */
+    public function validatesetNewPinParams()
+    {
+		$bean = $this->bean;
+	  	$rules = [
+            'required' => [
+                 ['PinCode']
+            ]
+        ];
+		
+        $v = new Validator($this->bean);
+        $v->rules($rules);
+        if (!$v->validate()) {
+            $errors = $v->errors();
+			// the action was not found
+            throw new ApiException("Please check PinCode field." ,  ErrorCodeType::SomeFieldsRequired, $errors);
+        }
+	}
+	
+	/**
+     * pincode verification
+     */
+	 public function verifyPin(){
+	 	/**
+         * Get the bean
+         * @var $bean Model_Users
+         */
+		$bean = $this->bean;
+		
+		//validate param
+		$this->validateVerifyPinParams();
+		
+		//Getting users original Pincode
+		$result = R::findOne('users', 'id = ? ', array($bean->UsersId));
+		if($result) {
+			//verifying weather the VerificationPin matches with original PinCode
+			if($bean->PinCode == $result->PinCode) 
+				$PinVerify = 1;
+			else
+				$PinVerify = 0;
+						
+			$PinVerifyArray['PinVerify'] 	= $PinVerify;			
+			return $PinVerifyArray;
+		}
+		else {
+			/**
+	         * throwing error when no data found
+	         */
+			throw new ApiException("No users Found", ErrorCodeType::NoResultFound);
+		}
+	 }
+	 
+	/**
+     * Validate the fields of pincode verification
+     */
+    public function validateVerifyPinParams()
+    {
+		$bean = $this->bean;
+	  	$rules = [
+            'required' => [
+                 ['PinCode']
+            ]
+        ];
+		
+        $v = new Validator($this->bean);
+        $v->rules($rules);
+        if (!$v->validate()) {
+            $errors = $v->errors();
+			// the action was not found
+            throw new ApiException("Please check VerificationPin field." ,  ErrorCodeType::SomeFieldsRequired, $errors);
+        }
+	}
+	
+	/**
+     * @param Get users list
+     */
+	public function getUserList()
+    {	
+		/**
+         * Get the bean
+         * @var $bean Model_Users
+         */
+		$bean = $this->bean;
+		
+		//validate param
+		$this->validategetUserListParams();
+		
+		$sql 	= "SELECT id as UserId,FirstName,LastName,Email,Photo,CurrentBalance as AvailableBalance FROM users where Status = 1 and ( FirstName LIKE '%".$bean->Name."%' || LastName LIKE '%".$bean->Name."%' )";
+   		$user 	= R::getAll($sql); 
+        if (!$user) {
+            // the User was not found
+            throw new ApiException("No users Found", ErrorCodeType::NoResultFound);
+        }
+		else
+		{
+			foreach($user as $key=>$val) {
+				$imagePath 		= '';
+				if($user[$key]['Photo'] !=''){
+					if(SERVER)
+						$imagePath = USER_THUMB_IMAGE_PATH.$user[$key]['Photo'];
+					else{
+						if(file_exists(USER_THUMB_IMAGE_PATH_REL.$user[$key]['Photo']))
+							$imagePath = USER_THUMB_IMAGE_PATH.$user[$key]['Photo'];
+					}
+				}
+				$user[$key]['Photo'] = $imagePath;
+			}
+			$userDetails['totalCount']= count($user);
+			$userDetails['listedCount']= count($user);
+			$userDetails['result']= $user;
+			//echo'<pre>';print_r($userDetails);echo'</pre>';
+			return $userDetails;
+		}
+	}
+	
+	/**
+     * Validate the fields of getUserList
+     */
+    public function validategetUserListParams()
+    {
+		$bean = $this->bean;
+	  	$rules = [
+            'required' => [
+                 ['Name']
+            ]
+        ];
+		
+        $v = new Validator($this->bean);
+        $v->rules($rules);
+        if (!$v->validate()) {
+            $errors = $v->errors();
+			// the action was not found
+            throw new ApiException("Please check Name field." ,  ErrorCodeType::SomeFieldsRequired, $errors);
+        }
 	}
 }

@@ -356,6 +356,7 @@ function SortColumnAjax($column, $title,$functionName)
 //Input : no. of records and URL
 function pagingControlLatest($total,$action='')
 {
+	//$counter		=	'';
 	$per_page 		= $_SESSION['perpage'];
 	$page 			= $_SESSION['curpage'];
 	$pagination 	= ' <div class="col-xs-9  mb_clr" align="center">';
@@ -398,7 +399,7 @@ function pagingControlLatest($total,$action='')
 				$pagination.= "<li><a class='' href='javascript:void(0);' onclick=\"javascript:setPagingControlValues('".$_SESSION['orderby']."','".$_SESSION['ordertype']."',$prev);\" ><i class='fa fa-angle-left fa-lg'></i></a></li>";
 			}
 
-    		if ($lastpage < 5 + ($adjacents * 2))
+    		if ($lastpage < 7 + ($adjacents * 2))
     		{
     			for ($counter = 1; $counter <= $lastpage; $counter++)
     			{
@@ -1738,6 +1739,37 @@ function editOpeningHoursString($String){
 	return $outputArray;
 }
 
+function openingHoursString($openHoursArray) {	
+	$temp = (array)$openHoursArray;
+	$openHoursArray = array();
+	foreach($temp as $key=>$val) {
+		$openHoursArray[$key] = (array)$val;
+	}	
+	$openHour	= array();
+	global $admin_days_array;
+	if(count($openHoursArray) == 0)
+		$openHour['Closed'] = "Monday to Sunday : Closed";
+	else if($openHoursArray[0]['DateType'] == 1)
+		$openHour['Open'][0] = "Monday to Sunday : ".$openHoursArray[0]['Start']." to ".$openHoursArray[0]['End'];	
+	else {
+		$open = array();
+		$close = '';
+		foreach($openHoursArray as $key=>$val) {
+			if(!empty($openHoursArray[$key]['Start']) && !empty($openHoursArray[$key]['End'])) {
+				$open[] = $admin_days_array[$key].' : '.$openHoursArray[$key]['Start']." to ".$openHoursArray[$key]['End'];	
+			}
+			else {
+				if(empty($close))
+					$close = "Closed ".$admin_days_array[$key];
+				else
+					$close .= ", ".$admin_days_array[$key];
+			}
+		}
+		$openHour['Open'] = $open;
+		$openHour['Closed'] = $close;
+	}
+	return $openHour;
+}
 
 
 

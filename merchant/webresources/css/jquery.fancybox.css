@@ -51,7 +51,7 @@
 
 .fancybox-inner {
 	overflow: hidden;
-	border: 2px solid #01B3A5;
+	border: 0px solid #01B3A5;
 }
 
 .fancybox-type-iframe .fancybox-inner {

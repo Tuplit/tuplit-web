@@ -292,7 +292,7 @@ else if(isset($_GET['msg']) && $_GET['msg'] == 5){
 									
 										<?php if(isset($value->LastName) && $value->LastName != ''){ echo ucfirst($value->LastName); } ?><br>
 										<i class="fa fa-fw fa-envelope"></i> <?php if(isset($value->Email) && $value->Email != '' ){ echo $value->Email;} ?><br>
-										<i class="fa fa-fw fa-phone"></i> <?php if(isset($value->CellNumber) && $value->CellNumber != ''){ echo $value->CellNumber; } ?>
+										<?php if(isset($value->CellNumber) && $value->CellNumber != ''){?><i class="fa fa-fw fa-phone"></i>  <?php echo $value->CellNumber; } ?>
 									</div>
 									<div class="row-actions col-xs-12">
 										<?php if($value->Status == 1) { ?><a class="active_icon" onclick="javascript:return confirm('Are you sure want to change the status?')" href="UserList?status=2&editId=<?php if(isset($value->id) && $value->id != '') echo $value->id;?>" data-toggle="tooltip" title="Click to Inactive"><i class="fa fa-user "></i></a><?php } else { ?><a class="inactive_icon" onclick="javascript:return confirm('Are you sure you want to change the status?')" title="Click to Active" data-toggle="tooltip" href="UserList?status=1&editId=<?php if(isset($value->id) && $value->id != '') echo $value->id;?>"><i class="fa fa-user "></i></a><?php } ?>
@@ -317,12 +317,16 @@ else if(isset($_GET['msg']) && $_GET['msg'] == 5){
 									<?php if($value->Location == '' && $value->Country == '' && $value->ZipCode == ''){ 
 											echo '-';
 										 } else { ?>
-									 <i class="fa fa-fw fa-map-marker"></i> <?php if(isset($value->Location) && $value->Location != ''){ echo ucfirst($value->Location).'</br>'; }//else echo '-';?>
-									
+									 <div class="col-xs-1 no-padding"><i class="fa fa-lg fa-map-marker "></i></div> 
+									 <div class="col-xs-10 no-padding">
+										<?php if(isset($value->Location) && $value->Location != ''){ echo ucfirst($value->Location).'</br>'; }//else echo '-';?>
+										
 										<?php if(isset($value->Country) && $value->Country != ''){ echo ucfirst($value->Country).'</br>'; }//else echo '-';?>
-									
-									 <?php if(isset($value->ZipCode) && $value->ZipCode != ''){ echo $value->ZipCode; }//else echo '-';?><?php //if(isset($value->Location) && $value->Location != ''){ echo $value->Location; }else echo '-';?></td>	
+										
+										<?php if(isset($value->ZipCode) && $value->ZipCode != ''){ echo $value->ZipCode; }//else echo '-';?><?php //if(isset($value->Location) && $value->Location != ''){ echo $value->Location; }else echo '-';?>
+									</div>	
 									<?php } ?>
+								</td>	
 								<td><?php if(isset($value->Platform) && $value->Platform != ''){ echo $platformArray[$value->Platform]; }else echo '-';?></td>	
 								<td><?php if(isset($value->DateCreated) && $value->DateCreated != '0000-00-00 00:00:00'){ echo date('m/d/Y',strtotime($value->DateCreated)); }else echo '-';?></td>
 							</tr>

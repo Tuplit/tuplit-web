@@ -52,7 +52,6 @@ commonHead(); ?>
 								<label>Email</label>
 								<input type="text" class="form-control" name="email" id="email" value="<?php  if(isset($email) && $email) echo $email  ?>"  >
 							</div>
-							<?php if(!SERVER){?>
 							<div class="form-group">
 								<label>Location Limit</label>
 								<div class="col-sm-3 no-padding">
@@ -60,7 +59,6 @@ commonHead(); ?>
 								</div>
 								<span class="help-block LH30">&nbsp;&nbsp;(In kilometer)</span>
 							</div>
-							<?php } ?>
 						</div><!-- /.box-body -->
 						<div class="box-footer" align="center">
 							<input type="submit" class="btn btn-success" name="general_settings_submit" id="general_settings_submit" value="Submit" title="Submit" >

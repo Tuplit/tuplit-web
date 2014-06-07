@@ -74,10 +74,12 @@ class Model_General extends RedBean_SimpleModel {
          */
 		$sql = "SELECT * from sliderimages where Status = 1 ORDER BY `Order` ASC";
    		$result = R::getAll($sql);
+		//$SliderArray = array();
 		if(is_array($result) && count($result) >0){
 			/**
              * The users were found
              */
+			 
 				foreach($result as $key=>$value){
 						if($value['SliderType'] == $type){
 							$image_path = SLIDER_IMAGE_PATH.$value['SliderImages'];

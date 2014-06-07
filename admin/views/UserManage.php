@@ -256,7 +256,7 @@ if(isset($_POST['submit']) && $_POST['submit'] != ''){
 			$field_focus = 'UserName';
 		}
 */		else if ($PinCode_exists == 1){
-			$error_msg   = "PinCode already exists";
+			$error_msg   = "PIN Code already exists";
 			$field_focus = 'PinCode';
 		}
 		else if ($CellNumber_exists == 1){
@@ -325,11 +325,11 @@ if(isset($_POST['submit']) && $_POST['submit'] != ''){
 					<?php } ?>		
 							
 					<div class="form-group col-md-6">
-						<label>GooglePlusId</label>
+						<label>Google Plus Id</label>
 						<input type="text" class="form-control" id="GooglePlusId" name="GooglePlusId" maxlength="30" value="<?php if(isset($GooglePlusId) && $GooglePlusId != '' ) echo $GooglePlusId; ?>" >
 					</div>	
 					<div class="form-group col-md-6">
-						<label>FacebookId</label>
+						<label>Facebook Id</label>
 						<input type="text" class="form-control" id="FbId" name="FbId" maxlength="20" value="<?php if(isset($FbId) && $FbId != '' ) echo $FbId; ?>" >
 					</div>
 					<div class="form-group col-md-6">
@@ -344,11 +344,12 @@ if(isset($_POST['submit']) && $_POST['submit'] != ''){
 						<label>Zip Code</label>
 						<input type="text" class="form-control" id="ZipCode" name="ZipCode" maxlength="30" value="<?php if(isset($ZipCode) && $ZipCode != '' ) echo $ZipCode; ?>" >
 					</div>
-					<?php if(!isset($_GET['editId'])) { ?>
 					<div class="form-group col-md-6">
-						<label>Pin Code</label>
+						<label>PIN Code</label>
 						<input type="text" class="form-control" id="PinCode" name="PinCode" maxlength="30" value="<?php if(isset($PinCode) && $PinCode != '' ) echo $PinCode; ?>" >
 					</div>	
+					
+					<?php if(!isset($_GET['editId'])) { ?>
 					<div class="form-group col-md-6">
 						<label>Photo</label>
 						<div class="row">

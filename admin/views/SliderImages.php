@@ -273,11 +273,13 @@ commonHead(); ?>
 								<div class="col-md-3 ">
 									<div class="col-sm-6 no-padding">
 										<input type="text" class="form-control" maxlength="4"  value="<?php echo $h_val->Order;?>" id="order_0" name="order[]" onchange="setOrderingSlider(this.value,'<?php echo $h_val->id;?>',1);" onkeypress="return isNumberKey(event);" maxlength="5"> 
-										<input type="hidden" class="" maxlength="4"  value="<?php echo $h_val->id;?>" id="hdden_id_val_<?php echo $i;?>" name="hdden_id_val_<?php echo $i;?>">
+										<input type="hidden" class=""  value="<?php echo $h_val->id;?>" id="hdden_id_val_<?php echo $i;?>" name="hdden_id_val_<?php echo $i;?>">
+										
 									</div> 
 								
 									<div class="col-sm-6 pad5">
-										<a href="javascript:void(0)" title="Remove" onclick="deleteRow('<?php echo $h_val->id;?>',1);"><i class="fa fa-lg fa-minus-circle"></i></a>&nbsp;&nbsp; 
+										<a href="javascript:void(0)" <?php if($i != $home_id_count){?> style="display:none;"  <?php } ?> id="AddHome_<?php echo $i;?>" title="Add" class="AddNew" onclick="show_field('<?php echo $i;?>');" ><i class="fa fa-lg fa-plus-circle"></i></a>&nbsp;&nbsp;
+										<a href="javascript:void(0)" id="RemoveHome_<?php echo $i;?>" title="Remove" onclick="deleteRow('<?php echo $h_val->id;?>',1);"><i class="fa fa-lg fa-minus-circle"></i></a>&nbsp;&nbsp; 
 									</div>
 								</div> 
 								<?php  if(isset($_POST['Slider_Image_Old_'.$i]) && $_POST['Slider_Image_Old_'.$i] != ''){  ?><input type="Hidden" name="Slider_Image_Old_<?php echo $i;?>" id="Slider_Image_Old_<?php echo $i;?>" value="<?php  echo $_POST['Slider_Image_Old_'.$i];  ?>"><?php  }  ?>
@@ -289,7 +291,7 @@ commonHead(); ?>
 							
 						<?php } } ?>
 						
-							<div class="row pad" id="slider_home" clone="<?php echo $home_count+1;?>">
+							<div <?php if ($home_count != 0) {?> style="display:none" <?php } ?>class="row pad" id="slider_home" clone="<?php echo $home_count+1;?>">
 								<div class="col-md-3" id="Slider_image_name">Slider Image <?php echo $home_id_count+1;?></div>
 								
 								<div class="col-md-6">
@@ -314,7 +316,8 @@ commonHead(); ?>
 									
 									<div class="col-sm-6 pad5">
 										<a href="javascript:void(0)"  id="AddNew1_<?php echo $home_count+1;?>" title="Add" class="AddNew" onclick="addRow(this,'<?php //echo $home_count+1;?>','slider_home',1);" ><i class="fa fa-lg fa-plus-circle"></i></a>&nbsp;&nbsp;
-										<a href="javascript:void(0)" title="Remove"  onclick="delRow(this,'<?php echo $home_count+1;?>','slider_home',1);"><i class="fa fa-lg fa-minus-circle"></i></a><!-- data-toggle="tooltip"  -->
+
+										<a href="javascript:void(0)" title="Remove" class="Remove_Home_<?php echo $home_count+1;?>" <?php if($home_count== 0){?> style="display:none;" <?php } ?>onclick="delRow(this,'<?php echo $home_count+1;?>','slider_home',1);"><i class="fa fa-lg fa-minus-circle"></i></a><!-- data-toggle="tooltip"  -->
 									</div>
 								</div>
 							</div>
@@ -385,6 +388,7 @@ commonHead(); ?>
 										<input type="hidden" class="" maxlength="4"  value="<?php echo $t_val->id;?>" id="hdden_id_val_<?php echo $i_val;?>" name="hdden_id_val_<?php echo $i_val;?>">
 									</div>
 									<div class="col-sm-6 pad5">
+									<a href="javascript:void(0)" <?php if($i_val != $tutorial_id_count){?> style="display:none;"  <?php } ?> id="AddTutorial_<?php echo $i_val;?>" title="Add" class="AddNew" onclick="show_field_tutorial('<?php echo $i_val;?>');" ><i class="fa fa-lg fa-plus-circle"></i></a>&nbsp;&nbsp;
 										<a href="javascript:void(0)" title="Remove" onclick="deleteRow('<?php echo $t_val->id;?>',2);"><i class="fa fa-lg fa-minus-circle"></i></a>&nbsp;&nbsp;
 									</div>
 								</div>
@@ -395,7 +399,7 @@ commonHead(); ?>
 						<?php } ?>
 							<input type="hidden" class="" maxlength="4"  value="<?php echo $tutorial_id_count;?>" id="hidden_tutorial_count" name="hidden_tutorial_count">
 						<?php } } ?>
-							<div class="row pad" id="slider_tutorial" clone="<?php echo $tutorial_count+1;?>">
+							<div class="row pad" <?php if ($tutorial_count != 0) {?> style="display:none" <?php } ?> id="slider_tutorial" clone="<?php echo $tutorial_count+1;?>">
 								<div class="col-md-3" id="Tutorial_image_name">Tutorial Image <?php echo $tutorial_id_count+1;?></div>
 								<div class="col-md-6" id="slider_tutorial_new">
 									<div class="col-sm-8 ">
@@ -419,16 +423,16 @@ commonHead(); ?>
 								
 									<div class="col-sm-6 pad5">
 										<a href="javascript:void(0)" title="Add" id="AddNew2_<?php echo $tutorial_count+1;?>" class="AddNewSlider" onclick="addRow(this,'<?php echo $tutorial_count+1;?>','slider_tutorial',2);"><i class="fa fa-lg fa-plus-circle"></i></a>&nbsp;&nbsp;
-										<a href="javascript:void(0)"  title="Remove"  onclick="delRow(this,'<?php echo $tutorial_count+1;?>','slider_tutorial',2);"><i class="fa fa-lg fa-minus-circle"></i></a>
+										<a href="javascript:void(0)" class="Remove_Tutorial_<?php echo  $tutorial_count+1;?>"  title="Remove" <?php if($tutorial_count== 0){?> style="display:none;" <?php } ?> onclick="delRow(this,'<?php echo $tutorial_count+1;?>','slider_tutorial',2);"><i class="fa fa-lg fa-minus-circle"></i></a>
 									</div>
 								</div>
 							</div>
 						</div><!-- /row_bg -->
-						
+						</div><!-- /box-body -->
 						<div class="box-footer" align="center">
 							<input type="submit" class="btn btn-success" name="upload_tutorial_slider" id="upload_tutorial_slider" value="Submit" title="Submit" onclick="return Chkempty('<?php echo $tutorial_count+1;?>',2);">
 						</div>
-					</div><!-- /.box-body -->
+					
 				</div><!-- /.box -->
 				</form>
 				
@@ -439,6 +443,19 @@ commonHead(); ?>
 <script type="text/javascript">
 $(document).ready(function() {
 	$('.fancybox').fancybox();
+	
 });
+
+function show_field(id_val){
+   $("#slider_home").attr('style','display:block');
+   $("#AddHome_"+id_val).hide();
+
+}
+function show_field_tutorial(id_val){
+
+   $("#slider_tutorial").attr('style','display:block');
+   $("#AddTutorial_"+id_val).hide();
+
+}
 </script>
 </html>

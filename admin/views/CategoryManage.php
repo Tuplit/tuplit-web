@@ -38,11 +38,12 @@ if(isset($_GET['editId']) && $_GET['editId'] != '' ){
 if(isset($_POST['submit']) && $_POST['submit'] != ''){
 	$_POST          =   unEscapeSpecialCharacters($_POST);
    	$_POST          =   escapeSpecialCharacters($_POST);
+	$Category_exists  = 0;
 	if(isset($_POST['CategoryName']) )
 		$CategoryName 			= $_POST['CategoryName'];
 	if (isset($_POST['category_photo_upload']) && !empty($_POST['category_photo_upload'])) {
 		$CategoryImageName = $_POST['category_photo_upload'];
-		$CategoryImagePath = TEMP_CATEGORY_IMAGE_PATH.$CategoryImageName;
+		$CategoryImagePath = TEMP_USER_IMAGE_PATH_REL.$CategoryImageName;
 	}
 	if($CategoryName != '')
 		$ExistCondition .= "  ( CategoryName = '".$CategoryName."' ";

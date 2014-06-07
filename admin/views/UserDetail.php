@@ -72,12 +72,12 @@ if(isset($_GET['viewId']) && $_GET['viewId'] != '' ){
 				</div>
 			-->
 				<div class="form-group col-sm-6 row">
-					<label class="col-sm-4" >FirstName</label>
+					<label class="col-sm-4" >First Name</label>
 					<div  class="col-sm-8">
 					<?php if(isset($FirstName) && $FirstName != '') echo ucfirst($FirstName); else echo '-'; ?>	</div>
 				</div>	
 				<div class="form-group col-sm-6 row">									
-					<label class="col-sm-4" >LastName</label>
+					<label class="col-sm-4" >Last Name</label>
 					<div  class="col-sm-8">										
 					<?php if(isset($LastName) && $LastName != '') echo ucfirst($LastName);  else echo '-'; ?>	</div>									
 				</div>
@@ -88,7 +88,7 @@ if(isset($_GET['viewId']) && $_GET['viewId'] != '' ){
 			
 									
 				<?php 
-				if($_SERVER['HTTP_HOST']=='172.21.4.104' || (isset($_SERVER['HTTP_X_FORWARDED_FOR']) && ($_SERVER['HTTP_X_FORWARDED_FOR'] == '125.19.192.66' || $_SERVER['HTTP_X_FORWARDED_FOR'] == '27.124.58.85')) ) { ?>
+				//if($_SERVER['HTTP_HOST']=='172.21.4.104' || (isset($_SERVER['HTTP_X_FORWARDED_FOR']) && ($_SERVER['HTTP_X_FORWARDED_FOR'] == '125.19.192.66' || $_SERVER['HTTP_X_FORWARDED_FOR'] == '27.124.58.85')) ) { ?>
 				
 			<!--	<div class="form-group col-sm-6 row">
 					<label class="col-sm-4" >Password</label>
@@ -98,13 +98,13 @@ if(isset($_GET['viewId']) && $_GET['viewId'] != '' ){
 				</div>
 			-->
 				<div class="form-group col-sm-6 row">
-					<label class="col-sm-4" >PinCode</label>
+					<label class="col-sm-4" >PIN Code</label>
 					<div  class="col-sm-8">
 					<?php if(isset($PinCode) && $PinCode !='') echo $PinCode; else echo '-'; ?></div>
 				</div>	
 													
 				
-				<?php } ?>
+				<?php //} ?>
 				
 				
 				
@@ -114,7 +114,7 @@ if(isset($_GET['viewId']) && $_GET['viewId'] != '' ){
 					<?php if(isset($FbId) && $FbId != '' ) echo $FbId; else echo '-';  ?></div>
 				</div>	
 				<div class="form-group col-sm-6 row">
-					<label class="col-sm-4" >GooglePlus Id</label>
+					<label class="col-sm-4" >Google Plus Id</label>
 					<div  class="col-sm-8">
 					<?php if(isset($GooglePlusId) && $GooglePlusId != '' ) echo $GooglePlusId; else echo '-'; ?></div>
 					
@@ -130,12 +130,12 @@ if(isset($_GET['viewId']) && $_GET['viewId'] != '' ){
 					<?php if(isset($Country) && $Country != '' ) echo ucfirst($Country); else echo '-'; ?></div>
 				</div>	
 				<div class="form-group col-sm-6 row">
-					<label class="col-sm-4" >ZipCode</label>
+					<label class="col-sm-4" >Zip Code</label>
 					<div  class="col-sm-8">
 					<?php if(isset($ZipCode) && $ZipCode != '' ) echo $ZipCode; else echo '-'; ?></div>
 				</div>	
 				<div class="form-group col-sm-6 row">
-					<label class="col-sm-4" >CellNumber</label>
+					<label class="col-sm-4" >Cell Number</label>
 					<div  class="col-sm-8">
 					<?php if(isset($CellNumber) && $CellNumber != '') echo $CellNumber; else echo '-'; ?></div>
 				</div>	

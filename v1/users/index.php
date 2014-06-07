@@ -17,7 +17,8 @@ require_once('../../config.php');
  */
 require_once '../../lib/ModelBaseInterface.php';            // base interface class for RedBean models
 require_once '../../lib/Model_Users.php';                 	// user model
-
+require_once '../../lib/Model_Friends.php';                 // friends model
+require_once '../../lib/Model_Favorites.php';
 require_once "../../admin/includes/CommonFunctions.php";
 require_once "../../admin/includes/phmagick.php";
 
@@ -175,7 +176,7 @@ $app->post('/', function () use ($app) {
 
 /**
  * CheckReset password
- * POST /v1/users/checkResetPassword/:userId
+ * GET /v1/users/checkResetPassword/:userId
  */
 $app->get('/checkResetPassword/:userId', function ($userId) use ($app) {
 
@@ -228,42 +229,214 @@ $app->get('/checkResetPassword/:userId', function ($userId) use ($app) {
 });
 
 /**
- * Forgot password
- * POST /v1/users/password
+ * Merchants Favorites List
+ *GET/v1/users/favorites
  */
-$app->post('/resetPassword', function () use ($app) {
-
+$app->get('/favorites/',tuplitApi::checkToken(),function () use ($app) {	
     try {
+		// Create a http request		
+        $req = $app->request();			
+		$requestedById = tuplitApi::$resourceServer->getOwnerId();		
+		$start = 0;
+		// Create a json response object
+        $response = new tuplitApiResponse();
+			
+		/**
+         * Get a favorites table instance
+         */
+        $favorite 			= R::dispense('favorites');
+		$favorite->UsersId	= $requestedById;		
+		if($req->params('Latitude'))
+			$favorite->Latitude		= $req->params('Latitude');
+		if($req->params('Longitude'))
+			$favorite->Longitude	= $req->params('Longitude');
+		if($req->params('Start'))
+			$favorite->Start	= $req->params('Start');
+		else
+			$favorite->Start	= $start;		
+		/**	
+		*	Getting Favorites List
+		*/
+		$favoriteList	= $favorite->usersFavoritesList();
+		
+		if($favoriteList){
+     		$response->setStatus(HttpStatusCode::Created);
+      		$response->meta->dataPropertyName = 'userFavoritesList';
+			$response->meta->totalCount = $favoriteList['totalCount'];
+			$response->meta->listedCount = $favoriteList['listedCount'];
+			$response->returnedObject = $favoriteList['result'];
+			echo $response;
+		}
+		else{
+			/** 
+			* Some error has occurred while getting favorites list
+			*/
+			throw new ApiException("Error in getting user favorites list." ,  ErrorCodeType::UserFavouriteListError);
+		}
+    }
+    catch (ApiException $e){
+        // If occurs any error message then goes here
+        tuplitApi::showError(
+            $e,
+            $e->getHttpStatusCode(),
+            $e->getErrors()
+        );
+    }
+    catch (\Slim\Exception\Stop $e){
+        // If occurs any error message for slim framework then goes here
+    }
+    catch (Exception $e) {
+        // If occurs any error message then goes here
+        tuplitApi::showError($e);
+    }
+
+});
+
+
+/**
+ * Check users balance for payment
+ *POST/v1/users/checkbalance
+ */
+$app->post('/checkbalance',tuplitApi::checkToken(),function () use ($app) {	
+    try {
+		// Create a http request		
+        $req = $app->request();			
+		$requestedById = tuplitApi::$resourceServer->getOwnerId();
+		
+		// Create a json response object
+        $response = new tuplitApiResponse();
+			
+		/**
+         * Get a users table instance
+         */
+        $user = R::dispense('users');
+		$user->UsersId			= $requestedById;		
+		$user->PaymentAmount	= $req->params('PaymentAmount');
+		
+		/**
+		*	Checking weather user having enough balance for payment
+		*/
+		$AllowPayment	= $user->checkBalance();
+		if($AllowPayment){
+     		$response->setStatus(HttpStatusCode::Created);
+      		$response->meta->dataPropertyName = 'AllowPayment';		
+			$response->returnedObject = $AllowPayment;
+			echo $response;
+		}
+		else{
+			/** 
+			* Some error has occurred while checking balance
+			*/			
+			throw new ApiException("Error in checking balance." ,  ErrorCodeType::CheckBalanceError);
+		}
+    }
+    catch (ApiException $e){
+        // If occurs any error message then goes here
+        tuplitApi::showError(
+            $e,
+            $e->getHttpStatusCode(),
+            $e->getErrors()
+        );
+    }
+    catch (\Slim\Exception\Stop $e){
+        // If occurs any error message for slim framework then goes here
+    }
+    catch (Exception $e) {
+        // If occurs any error message then goes here
+        tuplitApi::showError($e);
+    }
+});
+
+
+/**
+ * Check users location for Cart
+ *POST/v1/users/checklocation
+ */
+$app->post('/checklocation',function () use ($app) {	
+     try {
 		// Create a http request
-        $req = $app->request();
+        $req = $app->request();		
+		$requestedById = tuplitApi::$resourceServer->getOwnerId();
 		
 		// Create a json response object
        $response = new tuplitApiResponse();
 		/**
-         * Get a merchant table instance
+         * Get a merchants table instance
+         */
+        $merchant = R::dispense('merchants');
+		$merchant->MerchantId = $req->params('MerchantId');
+		$merchant->Latitude = $req->params('Latitude');
+		$merchant->Longitude = $req->params('Longitude');
+		
+		$AllowCart	= $merchant->checkLocation();
+		if($AllowCart){
+     		$response->setStatus(HttpStatusCode::Created);
+      		$response->meta->dataPropertyName = 'AllowCart';
+			$response->returnedObject = $AllowCart;
+			echo $response;
+		}
+		else{
+			/** 
+			* Some error has occurred while Checking Location
+			*/
+			throw new ApiException("Error in Checking Location." ,  ErrorCodeType::CheckLocationError);
+		}
+    }
+    catch (ApiException $e){
+        // If occurs any error message then goes here
+        tuplitApi::showError(
+            $e,
+            $e->getHttpStatusCode(),
+            $e->getErrors()
+        );
+    }
+    catch (\Slim\Exception\Stop $e){
+        // If occurs any error message for slim framework then goes here
+    }
+    catch (Exception $e) {
+        // If occurs any error message then goes here
+        tuplitApi::showError($e);
+    }
+
+});
+
+/**
+ * Reset Password
+ * POST /v1/users/resetPassword
+ */
+$app->put('/resetPassword', function () use ($app) {
+
+    try {
+		// Create a http request
+        $request = $app->request();
+    	$body = $request->getBody();
+		
+    	$input = json_decode($body); 
+		
+		// Create a json response object
+       $response = new tuplitApiResponse();
+		/**
+         * Get a users table instance
          */
         $users = R::dispense('users');
-		$users->UserId		= $req->params('UserId');
-		$users->Password 	= $req->params('Password');
+		if(isset($input->UserId)) 		$users->UserId 		= $input->UserId;
+		if(isset($input->Password)) 	$users->Password 	= $input->Password;
+		/*$users->UserId		= $req->params('UserId');
+		$users->Password 	= $req->params('Password');*/
+		
+		//Resetting password
 		$userId		 		= $users->updatePassword();
-		/**
-         * Send mail to registered merchant
-         */
+		
 		if($userId != ''){
      		$response->setStatus(HttpStatusCode::Created);
       		$response->meta->dataPropertyName = 'users';
 			$response->addNotification('Password updated successfully.');
-			/*$content	=	array("status"	    =>	"Success",
-						  	 	  "message"  	=>	"Password updated successfully.");
-			$response->returnedObject = $content;*/
 			echo $response;
 		}
 		else{
-			// Error occured while reseting password
-			throw new ApiException("Error in reseting password" ,  ErrorCodeType::ErrorInUpdateForgetPassword);
+			// Error occurred while resetting password
+			throw new ApiException("Error in resetting password" ,  ErrorCodeType::ErrorInUpdateForgetPassword);
 		}
-		
-
     }
     catch (ApiException $e){
         // If occurs any error message then goes here
@@ -286,7 +459,7 @@ $app->post('/resetPassword', function () use ($app) {
  * Forgot password
  * POST /v1/users/forgotpassword
  */
-$app->post('/forgetPassword', function () use ($app) {
+$app->get('/forgetPassword', function () use ($app) {
 
     try {
 		// Create a http request
@@ -295,15 +468,14 @@ $app->post('/forgetPassword', function () use ($app) {
 		// Create a json response object
        $response = new tuplitApiResponse();
 		/**
-         * Get a merchant table instance
+         * Get a users table instance
          */
-        $users = R::dispense('users');
-		
+        $users = R::dispense('users');		
 		$users->Email = $req->params('Email');
-		$usersDetails = $users->forgotPassword();
 		
+		$usersDetails = $users->forgotPassword();
 		/**
-         * Send mail to registered merchant
+         * Send mail to reset password
          */
 		 if($usersDetails){
 		 	$usersDetails = $usersDetails[0];
@@ -354,7 +526,7 @@ $app->post('/forgetPassword', function () use ($app) {
  */
 $app->get('/',tuplitApi::checkToken(), function () use ($app) {
 
-    try {
+    try {		
 		// Create a http request
         $req = $app->request();
 		$requestedById = tuplitApi::$resourceServer->getOwnerId();
@@ -367,6 +539,7 @@ $app->get('/',tuplitApi::checkToken(), function () use ($app) {
 		$details = array();
 		
         $userDetails 	= $user->getUserDetails($requestedById);	
+		//echo "<pre>";echo print_r($userDetails);echo "<pre>";
 		if(  $userDetails ){
 	        $response = new tuplitApiResponse();
 	        $response->setStatus(HttpStatusCode::Ok);
@@ -535,6 +708,307 @@ $app->put('/',tuplitApi::checkToken(), function () use ($app) {
         tuplitApi::showError($e);
     }
 });
+
+/**
+ * Check Friends
+ * POST /v1/users/checkfriends
+ */
+$app->Post('/checkfriends',tuplitApi::checkToken(), function () use ($app) {
+
+    try {
+		// Create a http request
+        $req 	= $app->request();
+		$body 	= $req->getBody();
+		
+    	$input = json_decode($body); 
+		$requestedById = tuplitApi::$resourceServer->getOwnerId();
+		// Create a json response object
+       	$response = new tuplitApiResponse();
+		/**
+         * Get a friends table instance
+         */
+		$friends = R::dispense('friends');
+		if(isset($input->FacebookFriends))
+			$friends->FacebookFriends		= $input->FacebookFriends;
+		else
+			$friends->FacebookFriends		= '';
+		if(isset($input->ContactFriends))
+			$friends->ContactFriends		= $input->ContactFriends;
+		else
+			$friends->ContactFriends		= '';
+		$friends->UserId 	= $requestedById;
+		/**
+         * Call check reset password function
+         */
+		$friendsDetails = $friends->checkInviteFriends();
+		/**
+         * Send mail to registered user
+         */
+		 if($friendsDetails){
+			$response->setStatus(HttpStatusCode::Created);
+        	$response->meta->dataPropertyName = 'user';
+			$response->returnedObject = $friendsDetails;
+			$response->addNotification('Invite friends details verified successfully');
+			echo $response;
+		}
+    }
+    catch (ApiException $e){
+        // If occurs any error message then goes here
+        tuplitApi::showError(
+            $e,
+            $e->getHttpStatusCode(),
+            $e->getErrors()
+        );
+    }
+    catch (\Slim\Exception\Stop $e){
+        // If occurs any error message for slim framework then goes here
+    }
+    catch (Exception $e) {
+        // If occurs any error message then goes here
+        tuplitApi::showError($e);
+    }
+
+});
+
+/**
+ * user friends List
+ * GET/v1/users/friends
+ */
+$app->get('/friends/',tuplitApi::checkToken(),function () use ($app) {	
+    try {
+		// Create a http request		
+        $req = $app->request();	
+		
+		$requestedById = tuplitApi::$resourceServer->getOwnerId();		
+		$start = 0;
+		$limit	= 20;
+		// Create a json response object
+        $response = new tuplitApiResponse();
+			
+		/**
+         * Get a friends table instance
+         */
+        $friends = R::dispense('friends');
+		$friends->UserId		= $requestedById;		
+		if($req->params('Start'))
+			$friends->Start	= $req->params('Start');
+		else
+			$friends->Start	= $start;
+			
+		if($req->params('Limit'))
+			$friends->Limit	= $req->params('Limit');
+		else
+			$friends->Limit	= $limit;
+		$friendsList	= $friends->usersFriendsList();
+		
+		if($friendsList){
+     		$response->setStatus(HttpStatusCode::Created);
+      		$response->meta->dataPropertyName = 'userFriendsList';
+			$response->meta->totalCount  = $friendsList['totalCount'];
+			$response->meta->listedCount  = $friendsList['listedCount'];
+			$response->returnedObject 	 = $friendsList['result'];
+			echo $response;
+		}
+		else{
+			// Error occured while reseting password
+			throw new ApiException("No friends found for this user." ,  ErrorCodeType::UserFriendsListError);
+		}
+    }
+    catch (ApiException $e){
+        // If occurs any error message then goes here
+        tuplitApi::showError(
+            $e,
+            $e->getHttpStatusCode(),
+            $e->getErrors()
+        );
+    }
+    catch (\Slim\Exception\Stop $e){
+        // If occurs any error message for slim framework then goes here
+    }
+    catch (Exception $e) {
+        // If occurs any error message then goes here
+        tuplitApi::showError($e);
+    }
+
+});
+
+/**
+ * Set New Pin
+ * PUT /v1/users/setPIN
+ */
+$app->put('/setPIN',tuplitApi::checkToken(), function () use ($app) {
+
+    try {
+
+        // Create a http request
+        $request = $app->request();
+    	$body = $request->getBody();
+		
+    	$input = json_decode($body,1); 
+		$requestedById = $userId = tuplitApi::$resourceServer->getOwnerId();
+        /**
+         * Get a new user account
+         * @var Model_Users $user
+         */
+        $user = R::dispense('users');
+        $user->id = $requestedById;
+		if(isset($input['PinCode']))
+			$user->PinCode = $input['PinCode'];
+		
+		//Updating New Pin
+		$setPinMsg	= $user->setNewPin();
+		if($setPinMsg){
+			// Create a json response object
+			$response = new tuplitApiResponse();
+     		$response->setStatus(HttpStatusCode::Created);
+      		$response->meta->dataPropertyName = 'setPincode';
+			$response->addNotification("Your new pincode is updated successfully");			
+			echo $response;
+		}
+		else{
+			/** 
+			* Some error has occurred while setting new pin
+			*/
+			throw new ApiException("Error in setting new pin." ,  ErrorCodeType::SetPinError);
+		}
+
+    }
+    catch (ApiException $e){
+        // If occurs any error message then goes here
+        tuplitApi::showError(
+            $e,
+            $e->getHttpStatusCode(),
+            $e->getErrors()
+        );
+    }
+    catch (\Slim\Exception\Stop $e){
+        // If occurs any error message for slim framework then goes here
+    }
+    catch (Exception $e) {
+        // If occurs any error message then goes here
+        tuplitApi::showError($e);
+    }
+});
+
+/**
+ * verify Pin
+ *POST/v1/users/verifyPin
+ */
+$app->post('/verifyPin',tuplitApi::checkToken(),function () use ($app) {	
+    try {
+		// Create a http request		
+        $req = $app->request();			
+		$requestedById = tuplitApi::$resourceServer->getOwnerId();		
+			
+		/**
+         * Get a users table instance
+         */
+        $user = R::dispense('users');
+		$user->UsersId			= $requestedById;		
+		$user->PinCode	= $req->params('PinCode');
+		
+		/**
+		*	Checking weather verificationPin matches with users pincode
+		*/
+		$PinVerify	= $user->verifyPin();
+		if($PinVerify){
+			// Create a json response object
+			$response = new tuplitApiResponse();
+     		$response->setStatus(HttpStatusCode::Created);
+      		$response->meta->dataPropertyName = 'PinVerify';
+			if($PinVerify['PinVerify'] == 1)
+				$response->addNotification('Your pin is verified successfully.');
+			else
+				$response->addNotification('Your pin is mismatched. Try Again...');
+			$response->returnedObject = $PinVerify;
+			echo $response;
+		}
+		else{
+			/** 
+			* Some error has occurred while verifying Pin
+			*/			
+			throw new ApiException("Error in verifying Pin." ,  ErrorCodeType::verifyPinError);
+		}
+    }
+    catch (ApiException $e){
+        // If occurs any error message then goes here
+        tuplitApi::showError(
+            $e,
+            $e->getHttpStatusCode(),
+            $e->getErrors()
+        );
+    }
+    catch (\Slim\Exception\Stop $e){
+        // If occurs any error message for slim framework then goes here
+    }
+    catch (Exception $e) {
+        // If occurs any error message then goes here
+        tuplitApi::showError($e);
+    }
+
+});
+
+/**
+ * Search Users
+ * GET/v1/users/search
+ */
+$app->get('/search',tuplitApi::checkToken(),function () use ($app) {	
+    try {
+		// Create a http request		
+        $req = $app->request();			
+		$requestedById = tuplitApi::$resourceServer->getOwnerId();		
+		
+		// Create a json response object
+        $response = new tuplitApiResponse();
+			
+		/**
+         * Get a users table instance
+         */
+        $user 	= R::dispense('users');
+		//$user->MerchantId	= $requestedById;		
+		//$user->Latitude	= $req->params('Latitude');
+		//$user->Longitude	= $req->params('Longitude');
+		//$user->Radius		= $req->params('Radius');
+		
+		$user->Name	= $req->params('Name');
+		
+		/**	
+		*	Getting users List
+		*/
+		$usersList	= $user->getUserList();
+		
+		if($usersList){
+     		$response->setStatus(HttpStatusCode::Created);
+      		$response->meta->dataPropertyName = 'userList';
+			$response->meta->totalCount = $usersList['totalCount'];
+			$response->meta->listedCount = $usersList['listedCount'];
+			$response->returnedObject = $usersList['result'];
+			echo $response;
+		}
+		else{
+			/** 
+			* Some error has occurred while searching user
+			*/
+			throw new ApiException("Error has occurred while searching user." ,  ErrorCodeType::UserFavouriteListError);
+		}
+    }
+    catch (ApiException $e){
+        // If occurs any error message then goes here
+        tuplitApi::showError(
+            $e,
+            $e->getHttpStatusCode(),
+            $e->getErrors()
+        );
+    }
+    catch (\Slim\Exception\Stop $e){
+        // If occurs any error message for slim framework then goes here
+    }
+    catch (Exception $e) {
+        // If occurs any error message then goes here
+        tuplitApi::showError($e);
+    }
+});
+
 /**
  * Start the Slim Application
  */

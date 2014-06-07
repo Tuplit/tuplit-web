@@ -58,6 +58,14 @@ $app->get('/', function () use ($app) {
 		$pages['HomeSlider'] 		= $cms->getSliderImages(1);
 		$pages['TutorialSlider'] 	= $cms->getSliderImages(2);
 		
+		/**
+         * Get Discount Tier array
+         */
+		$pages['DiscountTier']   		= array();
+		global $discountTierArray;
+		if(isset($discountTierArray) && is_array($discountTierArray) && count($discountTierArray) > 0 ){
+			$pages['DiscountTier'] 	= $discountTierArray;
+		}
 		
 	    $response->returnedObject = $pages;
         $response->addNotification('Static content has been retrieved successfully');

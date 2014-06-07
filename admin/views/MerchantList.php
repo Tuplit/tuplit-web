@@ -6,6 +6,9 @@ require_once('controllers/AdminController.php');
 $adminLoginObj   =   new AdminController();
 require_once('controllers/MerchantController.php');
 $MerchantObj   =   new MerchantController();
+require_once('controllers/ManagementController.php');
+$managementObj   =   new ManagementController();
+
 if(isset($_GET['cs']) && $_GET['cs']=='1') {
 	destroyPagingControlsVariables();
 	unset($_SESSION['mer_sess_name']);
@@ -13,7 +16,12 @@ if(isset($_GET['cs']) && $_GET['cs']=='1') {
 	unset($_SESSION['mer_sess_company']);
 	unset($_SESSION['mer_sess_location']);
 	unset($_SESSION['mer_sess_status']);
+	unset($_SESSION['mer_sess_Category']);
 }
+
+$fields1   = " c.* ";
+$condition1 = " and c.Status in (1)";
+$CategoryListResult  = $managementObj->getCategoryList($fields1,$condition1);
 
 if(isset($_GET['approveId']) && $_GET['approveId']!=''){
 	$approveId  = $_GET['approveId'];
@@ -25,14 +33,14 @@ if(isset($_GET['approveId']) && $_GET['approveId']!=''){
 	
 	if(isset($merchantListResult) && is_array($merchantListResult) && count($merchantListResult) > 0){
 		$mailContentArray['name'] 		= ucfirst($merchantListResult[0]->FirstName.' '. $merchantListResult[0]->LastName);
-		$mailContentArray['toemail'] 	= $merchantListResult[0]->Email;
+		$mailContentArray['toEmail'] 	= $merchantListResult[0]->Email;
 		$mailContentArray['subject'] 	= 'Merchant Approval Mail';		
 		$mailContentArray['from'] 		= $login_result[0]->EmailAddress;
 		$mailContentArray['fileName']	= 'merchant.html';
 		sendMail($mailContentArray,'7');
 	}	
 	//die();
-	header("location:MerchantList?cs=1&msg=4");
+	header("location:MerchantList?msg=4");
 }
 $result = $MerchantObj->getMerchantNotApproved();
 $merchantApproveTotal = $result[0]->total; 
@@ -51,7 +59,9 @@ if(isset($_POST['Search']) && $_POST['Search'] != ''){
 		$_SESSION['mer_sess_location']	= $_POST['Location'];
 	if(isset($_POST['Status']))
 		$_SESSION['mer_sess_status']	= $_POST['Status'];
-	print_r($_POST);
+	if(isset($_POST['merchantCategory']))
+		$_SESSION['mer_sess_Category']	= $_POST['merchantCategory'];
+	//print_r($_POST);
 }
 
 if(isset($_POST['Delete']) && $_POST['Delete'] != ''){
@@ -115,6 +125,7 @@ else
 	$condition = " and m.Status in (0,1)";
 $merchantListResult  = $MerchantObj->getMerchantList($fields,$condition);
 $tot_rec 		 = $MerchantObj->getTotalRecordCount();
+
 if($tot_rec!=0 && !is_array($merchantListResult)) {
 	$_SESSION['curpage'] = 1;
 	$merchantListResult  = $MerchantObj->getMerchantList($fields,$condition);
@@ -156,7 +167,17 @@ if($tot_rec!=0 && !is_array($merchantListResult)) {
 							<select name="Status" id="Status" class="form-control col-sm-4">
 								<option value="">Select</option>
 								<option value="0" <?php  if(isset($_SESSION['mer_sess_status']) && $_SESSION['mer_sess_status'] != '' && $_SESSION['mer_sess_status'] == '0') echo 'Selected';  ?> >Not Activated</option>
-								<option value="1" <?php  if(isset($_SESSION['mer_sess_status']) && $_SESSION['mer_sess_status'] != '' && $_SESSION['mer_sess_status'] == '1') echo 'Selected';  ?>>Active</option>
+								<option value="1" <?php  if(isset($_SESSION['mer_sess_status']) && $_SESSION['mer_sess_status'] != '' && $_SESSION['mer_sess_status'] == '1') echo 'Selected';  ?>>Activated</option>
+							</select>
+						</div>
+						<div class="col-sm-3 form-group">
+							<label>Category</label>
+							<select name="merchantCategory" id="merchantCategory" class="form-control col-sm-4">
+								<option value="">Select</option>
+								<?php if(isset($CategoryListResult)) { 
+									foreach($CategoryListResult as $key=>$catval) { ?>
+									<option value="<?php echo $catval->id; ?>" <?php  if(isset($_SESSION['mer_sess_Category']) && $_SESSION['mer_sess_Category'] == $catval->id) echo 'Selected';  ?>><?php echo $catval->CategoryName; ?></option>
+								<?php } } ?>		
 							</select>
 						</div>
 					</div>
@@ -249,22 +270,32 @@ if($tot_rec!=0 && !is_array($merchantListResult)) {
 									<div class="row-actions col-xs-12">																						
 										<a href="MerchantManage?editId=<?php if(isset($value->id) && $value->id != '') echo $value->id; ?>" data-toggle="tooltip" data-original-title="Edit" class="edit"><i class="fa fa-edit "></i></a>		
 										<a href="MerchantDetail?viewId=<?php if(isset($value->id) && $value->id != '') echo $value->id; ?>" data-toggle="tooltip" data-original-title="View" class="view"><i class="fa fa-search "></i></a>		
-										<?php if(!SERVER){?>
 										<a href="<?php echo SITE_PATH.'/admin/ProductList?mer_id='.$value->id.'&cs=1'; ?>" class="view newWindow" data-toggle="tooltip" data-original-title="Product in action"><i class="fa fa-shopping-cart"></i></a>	
-										<?php } ?>
 										<a onclick="javascript:return confirm('Are you sure to delete?')" href="MerchantList?delId=<?php if(isset($value->id) && $value->id != '') echo $value->id;?>" data-toggle="tooltip" data-original-title="Delete" class="delete"><i class="fa fa-trash-o "></i></a>
 									</div>
 								</td>
-								<td>
+								<td style="white-space:normal">
 									<div>
 										<?php if(isset($value->CompanyName) && $value->CompanyName != ''){ ?><span><i class="fa fa-fw fa-building-o"></i>  <?php echo "<b>".ucfirst($value->CompanyName)."</b>";  ?></span><br>   <?php } ?>
 										<?php if(isset($value->ShortDescription) && $value->ShortDescription != ''){ ?><span data-toggle="tooltip" title="<?php echo $value->Description; ?>"><i class="fa fa-fw fa-list-alt"></i>   <?php echo displayText($value->ShortDescription,250);?></span><br> <?php } ?>
-										<?php if(isset($value->OpeningHours) && $value->OpeningHours != ''){?><span><i class="fa fa-fw fa-clock-o"></i>   <?php echo nl2br($value->OpeningHours); ?></span><br>	 <?php  } ?>
-										<?php if(isset($value->DiscountTier) && $value->DiscountTier != ''){?><span><?php echo "<b>Discount Tier</b> : ".$discount_array[$value->DiscountTier]."%";?></span><br>	 <?php  } ?>
+										<?php $merchantOpeningHoursResult = $MerchantObj->selectOpeningHoursDetail($value->id);
+												if(isset($merchantOpeningHoursResult) && !empty($merchantOpeningHoursResult)){
+													$openinghours = openingHoursString($merchantOpeningHoursResult);
+													if(count($openinghours['Open']) > 0 ) {
+														foreach($openinghours['Open'] as $val) {
+															echo $val."<br>";
+														}									
+													}
+													if(!empty($openinghours['Closed'])) {
+														echo "<font color='#01A99A'><b>".$openinghours['Closed']."</b></font><br>";							
+													} 
+												}
+										 ?>
+										<?php if(isset($value->DiscountTier) && $value->DiscountTier != ''){?><span><?php echo "<b>Discount Tier</b> : ".$discountTierArray[$value->DiscountTier]."%";?></span><br>	 <?php  } ?>
 										<?php if($value->PriceRange != 0) { $priceran = explode(',',$value->PriceRange);  echo "<b>Price Range</b> : $".$priceran[0]." to $".$priceran[1]; } ?></div>	
 									</div>
 								</td>
-								<td>
+								<td style="white-space:normal">
 									<?php 
 										if(isset($value->Address) && $value->Address == '' && isset($value->PhoneNumber) && $value->PhoneNumber == '' && isset($value->WebsiteUrl) && $value->WebsiteUrl == '') {
 											echo "-";
@@ -323,18 +354,17 @@ if($tot_rec!=0 && !is_array($merchantListResult)) {
 	</section><!-- /.content -->	
 						  	
 <?php commonFooter(); ?>
+	autoSize: true
 <script type="text/javascript">
-$(document).ready(function() {
-	$('.fancybox').fancybox();	
-	
-	$(".newWindow").fancybox({
-			scrolling: 'auto',			
-			type: 'iframe',
-			
-			fitToView: false,
-			autoSize: true
-		});
-
-});
+	$(document).ready(function() {
+		$('.fancybox').fancybox();	
+		
+		$(".newWindow").fancybox({
+				scrolling: 'auto',			
+				type: 'iframe',
+				
+				fitToView: false,
+			});
+	});
 </script>
 </html>

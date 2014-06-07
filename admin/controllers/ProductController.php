@@ -22,5 +22,26 @@ class ProductController extends Controller
 		if ($this->ProductModelObj)
 			return $this->ProductModelObj->selectProductDetail($id);
 	}
+	function updateProductDetails($update_string,$condition)
+	{
+		if (!isset($this->ProductModelObj))
+			$this->loadModel('ProductModel', 'ProductModelObj');
+		if ($this->ProductModelObj)
+			return $this->ProductModelObj->updateProductDetails($update_string,$condition);
+	}
+	function insertProductDetails($post_values)
+	{
+		if (!isset($this->ProductModelObj))
+			$this->loadModel('ProductModel', 'ProductModelObj');
+		if ($this->ProductModelObj)
+			return $this->ProductModelObj->insertProductDetails($post_values);
+	}
+	function selectProductDetails($field,$condition)
+	{
+		if (!isset($this->ProductModelObj))
+			$this->loadModel('ProductModel', 'ProductModelObj');
+		if ($this->ProductModelObj)
+			return $this->ProductModelObj->selectProductDetails($field,$condition);
+	}
 }
 ?>

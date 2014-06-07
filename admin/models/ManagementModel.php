@@ -70,5 +70,53 @@ class ManagementModel extends Model
 		$sql	 =	"update {$this->categoryTable}  set Status = 3 where id in (".$delete_id.")";
 		$this->updateInto($sql);
 	}
+	function selectProductCategoryDetails($field,$condition){
+		$sql	 =	"select ".$field." from {$this->productcategoriesTable} where ".$condition;
+		//echo "<br/>======".$sql;
+		$result = 	$this->sqlQueryArray($sql);
+			if($result) return $result;
+			else false;
+	}
+	function updateProductCategoryDetails($update_string,$condition){
+		$sql	 =	"update {$this->productcategoriesTable}  set ".$update_string." where ".$condition;
+		//echo "<br/>======".$sql;
+		$this->updateInto($sql);
+	}
+	function insertProductCategoryDetails($post_values){
+																 
+		$sql	 =	"insert into  {$this->productcategoriesTable}  set 
+							CategoryName	= '".$post_values['CategoryName']."',
+							Status 			= 1,
+							fkMerchantId	=	0,
+							DateCreated 	= '".date('Y-m-d H:i:s')."'";
+		$this->result = $this->insertInto($sql);
+		$insertId = $this->sqlInsertId();
+        return $insertId;
+	}
+	function getProductCategoryList($fields,$condition,$join_condition)
+	{
+		$limit_clause='';
+		$sorting_clause = ' pc.id desc';
+		if(!empty($_SESSION['ordertype']))
+			$sorting_clause = $_SESSION['orderby'] . ' ' . $_SESSION['ordertype'];
+		if(isset($_SESSION['sortBy']) && isset($_SESSION['orderType']))
+			$sorting_clause	= $_SESSION['sortBy']. ' ' .$_SESSION['orderType'];
+		if(isset($_SESSION['curpage']))
+			$limit_clause = ' LIMIT '.(($_SESSION['curpage'] - 1) * ($_SESSION['perpage'])) . ', '. $_SESSION['perpage'];
+		if(isset($_SESSION['tuplit_sess_product_category_name']) && $_SESSION['tuplit_sess_product_category_name'] != '')
+			$condition .= " and pc.CategoryName LIKE '%".trim($_SESSION['tuplit_sess_product_category_name'])."%'";
+		if(isset($_SESSION['tuplit_sess_product_category_status']) && $_SESSION['tuplit_sess_product_category_status'] != '')
+			$condition .= " and pc.Status = '".$_SESSION['tuplit_sess_product_category_status']."' ";
+		if(isset($_SESSION['tuplit_sess_product_category_registerdate']) && $_SESSION['tuplit_sess_product_category_registerdate'] != '')
+			$condition .= " and date(pc.DateCreated) = '".$_SESSION['tuplit_sess_product_category_registerdate']."'";	
+		if(isset($_SESSION['tuplit_sess_product_category_merchant']) && $_SESSION['tuplit_sess_product_category_merchant'] != '')
+			$condition .= " and pc.fkMerchantId = '".$_SESSION['tuplit_sess_product_category_merchant']."' ";
+		$sql = "select SQL_CALC_FOUND_ROWS ".$fields." from {$this->productcategoriesTable} as pc	".$join_condition."
+				WHERE 1".$condition." group by pc.id ORDER BY ".$sorting_clause." ".$limit_clause;
+		//echo "<br/>======".$sql;
+		$result	=	$this->sqlQueryArray($sql);
+		if(count($result) == 0) return false;
+		else return $result;
+	}
 }
 ?>

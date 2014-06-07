@@ -41,4 +41,28 @@ class ErrorCodeType {
 	const SomeFieldsRequired = 3000;
 	
 	const MerchantsNotInActiveStatus = 2001;
+	const AlreadyFavoured = 2002;
+	const FavouriteNotAllowed = 2003;
+	const FavouriteTypeError = 2004;
+	
+	const UserFavouriteListError = 2005;
+	const UserFavouriteListEmpty = 2006;
+	
+	const NotAllowToDeleteComments = 2007;
+	
+	const UserFriendsListError	  = 2008;
+	
+	const CheckBalanceError = 2009;
+	const CheckLocationError = 2010;
+	const SetPinError = 2011;
+	const UpdatePinError = 2012;
+	
+	
+	const AlreadyInvited = 2013;
+	
+	
+	const verifyPinError = 2014;
+	
+	const CategoryAlreadyExist = 2015;
+	
 }

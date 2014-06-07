@@ -42,6 +42,10 @@ function commonHead() { ?>
 				'Add Category'	 => array('CategoryManage'),
                 'Category List' => array('CategoryList?cs=1'),
 			),
+			'Product' => array(
+				'Product List'	 => array('ProductList?cs=1'),
+                'Product Category List' => array('ProductCategoryList?cs=1'),
+			),
 			'Report / Analytics' => array(
 				'Log Tracking'	 => array('LogTracking?cs=1'),
 			),
@@ -66,8 +70,13 @@ function commonHead() { ?>
 				'Add Category'	 => array('CategoryManage'),
                 'Category List' => array('CategoryList?cs=1'),
 			),
+			
 			'Product' => array(
 				'Product List'	 => array('ProductList?cs=1'),
+                'Product Category List' => array('ProductCategoryList?cs=1'),
+			),
+			'Order' => array(
+				'Order List'	 => array('OrderList?cs=1'),
 			),
 			'Report / Analytics' => array(
 				'Log Tracking'	 => array('LogTracking?cs=1'),
@@ -77,7 +86,8 @@ function commonHead() { ?>
     $main_link_array['Settings'] 			= 	array('GeneralSettings', 'ChangePassword','StaticPages','SliderImages');
 	$main_link_array['User'] 				=	array('UserManage','UserDetail','UserList','Messages','Activity','MyActivity');
 	$main_link_array['Merchant'] 			=	array('MerchantList','MerchantDetail','MerchantManage');
-	$main_link_array['Product'] 			=	array('ProductList','ProductDetail');
+	$main_link_array['Product'] 			=	array('ProductList','ProductDetail','ProductCategoryManage','ProductCategoryDetail','ProductCategoryList','ProductManage');
+	$main_link_array['Order'] 				=	array('OrderList','OrderDetail','OrderManage');
 	$main_link_array['Category Management'] =	array('CategoryManage','CategoryDetail','CategoryList');
 	$main_link_array['Report / Analytics'] 	=	array('LogTracking');
 	

@@ -69,6 +69,10 @@ else {
 		if( $fileElementName == 'merchant_photo' && ( $res[0] < '640' || $res[1] < '240' ) ){
 			$error = 'Image dimension should be greater than 640x240';
 		}
+		if($fileElementName == 'product_photo'){
+			if(( $res[0] > '400' || $res[0] < '300' ) || ( $res[1] > '400' || $res[1] < '300' ))
+				$error = 'Image dimension should be greater than 300x300 and less then 400x400';
+		}
 		if (!in_array($_FILES[$fileElementName]['type'], $file_types_array)) {
             $error = 'Please upload JPEG, JPG and PNG images only.';
         }

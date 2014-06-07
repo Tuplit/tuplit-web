@@ -5,6 +5,9 @@
  *
  * @author 
  */
+ 
+require_once '../../lib/Model_Products.php'; 
+
 use RedBean_Facade as R;
 use Helpers\PasswordHelper as PasswordHelper;
 use Enumerations\HttpStatusCode as HttpStatusCode;
@@ -37,6 +40,23 @@ class Model_Merchants extends RedBean_SimpleModel implements ModelBaseInterface 
     public $FBId;
 	
 	/**
+     * Merchants fbid
+     * @var string
+     */
+    public $Latitude;
+	
+	/**
+     * Merchants fbid
+     * @var string
+     */
+    public $Longitude;
+	
+	/**
+     * Merchants fbid
+     * @var string
+     */
+    public $merchantIds;
+	/**
      * Merchants GooglePlusId
      * @var string
      */
@@ -65,11 +85,18 @@ class Model_Merchants extends RedBean_SimpleModel implements ModelBaseInterface 
      * @var int
      */
     public $DateModified;
+	
 	/**
      * Person platform
      * @var string
      */
     public $Platform;
+	
+	/**
+     * Person platform
+     * @var string
+     */
+    public $Start;
 
     /**
      * Constructor
@@ -183,6 +210,7 @@ class Model_Merchants extends RedBean_SimpleModel implements ModelBaseInterface 
      */
     public function validateModifyMerchant($iconExist,$merchantExist)
     {
+		
 		$bean = $this->bean;
 		if($iconExist == '' && $merchantExist == '' ){
 		    $rules = [
@@ -270,8 +298,13 @@ class Model_Merchants extends RedBean_SimpleModel implements ModelBaseInterface 
          * @var $bean Model_Merchantss
          */
 		$bean = $this->bean;
+		//echo "<pre>"; print_r( $bean); echo "</pre>";
+		//validate the model
+        $this->validateMerchantParams();
+		
 		// validate the model
         $this->validateModifyMerchant($iconExist,$merchantExist);
+		
         // validate the modification
         $this->validateModify($merchantsId);
 
@@ -279,7 +312,7 @@ class Model_Merchants extends RedBean_SimpleModel implements ModelBaseInterface 
 		
 		
 		$latlong = $lat = $lng = '';
-		//$latlong = getLatLngFromAddress($bean->Address) ;
+		$latlong = getLatLngFromAddress($bean->Address) ;
 		if($latlong != ''){
 			$latlngArray = explode('###',$latlong);
 			if(isset($latlngArray) && is_array($latlngArray) && count($latlngArray) > 0){
@@ -298,10 +331,18 @@ class Model_Merchants extends RedBean_SimpleModel implements ModelBaseInterface 
         R::store($this);
     }
 
-
 	/**
      * Validate the modification of an account
-     * @throws ApiException if the user being modifyng the account with already exists of email , facebook and linked ids in the database.
+     * @throws ApiException if the user being modifyng the account
+     */
+	public function validateMerchantParams(){
+	
+	}
+	
+	
+	/**
+     * Validate the modification of an account
+     * @throws ApiException if the user being modifyng the account 
      */
 	public function validateModify($merchantsId)
     {
@@ -329,7 +370,7 @@ class Model_Merchants extends RedBean_SimpleModel implements ModelBaseInterface 
         if ($existingAccount) {
             // an account with that email already exists in the system - don't modify account
             throw new ApiException("This Email Address is already associated with another merchant account", ErrorCodeType::EmailAlreadyExists);
-		}
+		} 
     }
 	/**
      * @param Get user details
@@ -337,55 +378,81 @@ class Model_Merchants extends RedBean_SimpleModel implements ModelBaseInterface 
      */
     public function getMerchantsDetails($requestedBy){
 		global	$discountTierArray;
-		$fields	= $userId = $joinCondition	 =   '';
-		$productsArray = $friendsDetails = $friendsArray = $UserId = $FriendId = $FriendsList	 =array();
+		$fields	= $userId = $joinCondition	=  $latitude = $longitude ='';
+		$productsArray = $friendsDetails = $friendsArray = $UserId = $FriendId = $FriendsList = $friendsListArray = $commentsArray = $productList =array();
 		$bean = $this->bean;
 		if($bean->From)
 			$from = $bean->From;
 		else
-			$from = 0;
-
+			$from = 0;	
+		//Validate latitude and longitude	
+		if($from != 0)
+			$this->validateLatLong();
+		
+		$latitude		=	$bean->Latitude;			
+		$longitude		=	$bean->Longitude;
+		
 		if($from == 1){
+			//validate merchant
+			$this->validateMerchants($requestedBy,3);
+		
 			//Friends List
 			if($bean->UserId != ''){
 				$userId = $bean->UserId;
 				$this->validateUser($userId);
 				//Already Favouried
 				$fields			= ",FavouriteType as AlreadyFavourited";
-				$joinCondition	= "LEFT JOIN favourites as f ON(m.id = f.fkMerchantsId and f.fkMerchantsId = ".$requestedBy." and f.fkUsersId = ".$userId." and FavouriteType = 1) ";
-				//Friends List
-				$sql 			= "SELECT  group_concat(`fkFriendsId`,',', fkUsersId) as friendsId  FROM friends where  (fkUsersId = ".$userId." or fkFriendsId = ".$userId.") and Status = 1 ";
-	   			$friends		= R::getAll($sql);
-				if(isset($friends)){
-					if($friends[0]['friendsId'] != ''){
-						$sql 	= "SELECT group_concat(`fkUsersId` separator ',') as  usersId FROM orders where fkUsersId IN(".$friends[0]['friendsId'].") and fkUsersId != ".$userId." and fkMerchantsId = ".$requestedBy." and OrderStatus = 1 and Status = 1 ";
-						$friendsDetails		= R::getAll($sql);
-						if($friendsDetails){
-							if($friendsDetails[0]['usersId'] != ''){
-								$sql 			= "SELECT id,FirstName,LastName,Photo FROM users where id IN (".$friendsDetails[0]['usersId'].") and Status = 1";
-				   				$friendsArray 	= R::getAll($sql);
-								if($friendsArray){
-									foreach($friendsArray as $key => $value){
-										$user_image_path = '';
-										if(isset($value['Photo']) && $value['Photo'] != ''){
-											$user_image_path = USER_IMAGE_PATH.$value['Photo'];
-										}
-										$value['Photo'] 				= $user_image_path;
-										$friendsListArray[]				= $value;
+				$joinCondition	= "LEFT JOIN favorites as f ON(m.id = f.fkMerchantsId and f.fkMerchantsId = ".$requestedBy." and f.fkUsersId = ".$userId." and FavouriteType = 1) ";
+			}
+			
+			//Total users shopped		
+			$totalOrders = 0;
+			$orderedFriendsCount = 0;
+			$friendsListArray = $friendsShopped = $userShopped = array();
+			$orderSql 		= "SELECT fkUsersId FROM orders where fkMerchantsId=".$requestedBy." and OrderStatus = 1 and Status = 1 group by fkUsersId";
+   			$OrdersCount 	= R::getAll($orderSql);
+			if($OrdersCount){
+				$totalOrders = count($OrdersCount);
+				if($bean->UserId != ''){
+					foreach($OrdersCount as $key=>$val){
+						$userShopped[] = $val['fkUsersId'];
+					}
+					$userId = $bean->UserId;
+					$this->validateUser($userId);
+					$sql 			= "SELECT  group_concat(`fkFriendsId`,',', fkUsersId) as friendsId  FROM friends where  (fkUsersId = ".$userId." or fkFriendsId = ".$userId.") and Status = 1 ";
+		   			$friends		= R::getAll($sql);
+					if($friends){
+						$friendsArray = array_unique(explode(',',$friends[0]['friendsId']));
+						$result = array_intersect($userShopped, $friendsArray);
+						if(is_array($result) && count($result) > 0){
+							foreach($result as $kk=>$vv){
+								$friendsShopped[] = $vv; 
+							}
+							$orderedFriendsCount = 0;
+							$friendsIds = implode(',',$friendsShopped);
+							$sql 			= "SELECT id,FirstName,LastName,Photo FROM users where id IN (".$friendsIds.") and Status = 1";
+			   				$friendsArray 	= R::getAll($sql);
+							
+							if($friendsArray){
+								$orderedFriendsCount  = count($friendsArray);
+								foreach($friendsArray as $key => $value){
+									$user_image_path = '';
+									if(isset($value['Photo']) && $value['Photo'] != ''){
+										$user_image_path = USER_IMAGE_PATH.$value['Photo'];
 									}
+									$value['Photo'] 				= $user_image_path;
+									$friendsListArray[]				= $value;
+									if($key >=3)
+									exit;
+									
 								}
 							}
 						}
 					}
 				}
 			}
-			//Total users shopped
-		
-			$orderSql 		= "SELECT count(distinct `fkUsersId`) as  TotalOrder FROM orders where fkMerchantsId=".$requestedBy." and OrderStatus = 1 and Status = 1 ";
-   			$OrdersCount 	= R::getAll($orderSql);
-			
 			//merchant products
-			$productSql 	= "SELECT id as ProductId,ItemName,Photo,Price,Quantity,ItemType,DiscountApplied,DiscountTier,DiscountPrice from  
+			/*$productSql 	= "SELECT id as ProductId,ItemName,Photo,Price,Quantity,ItemType,DiscountApplied,DiscountTier,DiscountPrice from  
 								products as p where Status = 1 and p.fkMerchantsId=".$requestedBy." ";
 			$products 	= R::getAll($productSql);
 			if($products){
@@ -405,24 +472,69 @@ class Model_Merchants extends RedBean_SimpleModel implements ModelBaseInterface 
 					 	$productsArray['Special'][] 		= $value;
 					}
 				}
-			}
-			
+			}*/
+			//echo "<pre>";   print_r($products);   echo "</pre>";			
+			//merchant Comments
+			$commentFields = ' c.id as CommentId,c.fkUsersId as UsersId,c.CommentsText,c.CommentDate,c.Platform,u.FirstName,u.LastName,u.Photo ';
+			$commentJoin = ' LEFT JOIN users u ON c.fkUsersId = u.id '; 			
+			$commentSql = "SELECT ".$commentFields." from comments c ".$commentJoin." where c.Status = 1 and c.fkMerchantsId=".$requestedBy." order by c.CommentDate desc limit 0 , 3";
+			$comments 	= R::getAll($commentSql);
+			if($comments){
+				foreach($comments as $key => $value){
+					$commentsArray[$key]['UserId'] 			= $value['UsersId'];
+					$commentsArray[$key]['FirstName']		= $value['FirstName'];
+					$commentsArray[$key]['LastName'] 		= $value['LastName'];
+					$commentsArray[$key]['Photo'] 			= USER_IMAGE_PATH.$value['Photo'];
+					$commentsArray[$key]['CommentsText'] 	= getCommentTextEmoji($bean->Platform,$value['CommentsText'],$value['Platform']);
+					$commentsArray[$key]['CommentDate'] 	= $value['CommentDate'];
+				}
+			}	
+			$productsArray = array();
+			$productDetail 	= new Model_Products();
+			$productList 	=  $productDetail->getProductList($requestedBy,1);//1-mobile
+			//echo "<pre>";   print_r($productList);   echo "</pre>";
 		}
 		// Merchant details
-		$sql 	= 	  "SELECT m.id as MerchantId,m.FirstName,m.LastName,m.Email,m.CompanyName,m.Address,m.Location,m.Latitude,
+		if(!empty($latitude) && !empty($longitude)) {
+			$sql 	= "SELECT m.id,m.id as MerchantId,m.FirstName,m.LastName,m.Email,m.CompanyName,m.Address,m.Location,m.Latitude,
 					  m.Longitude,m.PhoneNumber,m.WebsiteUrl,m.Icon,m.Image,m.Description,m.ShortDescription,
-                      m.DiscountTier,m.SpecialIcon,m.ItemsSold,m.OpeningHours,m.PriceRange,m.SpecialsSold".$fields." 
+					  (((acos(sin((".$latitude."*pi()/180)) * sin((m.`Latitude`*pi()/180))+cos((".$latitude."*pi()/180)) * cos((m.`Latitude`*pi()/180)) * cos(((".$longitude."- m.`Longitude`)*pi()/180))))*180/pi())*60*1.1515) as distance,
+                      m.DiscountTier, m.DiscountType, m.DiscountProductId,m.SpecialIcon,m.ItemsSold,m.OpeningHours,m.PriceRange,m.SpecialsSold".$fields." 
 					  FROM merchants as m	".$joinCondition."	where m.Status = 1 and m.id=".$requestedBy." ";
-   		$merchants 		= R::getAll($sql);
+		}
+		else {
+			$sql 	= "SELECT m.id,m.id as MerchantId,m.FirstName,m.LastName,m.Email,m.CompanyName,m.Address,m.Location,m.Latitude,
+					  m.Longitude,m.PhoneNumber,m.WebsiteUrl,m.Icon,m.Image,m.Description,m.ShortDescription,
+                      m.DiscountTier, m.DiscountType, m.DiscountProductId,m.SpecialIcon,m.ItemsSold,m.OpeningHours,m.PriceRange,m.SpecialsSold".$fields." 
+					  FROM merchants as m	".$joinCondition."	where m.Status = 1 and m.id=".$requestedBy." ";
+		}		
+   		
+		$merchants 		= R::getAll($sql);
+		//echo "<pre>"; echo print_r($merchants); echo "</pre>";
 		// Merchant categories
 		$sql 			= "SELECT group_concat(`fkCategoriesId` separator ',') as  catId FROM merchantcategories where fkMerchantId=".$requestedBy;
    		$categories 	= R::getAll($sql);
+		// Merchant OpeningHours
+		$sql1 			= "select * from merchantshoppinghours where fkMerchantId=".$requestedBy;
+   		$openingHours 	= R::getAll($sql1);
+		
+		if($from == 1) {			
+			$openingHours = openingHoursString($openingHours);
+		}
         if (!$merchants) {
             // the Merchants was not found
             throw new ApiException("Your status is not in active state", ErrorCodeType::MerchantsNotInActiveStatus);
         }
 		else
-		{
+		{			
+			if(isset($merchants[0]['distance']) && !empty($merchants[0]['distance'])) {					
+				$result = R::findOne('admins', 'id = ? ', array('1'));
+				$distanceLimit = $result->LocationLimit;
+				if($merchants[0]['distance'] > $distanceLimit) 
+					$AllowCart = 0;
+				else
+					$AllowCart = 1;
+			}
 			if($userId != '' ){
 		  		if($merchants[0]['AlreadyFavourited']  == '')
 		   		 $merchants[0]['AlreadyFavourited']  = '0';
@@ -432,16 +544,24 @@ class Model_Merchants extends RedBean_SimpleModel implements ModelBaseInterface 
 		   if($merchants[0]['DiscountTier']  > 0)
 				$merchants[0]['DiscountTier'] 	= 	$discountTierArray[$merchants[0]['DiscountTier']].'%';
 		   $merchantsDetails 				= 	$merchants[0];
-		   $merchantsDetails['Category']	=	$categories;
+		   $merchantsDetails['Category']	=	$categories[0]['catId'];
+		   
+		   $merchantsDetails['OpeningHours']=	$openingHours;
 		   if($from == 1){
-				if($productsArray)
-					$merchantsDetails['Products']	=	$productsArray;
-				if($OrdersCount[0]['TotalOrder'] != 0)
-					$merchantsDetails['OrderCount']	=	$OrdersCount;
-				if($friendsArray)
-					$merchantsDetails['FriendsList']	=	$friendsListArray;
+				//$merchantsDetails['Products']	=	$productsArray;
+				$merchantsDetails['OrderCount']				=	$totalOrders;
+				$merchantsDetails['OrderedFriendsCount']	=	$orderedFriendsCount;
+				$merchantsDetails['OrderedFriendsList']		=	$friendsListArray;
+				
+				$merchantsDetails['Comments']			=	$commentsArray;
+				$merchantsDetails['ProductList']		=	$productList;
 			}
-			return $merchantsDetails;
+			
+			$merchantsDetailsOut['merchantDetails'] = $merchantsDetails;
+			if(isset($AllowCart))
+				$merchantsDetailsOut['AllowCart'] = $AllowCart;				
+			//echo "<pre>"; echo print_r($merchantsDetailsOut); echo "</pre>";
+			return $merchantsDetailsOut;
 		}
     }
 
@@ -450,7 +570,7 @@ class Model_Merchants extends RedBean_SimpleModel implements ModelBaseInterface 
      * @throws ApiException if the user being modifyng the account with already exists of email , facebook and linked ids in the database.
      */
 	public function validateMerchants($merchantsId,$type='')
-    {
+    {		
         /**
          * Get the identity of the person requesting the details
          */
@@ -459,8 +579,14 @@ class Model_Merchants extends RedBean_SimpleModel implements ModelBaseInterface 
 		$merchants	 = R::getAll($sql);
 		//echo '<pre>';print_r($merchants);echo'</pre>';
         if (!$merchants) {
-            // the Merchants was not found
-            throw new ApiException("Your status is not in active state", ErrorCodeType::MerchantsNotInActiveStatus);
+			if($type == 3){				
+				// the Merchants was not found
+				throw new ApiException("The Merchant you requested was not in active state.", ErrorCodeType::NotAccessToDoProcess);
+			}
+			else {
+				// the Merchants was not found
+				throw new ApiException("Your status is not in active state", ErrorCodeType::MerchantsNotInActiveStatus);
+			}
         }
 		else{
 			if($type == 1){
@@ -724,71 +850,139 @@ class Model_Merchants extends RedBean_SimpleModel implements ModelBaseInterface 
      * @param Get merchant list
 	 * Merchant listing
      */
-	public function getMerchantList()
-    {
+	public function getMerchantList($merchantIds='')
+    {		
 		global $discountTierArray;
 		$condition	= $searchCondition	= $category	 ='';
+
 		/**
-         * Get the bean
-         * @var $bean Model_Merchantss
-         */
+		 * Get the bean
+		 * @var $bean Model_Merchantss
+		 */
 		$bean = $this->bean;
 		if($bean->Start)
-			$start = $bean->Start;
+			$Start = $bean->Start;
 		else
-			$start = 0;
-			
+			$Start = 0;
 		//Validate latitude and longitude
 		$this->validateLatLong();
-		$latitude		=	$bean->Latitude;
+					
+		$latitude		=	$bean->Latitude;			
 		$longitude		=	$bean->Longitude;
-		$category		=	$bean->Category;
+		if(isset($bean->Category))
+			$category		=	$bean->Category;
 		if($bean->Type)
 			$type		=	$bean->Type;
 		else
 			$type = 0;
-		
-		if($bean->DiscountTier != ''){
+		if(isset($bean->DiscountTier) && $bean->DiscountTier != ''){
 			$tierVal	=	$bean->DiscountTier;
 			//Validate discount tier
 			$this->validateDiscountTier($tierVal);
-			$key = array_search ($bean->DiscountTier, $discountTierArray);
+			/*$key = array_search($bean->DiscountTier, $discountTierArray);
 			if($key > 0)
-		 		$searchCondition	.=	" and m.DiscountTier = ".$key." ";
+				$searchCondition	.=	" and m.DiscountTier = ".$key." ";*/
+			if($tierVal > 0)
+				$searchCondition	.=	" and m.DiscountTier = ".$tierVal." ";
 		}
 		/**
-         * Query to get merchant details
-         */
+		 * Query to get merchant details
+		 */
 		 if($bean->SearchKey != '')
-		 	$searchCondition	.=	" and (m.CompanyName like '%".$bean->SearchKey."%' or  m.ShortDescription like '%".$bean->SearchKey."%')";
+			$searchCondition	.=	" and (m.CompanyName like '%".$bean->SearchKey."%' or  m.ShortDescription like '%".$bean->SearchKey."%')";
 		if($category != ''){
-			$fields				 =	'm.id,m.Icon,m.Image,m.DiscountTier,m.CompanyName,m.ShortDescription,m.Address,mc.fkCategoriesId,m.ItemsSold,m.Latitude,m.Longitude';
+			$fields				 =	'm.id,m.id as MerchantId,DiscountType,m.Icon,m.Image,m.DiscountTier,m.CompanyName,m.ShortDescription,m.Address,mc.fkCategoriesId,m.ItemsSold,m.Latitude,m.Longitude';
 			$join_condition 	 = ' LEFT JOIN  merchantcategories as mc ON (mc.fkMerchantId = m.id) ';
 			$searchCondition	.=	" and mc.fkCategoriesId = ".$category." ";
 		}
 		else{
-			$fields			=	'm.id,m.Icon,m.Image,m.DiscountTier,m.CompanyName,m.ShortDescription,m.Address,m.ItemsSold,m.Latitude,m.Longitude';
+			$fields			=	'm.id,m.id as MerchantId,DiscountType,m.Icon,m.Image,m.DiscountTier,m.CompanyName,m.ShortDescription,m.Address,m.ItemsSold,m.Latitude,m.Longitude,DiscountType,DiscountProductId';
 			$join_condition	= '';
 		}
 		 if($type == 2 )
-		 	$orderby	=	"m.ItemsSold desc";
+			$orderby	=	"m.ItemsSold desc";
 		 else
 			$orderby	=	"distance asc";
-		$sql 			= "SELECT SQL_CALC_FOUND_ROWS ".$fields.",(((acos(sin((".$latitude."*pi()/180)) * sin((m.`Latitude`*pi()/180))+cos((".$latitude."*pi()/180)) * cos((m.`Latitude`*pi()/180)) * cos(((".$longitude."- m.`Longitude`)*pi()/180))))*180/pi())*60*1.1515) as distance  from merchants as m ".$join_condition." where m.Status = 1  ".$searchCondition." 	and m.Address != '' and m.Image != '' ORDER BY ".$orderby." limit $start,50";	
-   		$result 		= R::getAll($sql);
+		
+		if(!empty($merchantIds)) { //if merchant !=''
+			$condition = ' and m.id in ('.$merchantIds.')';// m.id in ()
+		}
+		
+		$sql 	= "SELECT SQL_CALC_FOUND_ROWS ".$fields.",(((acos(sin((".$latitude."*pi()/180)) * sin((m.`Latitude`*pi()/180))+cos((".$latitude."*pi()/180)) * cos((m.`Latitude`*pi()/180)) * cos(((".$longitude."- m.`Longitude`)*pi()/180))))*180/pi())*60*1.1515) as distance  from merchants as m ".$join_condition." where m.Status = 1 ".$searchCondition." ".$condition." and m.Address != '' and m.Image != '' ORDER BY ".$orderby." limit $Start,10";	
+		//echo $sql;
+		$result 		= R::getAll($sql);
 		$totalRec 		= R::getAll('SELECT FOUND_ROWS() as count ');
 		$total 			= (integer)$totalRec[0]['count'];
 		$listedCount	= count($result);
+		$countProducts = array();
+		$discountedProduct = 0;
+		
 		if($result){
 			foreach($result as $key=>$value)
 			{
+				$merchantsIds[] = $value['MerchantId'];
+				$merchantIdValues = implode(',',$merchantsIds);
+				$sql = "select count(id) as productCount,DiscountApplied from products where Status = 1 and fkMerchantsId  = ".$value['MerchantId']." group by DiscountApplied";
+				$countResult = R::getAll($sql);
+				$totalProduct = 0;
+				//$countProducts = array();
+				foreach($countResult as $kk=>$vv)
+				{
+					if($vv['DiscountApplied'] == 1){
+						$discountedProduct = $vv['productCount'];
+						$totalProduct = $totalProduct + $vv['productCount'];
+					}
+					else{
+						$totalProduct = $totalProduct + $vv['productCount'];
+					}
+					$countProducts[$value['MerchantId']]['TotalCount'] = $totalProduct;
+					$countProducts[$value['MerchantId']]['DiscountApplied'] = $discountedProduct;
+				}
+			}
+			foreach($result as $key=>$value)
+			{
 				$imagePath = $iconPath	= '' ;
-		
 				$iconPath  				= MERCHANT_ICONS_IMAGE_PATH.$value['Icon'];
 				$imagePath 				= MERCHANT_IMAGE_PATH.$value['Image'];
 				$value['Image'] 		= $imagePath;
 				$value['Icon'] 			= $iconPath;
 				$value['IsSpecial'] 	= "0";
+				$value['IsGoldenTag'] 	= "0";
+				$discountFlag = 0;
+				if($value['DiscountType'] == 1)
+				{
+					if($value['DiscountProductId'] == 'all')
+						$discountFlag = 1;
+					else{
+						$tot_product_ids = $this->validateMerchantProduct($value['DiscountProductId']);
+						if(isset($countProducts[$value['MerchantId']]) && is_array($countProducts[$value['MerchantId']]) && count($countProducts[$value['MerchantId']]) > 0 ){
+							if($tot_product_ids >= $countProducts[$value['MerchantId']]['DiscountApplied'] ){
+								$totalProduct = $tot_product_ids;
+								$disapplied	  = $countProducts[$value['MerchantId']]['DiscountApplied'];
+								$totaldiscount = ($disapplied/$totalProduct)*100;
+								if($totaldiscount >= 75)
+									$value['IsSpecial'] 	= "1";
+								if($disapplied == $totalProduct)
+									$value['IsGoldenTag'] 	= "1";
+							}
+						}
+					}
+				}
+				else
+					$discountFlag = 1;
+				if($discountFlag == 1){
+					if(isset($countProducts[$value['MerchantId']]) && is_array($countProducts[$value['MerchantId']]) && count($countProducts[$value['MerchantId']]) > 0 ){
+				  		$totalProduct = $countProducts[$value['MerchantId']]['TotalCount'];
+						$disapplied	  = $countProducts[$value['MerchantId']]['DiscountApplied'];
+						$totaldiscount = ($disapplied/$totalProduct)*100;
+						if($totaldiscount >= 75)
+							$value['IsSpecial'] 	= "1";
+						if($disapplied == $totalProduct)
+							$value['IsGoldenTag'] 	= "1";
+				     }
+			    }
+				//echo"<br>===================>".$value['DiscountProductId'];
+				//echo"<br>===================>".$value['DiscountType'];
 				if($value['DiscountTier']  != '')
 					$value['DiscountTier'] 	= $discountTierArray[$value['DiscountTier']].'%';
 				$MerchantListArray[] 	= $value;
@@ -802,7 +996,7 @@ class Model_Merchants extends RedBean_SimpleModel implements ModelBaseInterface 
 			 /**
 	         * throwing error when no data found
 	         */
-			  throw new ApiException("No merchants Found", ErrorCodeType::NoResultFound);
+			  throw new ApiException("No Merchants Found", ErrorCodeType::NoResultFound);
 		}
 	}
 	 /**
@@ -810,15 +1004,15 @@ class Model_Merchants extends RedBean_SimpleModel implements ModelBaseInterface 
      * @throws ApiException if the models fails to validate
      */
 	public function validateLatLong()
-    {
-		$bean = $this->bean;
-	  	$rules = [
-            'required' => [
-                 ['Latitude'],['Longitude']
-            ],
+    {		
+		$bean = $this->bean; 			
+		$rules = [
+			'required' => [
+				 ['Latitude'],['Longitude']
+			],
 			
-        ];
-		
+		];	
+	
         $v = new Validator($this->bean);
         $v->rules($rules);
         if (!$v->validate()) {
@@ -837,7 +1031,7 @@ class Model_Merchants extends RedBean_SimpleModel implements ModelBaseInterface 
 		global $discountTierArray;
 		$discountId  = '';
 		foreach($discountTierArray as $key=>$value){
-			$discountId .= $value.',';
+			$discountId .= $key.',';
 		}
 		if($discountId != ''){
 			$discountId 	= trim($discountId,',');
@@ -866,4 +1060,80 @@ class Model_Merchants extends RedBean_SimpleModel implements ModelBaseInterface 
             throw new ApiException("Your status is not in active state", ErrorCodeType::UserNotInActiveStatus);
         }
     }
+	
+	/**
+     * Check Location
+     */
+    public function checkLocation(){
+
+		/**
+         * Get the bean
+         * @var $bean Model_Merchants
+         */
+		$bean = $this->bean;
+		
+		//validate param
+		$this->validatecheckLocationParams();
+		
+		$result = R::findOne('merchants', 'id = ? ', array($bean->MerchantId));	
+		if($result) {
+			// User Distance from latitude & longitude
+			$distance = (((acos(sin(($bean->Latitude*pi()/180)) * sin(($result->Latitude*pi()/180))+cos(($bean->Latitude*pi()/180)) * cos(($result->Latitude*pi()/180)) * cos((($bean->Longitude- $result->Longitude)*pi()/180))))*180/pi())*60*1.1515);
+			
+			//Admin Distance limit			
+			$adminResult = R::findOne('admins', 'id = ? ', array('1'));	
+			$distanceLimit = $adminResult->LocationLimit;
+			
+			//check for user in the location
+			if($distance > $distanceLimit) 
+				$AllowCart = 0;
+			else
+				$AllowCart = 1;
+				
+			//$AllowCartArray['UserId'] = $bean->UsersId;
+			$AllowCartArray['AllowCart'] = $AllowCart;			
+			return $AllowCartArray;
+		}
+		else {
+			/**
+	         * throwing error when no data found
+	         */
+			throw new ApiException("No merchants Found", ErrorCodeType::NoResultFound);
+		}
+	}
+	/**
+     * Validate checkLocation params
+     * @throws ApiException if the models fails to validate
+     */
+	public function validatecheckLocationParams()
+    {
+		$bean = $this->bean;
+	  	$rules = [
+            'required' => [
+                 ['Latitude'],['Longitude'],['MerchantId']
+            ],
+			
+        ];
+		
+        $v = new Validator($this->bean);
+        $v->rules($rules);
+        if (!$v->validate()) {
+            $errors = $v->errors();
+			// the action was not found
+            throw new ApiException("Please check the search properties. Fill MerchantId,Latitude,Longitude with correct values" ,  ErrorCodeType::SomeFieldsRequired, $errors);
+        }
+    }
+	/**
+     * Validate the product ids from merchant 
+     */
+	public function validateMerchantProduct($productIds)
+    {
+        /**
+         * Get the identity of the person requesting the details
+         */
+		$product = R::find('products', 'id = ? and Status = ?', [$productIds,StatusType::ActiveStatus]);
+		
+		return count($product);
+    }
+	
 }

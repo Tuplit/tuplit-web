@@ -3,6 +3,7 @@ require_once('includes/CommonIncludes.php');
 admin_login_check();
 commonHead();
 require_once('controllers/MerchantController.php');
+
 $MerchantObj   =   new MerchantController();
 $show = 0;
 $categories = $MerchantObj->getCategories();
@@ -13,6 +14,7 @@ if(isset($_GET['proview']) && $_GET['proview'] != ''){
 if(isset($_GET['viewId']) && $_GET['viewId'] != '' ){
 	$merchantListResult  = $MerchantObj->selectMerchantDetail($_GET['viewId']);
 	$merchantcategorylist  = $MerchantObj->selectMerchantCategory($_GET['viewId']);	
+	$merchantOpeningHoursResult = $MerchantObj->selectOpeningHoursDetail($_GET['viewId']);
 	$cat_id_array = array(); $cat_id_values = '';
 	if(count($merchantcategorylist) > 0) {		
 		$cat_id_array  = explode(',',$merchantcategorylist[0]->cat_id);
@@ -136,7 +138,7 @@ if(isset($_GET['viewId']) && $_GET['viewId'] != '' ){
 							?>
 								<span id="cat_id_<?php echo $val->Id; ?>" style="<?php if(in_array($val->Id,$cat_id_array)) echo "display:inline-block"; else echo "display:none;";?>" class="cat_box">
 									<img width="30" height="30" src="<?php echo CATEGORY_IMAGE_PATH.$val->CategoryIcon; ?>"/>
-									<span class="cname"><?php echo $val->CategoryName;?></i></span>
+									<span class="cname"><?php echo ucfirst($val->CategoryName);?></i></span>
 								</span>
 							<?php } } else echo "-"; ?>
 						</div>
@@ -144,7 +146,18 @@ if(isset($_GET['viewId']) && $_GET['viewId'] != '' ){
 					<div class="form-group col-sm-6 row">
 						<label class="col-sm-4" >Opening Hours</label>
 						<div  class="col-sm-8">
-						<?php if(!empty($merchantListResult[0]->OpeningHours)) { echo $merchantListResult[0]->OpeningHours; } else { echo "-"; } ?></div>
+						<?php if(isset($merchantOpeningHoursResult) && !empty($merchantOpeningHoursResult)){
+								$openinghours = openingHoursString($merchantOpeningHoursResult);
+								if(count($openinghours['Open']) > 0 ) {
+									foreach($openinghours['Open'] as $val) {
+										echo $val."<br>";
+									}									
+								}
+								if(!empty($openinghours['Closed'])) {
+									echo "<font color='#01A99A'><b>".$openinghours['Closed']."</b></font>";							
+								}  } else echo '-'; 
+						?>
+						</div>
 					</div>
 					<div class="form-group col-sm-6 row">
 						<label class="col-sm-4" >Items Sold</label>
@@ -154,7 +167,7 @@ if(isset($_GET['viewId']) && $_GET['viewId'] != '' ){
 					<div class="form-group col-sm-6 row">
 						<label class="col-sm-4" >Price Scheme</label>
 						<div  class="col-sm-8">
-						<?php if($merchantListResult[0]->DiscountTier != 0) { echo $discount_array[$merchantListResult[0]->DiscountTier]."%"; } else { echo "-"; } ?></div>						
+						<?php if($merchantListResult[0]->DiscountTier != 0) { echo $discountTierArray[$merchantListResult[0]->DiscountTier]."%"; } else { echo "-"; } ?></div>						
 					</div>
 					<div class="form-group col-sm-6 row">
 						<label class="col-sm-4" >Price Range</label>

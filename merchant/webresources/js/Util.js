@@ -139,7 +139,7 @@ function isNumberKey_Phone(evt) {
 	var keyCode = (evt.which?evt.which:(evt.keyCode?evt.keyCode:0))
 	//alert( keyCode);
 	// backspace, delete, left arrow, right arrow, tab keys
-	if ((keyCode == 8) || (keyCode == 37) || (keyCode == 39) || (keyCode == 9) || (keyCode == 13) || (keyCode == 40) || (keyCode == 41) || (keyCode == 45) || (keyCode  == 45) || (keyCode  == 43	)) return true;
+	if ((keyCode == 8) || (keyCode == 37) || (keyCode == 39) || (keyCode == 9) || (keyCode == 13) || (keyCode == 40) || (keyCode == 41) || (keyCode == 45) || (keyCode  == 43	)) return true;
 	if ((keyCode < 48) || (keyCode > 57)) return false;
 	return true;
 }

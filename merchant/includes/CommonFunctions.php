@@ -1574,4 +1574,24 @@ function getLatLngFromAddress($address) {
 		return 0;
 	}
 }
+
+function OpeingHours(){
+	/*$restaurent->restaurent_opening_hours_day1=($restaurent->restaurent_opening_hours_day1from==00 && $restaurent->restaurent_opening_hours_day1to==00?0:1);
+	$restaurent->restaurent_opening_hours_day2=($restaurent->restaurent_opening_hours_day2from==00 && $restaurent->restaurent_opening_hours_day2to==00?0:1);
+	$restaurent->restaurent_opening_hours_day3=($restaurent->restaurent_opening_hours_day3from==00 && $restaurent->restaurent_opening_hours_day3to==00?0:1);
+	$restaurent->restaurent_opening_hours_day4=($restaurent->restaurent_opening_hours_day4from==00 && $restaurent->restaurent_opening_hours_day4to==00?0:1);
+	$restaurent->restaurent_opening_hours_day5=($restaurent->restaurent_opening_hours_day5from==00 && $restaurent->restaurent_opening_hours_day5to==00?0:1);
+	$restaurent->restaurent_opening_hours_day6=($restaurent->restaurent_opening_hours_day6from==00 && $restaurent->restaurent_opening_hours_day6to==00?0:1);
+	$restaurent->restaurent_opening_hours_day7=($restaurent->restaurent_opening_hours_day7from==00 && $restaurent->restaurent_opening_hours_day7to==00?0:1);
+	
+	$working_hours=($restaurent->restaurent_opening_hours_day1==1?'Mon '.number_hours($restaurent->restaurent_opening_hours_day1from).' - '.number_hours($restaurent->restaurent_opening_hours_day1to):'Mon Closed').'<br />  ';
+	$working_hours.=($restaurent->restaurent_opening_hours_day2==1?'Tue '.number_hours($restaurent->restaurent_opening_hours_day2from).' - '.number_hours($restaurent->restaurent_opening_hours_day2to):'Tue Closed').'<br /> ';
+	$working_hours.=($restaurent->restaurent_opening_hours_day3==1?'Wed '.number_hours($restaurent->restaurent_opening_hours_day3from).' - '.number_hours($restaurent->restaurent_opening_hours_day3to):'Wed Closed').'<br /> ';
+	$working_hours.=($restaurent->restaurent_opening_hours_day4==1?'Thu '.number_hours($restaurent->restaurent_opening_hours_day4from).' - '.number_hours($restaurent->restaurent_opening_hours_day4to):'Thu Closed').'<br /> ';
+	$working_hours.=($restaurent->restaurent_opening_hours_day5==1?'Fri '.number_hours($restaurent->restaurent_opening_hours_day5from).' - '.number_hours($restaurent->restaurent_opening_hours_day5to):'Fri Closed').' <br />';
+	$working_hours.=($restaurent->restaurent_opening_hours_day6==1?'Sat '.number_hours($restaurent->restaurent_opening_hours_day6from).' - '.number_hours($restaurent->restaurent_opening_hours_day6to):'Sat Closed').' <br />';
+	$working_hours.=($restaurent->restaurent_opening_hours_day7==1?'Sun '.number_hours($restaurent->restaurent_opening_hours_day7from).' - '.number_hours($restaurent->restaurent_opening_hours_day7to):'Sun Closed');
+
+	$open_hours=$working_hours;*/
+}
 ?>

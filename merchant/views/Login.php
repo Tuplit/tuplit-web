@@ -4,7 +4,7 @@ require_once('includes/CommonIncludes.php');
 $msg_class 		= "alert alert-danger alert-dismissable col-xs-12";
 $class_icon   	= "fa-warning";
 $doLogin  = 0;
-//echo'<pre>';print_r($_COOKIE);echo'</pre>';die();
+//echo'<pre>';print_r($_SESSION);echo'</pre>';die();
 if(isset($_COOKIE['tuplit_merchant_email']) && $_COOKIE['tuplit_merchant_email'] != '' && isset($_COOKIE['tuplit_merchant_password']) && $_COOKIE['tuplit_merchant_password'] != '' && isset($_COOKIE['tuplit_merchant_logout']) && $_COOKIE['tuplit_merchant_logout'] != '') {
 	$cookie_email = $_COOKIE['tuplit_merchant_email'];
 	$cookie_password = decryption($_COOKIE['tuplit_merchant_password']);
@@ -26,7 +26,7 @@ if(isset($_COOKIE['tuplit_merchant_email']) && $_COOKIE['tuplit_merchant_email']
 //login after sign up process
 if(isset($_GET['type']) && $_GET['type'] == 1){
 	$responseMessage = 'You have registered successfully.Please wait till you get approval mail.';
-	$msg_class 		 = "alert alert-success alert-col-sm-4";
+	$msg_class 		 = "alert alert-success alert-col-xs-4";
 	$class_icon   	 = "fa-check";
 }
 
@@ -61,6 +61,7 @@ if($doLogin){
 		} else {
 			destroyCookies();
 		}
+		//echo'<pre>';print_r($_SESSION['merchantInfo'] );echo'</pre>';die();
 		//login after sign up process		
 		$merchantId			= 	$_SESSION['merchantInfo']['MerchantId'];
 		$url				=	WEB_SERVICE.'v1/merchants/'.$merchantId;
@@ -87,9 +88,9 @@ if($doLogin){
 }
 commonHead();
 ?>
-<body class="skin-blue" onload="fieldfocus('user_name');">
+<body class="skin-blue fixed" onload="fieldfocus('user_name');">
 		<?php top_header(); ?>
-		<div class="banner bg-gray"><img src="webresources/images/banner1.jpg" width="100%" height="250" alt=""></div>
+		<div class="banner bg-gray" style="margin-top:-25px;"><img src="webresources/images/banner1.jpg" width="100%" height="250" alt=""></div>
 		
 		<div class="form-box" id="login-box">
 			<form action="" name="merchant_login_form" id="merchant_login_form"  method="post">
@@ -107,8 +108,8 @@ commonHead();
 						<input type="password" name="Password" id="Password" class="form-control" placeholder="Password" value="<?php if(isset($_POST['Password']) && $_POST['Password'] != '') echo $_POST['Password']; else if(isset($cookie_password) && !empty($cookie_password)) echo $cookie_password;?>"/>
 					</div>          
 					<div class="form-group">
-						<div class="col-sm-6 no-padding"><input type="checkbox" id='remember_me'  name="remember_me" class="fleft"<?php if(isset($_POST['remember_me']) && $_POST['remember_me']  == 'on') echo "checked";  else if(!isset($_POST['Email']) && isset($cookie_rem) && $cookie_rem == '1')  echo "checked"; ?>><label for='remember_me' class="fleft">&nbsp;&nbsp;Remember me</label></div>
-						<div class="col-sm-6 no-padding" align="right"><a href="ForgotPassword" title="Forgot password"><i class="fa fa-lock"></i>&nbsp;&nbsp;Forgot password</a></div>
+						<div class="col-xs-6 no-padding"><input type="checkbox" id='remember_me'  name="remember_me" class="fleft"<?php if(isset($_POST['remember_me']) && $_POST['remember_me']  == 'on') echo "checked";  else if(!isset($_POST['Email']) && isset($cookie_rem) && $cookie_rem == '1')  echo "checked"; ?>><label for='remember_me' class="fleft">&nbsp;&nbsp;Remember me</label></div>
+						<div class="col-xs-6 no-padding" align="right"><a href="ForgotPassword" title="Forgot password"><i class="fa fa-lock"></i>&nbsp;&nbsp;Forgot password</a></div>
 						
 					</div>
 				</div>

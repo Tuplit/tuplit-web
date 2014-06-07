@@ -63,7 +63,7 @@ $("#add_merchant_form").validate({
 		}
 	});
 //--------------Add user----------------End
-//--------------Add User---------------start
+//--------------Add Merchant---------------start
 $("#add_account_form").validate({
 		rules:{
 			CompanyName		   :	{ required:true },
@@ -92,7 +92,7 @@ $("#add_account_form").validate({
 			DiscountTier		:	{ required:'Price Scheme is required'},
 			empty_icon_photo		: 	{ required:'Icon is required'},
 			empty_merchant_photo	: 	{ required:'Image is required'},
-			priceValidation		:	{ required:'Price range is required',min_val:'Please enter valid price range'}
+			priceValidation		:	{ required:'Price Range is required',min_val:'Please enter valid price range'}
 			/*max_price			:	{ required:'Max price is required',max_val:'Max price sould be greater than Min price'}*/
 		}
 	});
@@ -107,73 +107,39 @@ $("#add_account_form").validate({
 		  	return true
 	});
 	
-//--------------Add user----------------End
+//--------------Add Merchant----------------End
 
 //--------------Add Product---------------start
 $("#add_product_form").validate({	
 		rules:{
-			ItemName          	:	{ required:true},
-			ItemDescription   	:	{ required:true},			
-			DiscountTier      	: 	{ discount_tier:true},
-            Price			  	:	{ price:true},
-			DiscountPrice	  	:	{ discount_price:true },
-			Quantity	  	  	:	{ required:true },
-			empty_product_photo	:	{ required:true },
-			dup_SpecialPrice	:	{ specialprice:true },
-			ItemType		  	:	{ required:true },
-			SpecialDiscountPrice:	{ specialdiscountprice:true }			
+			ItemName          	:	{ required:true},			
+            Price			  	:	{ required:true},			
+			empty_product_photo	:	{ required:true },			
+			Category		  	:	{ required:true }			
 		},
 		messages:{
 			ItemName      	 	:	{ required:'Item Name is required'},
-			ItemDescription		:	{ required:'Item Description is required'},			
-			DiscountTier		:	{ discount_tier:'Discount Tier is required'},
-			Price			    :   { price:'Price is required'},
-			DiscountPrice		:	{ discount_price:'Discount Price is required' },
-			Quantity			:	{ required:'Quantity is required' },
+			Price			    :   { required:'Price is required'},
 			empty_product_photo	:	{ required:'Product Image is required' },
-			dup_SpecialPrice	  	:	{ specialprice:'Add atleast one product data' },
-			ItemType	        :	{ required:'Item Type is required' },
-			SpecialDiscountPrice:	{ specialdiscountprice:'DiscountPrice should be less then the original price'}	
+			Category		  	:	{ required:'Category is required' }			
 		}		
-	});
-	$.validator.addMethod("price", function(value, element) {
-		 if($('#ItemType').val() == 3 && $('#ItemType').val() == '') 
-			return true;
-		 else {
-			if($('#Price').val() == '') 
-				return false;
-			else	
-				return true;
-		}
-	});
-	$.validator.addMethod("discount_tier", function(value, element) {
-		 if($('#ItemType').val() == 2 && $('#DiscountTier').val() == '') 
-			return false;
-		 else
-			return true;  		 
-	});
-	$.validator.addMethod("discount_price", function(value, element) {
-		 if($('#ItemType').val() == 2 && $('#DiscountPrice').val() == '') 
-			return false;
-		 else
-			return true;	   		 
-	});
-	$.validator.addMethod("specialprice", function(value, element) {
-		 if($('#ItemType').val() == 3 && $('#specialProductsCount').val() > 0 && $('#SpecialPrice').val() == '') 
-			return false;
-		 else
-			return true;	   		 
-	});
-	$.validator.addMethod("specialdiscountprice", function(value, element) {
-		 if($('#ItemType').val() == 3 && $('#specialProductsCount').val() > 0 && $('#SpecialPrice').val() != '') {
-			if(parseInt($('#SpecialDiscountPrice').val()) < parseInt($('#SpecialPrice').val()))
-				return true;
-			else
-				return false;
-		 } else
-			return true;	   		 
-	});
+	});	
 //--------------Add Product----------------End
+
+//--------------Edit Product---------------start
+$("#edit_product_form").validate({	
+		rules:{
+			ItemName          	:	{ required:true},			
+            Price			  	:	{ required:true},			
+			Category		  	:	{ required:true }			
+		},
+		messages:{
+			ItemName      	 	:	{ required:'Item Name is required'},
+			Price			    :   { required:'Price is required'},			
+			Category		  	:	{ required:'Category is required' }			
+		}		
+	});	
+//--------------Edit Product----------------End
 
 //--------------Change Password---------------start
 $("#change_password_form").validate({
@@ -183,12 +149,86 @@ $("#change_password_form").validate({
             C_Password		   :	{ required:true,minlength:6, equalTo:'#Password'}			
 		},
 		messages:{	
-			OldPassword			:	{ required:'Old password is required'},
-			Password			:	{ required:'New password is required',minlength:'New Password should have atleast 6 characters'},
+			OldPassword			:	{ required:'Old Password is required'},
+			Password			:	{ required:'New Password is required',minlength:'New Password should have atleast 6 characters'},
 			C_Password		    :   { required:'Confirm Password is required',minlength:'Confirm Password should have atleast 6 characters',equalTo:'Password mismatch' }			
 		}
 	});
 //--------------Change Password----------------End
+//--------------Add Category----------------Start
+$("#add_category_form").validate({	
+		rules:{
+			CategoryName          	:	{ required:true}			
+		},
+		messages:{
+			CategoryName      	 	:	{ required:'Category name is required'}
+		}		
+	});
+//--------------Add Category----------------End
 });
 
-
+//--------------------My Account - Opening Hours ------------------Start
+$("#add_account_form").submit(function() {
+	var validatetime = '1';
+	var myregex = new RegExp("");
+	var checksame = 6;
+	if($('#samehours').is(':checked')) {
+		checksame = 0;
+		$('#row_0').val('1');
+		if($("#from1_0").val() == '' || $("#from1_0").val() == ''){
+			$('#error_0').html('Enter From time and To time.');
+			validatetime = '0';
+			return false;
+		}
+	} else {
+		$('#row_0').val('');
+	}
+	for(i=0;i<=checksame;i++) {
+		$('#error_'+i).html('');
+		if($('#row_'+i).val() != '') {
+			if(!$("#from1_"+i).val().match(/^(0?[1-9]|1[012])(:[0-5]\d) [APap][mM]$/)) {			
+				$('#error_'+i).html('Invalid From time. It should be in HH:MM AM or HH:MM PM');
+				validatetime = '0';
+			}
+			else if(!$("#to1_"+i).val().match(/^(0?[1-9]|1[012])(:[0-5]\d) [APap][mM]$/)) {			
+				$('#error_'+i).html('Invalid To time. It should be in HH:MM AM or HH:MM PM');
+				validatetime = '0';
+			}
+			else {
+				var start = $('#from1_'+i).val();
+				start = start.toLowerCase();
+                var end = $('#to1_'+i).val();
+				end = end.toLowerCase();
+				if(start != '' && end != '') {
+					if(start == end) {
+						$('#error_'+i).html('From time and To time should not be same');
+						validatetime = '0';
+					}
+					//Start time
+					var startsplit 		= start.split(" ");
+					var startarray 		= startsplit[0].split(":").map(Number);
+					if(startsplit[1] == 'pm') {
+						startarray[0] = startarray[0] + 12;
+					}
+					//End Time
+					var endsplit 		= end.split(" ");
+					var endarray 		= endsplit[0].split(":").map(Number);	
+					if(endsplit[1] == 'pm') {
+						endarray[0] = endarray[0] + 12;
+					}
+					//Checking
+					if((startarray[0] > endarray[0]) || ((startarray[0] == endarray[0]) && (startarray[1] > endarray[1]))) {
+						$('#error_'+i).html('To time must be greater then From time');
+						validatetime = '0';
+					}					
+				}				
+			}
+		}
+	}	
+	
+	if(validatetime == '1')
+		return true;
+	else
+		return false;
+});
+//--------------------My Account - Opening Hours ------------------end

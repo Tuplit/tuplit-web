@@ -16,11 +16,11 @@ if(isset($_POST['password_change_submit']) && $_POST['password_change_submit'] =
 					'MerchantId' 	=> $_SESSION['merchantInfo']['MerchantId'],
 				);
 	$url			=	WEB_SERVICE.'v1/merchants/resetPassword';
-	$method			=	'POST';
-	$curlResponse	=	curlRequest($url,$method,$data);
+	$method			=	'PUT';
+	$curlResponse	=	curlRequest($url,$method,json_encode($data));
 	if(isset($curlResponse) && is_array($curlResponse) && $curlResponse['meta']['code'] == 201 ) {
 		$responseMessage 	= $curlResponse['notifications'][0];
-		$msg_class 			= "alert alert-success alert-col-sm-4";
+		$msg_class 			= "alert alert-success alert-col-xs-4";
 		$class_icon 		= "fa-check";
 		if(isset($_COOKIE['tuplit_merchant_email']) && $_COOKIE['tuplit_merchant_email'] != '' && isset($_COOKIE['tuplit_merchant_password']) && $_COOKIE['tuplit_merchant_password'] != '' && isset($_COOKIE['tuplit_merchant_logout']) && $_COOKIE['tuplit_merchant_logout'] != '') {
 			if($_COOKIE['tuplit_merchant_logout'] == 'login') {
@@ -38,8 +38,8 @@ if(isset($_POST['password_change_submit']) && $_POST['password_change_submit'] =
 }
 commonHead();
 ?>
-<body class="skin-blue" onload="fieldfocus('user_name');">
-		<section class="content-header col-sm-12">
+<body class="skin-blue fixed" onload="fieldfocus('user_name');">
+		<section class="content-header col-xs-12">
 			<h1>Change Password</h1>
 		</section>
 		
@@ -52,16 +52,16 @@ commonHead();
 						</div>
 					<?php  } ?>
 
-					<div class="col-sm-12 no-padding">
+					<div class="col-xs-12 no-padding">
 					
-					<div class="form-group col-sm-12 no-padding">
+					<div class="form-group col-xs-12 no-padding no-margin"  style="height:65px" >
 						<input type="password" name="OldPassword" id="OldPassword" class="form-control" required placeholder="Old Password" value=""/>
 						
 					</div>
-					<div class="form-group col-sm-12 no-padding">
+					<div class="form-group col-xs-12 no-padding no-margin"  style="height:65px">
 						<input type="password" name="Password" id="Password" class="form-control" required placeholder="New Password" value=""/>
 					</div> 
-					<div class="form-group col-sm-12 no-padding">
+					<div class="form-group col-xs-12 no-padding no-margin"  style="height:65px">
 						<input type="password" name="C_Password" id="C_Password" class="form-control"  required placeholder="Confirm Password" value=""/>
 					</div>          
 					</div>

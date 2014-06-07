@@ -16,7 +16,6 @@ if (window.location.hostname == '172.21.4.104') {
 
 function addRow(ref,id_val,ref_id,type)
 {
-//alert( id_val);
 	if(type == 1){
 	 var slide_val	=	"Slider_Image_";
 	 var slide_name	=	'Slider';
@@ -30,8 +29,9 @@ function addRow(ref,id_val,ref_id,type)
 	var explanation	= "explanation_clone_";
 	var count 		= 0;
 	var node 		= $(ref).closest("#"+ref_id);
-	var empty		=	0;
 	var length		= node.attr("clone");
+	var empty		=	0;
+	
 	$(ref).closest("#"+ref_id).find(".file_input").each(function() {
 	 var x=document.getElementById(slide_val+length+"_upload");
 		if(x == null)
@@ -44,7 +44,6 @@ function addRow(ref,id_val,ref_id,type)
 		}
 		else
 			var count		=	$("#tutorial_center div").length;
-		var new_count	 = Math.round((count/6)) + 1;
 		var length		= node.attr("clone");
 		var tabindex	= $("#method").attr("tabindex");
 		var clonedRow 	= node.clone(true);
@@ -53,6 +52,12 @@ function addRow(ref,id_val,ref_id,type)
 			count = (+length)+1;
 			//var img_count	=	(+length)-1;
 			//alert(count);
+			if(type == 1){
+				$(".Remove_Home_1").attr('style','');
+			}
+			else if(type == 2){
+				$(".Remove_Tutorial_1").attr('style','');
+			}
 			clonedRow.attr("clone",count);
 			clonedRow.find("input").val("");
 			clonedRow.find("select").val(0);
@@ -80,7 +85,7 @@ function addRow(ref,id_val,ref_id,type)
 				clonedRow.find(".AddNewSlider").attr('id','AddNew2_'+count);
 				var new_img_count	=	count-1;
 				$("#AddNew2_"+new_img_count).hide();
-				clonedRow.find(".tooltip").css("display", "none");
+				
 			}
 			settabindex(tabindex);
 		}
@@ -91,21 +96,52 @@ function addRow(ref,id_val,ref_id,type)
 
 function delRow(ref,id_val,ref_id,type)
 {	
-	
 	if(type == 1){
 		var count		=	$("#slider_home div").length;
+		var new_count	 = $(ref).closest("#"+ref_id).attr("clone");
+		var add_id		=	"AddHome_";
 	}
-	else
+	else{
 		var count		=	$("#slider_tutorial div").length;
-	var new_count	 = Math.round((count/7)) + 1;
-	//alert(new_count);
-	if(new_count > 3)	
+		var new_count	 = $(ref).closest("#"+ref_id).attr("clone");
+		var add_id		=	"AddTutorial_";
+	}
+	if(new_count > 1)	
 	{
 		var bool	=	confirm("Are you sure to delete ?");
-		if(bool)
-			//$("#slider_home_"+new_val).closest("div").remove();
-			$(ref).closest("#"+ref_id).remove();
+		if(bool){
+			
+			if(type == 1){
+				add_count	=	$(ref).closest("#"+ref_id).attr("clone");
+				new_counts	=	add_count-1;
+				$("#AddNew1_"+new_counts).show();
+			}
+			else if(type == 2){
+				add_count	=	$(ref).closest("#"+ref_id).attr("clone");
+				new_counts	=	add_count-1;
+				$("#AddNew2_"+new_counts).show();
+			}
+			$("#"+add_id+new_counts).show();
+			//if(new_counts == 1)
+				$(ref).closest("#"+ref_id).attr('style','display:none');
+				$(ref).closest(".file_input").attr('id','');
+				$(ref).closest(".file_input").attr('value','');
+				$(ref).closest(".image_disp").attr('id','');
+			//else
+				//$(ref).closest("#"+ref_id).remove();
+		}
 	}
+	//else if(new_count == 1){
+		/*var bool	=	confirm("Are you sure to delete ?");
+		if(bool){
+			$(ref).closest("#"+ref_id).attr('style','display:none');
+			add_count	=	$(ref).closest("#"+ref_id).attr("clone");
+			//alert(add_count );
+			new_count	=	add_count-1;
+			$("#"+add_id+new_count).show();
+		}*/
+		
+	//}
 	else
 		alert("Atleast one row is required");
 }
@@ -321,14 +357,15 @@ sendNotification = function(frmname)
 
 function deleteRow(id_val,type)
 {	
-	
 		if(type == 1){
 		 	var remove_id	=	"exist_id_home_";
 			var delete_id	=	"hidden_home_count";
+			var add_id		=   "AddHome_";
 		 }
 		else{
 			var remove_id	=	"exist_id_tutorial_";
 			var delete_id	=	"hidden_tutorial_count";
+			var add_id		=   "AddTutorial_";
 		 }
 		 
 		 var del_count	=	$("#"+delete_id).val() ;
@@ -343,12 +380,20 @@ function deleteRow(id_val,type)
 					
 						if(result = 1){							
 							//$("#"+remove_id+id_val).animate({height: 'toggle', opacity: 'toggle'}, "slow");
-							$("#"+remove_id+id_val).hide();
+							
 							$("#center div").length  = $("#center div").length - 7;	
 							
 							
 							var new_count	=	del_count-1;
 							$("#"+delete_id).val(new_count);
+							add_count	=	document.getElementById(remove_id+id_val).getAttribute('clone');
+							var new_count	=	add_count-1;
+							$("#"+add_id+new_count).show();
+							//$("#"+remove_id+id_val).hide();
+							//if(new_count == 1)
+								$("#"+remove_id+id_val).attr('style','display:none');
+							//else
+								//$("#"+remove_id+id_val).remove();
 							//window.location="SliderImages";
 						}
 						
@@ -443,13 +488,33 @@ else
 
 }
 
-function showCategory() {
-	var sel = $( "#Category option:selected" ).val();
-	//alert(sel);
-	//$("#cat_id_"+sel).show();
-	if(sel != '') {
-		$("#cat_id_"+sel).css('display','block');
-		$("#Category").children("option[value =" +sel+ "]").hide();
+function showCategory(id_val) {
+	$('.cats .error').hide();
+	if(id_val != ''){
+		var res = id_val.split(",");
+		for(var i = 0; i < res.length; i++) {	
+			var sel = res[i];
+			if(sel != '') {
+				$("#cat_id_"+sel).css('display','inline-block');
+				$("#Category").children("option[value =" +sel+ "]").attr('disabled','true');
+				var sel_val = $("#categorySelected").val();
+				if(sel_val == '') {
+					sel_val = sel;
+					$("#categorySelected").val(sel_val);
+				} else {
+					sel_val = sel_val+','+sel;
+					$("#categorySelected").val(sel_val);
+				}
+			}
+			$("#Category").children("option[value ='']").attr('selected', true);
+		}
+	}
+	else{
+		var sel = $( "#Category option:selected" ).val();
+		if(sel != '') {
+		
+		$("#cat_id_"+sel).css('display','inline-block');
+		$("#Category").children("option[value =" +sel+ "]").attr('disabled','true');
 		var sel_val = $("#categorySelected").val();
 		if(sel_val == '') {
 			sel_val = sel;
@@ -459,7 +524,11 @@ function showCategory() {
 			$("#categorySelected").val(sel_val);
 		}
 	}
+	}
 	$("#Category").children("option[value ='']").attr('selected', true);
+	$('option[disabled="disabled"]').each(function () {
+         $(this).attr('style', 'color:#cccccc;font-style:italic');
+	});
 }
 function removeCategory(id) {
 	if(confirm('Are you sure to Remove?')) { 		
@@ -484,6 +553,7 @@ function removeCategory(id) {
 }
 function ChangeImageName(type,vals,idval){
   	setOrderingSlider(vals,0,type);
+	//alert(idval);
 	if(type == 1)
 		var slide_id	=	"Slider_Image_";
 	else
@@ -491,11 +561,82 @@ function ChangeImageName(type,vals,idval){
 	if(idval != '' ){
 		var separated_val = idval.split('_');	
 		var image_id		=	separated_val[1];
+		//alert(image_id);
+		$('#'+slide_id+image_id).attr('name',slide_id+vals);
+		$('#'+slide_id+image_id).attr('id',slide_id+vals);
+		$('#'+slide_id+image_id+'_img').attr('id',slide_id+vals+'_img');
 		$('#'+slide_id+image_id+'_upload').attr('name',slide_id+vals+"_upload");
 		$('#name_'+slide_id+image_id).attr('name','name_'+slide_id+vals);
+		$('#'+slide_id+image_id).attr('name',slide_id+vals);
 	}
 }
 
 function updateTime(id) {
-	$('#set_'+id).val('1');
+	from = $('#from_'+id).val();
+	to = $('#to_'+id).val();
+	//alert(from+'  '+to)
+	if(from == '00' && to == '00')
+		$('#set_'+id).val('');
+	else if(from != '00' || to != '00')
+		$('#set_'+id).val('1');
 }
+function calculateDiscountPrice() {
+	var price 			= $('#ItemPrice').val();
+	var discount_tier 	= $('#DiscounTtier').val();	
+	var discount_val	= parseInt($("input[name=DiscountApplied]:checked").val());
+	//iscount_tier 		= discount_tier*10;	
+	if(discount_val == '1') {		
+		var discount_price = parseFloat(price - ((price/100)*discount_tier));
+		$('#DiscountPrice').val(discount_price);		
+	}
+	else {
+		$('#DiscountPrice').val('0');	
+	}	 
+}
+function getProductCategory(merchant_id){
+	var discount	=	 $("#Merchant option:selected").attr("discount_val");
+	$('#DiscounTtier').val(discount);		
+	$('#ItemPrice').val('');
+	$('#DiscountPrice').val('');	
+	//alert(discount);
+	$.ajax({
+        type: "POST",
+        url: actionPath+"models/AjaxAction.php",
+        data: 'action=GET_PRODUCT_CATEGORY&m_id='+merchant_id,
+        success: function (result){
+			$('#category_box').html(result);
+        }			
+    });
+}
+
+function hideAllDays() {
+	var check = $('#showdays').val();	
+	if(check == 0) {
+		$('.rowHide').fadeOut('slow');
+		$('.rowshow').html('Monday to Sunday : ');
+		$('#showdays').val('1');
+		for(i=1;i<=6;i++) {
+			$('#from1_'+i).val('');
+			$('#to1_'+i).val('');
+			$('#row_'+i).val('');
+			$('#error_'+i).html('');
+		}
+	}else {
+		$('.rowHide').fadeIn('slow');
+		$('#showdays').val('0');
+		$('.rowshow').html('Monday : ');
+	}
+}
+
+function setTime(id) {	
+	from = $('#from1_'+id).val();
+	to = $('#to1_'+id).val();
+	//alert(from+'  '+to)
+	if(from == '' && to == '')
+		$('#row_'+id).val('');
+	else if(from != '' || to != '')
+		$('#row_'+id).val('1');
+}
+
+
+

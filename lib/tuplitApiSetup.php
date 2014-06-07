@@ -44,7 +44,7 @@ class tuplitApiSetup {
         $accountAdmin = R::dispense('user');
         $accountAdmin->Email = '';
         $accountAdmin->Name = '';
-        $accountAdmin->UserName = '';
+        $accountAdmin->UserName = 'v';
         $accountAdmin->password = PasswordHelper::encrypt('password');
         $accountAdmin->createdDate = time();
         $accountAdmin->modifiedDate = $accountAdmin->dateCreated;

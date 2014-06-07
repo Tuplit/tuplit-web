@@ -30,7 +30,7 @@ if(isset($_POST['merchant_signup_submit']) && $_POST['merchant_signup_submit'] =
 commonHead();
 ?>
 
-<body class="skin-blue" onload="fieldfocus('user_name');">
+<body class="skin-blue fixed" onload="fieldfocus('user_name');">
 		
 		<?php top_header(); ?>
 		

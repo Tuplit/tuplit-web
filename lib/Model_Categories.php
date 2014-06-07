@@ -80,12 +80,150 @@ class Model_Categories extends RedBean_SimpleModel {
 			  throw new ApiException("No results Found", ErrorCodeType::NoResultFound);
 		}
 	}
-	public function deleteCategories($mercahntId)
+	public function deleteCategories($mercahntId,$catids)
     {
 		/**
          * Query to delete merchant categories
          */
-		$sql 		= "DELETE FROM merchantcategories where fkMerchantId = ".$mercahntId."";
+		$sql		= "delete from merchantcategories where fkCategoriesId not in (".$catids.") and fkMerchantId = '".$mercahntId."'";
    		$result 	= R::exec($sql);
 	}
+	
+	/**
+     * get category details
+     */
+    
+	public function getProdctCategoryList($merchantId)
+    {
+		/**
+         * Query to get category list
+         */
+		 
+		$sql 		= "SELECT c.id as CategoryId,c.CategoryName from productcategories as c where c.Status = 1 and fkMerchantId in (".$merchantId.",0) ORDER BY c.CategoryName asc";
+   		$result 	= R::getAll($sql);
+		if($result){
+			/**
+             * The categories were found
+             */
+			$CategoryArray['result'] 		= $result;
+			return $CategoryArray;
+		}
+		else{
+			 /**
+	         * throwing error when no data found
+	         */
+			  throw new ApiException("No results Found", ErrorCodeType::NoResultFound);
+		}
+	}
+	/**
+     * Create new category
+     */
+    public function create(){ // Tuplit new category
+		 
+		 /**
+         * Get the bean
+         * @var $bean Model_Category
+         */
+		 
+        $bean 			= $this->bean;	
+		
+		//validate category
+		$this->validateCategoryParam();
+		
+		$merchantId		= $bean->fkMerchantId;
+		$categoryName	= $bean->CategoryName;
+		$catId			= $bean->CategoryId;
+		
+		$this->validateCategory($catId);
+		$categories   					= R::dispense('productcategories');
+		$categories->fkMerchantId 		= $merchantId;
+		$categories->CategoryName 		= $categoryName;
+		$categories->Status 			= 1;
+		if($catId	!= ''){
+			$categories->id	= $catId;
+		}
+		else{
+			// save the bean to the database
+			 $categories->DateCreated 		= date('Y-m-d H:i:s');
+		}
+		$categoryId = R::store($categories);
+		return $categoryId;
+    }
+	
+	
+	
+	public function validateCategory($catId){
+	
+		  /**
+         * Get the bean
+         * @var $bean Model_Category
+         */
+        $bean = $this->bean;
+		$condition = '';
+		if($catId != ''){
+			$condition	= " and id != ".$catId ."";
+		}
+		if($bean->CategoryName != ''){
+			$sql 		= "SELECT  c.id as CategoryId,c.CategoryName from productcategories as c where c.Status = 1 and c.fkMerchantId IN(".$bean->fkMerchantId.",0) ".$condition." and CategoryName = '".trim($bean->CategoryName)."' ";
+   			$existingCategory 	= R::getAll($sql);
+	        if ($existingCategory) {
+	            // if category name exist it wont insert
+	            throw new ApiException("Category name already exist ", ErrorCodeType::CategoryAlreadyExist);
+			}
+		}
+	}
+	/**
+     * get single product category details
+     */
+    
+	public function getSingleProdctCategory($merchantId,$categoryId)
+    {
+		/**
+         * Query to get category list
+         */
+			$sql 		= "SELECT  c.id as CategoryId,c.CategoryName from productcategories as c where c.Status = 1 and fkMerchantId IN(".$merchantId.",0) and id = ".$categoryId." ORDER BY c.id desc";
+   		$result 	= R::getAll($sql);
+		if($result){
+			/**
+             * The categories were found
+             */
+				return $result;
+		}
+		else{
+			 /**
+	         * throwing error when no data found
+	         */
+			  throw new ApiException("No results Found", ErrorCodeType::NoResultFound);
+		}
+	}
+	/**
+     * Validate category name
+     * @throws ApiException if the models fails to validate
+     */
+	public function validateCategoryParam()
+    {
+		$bean = $this->bean;
+		if($bean->Type == 1){
+		  	$rules = [
+	            'required' => [
+	                 ['CategoryName']
+	            ],
+	        ];
+		}
+		else{
+			$rules = [
+	            'required' => [
+	                 ['CategoryName'],['CategoryId']
+	            ],
+	        ];
+		}
+		
+        $v = new Validator($this->bean);
+        $v->rules($rules);
+        if (!$v->validate()) {
+            $errors = $v->errors();
+			// the action was not found
+            throw new ApiException("Please check the category properties." ,  ErrorCodeType::SomeFieldsRequired, $errors);
+        }
+    }
 }

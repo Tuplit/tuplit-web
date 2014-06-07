@@ -237,19 +237,19 @@ else if(isset($_GET['msg']) && $_GET['msg'] == 4){
 									<td align="center" nowrap><?php echo (($_SESSION['curpage'] - 1) * ($_SESSION['perpage']))+$key+1;?></td>												
 									<td>
 										
-											<?php if(isset($original_path) && $original_path != ''){ ?><div class="col-xs-3 no-padding"><a <?php if(isset($original_path) && basename($original_path) != "no_category.jpeg") { ?> href=" <?php echo $original_path; ?> " class="Category_image_pop_up" title="View Photo" <?php } ?> ><img width="36" height="36" align="top" class="img_border" src="<?php echo $original_path;?>" ></a></div> <?php } ?>
-											<div class="col-xs-9 "> <?php if(isset($value->CategoryName) && $value->CategoryName != ''){ echo $value->CategoryName.' ';  } ?></br>
+											<?php if(isset($original_path) && $original_path != ''){ ?><div class="col-xs-3 no-padding"><a <?php if(isset($original_path) && basename($original_path) != "no_category.jpeg") { ?>href="<?php echo $original_path; ?>" class="Category_image_pop_up" title="View Photo" <?php } ?> ><img width="36" height="36" align="top" class="img_border" src="<?php echo $original_path;?>" ></a></div> <?php } ?>
+											<div class="col-xs-9"> <?php if(isset($value->CategoryName) && $value->CategoryName != ''){ echo ucfirst($value->CategoryName).' ';  } ?></br>
 											<i class="fa fa-fw fa-calendar"></i> <?php if(isset($value->DateCreated) && $value->DateCreated != '0000-00-00 00:00:00'){ echo date('m/d/Y',strtotime($value->DateCreated)); }else echo '-';?></div> 
 										
 										<div class="row-actions">
 										<?php if($value->Status == 1) { ?>
-											<a class="active_icon" onclick="javascript:return confirm('Are you sure want to change the status?')" href="CategoryList?status=2&editId=<?php if(isset($value->id) && $value->id != '') echo $value->id;?>" alt="Click to Inactive" title="Click to Inactive"><i class="fa fa-user "></i></a><?php } else { ?><a class="inactive_icon" onclick="javascript:return confirm('Are you sure you want to change the status?')" title="Click to Active" alt="Click to Active" href="CategoryList?status=1&editId=<?php if(isset($value->id) && $value->id != '') echo $value->id;?>"><i class="fa fa-user "></i></a><?php } ?>
+											<a class="active_icon" onclick="javascript:return confirm('Are you sure want to change the status?')" href="CategoryList?status=2&editId=<?php if(isset($value->id) && $value->id != '') echo $value->id;?>" alt="Click to Inactive" data-toggle="tooltip" title="Click to Inactive"><i class="fa fa-tag"></i></a><?php } else { ?><a class="inactive_icon" onclick="javascript:return confirm('Are you sure you want to change the status?')" title="Click to Active" alt="Click to Active" href="CategoryList?status=1&editId=<?php if(isset($value->id) && $value->id != '') echo $value->id;?>"><i class="fa fa-tag"></i></a><?php } ?>
 																							
-										<a href="CategoryManage?editId=<?php if(isset($value->id) && $value->id != '') echo $value->id; ?>" title="Edit" alt="Edit" class="edit"><i class="fa fa-edit "></i></a>
+										<a href="CategoryManage?editId=<?php if(isset($value->id) && $value->id != '') echo $value->id; ?>" title="Edit" data-toggle="tooltip" alt="Edit" class="edit"><i class="fa fa-edit "></i></a>
 			
-										<a href="CategoryDetail?viewId=<?php if(isset($value->id) && $value->id != '') echo $value->id; ?>" title="View" alt="View" class="view"><i class="fa fa-search "></i></a>	
+										<a href="CategoryDetail?viewId=<?php if(isset($value->id) && $value->id != '') echo $value->id; ?>" title="View" data-toggle="tooltip" alt="View" class="view"><i class="fa fa-search "></i></a>	
 													
-										<a onclick="javascript:return confirm('Are you sure to delete?') " href="CategoryList?delId=<?php if(isset($value->id) && $value->id != '') echo $value->id;?>" title="Delete" alt="Delete" class="delete"><i class="fa fa-trash-o "></i></a>
+										<a onclick="javascript:return confirm('Are you sure to delete?') " href="CategoryList?delId=<?php if(isset($value->id) && $value->id != '') echo $value->id;?>" title="Delete" data-toggle="tooltip" alt="Delete" class="delete"><i class="fa fa-trash-o "></i></a>
 										</div>
 									</td>
 									<td width="30%">&nbsp;</td>
@@ -262,12 +262,12 @@ else if(isset($_GET['msg']) && $_GET['msg'] == 4){
 									<td>
 										
 											<?php if(isset($original_path) && $original_path != ''){ ?><div class="col-xs-3 no-padding"><a <?php if(isset($original_path) && basename($original_path) != "no_category.jpeg") { ?>href="<?php echo $original_path; ?>" class="Category_image_pop_up" title="View Photo" <?php } ?> ><img width="36" height="36" align="top" class="img_border" src="<?php echo $original_path;?>" ></a></div> <?php } ?>
-											<div class="col-xs-9"> <?php if(isset($value->CategoryName) && $value->CategoryName != ''){ echo $value->CategoryName.' '; } ?></br>
+											<div class="col-xs-9"> <?php if(isset($value->CategoryName) && $value->CategoryName != ''){ echo ucfirst($value->CategoryName).' '; } ?></br>
 											<i class="fa fa-fw fa-calendar"></i> <?php if(isset($value->DateCreated) && $value->DateCreated != '0000-00-00 00:00:00'){ echo date('m/d/Y',strtotime($value->DateCreated)); }else echo '-';?></div> 
 										
 										<div class="row-actions">
 										<?php if($value->Status == 1) { ?>
-											<a class="active_icon" onclick="javascript:return confirm('Are you sure want to change the status?')" href="CategoryList?status=2&editId=<?php if(isset($value->id) && $value->id != '') echo $value->id;?>" data-toggle="tooltip" title="Click to Inactive"><i class="fa fa-user "></i></a><?php } else { ?><a class="inactive_icon" onclick="javascript:return confirm('Are you sure you want to change the status?')" title="Click to Active" data-toggle="tooltip" href="CategoryList?status=1&editId=<?php if(isset($value->id) && $value->id != '') echo $value->id;?>"><i class="fa fa-user "></i></a><?php } ?>
+											<a class="active_icon" onclick="javascript:return confirm('Are you sure want to change the status?')" href="CategoryList?status=2&editId=<?php if(isset($value->id) && $value->id != '') echo $value->id;?>" data-toggle="tooltip" title="Click to Inactive"><i class="fa fa-tag "></i></a><?php } else { ?><a class="inactive_icon" onclick="javascript:return confirm('Are you sure you want to change the status?')" title="Click to Active" data-toggle="tooltip" href="CategoryList?status=1&editId=<?php if(isset($value->id) && $value->id != '') echo $value->id;?>"><i class="fa fa-tag "></i></a><?php } ?>
 																							
 										<a href="CategoryManage?editId=<?php if(isset($value->id) && $value->id != '') echo $value->id; ?>" title="Edit" data-toggle="tooltip" class="edit"><i class="fa fa-edit "></i></a>
 			
