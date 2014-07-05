@@ -5,8 +5,8 @@ admin_login_check();
 commonHead();
 require_once('controllers/ManagementController.php');
 $managementObj   =   new ManagementController();
-require_once('controllers/AdminController.php');
-$adminLoginObj   =   new AdminController();
+//require_once('controllers/AdminController.php');
+//$adminLoginObj   =   new AdminController();
 require_once("includes/phmagick.php");
 $CategoryName = $CategoryImage = $ImagePath  =  $class = $class_icon  = $msg = $ExistCondition = $error_msg = '';
 $field_focus = 'CategoryName';
@@ -134,15 +134,12 @@ if(isset($_POST['submit']) && $_POST['submit'] != ''){
 	 <!-- Main content -->
 	<section class="content">
 		<div class="row">
-			<div class="col-md-6"> 
+			<div class="col-md-12 col-lg-6"> 
 			<div class="box box-primary"> 
 		<!-- left column -->
 			<form name="add_category_form" id="add_category_form" action="" method="post">
-					
-					<?php if(isset($error_msg) && $error_msg != '')  { ?> <div class="alert <?php echo $class;  ?> alert-dismissable col-sm-5"><i class="fa <?php echo $class_icon ;  ?>"></i>  <?php echo $error_msg;  ?></div> <?php } ?>
-					
+					<?php if(isset($error_msg) && $error_msg != '')  { ?> <div class="alert <?php echo $class;  ?> alert-dismissable col-sm-5 col-xs-11"><i class="fa <?php echo $class_icon ;  ?>"></i>  <?php echo $error_msg;  ?></div> <?php } ?>
 					<input type="Hidden" name="category_id" id="category_id" value="<?php if(isset($_GET['editId']) && $_GET['editId'] != '' ) echo $_GET['editId'];?>">
-				
 					<div class="form-group col-md-12">
 						<label>Category Name</label>
 						<input type="text" class="form-control" id="CategoryName" name="CategoryName" maxlength="100" value="<?php if(isset($CategoryName) && $CategoryName != '') echo $CategoryName;  ?>" >
@@ -151,12 +148,12 @@ if(isset($_POST['submit']) && $_POST['submit'] != ''){
 					<div class="form-group col-md-12">
 						<label>Category Icon</label>
 						<div class="row">
-						    <div class="col-md-7"> 
+						    <div class="col-md-6 col-sm-5"> 
 								<input type="file"  name="category_photo" id="category_photo" title="category Icon" onchange="return ajaxAdminFileUploadProcess('category_photo');"  /> 
 								<p class="help-block">(Min dimension 80x80, Max dimension 100x100)</p>
 								<span class="error" for="empty_category_photo" generated="true" style="display: none">category Image is required</span>
 							</div><!-- imageValidation('empty_cat_sel_photo'); -->
-						    <div class="col-md-5 ">								
+						    <div class="col-md-6 col-sm-6">								
 						         <div id="category_photo_img">									
 									<?php  
 									if(isset($OriginalImagePath) && $OriginalImagePath != ''){  ?>
@@ -170,9 +167,8 @@ if(isset($_POST['submit']) && $_POST['submit'] != ''){
 					<input type="Hidden" name="name_category_photo" id="name_category_photo" value="<?php  if(isset($CategoryImageName) && $CategoryImageName != '') { echo $CategoryImageName; }  ?>" />
 					</div>	
 					<?php }
-					else{
+							else{
 					?>
-				
 					<div class="form-group col-md-12 ">
 						<label>Category Icon</label>
 						<div class="row">

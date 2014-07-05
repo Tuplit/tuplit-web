@@ -17,10 +17,10 @@ class OrderModel extends Model
 			$condition .= " and ( m.CompanyName LIKE '%".trim($_SESSION['tuplit_sess_order_company_name'])."%')";
 		if(isset($_SESSION['tuplit_sess_order_price']) && $_SESSION['tuplit_sess_order_price'] != '')
 			$condition .= " and o.TotalPrice = '".$_SESSION['tuplit_sess_order_price']."' ";
-		/*if(isset($_SESSION['item_sess_mername']) && $_SESSION['item_sess_mername'] != '')
-			$condition .= " and m.CompanyName LIKE '%".trim($_SESSION['item_sess_mername'])."%' ";
-		if(isset($_SESSION['item_sess_product_discount']) && $_SESSION['item_sess_product_discount'] != '')
-			$condition .= " and p.DiscountApplied = '".$_SESSION['item_sess_product_discount']."' ";*/
+		if(isset($_SESSION['tuplit_sess_order_status']) && $_SESSION['tuplit_sess_order_status'] != '')
+			$condition .= " and o.orderStatus LIKE '%".trim($_SESSION['tuplit_sess_order_status'])."%' ";
+		if(isset($_SESSION['tuplit_sess_trans_id']) && $_SESSION['tuplit_sess_trans_id'] != '')
+			$condition .= " and o.TransactionId LIKE '%".$_SESSION['tuplit_sess_trans_id']."%' ";
 		$sql = "select SQL_CALC_FOUND_ROWS ".$fields." from {$this->orderTable} as o
 				left join users as u on  (u.id	= o.fkUsersId )
 				left join merchants as m on (m.id = o.fkMerchantsId)
@@ -73,6 +73,37 @@ class OrderModel extends Model
 			if($result) return $result;
 			else false;
 	}
-		
+	function getCartList($fields,$condition)
+	{
+		$limit_clause='';
+		$sorting_clause = ' c.id desc';
+		if(!empty($_SESSION['ordertype']))
+			$sorting_clause = $_SESSION['orderby'] . ' ' . $_SESSION['ordertype'];
+		if(isset($_SESSION['sortBy']) && isset($_SESSION['orderType']))
+			$sorting_clause	= $_SESSION['sortBy']. ' ' .$_SESSION['orderType'];
+		if(isset($_SESSION['curpage']))
+			$limit_clause = ' LIMIT '.(($_SESSION['curpage'] - 1) * ($_SESSION['perpage'])) . ', '. $_SESSION['perpage'];
+		$sql = "select SQL_CALC_FOUND_ROWS ".$fields." from {$this->cartTable} as c
+				left join orders as o on  (o.fkCartId	= c.CartId )
+				left join products as p on (p.id = c.fkProductsId)
+				WHERE 1".$condition." group by c.id ORDER BY ".$sorting_clause." ".$limit_clause;
+		//echo "<br/>======".$sql;
+		$result	=	$this->sqlQueryArray($sql);
+		//echo "<pre>";   print_r($result);   echo "</pre>";
+		if(count($result) == 0) return false;
+		else return $result;		
+	}
+	
+	function getOverallOrderList($fields = '',$condition = '')
+	{
+		$fields = "o.*";		
+		$sql = "select ".$fields." from {$this->orderTable} as o
+				WHERE 1 ".$condition;		
+		$result	=	$this->sqlQueryArray($sql);
+		if(count($result) == 0) return false;
+		else return $result;		
+	}
+	
+	
 }
 ?>

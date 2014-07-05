@@ -85,7 +85,25 @@ function isNumberKey(evt) {
 	var keyCode = (evt.which?evt.which:(evt.keyCode?evt.keyCode:0))
 	//alert('----------------'+keyCode);
 	// backspace, delete, left arrow, right arrow, tab keys
-	if ((keyCode == 8) || (keyCode == 46) || (keyCode == 37) || (keyCode == 39) || (keyCode == 9)) return true;
+	if ((keyCode == 8) || (keyCode == 37) || (keyCode == 9)) return true;
+	if ((keyCode < 48) || (keyCode > 57)) return false;
+	return true;
+}
+
+function isNumberKey_price(evt) {
+	var keyCode = (evt.which?evt.which:(evt.keyCode?evt.keyCode:0))
+	//alert('----------------'+keyCode);
+	// backspace, delete, left arrow, right arrow, tab keys
+	if ((keyCode == 8) || (keyCode == 37) || (keyCode == 9) || (keyCode == 46)) return true;
+	if ((keyCode < 48) || (keyCode > 57)) return false;
+	return true;
+}
+
+function isNumberKeyQuantity(evt) {
+	var keyCode = (evt.which?evt.which:(evt.keyCode?evt.keyCode:0))	
+	//alert('----------------'+keyCode);
+	// backspace, delete, left arrow, right arrow, tab keys
+	if ((keyCode == 8) || (keyCode == 37) || (keyCode == 9)) return true;
 	if ((keyCode < 48) || (keyCode > 57)) return false;
 	return true;
 }
@@ -211,18 +229,21 @@ setPagingControlValues = function(order_type, field_name, cur_page) {
 setPerPageAjax = function(obj) {
 	$("#per_page").val(obj);
 	$("#cur_page").val(1);
+	$("#pagingAjax").submit();
 	//ajaxGetIncidentList(0,0,1);
 }
 
 
 //set paging control values - field name to sort, sorting type, current page
 setPagingControlValuesAjax = function(order_type, field_name, cur_page) {
-	$("#order_by").val(order_type)
-	$("#order_type").val(field_name)
-	$("#cur_page").val(cur_page)
-    $("input[name=paging_change]").each(function(){
+	$("#order_by").val(order_type);
+	$("#order_type").val(field_name);
+	$("#cur_page").val(cur_page);
+	$("#pagingAjax").submit();
+   /* $("input[name=paging_change]").each(function(){
         $(this).val("");
-    });
+    });*/
+	
 	//ajaxGetIncidentList(0,0,1);
 }
 //End: Paging
@@ -1518,4 +1539,9 @@ function checkAllDelete(formName)
 			$(this).attr('checked',ch);
 		}
 	});
+}
+function dateDisplayFormat(date_val)
+{
+	date_array = date_val.split('/');
+	return date_array[0]+'/'+date_array[1]+'/'+date_array[2];
 }

@@ -20,6 +20,10 @@ class Model extends Database
 	var $productcategoriesTable            	=   "productcategories";
 	var $merchantshoppingTable           	=   "merchantshoppinghours";
 	var $orderTable			            	=   "orders";
+	var $cartTable			            	=   "carts";
+	var $commentTable			            =   "comments";
+	var $devicetokenTable					=	"devicetokens";
+	var $webContentTable					=	"webcontent";
     /*Table Name*/
 	function Model()
 	{

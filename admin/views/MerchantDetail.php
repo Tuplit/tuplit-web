@@ -39,52 +39,52 @@ if(isset($_GET['viewId']) && $_GET['viewId'] != '' ){
 			<div class="col-md-12 view-page"> 
 				<div class="box box-primary"> 
 					<div class="form-group col-sm-6 row">
-						<label class="col-sm-4" >First Name</label>
-						<div  class="col-sm-8">
+						<label class=" col-sm-5   col-xs-5   col-md-4" >First Name</label>
+						<div  class="col-sm-7 col-xs-7  col-md-8">
 						<?php if(!empty($merchantListResult[0]->FirstName)) { echo ucfirst($merchantListResult[0]->FirstName); } else { echo "-"; } ?></div>
 					</div>	
 					<div class="form-group col-sm-6 row">									
-						<label class="col-sm-4" >Last Name</label>
-						<div  class="col-sm-8">										
+						<label class=" col-sm-5   col-xs-5   col-md-4" >Last Name</label>
+						<div  class="col-sm-7 col-xs-7  col-md-8">										
 						<?php if(!empty($merchantListResult[0]->LastName)) { echo ucfirst($merchantListResult[0]->LastName); } else { echo "-"; } ?></div>									
 					</div>
 					<div class="form-group col-sm-6 row">
-						<label class="col-sm-4" >Email</label>
-						<div  class="col-sm-8"><?php if(!empty($merchantListResult[0]->Email)) { echo $merchantListResult[0]->Email; } else { echo "-"; } ?></div>	
+						<label class=" col-sm-5   col-xs-5   col-md-4" >Email</label>
+						<div  class="col-sm-7 col-xs-7  col-md-8"><?php if(!empty($merchantListResult[0]->Email)) { echo $merchantListResult[0]->Email; } else { echo "-"; } ?></div>	
 					</div>									
 					<div class="form-group col-sm-6 row">
-						<label class="col-sm-4" >Company Name</label>
-						<div  class="col-sm-8">
+						<label class=" col-sm-5   col-xs-5   col-md-4" >Company Name</label>
+						<div  class="col-sm-7 col-xs-7  col-md-8">
 						<?php if(!empty($merchantListResult[0]->CompanyName)) { echo ucfirst($merchantListResult[0]->CompanyName); } else { echo "-"; } ?></div>
 					</div>
 					<div class="form-group col-sm-6 row">
-						<label class="col-sm-4" >Phone Number</label>
-						<div  class="col-sm-8">
+						<label class=" col-sm-5   col-xs-5   col-md-4" >Phone Number</label>
+						<div  class="col-sm-7 col-xs-7  col-md-8">
 						<?php if(!empty($merchantListResult[0]->PhoneNumber)) { echo $merchantListResult[0]->PhoneNumber; } else { echo "-"; } ?></div>
 					</div>	
 					<div class="form-group col-sm-6 row">
-						<label class="col-sm-4" >Website Url</label>
-						<div  class="col-sm-8">
+						<label class=" col-sm-5   col-xs-5   col-md-4" >Website Url</label>
+						<div  class="col-sm-7 col-xs-7  col-md-8">
 						<?php if(!empty($merchantListResult[0]->WebsiteUrl)) { echo $merchantListResult[0]->WebsiteUrl; } else { echo "-"; } ?></div>						
 					</div>	
 					<div class="form-group col-sm-6 row">
-						<label class="col-sm-4" >Location</label>
-						<div  class="col-sm-8">
+						<label class=" col-sm-5   col-xs-5   col-md-4" >Location</label>
+						<div  class="col-sm-7 col-xs-7  col-md-8">
 						<?php if(!empty($merchantListResult[0]->Location)) { echo ucfirst($merchantListResult[0]->Location); } else { echo "-"; } ?></div>
 					</div>										
 					<div class="form-group col-sm-6 row">
-						<label class="col-sm-4" >Address</label>
-						<div  class="col-sm-8">
+						<label class=" col-sm-5   col-xs-5   col-md-4" >Address</label>
+						<div  class="col-sm-7 col-xs-7  col-md-8">
 						<?php if(!empty($merchantListResult[0]->Address)) { echo $merchantListResult[0]->Address; } else { echo "-"; } ?></div>
 					</div>
 					<div class="form-group col-sm-6 row">
-						<label class="col-sm-4" >Short Description</label>
-						<div  class="col-sm-8">
+						<label class=" col-sm-5   col-xs-5   col-md-4" >Short Description</label>
+						<div  class="col-sm-7 col-xs-7  col-md-8">
 						<?php if(!empty($merchantListResult[0]->ShortDescription)) { echo "<p align='justify'>".$merchantListResult[0]->ShortDescription."</p>"; } else { echo "-"; } ?></div>
 					</div>
 					<div class="form-group col-sm-6 row">
-						<label class="col-sm-4" >Description</label>
-						<div  class="col-sm-8">
+						<label class=" col-sm-5   col-xs-5   col-md-4" >Description</label>
+						<div  class="col-sm-7 col-xs-7  col-md-8">
 						<?php if(!empty($merchantListResult[0]->Description)) { echo "<p align='justify'>".$merchantListResult[0]->Description."</p>"; } else { echo "-"; } ?></div>
 					</div>
 					<?php
@@ -103,9 +103,13 @@ if(isset($_GET['viewId']) && $_GET['viewId'] != '' ){
 						}
 				 	?>	
 					<div class="form-group col-sm-6 row">
-						<label class="col-sm-4" >Icon</label>
-						<div  class="col-sm-8">
-							<img width="100" height="100" align="top" class="img_border" src="<?php echo $image_path;?>" >
+						<label class=" col-sm-5   col-xs-5   col-md-4" >Icon</label>
+						<div  class="col-sm-7 col-xs-7  col-md-8">
+							<?php if($merchant_image != ''){?>
+							<a href="<?php echo $image_path; ?>" class="fancybox" title="<?php echo ucfirst($merchantListResult[0]->CompanyName); ?>"><img width="100" height="100" align="top" class="img_border" src="<?php echo $image_path;?>" ></a>
+							<?php }else {?>
+								<img width="100" height="100" align="top" class="img_border" src="<?php echo $image_path;?>" >
+							<?php } ?>
 						</div>
 					</div>
 					<?php
@@ -125,14 +129,20 @@ if(isset($_GET['viewId']) && $_GET['viewId'] != '' ){
 						}
 					?>
 					<div class="form-group col-sm-6 row">
-						<label class="col-sm-4" >Image</label>
-						<div  class="col-sm-8">
+						<label class=" col-sm-5   col-xs-5   col-md-4" >Image</label>
+						<div  class="col-sm-7 col-xs-7  col-md-8">
+						<?php if($cphoto != ''){?>
+						<a href="<?php echo $cimage_path; ?>" class="fancybox" title="<?php echo ucfirst($merchantListResult[0]->CompanyName); ?>">
 							<img width="200" align="top" class="img_border" src="<?php echo $cimage_path;?>" >
+						</a>
+						<?php } else{?>
+							<img width="200" align="top" class="img_border" src="<?php echo $cimage_path;?>" >
+						<?php } ?>
 						</div>
 					</div>
 					<div class="form-group col-sm-6 row">
-						<label class="col-sm-4" >Category</label>
-						<div  class="col-sm-8">
+						<label class=" col-sm-5   col-xs-5   col-md-4" >Category</label>
+						<div  class="col-sm-7 col-xs-7  col-md-8">
 							<?php if(isset($categories) && !empty($categories)) {
 								foreach($categories as $val) {
 							?>
@@ -144,42 +154,42 @@ if(isset($_GET['viewId']) && $_GET['viewId'] != '' ){
 						</div>
 					</div>
 					<div class="form-group col-sm-6 row">
-						<label class="col-sm-4" >Opening Hours</label>
-						<div  class="col-sm-8">
+						<label class=" col-sm-5   col-xs-5   col-md-4" >Opening Hours</label>
+						<div  class="col-sm-7 col-xs-7  col-md-8">
 						<?php if(isset($merchantOpeningHoursResult) && !empty($merchantOpeningHoursResult)){
-								$openinghours = openingHoursString($merchantOpeningHoursResult);
+								$openinghours = openingHoursStringupdated($merchantOpeningHoursResult);
 								if(count($openinghours['Open']) > 0 ) {
 									foreach($openinghours['Open'] as $val) {
 										echo $val."<br>";
 									}									
 								}
 								if(!empty($openinghours['Closed'])) {
-									echo "<font color='#01A99A'><b>".$openinghours['Closed']."</b></font>";							
+									echo "<font color='#01A99A'><b>Closed ".$openinghours['Closed']."</b></font>";							
 								}  } else echo '-'; 
 						?>
 						</div>
 					</div>
 					<div class="form-group col-sm-6 row">
-						<label class="col-sm-4" >Items Sold</label>
-						<div  class="col-sm-8">
+						<label class=" col-sm-5   col-xs-5   col-md-4" >Items Sold</label>
+						<div  class="col-sm-7 col-xs-7  col-md-8">
 						<?php if($merchantListResult[0]->ItemsSold != 0) { echo $merchantListResult[0]->ItemsSold; } else { echo "-"; } ?></div>						
 					</div>
 					<div class="form-group col-sm-6 row">
-						<label class="col-sm-4" >Price Scheme</label>
-						<div  class="col-sm-8">
+						<label class=" col-sm-5   col-xs-5   col-md-4" >Price Scheme</label>
+						<div  class="col-sm-7 col-xs-7  col-md-8">
 						<?php if($merchantListResult[0]->DiscountTier != 0) { echo $discountTierArray[$merchantListResult[0]->DiscountTier]."%"; } else { echo "-"; } ?></div>						
 					</div>
 					<div class="form-group col-sm-6 row">
-						<label class="col-sm-4" >Price Range</label>
-						<div  class="col-sm-8">
+						<label class=" col-sm-5   col-xs-5   col-md-4" >Price Range</label>
+						<div  class="col-sm-7 col-xs-7  col-md-8">
 						<?php if($merchantListResult[0]->PriceRange != 0) { 
 							$priceran = explode(',',$merchantListResult[0]->PriceRange);
 							echo "$".$priceran[0]." - $".$priceran[1];
 							} else { echo "-"; } ?></div>						
 					</div>
 					<div class="form-group col-sm-6 row">
-						<label class="col-sm-4" >Status</label>
-						<div  class="col-sm-8">
+						<label class=" col-sm-5   col-xs-5   col-md-4" >Status</label>
+						<div  class="col-sm-7 col-xs-7  col-md-8">
 						<?php if($merchantListResult[0]->Status == 1) { echo 'Active'; } else { echo "Inactive"; } ?></div>
 					</div>
 					<div class="box-footer col-sm-12" align="center">
@@ -207,4 +217,9 @@ if(isset($_GET['viewId']) && $_GET['viewId'] != '' ){
 	</section><!-- /.content -->				  	
 <?php }
 }commonFooter(); ?>
+<script type="text/javascript">
+	$(document).ready(function() {
+		$('.fancybox').fancybox();	
+	});
+</script>
 </html>

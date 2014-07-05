@@ -89,8 +89,8 @@ $("#add_user_form").validate({
 		UserName           :	{ required:true },
 		Email        	   :	{ required:true,email:true},
 		Password	       :    { required:true,minlength:6},
-           C_Password		   :	{ required:true,minlength:6,equalTo:'#Password'},
-		PinCode			   :	{ required:true },
+         C_Password		   :	{ required:true,minlength:6,equalTo:'#Password'},
+		PinCode			   :	{ required:true,minlength:4},
 		CellNumber 		   :    { mobile_format:true}
 	},
 	messages:{
@@ -100,7 +100,7 @@ $("#add_user_form").validate({
 		Email				:	{ required:'Email is required' },
 		Password			:	{ required:'Password is required',minlength:'Password should have atleast 6 characters'},
 		C_Password		    :   { required:'Confirm Password is required',minlength:'Confirm Password should have atleast 6 characters',equalTo:'Password mismatch' },
-		PinCode				:	{ required:'PIN Code is required' },
+		PinCode				:	{ required:'PIN Code is required',minlength:'PIN Code must have 4 characters' },
 		CellNumber 		    :    { mobile_format:'Cell Number should have atleast 10 numbers'}
 		/*CellNumber			:	{ required:'Cell Number is required' }
 		empty_user_photo	:	{ required:'User Image is required'},
@@ -349,17 +349,19 @@ $("#merchant_edit_form").submit(function() {
 			return false;
 		}
 	} else {
-		$('#row_0').val('');
+		if($("#from1_0").val() == '' || $("#from1_0").val() == ''){
+			$('#row_0').val('');
+		}
 	}
 	for(i=0;i<=checksame;i++) {	
 		$('#error_'+i).html('');
 		if($('#row_'+i).val() != '') {
 			if(!$("#from1_"+i).val().match(/^(0?[1-9]|1[012])(:[0-5]\d) [APap][mM]$/)) {			
-				$('#error_'+i).html('Invalid From time. It should be in HH:MM AM or HH:MM PM');
+				$('#error_'+i).html('Invalid From time. Please select HH, MM and AM/PM');
 				validatetime = '0';
 			}
 			else if(!$("#to1_"+i).val().match(/^(0?[1-9]|1[012])(:[0-5]\d) [APap][mM]$/)) {			
-				$('#error_'+i).html('Invalid To time. It should be in HH:MM AM or HH:MM PM');
+				$('#error_'+i).html('Invalid To time. Please select HH, MM and AM/PM');
 				validatetime = '0';
 			}
 			else {
@@ -400,3 +402,25 @@ $("#merchant_edit_form").submit(function() {
 		return false;
 });
 //--------------------merchant - Opening Hours ------------------end
+
+//--------------Web content---------------start
+$("#content_form").validate({
+	rules:{			
+		ContentName       :	{ required:true},		
+		ContentUrl       :	{ required:true},		
+		content			  :	{ content:true}		
+	},
+	messages:{
+		ContentName     :	{ required:'Content name is required'},
+		ContentUrl     :	{ required:'Content URL is required'},
+		content     	:	{ content:'Please enter content details'}
+	}
+});
+$.validator.addMethod("content", function(value, element) {	
+	 var content 	=  tinyMCE.activeEditor.getContent();
+	 if(content != '')
+		return true;
+	else
+		return false;
+});
+//--------------Web content----------------End

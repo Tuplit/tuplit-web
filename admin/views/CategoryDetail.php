@@ -43,32 +43,31 @@ if(isset($_GET['viewId']) && $_GET['viewId'] != '' ){
 	 <!-- Main content -->
 	<section class="content">
 		<div class="row">
-			<div class="col-md-6 view-page"> 
+			<div class="col-md-12 col-lg-6 view-page"> 
 				<div class="box box-primary"> 
 			
-				<div class="form-group col-sm-12 row">
-					<label class="col-sm-4" >Category Name</label>
-					<div  class="col-sm-8">
+				<div class="form-group col-xs-12 row">
+					<label class="col-xs-6 col-sm-4" >Category Name</label>
+					<div  class="col-xs-6 col-sm-8">
 					<?php if(isset($CategoryName) && $CategoryName != '') echo ucfirst($CategoryName); else echo '-'; ?>	</div>
 				</div>	
-				<div class="form-group col-sm-12 row">
-					<label class="col-sm-4" >Created Date</label>
-					<div  class="col-sm-8">
+				<div class="form-group col-xs-12 row">
+					<label class="col-xs-6 col-sm-4" >Created Date</label>
+					<div  class="col-xs-6 col-sm-8">
 					<?php if(isset($dateCreated) && $dateCreated != '' ) echo date('m/d/Y',strtotime($dateCreated)); else echo '-'; ?></div>
 				</div>	
-				<div class="form-group col-sm-12 row">
-					<label class="col-sm-4" >Category Icon</label>
-					<div  class="col-sm-8">
+				<div class="form-group col-xs-12 row">
+					<label class="col-xs-6 col-sm-4" >Category Icon</label>
+					<div  class="col-xs-6 col-sm-8">
 					<a <?php if(isset($original_image_path) && $original_image_path != '') {  ?> href="<?php echo $original_image_path; ?>" class="category_photo_pop_up"<?php } else { ?> href="Javascript:void(0);"<?php } ?> title="Click here" alt="Click here" ><?php if(isset($original_image_path) && $original_image_path != '') { ?> <img width="75" height="75" src="<?php echo $original_image_path;?>"><?php } else {?><img width="75" height="75" src="<?php echo $noimage; ?>"<?php }?></a></div>
 				</div>
 				
-				<div class="box-footer col-sm-12" align="center">
-						<?php 
-							$href_page = "CategoryList";
-						?>	
-						<a href="CategoryManage?editId=<?php if(isset($_GET['viewId']) && $_GET['viewId'] != '') echo $_GET['viewId']; ?>" title="Edit" alt="Edit" class="btn btn-success">Edit</a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-						<a href="<?php if(isset($href_page) && $href_page != '' ) echo $href_page; else echo 'UserList';?>" class="btn btn-default" name="Back" id="Back" title="Back" alt="Back" >Back </a>
-					
+				<div class="box-footer col-xs-12" align="center">
+					<?php 
+						$href_page = "CategoryList";
+					?>	
+					<a href="CategoryManage?editId=<?php if(isset($_GET['viewId']) && $_GET['viewId'] != '') echo $_GET['viewId']; ?>" title="Edit" alt="Edit" class="btn btn-success">Edit</a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+					<a href="<?php if(isset($href_page) && $href_page != '' ) echo $href_page; else echo 'UserList';?>" class="btn btn-default" name="Back" id="Back" title="Back" alt="Back" >Back </a>
 				</div>
 			</div>		
 			</div>		

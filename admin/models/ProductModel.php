@@ -73,6 +73,13 @@ class ProductModel extends Model
 			if($result) return $result;
 			else false;
 	}
+	function getProductNamesList($id){
+		$sql	 	=	"select id, ItemName from {$this->productTable} where fkMerchantsId = ".$id;
+		//echo "<br/>======".$sql;
+		$result 	= 	$this->sqlQueryArray($sql);
+			if($result) return $result;
+			else false;
+	}
 		
 }
 ?>

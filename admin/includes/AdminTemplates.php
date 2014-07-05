@@ -19,6 +19,12 @@ function commonHead() { ?>
 	
 	<link rel="STYLESHEET" type="text/css" href="<?php echo ADMIN_STYLE_PATH; ?>jquery-ui.css"> 
 	<link rel="STYLESHEET" type="text/css" href="<?php echo ADMIN_STYLE_PATH; ?>jquery.ui.theme.css">
+	
+	<script type="text/javascript">
+		if (Function('/*@cc_on return document.documentMode===10@*/')()){
+			 document.documentElement.className+='ie10';
+		}
+	</script>
 </head>
 <?php } 
    function top_header() { 
@@ -31,23 +37,27 @@ function commonHead() { ?>
 				'CMS' => array('StaticPages'),
 				'Slider Images' => array('SliderImages')
             ),
-			'User' => array(
+			'User Management' => array(
 				'Add User'	 => array('UserManage'),
                 'User List' => array('UserList?cs=1'),
 			),
-			'Merchant' => array(
+			'Merchant Management' => array(
 				'Merchant List'	 => array('MerchantList?cs=1'),
 			),
 			'Category Management' => array(
 				'Add Category'	 => array('CategoryManage'),
                 'Category List' => array('CategoryList?cs=1'),
 			),
-			'Product' => array(
+			'Product Management' => array(
 				'Product List'	 => array('ProductList?cs=1'),
                 'Product Category List' => array('ProductCategoryList?cs=1'),
 			),
-			'Report / Analytics' => array(
+			'Order Management' => array(
+				'Order List'	 => array('OrderList?cs=1'),
+			),
+			'Reports' => array(
 				'Log Tracking'	 => array('LogTracking?cs=1'),
+				/*'Statistics'	=> array('Statistics?cs=1'),*/
 			),
         );
 	}
@@ -59,11 +69,11 @@ function commonHead() { ?>
 				'CMS' => array('StaticPages'),
 				'Slider Images' => array('SliderImages')
             ),
-			'User' => array(
+			'User Management' => array(
 				'Add User'	 => array('UserManage'),
                 'User List' => array('UserList?cs=1'),
 			),
-			'Merchant' => array(
+			'Merchant Management' => array(
 				'Merchant List'	 => array('MerchantList?cs=1'),
 			),
 			'Category Management' => array(
@@ -71,25 +81,27 @@ function commonHead() { ?>
                 'Category List' => array('CategoryList?cs=1'),
 			),
 			
-			'Product' => array(
+			'Product Management' => array(
 				'Product List'	 => array('ProductList?cs=1'),
                 'Product Category List' => array('ProductCategoryList?cs=1'),
 			),
-			'Order' => array(
+			'Order Management' => array(
 				'Order List'	 => array('OrderList?cs=1'),
 			),
-			'Report / Analytics' => array(
+			'Reports' => array(
 				'Log Tracking'	 => array('LogTracking?cs=1'),
+				'Statistics'	=> array('Statistics?cs=1'),
+				'Analytics'	=> array('Analytics?cs=1'),
 			),
         );
 	}
-    $main_link_array['Settings'] 			= 	array('GeneralSettings', 'ChangePassword','StaticPages','SliderImages');
-	$main_link_array['User'] 				=	array('UserManage','UserDetail','UserList','Messages','Activity','MyActivity');
-	$main_link_array['Merchant'] 			=	array('MerchantList','MerchantDetail','MerchantManage');
-	$main_link_array['Product'] 			=	array('ProductList','ProductDetail','ProductCategoryManage','ProductCategoryDetail','ProductCategoryList','ProductManage');
-	$main_link_array['Order'] 				=	array('OrderList','OrderDetail','OrderManage');
-	$main_link_array['Category Management'] =	array('CategoryManage','CategoryDetail','CategoryList');
-	$main_link_array['Report / Analytics'] 	=	array('LogTracking');
+    $main_link_array['Settings'] 				= 	array('GeneralSettings', 'ChangePassword','StaticPages','SliderImages');
+	$main_link_array['User Management'] 		=	array('UserManage','UserDetail','UserList','Messages','Activity','MyActivity');
+	$main_link_array['Merchant Management'] 	=	array('MerchantList','MerchantDetail','MerchantManage');
+	$main_link_array['Product Management'] 		=	array('ProductList','ProductDetail','ProductCategoryManage','ProductCategoryDetail','ProductCategoryList','ProductManage');
+	$main_link_array['Order Management'] 		=	array('OrderList','OrderDetail','OrderManage');
+	$main_link_array['Category Management'] 	=	array('CategoryManage','CategoryDetail','CategoryList');
+	$main_link_array['Reports'] 				=	array('LogTracking','Statistics','Analytics');
 	
 	$page = getCurrPage();
 	if(isset($_GET['st']) && $_GET['st']!='') {
@@ -121,7 +133,7 @@ function commonHead() { ?>
 						
                         <li class="user user-menu">
                             <a href="#" style="cursor:default">
-                                <i class="glyphicon glyphicon-user"></i>
+                                <i class="fa fa-user"></i>
                                 <span>Welcome Admin, </span>
                             </a>
                         </li>
@@ -182,7 +194,7 @@ if(!strstr($_SERVER['PHP_SELF'],'ResetPassword.php')){
 	<script src="<?php echo ADMIN_SCRIPT_PATH; ?>AjaxDirector.js" type="text/javascript"></script>
 	<script src="<?php echo ADMIN_SCRIPT_PATH; ?>AjaxFileUpload.js" type="text/javascript"></script>
 	<script src="<?php echo ADMIN_SCRIPT_PATH; ?>fancybox/jquery.fancybox.js" type="text/javascript"></script>
-	<script src="<?php echo ADMIN_SCRIPT_PATH; ?>jquery-ui.js" type="text/javascript"></script>
+	<script src="<?php echo ADMIN_SCRIPT_PATH; ?>jquery-ui.js" type="text/javascript"></script>	
 	
 	<script type="text/javascript">
 	var tot = $('#mer_app_tot').val();

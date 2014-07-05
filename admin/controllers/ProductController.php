@@ -43,5 +43,12 @@ class ProductController extends Controller
 		if ($this->ProductModelObj)
 			return $this->ProductModelObj->selectProductDetails($field,$condition);
 	}
+	function getProductNamesList($id)
+	{
+		if (!isset($this->ProductModelObj))
+			$this->loadModel('ProductModel', 'ProductModelObj');
+		if ($this->ProductModelObj)
+			return $this->ProductModelObj->getProductNamesList($id);
+	}
 }
 ?>

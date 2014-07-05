@@ -100,7 +100,7 @@ function sendMail($mailContentArray,$type)
 		$from 	  		=   $mailContentArray['from'];
 		$to   		    =   $mailContentArray['toemail'];
 		$subject		= 	$mailContentArray['subject'];
-		$sitelinkpath	=	ADMIN_SITE_PATH.'/webresources/mail_content/';
+		$sitelinkpath	=	ADMIN_SITE_PATH.'/webresources/mail_content/';		
 		$filename       = 	ADMIN_ABS_PATH.'/webresources/mail_content/'.$mailContentArray['fileName'];
 		$mailData 		= 	file_get_contents($filename);
 		$filearray 		= 	explode('/',$mailContentArray['fileName']);
@@ -160,6 +160,24 @@ function sendMail($mailContentArray,$type)
 				$mailData 			=	str_replace('{NAME}', $mailContentArray['name'], $mailData);				
 				$mailData 			=	str_replace('{SITE_MAIL_PATH}',  $sitelinkpath, $mailData);
 				break;
+			case 8:
+				//new order mail to user by merchant
+				$mailData 			=	str_replace('{NAME}', $mailContentArray['name'], $mailData);				
+				$mailData 			=	str_replace('{SITE_MAIL_PATH}',  $sitelinkpath, $mailData);
+				$mailData 			=	str_replace('{NAME1}',  $mailContentArray['name1'], $mailData);
+				$mailData 			=	str_replace('{ADDRESS}',  $mailContentArray['address'], $mailData);
+				$mailData 			=	str_replace('{TOTAL}',  $mailContentArray['TotalPrice'], $mailData);
+				
+				$mailData 			=	str_replace('{TRANSACTIONID}',  $mailContentArray['TransactionId'], $mailData);
+				$mailData 			=	str_replace('{ORDERID}',  $mailContentArray['orderId'], $mailData);
+				$productData		=	'';
+				foreach($mailContentArray['CartDetails'] as $val) {
+					$productData	.=	'<tr><td align="left" style="color:#010101;font-size:20px;font-family:Calibri;"><b>&nbsp;&nbsp;'.$val['ItemName'].'</b></td> <td align="right" style="color:#010101;font-size:20px;font-family:Calibri;"><b>$'.number_format((float)($val['DiscountPrice'] * $val['ProductsQuantity']), 2, '.', '').'&nbsp;&nbsp;</b></td></tr>';
+				}
+				$mailData 			=	str_replace('{PRODUCTSLIST}',  $productData, $mailData);
+				$mailData 			=	str_replace('{CONTENT}',  $mailContentArray['content'], $mailData);
+				$mailData 			=	str_replace('{BYNAME}',  $mailContentArray['byname'], $mailData);
+				break;			
 		}
 		$mail_image 	= 	ADMIN_SITE_PATH.'/webresources/mail_content/';
 		$mailData 		=	str_replace('{SITE_PATH}',$sitelinkpath ,$mailData);
@@ -168,12 +186,11 @@ function sendMail($mailContentArray,$type)
 		$headers 		.= 	"Content-Transfer-Encoding: 8bit\n";
 		$headers        .= 	"From: $from\r\n";
 		$headers 		.= 	"Content-type: text/html\r\n";
-		
 		if ($_SERVER['HTTP_HOST'] == '172.21.4.104'){
-			if($_SERVER['REMOTE_ADDR'] == '172.21.4.130'){
+			if($_SERVER['REMOTE_ADDR'] == '172.21.4.215' || $_SERVER['REMOTE_ADDR'] == '172.21.4.81'){
 				echo $mailData;
-			}
-			//echo $mailData;
+				//die();
+			}			
 			//$sendmail = sendMailSes($from,$to,$subject,$mailData,'');
 		}
 		else {
@@ -359,7 +376,7 @@ function pagingControlLatest($total,$action='')
 	//$counter		=	'';
 	$per_page 		= $_SESSION['perpage'];
 	$page 			= $_SESSION['curpage'];
-	$pagination 	= ' <div class="col-xs-9  mb_clr" align="center">';
+	$pagination 	= ' <div class="col-sm-9 col-xs-12  mb_clr" align="center">';
 	if ($action == '')
 		$action = $_SERVER['SCRIPT_NAME'];
 	?>
@@ -469,7 +486,7 @@ function pagingControlLatest($total,$action='')
 		 </div>
 		<?php $per_page_array =  eval(ADMIN_PER_PAGE_ARRAY);
 		if($total > $per_page_array[0]){ ?>
-			<div class="col-xs-3 mb_clr pad">
+			<div class="col-xs-12  col-sm-3 mb_clr pad">
 			<span class="pull-right">
 				<select name="per_page" id="per_page" onchange="setPerPage(this.value);">
 				<?php foreach($per_page_array as $value){ ?>
@@ -1261,73 +1278,16 @@ function getBytesFromHexString($hexdata)
 
   return implode($bytes);
 }
-function sendNotificationAWS($message,$EndpointArn,$platform,$badge,$type,$processId,$userId,$unreadCount=0,$username){
-	
-	require_once __DIR__ . '/aws.phar';
-	// Create a new Amazon SNS client
-	$sns = Aws\Sns\SnsClient::factory(array(
-	    'key'    => '',
-	    'secret' => '',
-	    'region' => 'us-west-2'
-	));
-	$badge = $badge + 1;
-  if($EndpointArn  !=''){
-	  try
-	  {
-	   if($platform == 2){
-			$data = array(
-			    'TargetArn' => $EndpointArn,
-			    'MessageStructure' => 'json',
-			    'Message' => json_encode(array(
-			        'GCM' => json_encode(array(
-			            'data' => array('message' => $message,
-										'badge'=>(integer)$badge ,
-										'sound' => 'default',
-										'processId' => $processId,
-										'type' => $type,
-										'userId' => $userId ,
-										'unreadMessage'=>$unreadCount,
-										'userName'=>$username),
-			        ))
-			    ))
-			 );
-			$sns->publish($data);
-		}
-		else{
-			if($_SERVER['SERVER_ADDR']=='172.21.4.104')
-				$apns = 'APNS_SANDBOX';
-		    else
-		  		$apns = 'APNS';
-			
-			$data = array(
-				    'TargetArn' => $EndpointArn,
-				    'MessageStructure' => 'json',
-				    'Message' => json_encode(array(
-						$apns => json_encode(array(
-				            'aps' => array('alert' => $message,
-											'badge'=> (integer)$badge ,
-											'sound' => 'default',
-											'processId' => $processId,
-											'type' => $type,
-											'userId' => $userId ,
-											'unreadMessage'=>$unreadCount,
-											'userName'=>$username ),
-				        ))
-				    ))
-				 );
-			$sns->publish($data);
-			
-		}
-	  return 1;
-	  }
-	  catch (Exception $e)
-	  {
-	  //  echo'<pre>';print_r($data);echo'</pre>';
-		//echo"<br>";
-		//print($EndpointArn . " - Failed: " . $e->getMessage() . "!\n");
-		return 0;
-	  }
-  }
+/* Create endpointARN for push notification */
+function createEndpointARNAWS($PlatformApplicationArn,$Token,$CustomUserData){
+	error_reporting(E_ALL);
+	$endpoint = require("sns-create.php");
+	return $endpoint;die();
+}
+function sendNotificationAWS($message,$EndpointArn,$platform,$badge,$type,$processId,$userId){
+	error_reporting(E_ALL);
+	$endpoint = require("sns-send.php");
+	return $endpoint;die();
 }
 function dateValidation($date){
 	$result = 0;
@@ -1388,14 +1348,14 @@ function array_sort($array, $on, $order=SORT_ASC)
 }
 
 function logEntryProcess($event,$txt_file){
-	if(!is_dir(ABS_PATH.'/logs')) {
-		mkdir(ABS_PATH.'/logs',0777);
+	if(!is_dir(ABS_PATH.'/admin/logs')) {
+		mkdir(ABS_PATH.'/admin/logs',0777);
 	}
-	$log_dir	=	ABS_PATH.'/logs/'.date('mY');
+	$log_dir	=	ABS_PATH.'/admin/logs/'.date('mY');
 	if(!is_dir($log_dir)) {
 		mkdir($log_dir,0777);
 	}
-	$filename = ABS_PATH."/logs/".date('mY')."/".$txt_file;
+	$filename = ABS_PATH."/admin/logs/".date('mY')."/".$txt_file;
 	$f		  = fopen($filename, 'a' );			// open the log file for writing and points to end of file
 	fwrite ($f, $event . chr(13) . chr(10) );
 	fclose($f);
@@ -1739,7 +1699,7 @@ function editOpeningHoursString($String){
 	return $outputArray;
 }
 
-function openingHoursString($openHoursArray) {	
+function openingHoursString($openHoursArray,$from) {	
 	$temp = (array)$openHoursArray;
 	$openHoursArray = array();
 	foreach($temp as $key=>$val) {
@@ -1753,14 +1713,19 @@ function openingHoursString($openHoursArray) {
 		$openHour['Open'][0] = "Monday to Sunday : ".$openHoursArray[0]['Start']." to ".$openHoursArray[0]['End'];	
 	else {
 		$open = array();
-		$close = '';
+		if($from == 0)
+			$close = 'Closed ';
+		else
+			$close = '';
 		foreach($openHoursArray as $key=>$val) {
 			if(!empty($openHoursArray[$key]['Start']) && !empty($openHoursArray[$key]['End'])) {
 				$open[] = $admin_days_array[$key].' : '.$openHoursArray[$key]['Start']." to ".$openHoursArray[$key]['End'];	
 			}
 			else {
 				if(empty($close))
-					$close = "Closed ".$admin_days_array[$key];
+					$close = $admin_days_array[$key];
+				else if($close == 'Closed ')	
+					$close .= $admin_days_array[$key];
 				else
 					$close .= ", ".$admin_days_array[$key];
 			}
@@ -1772,12 +1737,287 @@ function openingHoursString($openHoursArray) {
 }
 
 
+function price_fomat($price_val){
+	$price = number_format($price_val,2,'.',',');
+	if(strstr($price,'$'))
+		return $price;
+	else
+		return '$'.$price;
+}
 
+function imagethumb_addbg($src,$des,$itype,$exn,$maxwidth,$hght)
+{
+	ini_set('memory_limit', '100M');
+	if(file_exists($src))
+	   	$size=getimagesize($src);
+	$mime_type	=	$size['mime'];
+	$itype	=	substr($mime_type,strpos($mime_type,'/')+1);
+	if($mime_type	==	'image/gif') $exn	= 'gif';
+	if($mime_type	==	'image/pjpeg') $exn	= 'pjpeg';
+	if($mime_type	==	'image/jpg') $exn	= 'jpg';
+	if($mime_type	==	'image/jpeg') $exn	= 'jpeg';
+	if($mime_type	==	'image/png') $exn	= 'png';
+	$n_width=$size[0];
+	$n_height=$size[1];
+	$imagehw = GetImageSize($src);
+	$imagewidth = $imagehw[0];
+	$imageheight = $imagehw[1];
+	$imgorig = $imagewidth;
+	$n_width1 = $maxwidth;
+	$n_height1 = $hght;
+	if (($n_width - $n_width1) > ($n_height - $n_height1))
+	{
+	  //$imageprop=($n_width1*100)/$imagewidth;
+	  //$imagevsize= ($imageheight*$imageprop)/100 ;
+	 	$imagewidth=$n_width1;
+	    $imageheight=($n_width1/$n_width)*$n_height;
+	}else
+	{
+		//$imageprop=($n_height1*100)/$imageheight;
+	  	//$imagevsize= ($imageheight*$imageprop)/100 ;
+	    $imagewidth=($n_height1/$n_height)*$n_width;
+	    $imageheight=$n_height1;
+	}
+	if($imagewidth > $n_width1){
+		$imagewidth = $n_width1;
+		$imageheight = round($imageheight / ($imagewidth/$n_width1));
+	}
+	if($n_width <= $n_width1 && $n_height <= $n_height1){
+		$imagewidth = $n_width;
+		$imageheight = $n_height;
+	}
+	$destimg=ImageCreatetruecolor($n_width1,$n_height1) or die("Problem In Creating image");
+	switch($exn)
+	{
+	case "jpg":
+		$srcimg=ImageCreateFromJPEG($src) or die("Problem In opening Source Image");
+		$destimg=ImageCreatetruecolor($n_width1,$n_height1) or die("Problem In Creating image");
+	break;
+	case "jpeg":
+		$srcimg=ImageCreateFromJPEG($src) or die("Problem In opening Source Image");
+		$destimg=ImageCreatetruecolor($n_width1,$n_height1) or die("Problem In Creating image");
+	break;
+	case "pjpeg":
+		$srcimg=ImageCreateFromJPEG($src) or die("Problem In opening Source Image");
+		$destimg=ImageCreatetruecolor($n_width1,$n_height1) or die("Problem In Creating image");
+	break;
+	case "gif":
+		$srcimg=ImageCreateFromGIF($src) or die("Problem In opening Source Image");
+		$destimg=ImageCreate($n_width1,$n_height1) or die("Problem In Creating image");
+	break;
+	case "png":
+		$srcimg=ImageCreateFromPNG($src) or die("Problem In opening Source Image");
+		$destimg=ImageCreatetruecolor($n_width1,$n_height1) or die("Problem In Creating image");
+	break;
+	}
+	//$int = hexdec('c19383');
+	//$int =  repeat-x scroll 0 top #BD8E7C;
+	$int = hexdec('ffffff');
+	$arr = array("red" => 0xFF & ($int >> 0x10),
+               "green" => 0xFF & ($int >> 0x8),
+               "blue" => 0xFF & $int);
+	//$black = ImageColorAllocate($image, $arr["red"], $arr["green"], $arr["blue"]);
+	$transparent = imagecolorallocate($destimg,  $arr["red"], $arr["green"], $arr["blue"]);
+	for($x=0;$x<$n_width1;$x++) {
+           for($y=0;$y<$n_height1;$y++) {
+             imageSetPixel( $destimg, $x, $y, $transparent );
+           }
+         }
+	$dest_x = (( $n_width1 / 2 ) - ( $imagewidth / 2 )); // centered
+	$dest_y = (( $n_height1 / 2 ) - ( $imageheight / 2 )); // centered
+	ImageCopyresampled($destimg,$srcimg,$dest_x,$dest_y,0,0,$imagewidth,$imageheight,$n_width,$n_height) or die("Problem In resizing");
+	if(($itype=="jpeg")||($itype=="jpg")||($itype=="pjpeg"))
+	{
+		//ImageJPEG($destimg,$des) or die("Problem In saving");
+		imagejpeg($destimg,$des);
+	}
+	else
+	if($itype=="gif")
+	{
+		ImageGIF($destimg,$des) or die("Problem In saving");
+	}
+	else
+	if($itype=="png")
+	{
+		ImagePNG($destimg,$des) or die("Problem In saving");
+	}
+	imagedestroy($destimg);
+}
 
+function formOpeningHours($openinghours) {
+	$newopeninghours	=	array();
+	foreach($openinghours as $key=>$value) {
+		$value	=	(array)$value;
+		//From time
+		$timeampm = $ampm	=	$hr	=	$min	=	$hrmin	=	'';
+		$time	=	$splittime	=	$fromtime	=	array();
+		
+		$timeampm		=	$value['Start'];
+		if(!empty($timeampm)) {
+			$time					=	explode(" ", $timeampm);
+			$hrmin					=	$time[0];
+			$ampm					=	$time[1];
+			$splittime				=	explode(":", $hrmin);
+			$hr						=	$splittime[0];
+			$min					=	$splittime[1];
+			$fromtime['fromTime']	=	$value['Start'];
+			$fromtime['hr']			=	$hr;
+			$fromtime['min']		=	$min;
+			$fromtime['ampm']		=	$ampm;
+		}
+		//to time			
+		$timeampm = $ampm	=	$hr	=	$min	=	$hrmin	=	'';
+		$time	=	$splittime	=	$toTime	=	array();
+		
+		$timeampm		=	$value['End'];
+		if(!empty($timeampm)) {
+			$time				=	explode(" ", $timeampm);
+			$hrmin				=	$time[0];
+			$ampm				=	$time[1];
+			$splittime			=	explode(":", $hrmin);
+			$hr					=	$splittime[0];
+			$min				=	$splittime[1];
+			$toTime['toTime']	=	$value['End'];
+			$toTime['hr']		=	$hr;
+			$toTime['min']		=	$min;
+			$toTime['ampm']		=	$ampm;
+		}
+		$newopeninghours[$key]['id'] 			= $value['id'];
+		$newopeninghours[$key]['fkMerchantId'] 	= $value['fkMerchantId'];
+		$newopeninghours[$key]['OpeningDay'] 	= $value['OpeningDay'];
+		$newopeninghours[$key]['Start'] 		= $fromtime;
+		$newopeninghours[$key]['End'] 			= $toTime;
+		$newopeninghours[$key]['DateType'] 		= $value['DateType'];
+		$newopeninghours[$key]['DateCreated'] 	= $value['DateCreated'];
+	}
+	return	$newopeninghours;
+}
 
+function openingHoursStringupdated($openHoursArray){
+	$temp = (array)$openHoursArray;
+	$openHoursArray = array();
+	foreach($temp as $key=>$val) {
+		$openHoursArray[$key] = (array)$val;
+	}	
+	$openHour	= array();
+	global $admin_days_array;
+	if(count($openHoursArray) == 0)
+		$openHour['Closed'] = "Mon to Sun : Closed";
+	else if($openHoursArray[0]['DateType'] == 1) {
+		$from	=	openHourExplode($openHoursArray[0]['Start']);
+		$to		=	openHourExplode($openHoursArray[0]['End']);		
+		$openHour['Open'][0] = "Mon to Sun : ".$from." - ".$to;
+	}
+	else {
+		$opening = array();		
+		$newopenHoursArray	=	array();
+		
+		//Converting to 24 hours
+		foreach($openHoursArray as $key=>$val) {
+			if(!empty($val['Start']) && !empty($val['End'])) {
+				$from						=	openHourExplode($val['Start']);
+				$to							=	openHourExplode($val['End']);
+				$newopenHoursArray[$key]	=	$from.' - '.$to;
+			} else {
+				$newopenHoursArray[$key]	=	'';
+			}
+		}
+		
+		//forming closed days		
+		$closed	=	'';
+		foreach($newopenHoursArray as $key1=>$val1) {
+			if(empty($val1)) {
+				$day		=	substr($admin_days_array[$key1],0,3);
+				if(empty($closed))
+					$closed 	=	$day;
+				else
+					$closed 	.=	', '.$day;
+				unset($newopenHoursArray[$key1]);
+			}			
+		}		
+		$openHour['Closed'] = $closed;
+		
+		//Forming open days
+		$sameopen			=	array();
+		foreach($newopenHoursArray as $key2=>$val2) {
+			if(!in_array($admin_days_array[$key2],$sameopen)) {
+				$string			=	$val2;
+				$searchArray	=	$newopenHoursArray;
+				$open			=	'';
+				foreach($searchArray as $key3=>$val3) {
+					if(($val2==$val3)) {
+						$day		=	substr($admin_days_array[$key3],0,3);
+						if(empty($open))
+							$open	=	$day;
+						else
+							$open	.=	", ".$day;
+						unset($newopenHoursArray[$key3]);
+						$sameopen[]	=	$admin_days_array[$key3];
+					}				
+				}
+				if(empty($open))
+					$opening[]	=	substr($admin_days_array[$key2],0,3).' : '.$val2;
+				else
+					$opening[]	=	$open.' : '.$val2;
+				unset($newopenHoursArray[$key3]);
+			}
+		}	
+		$openHour['Open'] = $opening;
+	}
+	//echo "<pre>"; echo print_r($openHour); echo "</pre>";
+	return $openHour;
+}
+function openHourExplode($openHours) {
+	$time	=	$splittime	=	array();
+	$time			=	explode(" ", $openHours);
+	$hrmin			=	$time[0];
+	$ampm			=	$time[1];
+	$splittime		=	explode(":", $hrmin);
+	$hr				=	$splittime[0];
+	$min			=	$splittime[1];
+	if($ampm == 'PM') {
+		$hr			=	$hr + 12;
+	}
+	if(strlen($hr) == 1){
+		$hr			=	(string)$hr;
+		$hr			=	'0'.$hr;
+	}
+	$outtime		=	$hr.":".$min;
+	return $outtime;
+}
+function miles2kms($miles) {
+	$ratio = 1.609344;
+	$kms = $miles * $ratio;
+	return $kms;
+} 
 
-
-/*    /^((\w+([-+.]\w+)*@\w+([-.]\w+)*\.\w+([-.]\w+)*)*([,])*)*$/;   */
-
+function msort($array, $key, $sort_flags = SORT_ASC) {
+	echo "******************";
+    if (is_array($array) && count($array) > 0) {
+        if (!empty($key)) {
+            $mapping = array();
+            foreach ($array as $k => $v) {
+                $sort_key = '';
+                if (!is_array($key)) {
+                    $sort_key = $v[$key];
+                } else {
+                    // @TODO This should be fixed, now it will be sorted as string
+                    foreach ($key as $key_key) {
+                        $sort_key .= $v[$key_key];
+                    }
+                    $sort_flags = SORT_STRING;
+                }
+                $mapping[$k] = $sort_key;
+            }
+            asort($mapping, $sort_flags);
+            $sorted = array();
+            foreach ($mapping as $k => $v) {
+                $sorted[] = $array[$k];
+            }
+            return $sorted;
+        }
+    }
+    return $array;
+}
 
 ?>

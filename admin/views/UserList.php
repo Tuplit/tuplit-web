@@ -127,7 +127,7 @@ else if(isset($_GET['msg']) && $_GET['msg'] == 3){
 	$msg 		= 	"User deleted successfully";
 	$display	=	"block";
 	$class 		= 	"alert-success";
-		$class_icon          = "fa-check";
+	$class_icon = "fa-check";
 }
 else if(isset($_GET['msg']) && $_GET['msg'] == 4){
 	$msg 		= 	"Status changed successfully";
@@ -146,10 +146,10 @@ else if(isset($_GET['msg']) && $_GET['msg'] == 5){
 	<?php top_header(); ?>
 	<!-- Content Header (Page header) -->
 	<section class="content-header no-padding">
-		<div class="col-xs-8">
+		<div class="col-xs-6">
 			<h1><i class="fa fa-list"></i> User List</h1>
 		</div>
-		<div class="col-xs-4"><h3><a href="UserManage" title="Add User"><i class="fa fa-plus-circle"></i> Add User</a></h3></div>
+		<div class="col-xs-6"><h3><a href="UserManage" title="Add User"><i class="fa fa-plus-circle"></i> Add User</a></h3></div>
 	</section>
 	<!-- Main content -->
 	<section class="content">
@@ -171,7 +171,7 @@ else if(isset($_GET['msg']) && $_GET['msg'] == 5){
 							<input type="text" class="form-control" id="Country" name="Country"  value="<?php  if(isset($_SESSION['tuplit_sess_country']) && $_SESSION['tuplit_sess_country'] != '') echo unEscapeSpecialCharacters($_SESSION['tuplit_sess_country']);  ?>" >
 						</div>
 						
-						<div class="col-sm-4 form-group">
+						<div class="col-xs-6  col-sm-4  form-group">
 							<label>Status</label>
 							<select name="Status" id="Status" class="form-control col-sm-4">
 								<option value="">Select</option>
@@ -179,7 +179,7 @@ else if(isset($_GET['msg']) && $_GET['msg'] == 5){
 								<option value="2" <?php  if(isset($_SESSION['tuplit_sess_user_status']) && $_SESSION['tuplit_sess_user_status'] != '' && $_SESSION['tuplit_sess_user_status'] == '2') echo 'Selected';  ?>>Inactive</option>
 							</select>
 						</div>
-						<div class="col-sm-4 form-group">
+						<div class="col-xs-6  col-sm-4  form-group">
 							<label>Platform</label>
 							<select name="Platform" id="Platform" class="form-control col-sm-4">
 								<option value="">Select</option>
@@ -189,29 +189,29 @@ else if(isset($_GET['msg']) && $_GET['msg'] == 5){
 								<?php } } ?>
 							</select>
 						</div>
-						<div class="col-sm-4 form-group">
+						<div class="col-sm-4 col-xs-12 form-group">
 							<label>Registered Date</label>
-							<div class="col-sm-6 no-padding mb_clr"><input type="text"  maxlength="10" class="form-control col-sm-4 fleft" name="SearchDate" id="SearchDate" title="Select Date" value="<?php if(isset($_SESSION['tuplit_sess_user_registerdate']) && $_SESSION['tuplit_sess_user_registerdate'] != '') echo date('m/d/Y',strtotime($_SESSION['tuplit_sess_user_registerdate'])); else echo '';?>" > </div><div class="col-sm-6 mb_clr">(mm/dd/yyyy) </div>
+							<div class="col-xs-6 no-padding mb_clr"><input type="text"  maxlength="10" class="form-control col-sm-4 fleft" name="SearchDate" id="SearchDate" title="Select Date" value="<?php if(isset($_SESSION['tuplit_sess_user_registerdate']) && $_SESSION['tuplit_sess_user_registerdate'] != '') echo date('m/d/Y',strtotime($_SESSION['tuplit_sess_user_registerdate'])); else echo '';?>" > </div><div class="col-xs-6 no-padding LH30 mb_clr">&nbsp;&nbsp;(mm/dd/yyyy) </div>
 						</div>
 					</div>
-					<div class="col-sm-12 ">
+					<div class="col-xs-12 ">
 						<h3 class="box-title no-padding" data-toggle="collapse" href="#advSearchBlock"   title="Advanced Search Options" style="cursor:pointer"><i class="fa fa-plus"></i> Advanced Search Options</h3>							
 					</div>
-					<div id="advSearchBlock" class="col-sm-12 no-padding panel-collapse collapse style="<?php if((isset($_SESSION['tuplit_sess_spent']) && !empty($_SESSION['tuplit_sess_spent']))|| (isset($_SESSION['tuplit_sess_spent7']) && !empty($_SESSION['tuplit_sess_spent7'])) || (isset($_SESSION['tuplit_sess_order'])) && !empty($_SESSION['tuplit_sess_order'])) echo "in"; else echo " "; ?>"">
-						<div class="col-md-4 form-group">
+					<div id="advSearchBlock" class="col-xs-12 no-padding panel-collapse collapse style="<?php if((isset($_SESSION['tuplit_sess_spent']) && !empty($_SESSION['tuplit_sess_spent']))|| (isset($_SESSION['tuplit_sess_spent7']) && !empty($_SESSION['tuplit_sess_spent7'])) || (isset($_SESSION['tuplit_sess_order'])) && !empty($_SESSION['tuplit_sess_order'])) echo "in"; else echo " "; ?>"">
+						<div class="col-sm-4  form-group">
 							<label>Total spent</label>
 							<input type="text" class="form-control" name="TotalSpent" id="TotalSpent" onkeypress="return isNumberKey(event);" value="<?php  if(isset($_SESSION['tuplit_sess_spent']) && $_SESSION['tuplit_sess_spent'] != '') echo unEscapeSpecialCharacters($_SESSION['tuplit_sess_spent']);  ?>" >
 						</div>
-						<div class="col-md-4 form-group">
+						<div class="col-sm-4 form-group">
 							<label>Total spent in 7 days</label>
 							<input type="text" class="form-control" id="TotalSpent7" name="TotalSpent7" onkeypress="return isNumberKey(event);" value="<?php if(isset($_SESSION['tuplit_sess_spent7']) && $_SESSION['tuplit_sess_spent7'] != '') echo unEscapeSpecialCharacters($_SESSION['tuplit_sess_spent7']);  ?>" >
 						</div>
-						<div class="col-md-4 form-group">
+						<div class="col-sm-4 form-group">
 							<label>Order count</label>
 							<input type="text" class="form-control" id="Ordercount" name="Ordercount" onkeypress="return isNumberKey(event);" value="<?php  if(isset($_SESSION['tuplit_sess_order']) && $_SESSION['tuplit_sess_order'] != '') echo unEscapeSpecialCharacters($_SESSION['tuplit_sess_order']);  ?>" >
 						</div>
 					</div>
-					<div class="box-footer col-sm-12" align="center">
+					<div class="box-footer col-xs-12" align="center">
 						<input type="submit" class="btn btn-success" name="Search" id="Search" value="Search">
 					</div>
 				</div>
@@ -219,12 +219,12 @@ else if(isset($_GET['msg']) && $_GET['msg'] == 5){
 			</div>
 		</div>
 		<div class="row paging">
-			<div class="col-xs-2">
+			<div class="col-xs-12 col-sm-2">
 				<?php if(isset($userListResult) && is_array($userListResult) && count($userListResult) > 0){ ?>
 				<div class="dataTables_info">No. of User(s)&nbsp:&nbsp;<strong><?php echo $tot_rec; ?></strong> </div>
 				<?php } ?>
 			</div>
-			<div class="col-xs-10">
+			<div class="col-xs-12 col-sm-10">
 				<div class="dataTables_paginate paging_bootstrap row">
 				<?php if(is_array($userListResult) && count($userListResult) > 0 ) {
 						pagingControlLatest($tot_rec,'UserList'); ?>
@@ -235,7 +235,7 @@ else if(isset($_GET['msg']) && $_GET['msg'] == 5){
 		
 		<?php if(isset($msg) && $msg != '') { ?>
 		 <div class="row">
-               <div align="center" class="alert <?php  echo $class;  ?> alert-dismissable col-sm-4"><i class="fa fa-check"></i>  <?php echo $msg; ?></div>
+               <div align="center" class="alert <?php  echo $class;  ?> alert-dismissable col-xs-11  col-sm-4"><i class="fa fa-check"></i>  <?php echo $msg; ?></div>
 		 </div>	
 		<?php } ?>
 		
@@ -249,11 +249,11 @@ else if(isset($_GET['msg']) && $_GET['msg'] == 5){
                                <tr>
                                   	<th align="center" width="1%" class="text-center"><input onclick="checkAllDelete('UserListForm');" type="Checkbox" name="checkAll"/></th>
 									<th align="center" width="2%" class="text-center">#</th>												
-									<th width="18%">User Details<?php //echo SortColumn('UserName','Username'); ?></th>
+									<th width="25%">User Details<?php //echo SortColumn('UserName','Username'); ?></th>
 									<th width="10%">Social Media Ids</th>
-									<th width="15%">Location Details</th>
-									<th width="5%">Platform</th>
-									<th width="5%"><?php echo SortColumn('DateCreated','Registered Date'); ?></th>
+									<th width="12%">Location Details</th>
+									<th width="3%">Platform</th>
+									<th width="3%"><?php echo SortColumn('DateCreated','Registered Date'); ?></th>
                                </tr>
                               <?php 	foreach($userListResult as $key=>$value){
 									    $image_path = '';
@@ -276,32 +276,37 @@ else if(isset($_GET['msg']) && $_GET['msg'] == 5){
 											}
 										}
 							 ?>									
-							<tr>
+							<tr id="test_id_<?php echo $value->id;?>">
 								<td align="center"><input id="checkdelete" name="checkdelete[]" value="<?php  if(isset($value->id) && $value->id != '') echo $value->id  ?>" type="checkbox" hashCount="<?php if(isset($value->hash_count) && $value->hash_count > 0 ) echo $value->hash_count; ?>"/></td>
 								<td align="center" nowrap><?php echo (($_SESSION['curpage'] - 1) * ($_SESSION['perpage']))+$key+1;?></td>												
 								<td>
 								<?php if(isset($image_path) && $image_path != ''){ ?>
-									<div class="col-xs-2 no-padding">
+									<div class="col-xs-2 col-md-1 no-padding">
 										<a <?php if(isset($image_path) && basename($image_path) != "no_user.jpeg") { ?>href="<?php echo $original_path; ?>" class="fancybox" title="<?php echo  ucfirst($value->FirstName).' '.ucfirst($value->LastName);?>" <?php } ?> > 
 											<img id="<?php echo $value->id ;?>"  width="36" height="36" align="top" class="img_border" src="<?php echo $image_path;?>" >
 										</a>
 									</div>
 								<?php } ?>
-									<div class="col-xs-9 "> 								
+									<div class="col-xs-10 col-md-11 "> 								
 										<?php if(isset($value->FirstName) && $value->FirstName != ''){ echo ucfirst($value->FirstName).' '; } ?>								
 									
 										<?php if(isset($value->LastName) && $value->LastName != ''){ echo ucfirst($value->LastName); } ?><br>
 										<i class="fa fa-fw fa-envelope"></i> <?php if(isset($value->Email) && $value->Email != '' ){ echo $value->Email;} ?><br>
 										<?php if(isset($value->CellNumber) && $value->CellNumber != ''){?><i class="fa fa-fw fa-phone"></i>  <?php echo $value->CellNumber; } ?>
+										<?php if(isset($value->CurrentBalance) && $value->CurrentBalance != '') echo "<div>CurrentBalance : ".$value->CurrentBalance."</div>"; ?>
 									</div>
-									<div class="row-actions col-xs-12">
-										<?php if($value->Status == 1) { ?><a class="active_icon" onclick="javascript:return confirm('Are you sure want to change the status?')" href="UserList?status=2&editId=<?php if(isset($value->id) && $value->id != '') echo $value->id;?>" data-toggle="tooltip" title="Click to Inactive"><i class="fa fa-user "></i></a><?php } else { ?><a class="inactive_icon" onclick="javascript:return confirm('Are you sure you want to change the status?')" title="Click to Active" data-toggle="tooltip" href="UserList?status=1&editId=<?php if(isset($value->id) && $value->id != '') echo $value->id;?>"><i class="fa fa-user "></i></a><?php } ?>
+									<div style="float:left;display:inline-block;" class="row-actions col-xs-12">
+										<?php if($value->Status == 1) { ?><a class="active_icon" onclick="javascript:return confirm('Are you sure want to change the status?')" href="UserList?status=2&editId=<?php if(isset($value->id) && $value->id != '') echo $value->id;?>" title="Click to Inactive"><i class="fa fa-user "></i></a><?php } else { ?><a class="inactive_icon" onclick="javascript:return confirm('Are you sure you want to change the status?')" title="Click to Active" href="UserList?status=1&editId=<?php if(isset($value->id) && $value->id != '') echo $value->id;?>"><i class="fa fa-user "></i></a><?php } ?>
 																						
-										<a href="UserManage?editId=<?php if(isset($value->id) && $value->id != '') echo $value->id; ?>" title="Edit" data-toggle="tooltip" class="edit"><i class="fa fa-edit "></i></a>
+										<a href="UserManage?editId=<?php if(isset($value->id) && $value->id != '') echo $value->id; ?>" title="Edit"  class="edit"><i class="fa fa-edit "></i></a>
 		
-										<a href="UserDetail?viewId=<?php if(isset($value->id) && $value->id != '') echo $value->id; ?>" title="View" data-toggle="tooltip" class="view"><i class="fa fa-search "></i></a>	
-												
-										<a onclick="javascript:return confirm('Are you sure to delete?')" href="UserList?delId=<?php if(isset($value->id) && $value->id != '') echo $value->id;?>" title="Delete" data-toggle="tooltip" class="delete"><i class="fa fa-trash-o "></i></a>
+										<a href="UserDetail?viewId=<?php if(isset($value->id) && $value->id != '') echo $value->id; ?>" title="View"  class="view"><i class="fa fa-search "></i></a>	<!-- data-toggle="tooltip" -->
+											
+										<a href="<?php if(isset($value->id) && $value->id != '') echo SITE_PATH.'/admin/OrderList?user_id='.$value->id.'&cs=1'; else echo "#"; ?>"  class="view newWindow" data-toggle="tooltip" data-original-title="order list"><i class="fa fa-shopping-cart"></i></a>
+										<a href="<?php if(isset($value->id) && $value->id != '') echo SITE_PATH.'/admin/CommentList?user_id='.$value->id.'&cs=1'; else echo "#"; ?>"  class="view newWindow" data-toggle="tooltip" data-original-title="comment list"><i class="fa fa-comments"></i></a>
+										
+											
+										<a onclick="javascript:return confirm('Are you sure to delete?')" href="UserList?delId=<?php if(isset($value->id) && $value->id != '') echo $value->id;?>" title="Delete" class="delete"><i class="fa fa-trash-o "></i></a>
 									</div>
 								</td>
 								<td>
@@ -317,8 +322,8 @@ else if(isset($_GET['msg']) && $_GET['msg'] == 5){
 									<?php if($value->Location == '' && $value->Country == '' && $value->ZipCode == ''){ 
 											echo '-';
 										 } else { ?>
-									 <div class="col-xs-1 no-padding"><i class="fa fa-lg fa-map-marker "></i></div> 
-									 <div class="col-xs-10 no-padding">
+									 <div class="col-xs-2 col-md-1 no-padding"><i class="fa fa-lg fa-map-marker "></i></div> 
+									 <div class="col-xs-10 col-md-11 no-padding">
 										<?php if(isset($value->Location) && $value->Location != ''){ echo ucfirst($value->Location).'</br>'; }//else echo '-';?>
 										
 										<?php if(isset($value->Country) && $value->Country != ''){ echo ucfirst($value->Country).'</br>'; }//else echo '-';?>
@@ -336,7 +341,17 @@ else if(isset($_GET['msg']) && $_GET['msg'] == 5){
                    </div><!-- /.box -->
 				    <div class="row">
 						<?php if(isset($userListResult) && is_array($userListResult) && count($userListResult) > 0){ ?>
-						<div class="col-xs-6"><button type="submit" onclick="return deleteAll('Users');" class="btn btn-danger" name="Delete" id="Delete" value="Delete" title="Delete" alt="Delete"><i class="fa fa-trash-o"></i>&nbsp;Delete</button></div>
+						<div class="col-xs-8">
+						<div class="btn-inline">
+							<button type="submit" onclick="return deleteAll('Users');" class="btn btn-danger" name="Delete" id="Delete" value="Delete" title="Delete" alt="Delete"><i class="fa fa-trash-o"></i>&nbsp;Delete</button>
+						</div>
+						<div class="btn-inline">
+							<a href="javascript:void(0);" onclick="return pushNotificationCheck(this);"  class="btn btn-success pnclass"  name="sendPush" id="sendPush" value="sendPush" title="Send Push Notification" alt="Send Push Notification">Send Push Notification </a>
+						</div>
+						<div class="btn-inline">
+							<a href="SendPushNotification?cs=1" onclick=""  class="notification_popup btn btn-success"  name="sendPushAll" id="sendPushAll" value="sendPushAll" title="Send Push Notification To All" alt="Send Push Notification">Send Push Notification To All</a>
+						</div>
+						</div>
 						<?php } ?>
 						<div class="col-xs-6"> </div>
 					</div>
@@ -359,6 +374,20 @@ $(document).ready(function() {
 			padding : 5
 		});
 	})
+	$(".notification_popup").fancybox({
+			type : 'iframe',
+			width:"700", 
+			height:"100%"
+		}
+	);
+	$(".newWindow").fancybox({
+				scrolling: 'auto',			
+				type: 'iframe',
+				width: '800',
+				maxWidth: '100%',
+				
+				fitToView: false,
+			});
 	
 });
 //$(".user_image_pop_up").colorbox({title:true});
@@ -376,5 +405,6 @@ $("#SearchDate").datepicker({
 	maxDate			:	"0",
 	closeText		:   "Close"
    });
+   
 </script>
 </html>

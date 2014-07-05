@@ -4,21 +4,85 @@ admin_login_check();
 commonHead();
 require_once('controllers/OrderController.php');
 $OrderObj   =   new OrderController();
-$condition = '';
-$show = 0;
+require_once('controllers/UserController.php');
+$UserObj   =   new UserController();
+require_once('controllers/MerchantController.php');
+$MerchantObj   =   new MerchantController();
 
+$condition = $companyname = $user_id =  $mer_id = $cond = '';
+$show = 0;
+$username = $merchantname  = $userimage = $merchantimage = '';
 if(isset($_GET['cs']) && $_GET['cs']=='1') {
 	destroyPagingControlsVariables();
 	unset($_SESSION['tuplit_sess_order_user_name']);
 	unset($_SESSION['tuplit_sess_order_company_name']);
 	unset($_SESSION['tuplit_sess_order_price']);	
 	unset($_SESSION['item_sess_Order_discount']);
+	unset($_SESSION['tuplit_sess_order_status']	);
+	unset($_SESSION['tuplit_sess_trans_id']);
 }
 
 if(isset($_GET['mer_id']) && !empty($_GET['mer_id'])) {
 	$condition .= ' and m.id='.$_GET['mer_id'];
+	$cond  = ' and fkMerchantsId ='.$_GET['mer_id'];
+	$merchantwhere = ' id ='.$_GET['mer_id'];	
+	$merchantdetailarray = $MerchantObj->selectMerchantDetails("CompanyName,Icon",$merchantwhere);
+if(isset($merchantdetailarray) && is_array($merchantdetailarray) && count($merchantdetailarray) > 0){
+	$merchantname = $merchantdetailarray[0]->CompanyName;
+	$icon_image_path = '';
+	$merchant_image = $merchantdetailarray[0]->Icon;
+	$icon_image_path = ADMIN_IMAGE_PATH.'no_user.jpeg';
+	if(isset($merchant_image) && $merchant_image != ''){
+		if(SERVER){
+			if(image_exists(6,$merchant_image))
+				$icon_image_path = MERCHANT_ICONS_IMAGE_PATH.$merchant_image;
+		}
+		else{
+			if(file_exists(MERCHANT_ICONS_IMAGE_PATH_REL.$merchant_image))
+				$icon_image_path = MERCHANT_ICONS_IMAGE_PATH.$merchant_image;
+		}
+	}
+	if(isset($icon_image_path) && $icon_image_path != ''){
+			$merchantimage =  "<img  width='50' height='50' align='top' class='img_border' src='".$icon_image_path."' >";		
+	}	
+}
 	$show = 1;
 	$mer_id = $_GET['mer_id'];
+}
+
+if(isset($_GET['user_id']) && !empty($_GET['user_id'])) {
+	$condition .= ' and u.id='.$_GET['user_id'];
+	$cond  = ' and fkUsersId ='.$_GET['user_id'];
+	$userwhere = ' id ='.$_GET['user_id'];
+	$userfind = "concat(FirstName , ' ',LastName) as UserName,Photo ";
+	$userdetailarray = $UserObj->selectUserDetails($userfind,$userwhere);
+	if(isset($userdetailarray) && is_array($userdetailarray) && count($userdetailarray) > 0){
+		$image_path = '';
+		$photo = $userdetailarray[0]->Photo;
+		$original_path = $image_path = ADMIN_IMAGE_PATH.'no_user.jpeg';
+		
+		if(isset($photo) && $photo != ''){
+			$user_image = $photo;
+			if(SERVER){
+				if(image_exists(2,$user_image))
+					$image_path = USER_THUMB_IMAGE_PATH.$user_image;
+				if(image_exists(1,$user_image))
+					$original_path = USER_IMAGE_PATH.$user_image;
+				
+			}else{
+				if(file_exists(USER_IMAGE_PATH_REL.$user_image))
+					$original_path = USER_IMAGE_PATH.$user_image;
+				if(file_exists(USER_THUMB_IMAGE_PATH_REL.$user_image))
+					$image_path = USER_THUMB_IMAGE_PATH.$user_image;
+			}
+		}
+		$username = $userdetailarray[0]->UserName;
+		if(isset($image_path) && $image_path != ''){
+			$userimage =  "<img  width='50' height='50'  class='img_border' src='".$image_path."' >";		
+			}	
+	}							
+	$show = 2;
+	$user_id = $_GET['user_id'];
 }
 
 if(isset($_POST['Search']) && $_POST['Search'] != ''){
@@ -33,6 +97,8 @@ if(isset($_POST['Search']) && $_POST['Search'] != ''){
 		$_SESSION['tuplit_sess_order_price']			= $_POST['price'];
 	if(isset($_POST['order_status']))
 		$_SESSION['tuplit_sess_order_status']			= $_POST['order_status'];
+	if(isset($_POST['trans_id']))
+		$_SESSION['tuplit_sess_trans_id']				= $_POST['trans_id'];
 }
 if(isset($_GET['editId']) && $_GET['editId']!=''){
 	$update_condition 		= " id = ".$_GET['editId'];
@@ -47,8 +113,10 @@ $OrderListResult  = $OrderObj->getOrderList($fields,$condition);
 $tot_rec 		 = $OrderObj->getTotalRecordCount();
 if($tot_rec!=0 && !is_array($OrderListResult)) {
 	$_SESSION['curpage'] = 1;
-	$OrderListResult  = $OrderObj->getOrderList($fields,$condition);
+	$OrderListResult  = $OrderObj->getOrderList($fields,$condition);		
 }
+//echo "<pre>Orderlist"; print_r($OrderListResult); echo "</pre>";//
+
 if(isset($_GET['msg']) && $_GET['msg'] == 1){
 	$msg 		= 	"Order added successfully";
 	$display	=	"block";
@@ -67,40 +135,96 @@ else if(isset($_GET['msg']) && $_GET['msg'] == 4){
 	$class 		= 	"alert-success";
 	$class_icon = "fa-check";
 }
-//echo "<pre>"; print_r($OrderListResult ); echo "</pre>";
+$totalprice = 0 ;
+$noof_orders = $newprice = $acceptedprice = 0;
+$noof_merchants =  $noof_users = $accepted_count = $new_count = $rejected_count = 0;
+$mechants_array = array();
+$user_array = array();
+
+$OverallOrderList = $OrderObj->getOverallOrderList('',$cond);
+if(isset($OverallOrderList) && is_array($OverallOrderList) && count($OverallOrderList) > 0){
+	
+	foreach($OverallOrderList as $overall_orderkey=>$overall_ordervalue){
+	
+		if($overall_ordervalue->TotalPrice != ''){
+			$totalprice = $totalprice + $overall_ordervalue->TotalPrice;
+		}
+		if($overall_ordervalue->OrderDoneBy == 2){
+			//if(!(in_array($overall_ordervalue->fkMerchantsId,$mechants_array)))
+				$mechants_array[]  = $overall_ordervalue->id ;
+		}
+		if($overall_ordervalue->OrderDoneBy == 1){
+		//  if(!(in_array($overall_ordervalue->fkUsersId,$user_array)))
+			$user_array[]  =   $overall_ordervalue->id ;
+		}
+		
+		if($overall_ordervalue->OrderStatus == 0){
+			$new_count +=  1;
+			//if($overall_ordervalue->TotalPrice != '')
+				//$newprice = $newprice + $overall_ordervalue->TotalPrice;
+			
+		}else if($overall_ordervalue->OrderStatus == 1){
+			$accepted_count +=  1;
+			if($overall_ordervalue->TotalPrice != '')
+				$acceptedprice = $acceptedprice + $overall_ordervalue->TotalPrice;
+		}else if($overall_ordervalue->OrderStatus == 2){
+			$rejected_count +=  1;
+		}
+		
+	}
+	$noof_orders = $OrderObj->getTotalRecordCount();
+}
 ?>
 <body class="skin-blue" onload="">
 	<?php 
-	//if($show == 0)
+	if($show == 0)
 		top_header(); 
 	?>
 	<!-- Content Header (Page header) -->
 	<section class="content-header no-padding">
 		<div class="col-xs-7">
-			<h1><i class="fa fa-list"></i><?php if($show == 0) echo " Order List"; else echo " Merchant Order List"; ?></h1>
+			<h1><i class="fa fa-list"></i> Order List</h1>
 		</div>
-		<div class="col-xs-5"><h3><a href="OrderManage"><i class="fa fa-plus-circle"></i>Add Order</a></h3></div>
+		
+		<?php if($show == 1) { ?>
+		<div class="col-xs-5">
+			<h3><?php echo $merchantimage." ".$merchantname ;?></h3>
+		</div>
+		<?php } else if($show == 2) { ?>
+		
+		<div class="col-xs-5">
+			<h3><?php echo $userimage." ".$username ;?></h3>
+		</div>
+		<?php } ?>
 	</section>	
 	 <!-- Main content -->
 	<section class="content">
 		<div class="row">
 			<div class="col-xs-12">
-				<form name="search_merchant" action="OrderList<?php if($show == 1) echo "?mer_id=".$mer_id."&cs=1"; ?>" method="post">
+				<form name="search_merchant" action="OrderList<?php if($show == 1) echo "?mer_id=".$mer_id."&cs=1"; else if($show == 2) echo "?user_id=".$user_id."&cs=1";?>" method="post">
 				<div class="box box-primary">
-					<div class="box-body no-padding" >				
+					<div class="box-body no-padding" >	
+						<?php if($show != 2) {?>			
 						<div class="col-sm-4 form-group">
 							<label>User Name</label>
 							<input type="text" class="form-control" name="UserName" id="UserName"  value="<?php  if(isset($_SESSION['tuplit_sess_order_user_name']) && $_SESSION['tuplit_sess_order_user_name'] != '') echo unEscapeSpecialCharacters($_SESSION['tuplit_sess_order_user_name']);  ?>" >
 						</div>
-						<div class="col-sm-4 form-group">
-							<label>Price</label>
-							<input type="text" class="form-control" id="price" name="price"  value="<?php if(isset($_SESSION['tuplit_sess_order_price']) && $_SESSION['tuplit_sess_order_price'] != '') echo unEscapeSpecialCharacters($_SESSION['tuplit_sess_order_price']);  ?>" >
-						</div>	
+						<?php }?>
+						<?php if($show != 1) {?>
 						<div class="col-sm-4 form-group">
 							<label>Merchant Name</label>
 							<input type="text" class="form-control" id="merchantname" name="merchantname"  value="<?php if(isset($_SESSION['tuplit_sess_order_company_name']) && $_SESSION['tuplit_sess_order_company_name'] != '') echo unEscapeSpecialCharacters($_SESSION['tuplit_sess_order_company_name']); ?>" >
 						</div>
-						<div class="col-sm-4 form-group">
+						<?php }?>
+						<div class="col-sm-4 col-lg-2 form-group">
+							<label>Price</label>
+							<input type="text" class="form-control" id="price" name="price"  value="<?php if(isset($_SESSION['tuplit_sess_order_price']) && $_SESSION['tuplit_sess_order_price'] != '') echo unEscapeSpecialCharacters($_SESSION['tuplit_sess_order_price']);  ?>" >
+						</div>	
+						<div class="col-sm-4 col-lg-2 form-group">
+							<label>Transaction ID</label>
+							<input type="text" class="form-control" id="trans_id" name="trans_id"  value="<?php if(isset($_SESSION['tuplit_sess_trans_id']) && $_SESSION['tuplit_sess_trans_id'] != '') echo unEscapeSpecialCharacters($_SESSION['tuplit_sess_trans_id']);  ?>" >
+						</div>	
+						<div class="col-sm-4 col-lg-2 form-group">
 							<label>Order Status</label>
 							<select name="order_status" id="order_status" class="form-control col-sm-4">
 								<option value="">Select</option>
@@ -119,21 +243,90 @@ else if(isset($_GET['msg']) && $_GET['msg'] == 4){
 			</div>
 		</div>
 	
+	<?php if(isset($OverallOrderList) && is_array($OverallOrderList) && count($OverallOrderList) > 0){?>
+		<div class="row">	
+			<div class="col-xs-12">	
+			<div class="box box-solid bg-green col-xs-12">
+				<div class="col-sm-6 col-xs-12 no-padding ">	
+					<div class="col-sm-8 col-lg-5 col-xs-8 no-padding">	
+						<h3>Total No. of Orders</h3>
+					</div>	
+					<div class="col-sm-4 col-lg-4 col-xs-4">	
+						<h3>:&nbsp;&nbsp;<?php echo $noof_orders ;?></h3>
+					</div>
+					
+					<div class="col-sm-8 col-lg-5 col-xs-8 no-padding">	
+						<h3>Total No. of New Orders</h3>
+					</div>	
+					<div class="col-sm-4 col-lg-4 col-xs-4">	
+						<h3>:&nbsp;&nbsp;<?php echo $new_count; ?></h3>
+					</div>
+					
+					<div class="col-sm-8 col-lg-5 col-xs-8 no-padding">	
+						<h3>Total No. of Orders Accepted</h3>
+					</div>	
+					<div class="col-sm-4 col-lg-4 col-xs-4">	
+						<h3>:&nbsp;&nbsp;<?php echo $accepted_count; ?></h3>
+					</div>
+				
+					<div class="col-sm-8 col-lg-5 col-xs-8 no-padding">	
+						<h3>Total No. of Orders Rejected</h3>
+					</div>	
+					<div class="col-sm-4 col-lg-4 col-xs-4">	
+						<h3>:&nbsp;&nbsp;<?php echo $rejected_count; ?></h3>
+					</div>
+					
+				</div>
+				<div class="col-sm-6 col-xs-12 col-lg-5 pull-right  no-padding ">	
+						<?php if($show != 1) {?>
+						
+						<div class="col-sm-8 col-lg-9 col-xs-8 no-padding">		
+							<h3>Total No. of Orders Placed By Merchants</h3>
+						</div>	
+						<div class="col-sm-4 col-lg-2 col-xs-4 no-padding">	
+							<h3>:&nbsp;&nbsp;<?php echo count($mechants_array); ?></h3>
+						</div>
+						<?php } ?>
+						
+						<?php if($show != 2) {?>
+						<div class="col-sm-8 col-lg-9 col-xs-8 no-padding">		
+							<h3>Total No. of Orders Placed By Users</h3>
+						</div>	
+						<div class="col-sm-4 col-lg-2 col-xs-4 no-padding">	
+							<h3>:&nbsp;&nbsp;<?php echo count($user_array); ?></h3>
+						</div>
+						<?php }?>
+				
+						<div class="col-sm-8 col-lg-9 col-xs-8 no-padding">		
+							<h3>Total Price of Accepted Orders</h3>
+						</div>
+						<div class="col-sm-4 col-lg-3 col-xs-4 no-padding">	
+								<h3>:&nbsp;&nbsp;<?php echo price_fomat($acceptedprice)."<span class='help-block' style='color:#fff;'>&nbsp;&nbsp;&nbsp;(Approved Orders)</span>"; ?></h3>
+						</div>	
+				</div>
+			</div>			
+			</div>	
+		</div>
+	<?php }?>
+		
+
 	
 	
 		<div class="row paging">
-			<div class="col-xs-2">
+			<div class="col-xs-12 col-sm-2">
 				<?php if(isset($OrderListResult) && is_array($OrderListResult) && count($OrderListResult) > 0){ ?>
 				<div class="dataTables_info">No. of Order(s)&nbsp:&nbsp;<strong><?php echo $tot_rec; ?></strong> </div>
 				<?php } ?>
 			</div>
-			<div class="col-xs-10">
+			<div class="col-xs-12 col-sm-10">
 				<div class="dataTables_paginate paging_bootstrap row">
 				<?php if(is_array($OrderListResult) && count($OrderListResult) > 0 ) {
 					if($show == 0)
 						$href_link = 'OrderList';
-					else
+					else if($show == 1)
 						$href_link = 'OrderList?mer_id='.$mer_id;
+					else if($show == 2)
+						$href_link = 'OrderList?user_id='.$user_id;
 					pagingControlLatest($tot_rec,$href_link); ?>
 				<?php }?>
 				</div>
@@ -142,7 +335,7 @@ else if(isset($_GET['msg']) && $_GET['msg'] == 4){
 		
 		<?php if(isset($msg) && $msg != '') { ?>
 		 <div class="row">
-               <div align="center" class="alert <?php  echo $class;  ?> alert-dismissable col-sm-4"><i class="fa fa-check"></i>  <?php echo $msg; ?></div>
+               <div align="center" class="alert <?php  echo $class;  ?> alert-dismissable col-sm-4 col-lg-3 col-xs-11"><i class="fa fa-check"></i>  <?php echo $msg; ?></div>
 		 </div>	
 		<?php } ?>
 		
@@ -155,20 +348,20 @@ else if(isset($_GET['msg']) && $_GET['msg'] == 4){
                            <table class="table table-hover">
                                <tr>
                                   	<!--<th align="center" width="1%" style="text-align:center"><input onclick="checkAllDelete('OrderList');" type="Checkbox" name="checkAll"/></th>-->
-									<th align="center" width="2%" style="text-align:center">#</th>									
-									<th width="15%">UserDetails</th>
-									<th width="10%">Cart ID</th>
-									<th width="15%">Price</th>
-									<th width="15%">Order Date</th>
-									<th width="15%">Order Status</th>
-									<th width="12%">Merchant Details</th>
+									<th align="center" width="3%" style="text-align:center">#</th>									
+			<?php if($show != 2) {?><th width="25%">UserDetails</th><?}?>
+									<th width="28%">Transaction ID</th>
+									<th width="7%">Price</th>
+									<th width="10%">Order Date</th>
+									<th width="8%">Order Status</th>
+			<?php if($show != 1) {?><th width="20%">Merchant Details</th><?}?>
 								</tr>
                               <?php
 							  	foreach($OrderListResult as $key=>$value){
 								?>
-							<tr>
+							<tr id="test_id_<?php echo $value->id;?>">
 								<!--<td align="center"><input id="checkdelete" name="checkdelete[]" value="<?php  //if(isset($value->id) && $value->id != '') echo $value->id  ?>" type="checkbox" hashCount="<?php //if(isset($value->hash_count) && $value->hash_count > 0 ) echo $value->hash_count; ?>"/></td>-->
-								<td align="center"><?php echo (($_SESSION['curpage'] - 1) * ($_SESSION['perpage']))+$key+1;?></td>												
+								<td align="center" nowrap><?php echo (($_SESSION['curpage'] - 1) * ($_SESSION['perpage']))+$key+1;?></td>												
 									<?
 										$image_path = '';
 										$photo = $value->Photo;
@@ -190,25 +383,31 @@ else if(isset($_GET['msg']) && $_GET['msg'] == 4){
 											}
 										}
 									?>
-									<td>
+							<?php if($show != 2) {?>
+						   <td>
 								<?php if(isset($image_path) && $image_path != ''){ ?>
-									<div class="col-xs-2 no-padding">
+									<div class=" col-sm-4  col-lg-2  no-padding">
 										<a <?php if(isset($image_path) && basename($image_path) != "no_user.jpeg") { ?>href="<?php echo $original_path; ?>" class="fancybox" title="<?php echo  ucfirst($value->UserName);?>" <?php } ?> > 
 											<img id="<?php echo $value->id ;?>"  width="36" height="36" align="top" class="img_border" src="<?php echo $image_path;?>" >
 										</a>
 									</div>
 								<?php } ?>
-									<div class="col-xs-9 "> 								
+									<div class="col-xs-9  col-sm-8 col-lg-10 no-padding"> 								
 										<?php if(isset($value->UserName) && $value->UserName != ''){ echo ucfirst($value->UserName); } ?>								
 									
 										
 									</div>
-									
-								</td>
-								<td><?php if(isset($value->fkCartId) && $value->fkCartId != ''){ echo $value->fkCartId; }else echo '-';?></td>
-								<td><?php if(isset($value->TotalPrice) && $value->TotalPrice != ''){ echo '$'.$value->TotalPrice; }else echo '-';?></td>
-								<td><?php if(isset($value->OrderDate) && $value->OrderDate != '0000-00-00 00:00:00'){ echo date('m/d/Y',strtotime($value->OrderDate)); }else echo '-';?></td>
+								<?php if($show == 0) {?>
+									<div class="row-actions col-xs-12">		
+										<a href="<?php echo SITE_PATH.'/admin/OrderProductList?cart_id='.base64_encode($value->fkCartId).'&cs=1'; ?>" class="view newWindow" data-toggle="tooltip" data-original-title="Purchased products"><i class="fa fa-shopping-cart"></i></a>		
+									</div>
+								<?php }?>
+								</td><?php }?>
+								<td><?php if(isset($value->TransactionId) && $value->TransactionId != ''){ echo $value->TransactionId; }else echo '-';?></td>
+								<td><?php if(isset($value->TotalPrice) && $value->TotalPrice != ''){ echo price_fomat($value->TotalPrice); }else echo '-';?></td>
+								<td nowrap><?php if(isset($value->OrderDate) && $value->OrderDate != '0000-00-00 00:00:00'){ echo date('m/d/Y',strtotime($value->OrderDate)); }else echo '-';?></td>
 								<td><?php if(isset($value->OrderStatus) && $value->OrderStatus != ''){ echo $order_status_array[$value->OrderStatus];}?></td>
+								<?php if($show != 1) {?>
 								<td>
 									<?
 										$icon_image_path = '';
@@ -228,7 +427,7 @@ else if(isset($_GET['msg']) && $_GET['msg'] == 4){
 									<div> 
 										<?php if($show == 1) {
 											if(isset($value->CompanyName) && $value->CompanyName != ''){ echo $value->CompanyName; }
-										 } else {
+										 	} else {
 										 ?>
 										
 										
@@ -249,7 +448,7 @@ else if(isset($_GET['msg']) && $_GET['msg'] == 4){
 									<?php  } ?>
 									</div>
 								</td>
-																				
+									<?}?>											
 								
 									
 							</tr>
@@ -266,7 +465,7 @@ else if(isset($_GET['msg']) && $_GET['msg'] == 4){
 					</form>
 					
 					<?php } else { ?>	
-						<div class="alert alert-danger alert-dismissable col-sm-5 "><i class="fa fa-warning"></i>&nbsp;&nbsp;<?php if($show == 0) echo "No Orders found"; else echo "No Orders found for this merchant"; ?></div> 
+						<div class="alert alert-danger alert-dismissable col-sm-5 col-lg-3 col-xs-11"><i class="fa fa-warning"></i>&nbsp;&nbsp;<?php if($show == 0) echo "No Orders found"; else if($show == 1)  echo "No Orders found for this merchant";  else echo "No Orders found for this User";?></div> 
 					<?php } ?>	
                </div>
            </div>
@@ -277,6 +476,15 @@ else if(isset($_GET['msg']) && $_GET['msg'] == 4){
 <script type="text/javascript">
 $(document).ready(function() {
 	$('.fancybox').fancybox();	
+	
+	$(".newWindow").fancybox({
+			scrolling: 'auto',			
+			type: 'iframe',
+			width: '780',
+			maxWidth: '100%',
+			
+			fitToView: false,
+		});
 });
 </script>
 </html>

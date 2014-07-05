@@ -88,4 +88,45 @@ if(isset($_POST['action']) && ($_POST['action']=='GET_PRODUCT_CATEGORY')){
 	</select>
 <?php } 
 }
+
+if(isset($_GET['action']) && ($_GET['action']=='DRAW_CHART')){
+	require_once('../controllers/StatisticsController.php');
+	$StatisticsObj   =   new StatisticsController();
+	$start_date = (isset($_GET['start_date']) && $_GET['start_date'] != '') ? $_GET['start_date'] : '';
+	$end_date = (isset($_GET['end_date']) && $_GET['end_date'] != '') ? $_GET['end_date'] : '';	
+	
+	/*if(isset($orderlist) && is_array($orderlist) && count($orderlist) > 0){		
+		$prefix = '';
+		echo "[\n";
+		foreach($orderlist as $orderkey=>$ordervalue){
+		  echo $prefix . " {\n";
+		  echo '  "Orderdate": "' . date('d/m/y',strtotime($ordervalue->OrderDate)). '",' . "\n";
+		  echo '  "Orders": ' . $ordervalue->total_count . ',' . "\n";	 
+		  echo " }";
+		  $prefix = ",\n";
+		}
+		echo "\n]";
+	}*/
+	$order_filter 	= " and date(OrderDate) =  '".date('Y-m-d')."'";
+	if(isset($start_date) && !empty($start_date) && isset($end_date) && !empty($end_date)) {
+		$order_filter = " and date(OrderDate) between '".date('Y-m-d',strtotime($start_date))."' and '".date('Y-m-d',strtotime($end_date))."'";
+	}
+	
+	$fields = "OrderDate,count(id) as total_count";
+	$condition = $order_filter." group by DATE(OrderDate),Hour(OrderDate) order by OrderDate desc";
+	//$condition = $order_filter." group by DATE(OrderDate)";
+	
+	$orderlist = $StatisticsObj->getorderlistbydate($fields,$condition);
+	
+	foreach($orderlist as $orderkey=>$ordervalue){
+		//$order[]=array('Orderdate'=>date('d/m/y',strtotime($ordervalue->OrderDate)),'Orders'=>$ordervalue->total_count);
+		$order[]=array('Orderdate'=>date('d M Y H:i',strtotime($ordervalue->OrderDate)),'Orders'=>$ordervalue->total_count);
+		//$order[]=array('Orderdate'=>$ordervalue->OrderDate,'Orders'=>$ordervalue->total_count);
+	}
+	echo json_encode($order);
+	//echo "[{y: 'July 24', a: 100},{y: 'July 25', a: 400},{y: 'July 26', a: 100},{y: 'July 27', a: 100},{y: 'July 28', a: 900},{y: 'July 29', a: 100}]";
+						
+	//echo "<pre>"; print_r($orderlist); echo "</pre>";
+	die();
+}
 ?>

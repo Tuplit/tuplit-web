@@ -45,7 +45,7 @@ if(isset($_GET['editId']) && $_GET['editId']!=''){
 	$updateResult  	= $ProductObj->updateProductDetails($update_string,$update_condition);
 	header("location:ProductList?msg=4");
 }
-setPagingControlValues('p.id',ADMIN_PER_PAGE_LIMIT);
+setPagingControlValues('id',ADMIN_PER_PAGE_LIMIT);
 $fields    = " p.*,m.CompanyName,m.Icon,pc.CategoryName,m.DiscountTier as Discount ";
 $condition .= " and p.Status in (1,2)";
 $productListResult  = $ProductObj->getProductList($fields,$condition);
@@ -83,7 +83,7 @@ $CategoryListResult  = $ManagementObj->selectProductCategoryDetails($fields,$con
 	?>
 	<!-- Content Header (Page header) -->
 	<section class="content-header no-padding">
-		<div class="col-xs-7">
+		<div <?php if($show == 0) { ?>class="col-xs-7"<?php } else { ?> class="col-xs-12" <? } ?>>
 			<h1><i class="fa fa-list"></i><?php if($show == 0) echo " Product List"; else echo " Product List"; ?></h1>
 		</div>
 		<?php if($show == 0){ ?><div class="col-xs-5"><h3><a href="ProductManage"><i class="fa fa-plus-circle"></i>Add Product</a></h3></div><?php } ?>
@@ -95,39 +95,39 @@ $CategoryListResult  = $ManagementObj->selectProductCategoryDetails($fields,$con
 				<form name="search_merchant" action="ProductList<?php if($show == 1) echo "?mer_id=".$mer_id."&cs=1"; ?>" method="post">
 				<div class="box box-primary">
 					<div class="box-body no-padding" >				
-						<div class="col-sm-4 form-group">
+						<div class="col-md-4  col-sm-4 form-group">
 							<label>Item Name</label>
 							<input type="text" class="form-control" name="itemname" id="itemname"  value="<?php if(isset($_SESSION['item_sess_name']) && $_SESSION['item_sess_name'] != '') echo unEscapeSpecialCharacters($_SESSION['item_sess_name']); ?>" >
 						</div>
-						<div class="col-sm-4 form-group">
+						<div class="col-md-4 col-sm-4 form-group">
 							<label>Price</label>
 							<input type="text" class="form-control" id="cost" name="cost"  value="<?php if(isset($_SESSION['item_sess_cost']) && $_SESSION['item_sess_cost'] != '') echo unEscapeSpecialCharacters($_SESSION['item_sess_cost']);  ?>" >
 						</div>	
 						
 						<?php if($show == 0) { ?>	
-						<div class="col-sm-4 form-group">
+						<div class="col-md-4 col-sm-4  form-group">
 							<label>Merchant Name</label>
 							<input type="text" class="form-control" id="merchantname" name="merchantname"  value="<?php if(isset($_SESSION['item_sess_mername']) && $_SESSION['item_sess_mername'] != '') echo unEscapeSpecialCharacters($_SESSION['item_sess_mername']); ?>" >
 						</div>
 						<?php } ?>
-						<div class="col-sm-4 form-group">
+						<div class="col-md-4 col-sm-4 form-group">
 							<label>Product Category</label>
 							<select name="ProductCategory" id="ProductCategory" class="form-control col-sm-4">
 								<option value="">Select</option>
 								<?php if(isset($CategoryListResult)) { 
 									foreach($CategoryListResult as $key=>$val) { ?>
-									<option value="<?php echo $val->id; ?>" <?php if(isset($_SESSION['item_sess_product_category']) && $_SESSION['item_sess_product_category'] ==  $val->id) echo "selected";?>><?php echo $val->CategoryName; ?></option>
+									<option value="<?php echo $val->id; ?>" <?php if(isset($_SESSION['item_sess_product_category']) && $_SESSION['item_sess_product_category'] ==  $val->id) echo "selected";?>><?php echo ucfirst($val->CategoryName); ?></option>
 								<?php } } ?>		
 							</select>
 						</div>
-						<div class="form-group col-md-6 " style="clear : none;">
-						<label class="notification">Discount Applied</label>
-						<div class="radio ">
-							<label class="col-xs-2 no-padding"><input type="Radio" id="DiscountApplied" value="1" name="DiscountApplied" <?php if(isset($_SESSION['item_sess_product_discount']) && $_SESSION['item_sess_product_discount'] == '1') echo 'checked';?> > &nbsp;&nbsp;Yes</label>&nbsp;&nbsp;&nbsp;&nbsp;
-							<label class="col-xs-2 no-padding"><input type="Radio" id="DiscountApplied" value="0" name="DiscountApplied" <?php if(isset($_SESSION['item_sess_product_discount']) && $_SESSION['item_sess_product_discount'] == '0') echo 'checked';?> > &nbsp;&nbsp;No</label>
-						</div>
+						<div class="form-group col-sm-4 col-md-4">
+							<label class="notification">Discount Applied</label>
+							<div class="radio ">
+							<label class="col-xs-3 no-padding"><input type="Radio" id="DiscountApplied" value="1" name="DiscountApplied" <?php if(isset($_SESSION['item_sess_product_discount']) && $_SESSION['item_sess_product_discount'] == '1') echo 'checked';?> > &nbsp;&nbsp;Yes</label>
+							<label class="col-xs-3 no-padding"><input type="Radio" id="DiscountApplied" value="0" name="DiscountApplied" <?php if(isset($_SESSION['item_sess_product_discount']) && $_SESSION['item_sess_product_discount'] == '0') echo 'checked';?> > &nbsp;&nbsp;No</label>
+							</div>
 						
-					</div>
+						</div>
 					</div>
 					<div class="box-footer col-sm-12" align="center">
 						<input type="submit" class="btn btn-success" name="Search" id="Search" value="Search">
@@ -136,16 +136,13 @@ $CategoryListResult  = $ManagementObj->selectProductCategoryDetails($fields,$con
 				</form>
 			</div>
 		</div>
-	
-	
-	
 		<div class="row paging">
-			<div class="col-xs-2">
+			<div class="col-xs-12 col-sm-2">
 				<?php if(isset($productListResult) && is_array($productListResult) && count($productListResult) > 0){ ?>
 				<div class="dataTables_info">No. of Product(s)&nbsp:&nbsp;<strong><?php echo $tot_rec; ?></strong> </div>
 				<?php } ?>
 			</div>
-			<div class="col-xs-10">
+			<div class="col-xs-12 col-sm-10">
 				<div class="dataTables_paginate paging_bootstrap row">
 				<?php if(is_array($productListResult) && count($productListResult) > 0 ) {
 					if($show == 0)
@@ -173,7 +170,6 @@ $CategoryListResult  = $ManagementObj->selectProductCategoryDetails($fields,$con
                        <div class="box-body table-responsive no-padding">
                            <table class="table table-hover">
                                <tr>
-                                  	<!--<th align="center" width="1%" style="text-align:center"><input onclick="checkAllDelete('ProductList');" type="Checkbox" name="checkAll"/></th>-->
 									<th align="center" width="2%" style="text-align:center">#</th>									
 									<th width="15%">Item Details</th>
 									<th width="23%">Price Details</th>			
@@ -184,8 +180,7 @@ $CategoryListResult  = $ManagementObj->selectProductCategoryDetails($fields,$con
                               <?php
 							  	foreach($productListResult as $key=>$value){
 								?>
-							<tr>
-								<!--<td align="center"><input id="checkdelete" name="checkdelete[]" value="<?php  //if(isset($value->id) && $value->id != '') echo $value->id  ?>" type="checkbox" hashCount="<?php //if(isset($value->hash_count) && $value->hash_count > 0 ) echo $value->hash_count; ?>"/></td>-->
+							<tr id="test_id_<?php echo $value->id;?>">
 								<td align="center"><?php echo (($_SESSION['curpage'] - 1) * ($_SESSION['perpage']))+$key+1;?></td>												
 								<td>
 									<?
@@ -203,10 +198,8 @@ $CategoryListResult  = $ManagementObj->selectProductCategoryDetails($fields,$con
 											}
 										}
 									?>
-									<div>
-										<div >
-											
-											<div style="float:left;clear:both;padding-right:10px">
+									<div class="mb_wrap_sm">
+										<div class="col-xs-3 col-sm-4 col-lg-3 no-padding">
 											<?php if(!empty($value->Photo)) { ?>
 												<a href="<?php echo $image_path; ?>" class="fancybox" title="<?php echo $value->ItemName; ?>">
 													<img width="75" height="75"align="top" class="img_border" src="<?php echo $image_path;?>" >
@@ -214,24 +207,19 @@ $CategoryListResult  = $ManagementObj->selectProductCategoryDetails($fields,$con
 											<?php } else {?>
 												<img width="75" height="75" align="top" class="img_border" src="<?php echo $image_path;?>" >
 											<?php } ?>
-											</div>
+										</div>
+										<div class="col-sm-8 col-xs-9">
 											<?php if(isset($value->ItemName) && $value->ItemName != ''){ ?>
-												<span title="Item Name">
-													<?php echo "<b>".$value->ItemName."</b>";  ?>
+												<span title="Item Name" data-toggle="tooltip">
+													<?php echo "<b>".ucfirst($value->ItemName)."</b>";  ?>
 												</span><br>   
 											<?php }?>
 											<?php if(isset($value->CategoryName) && $value->CategoryName != ''){ ?>
-												<span title="Category Name">
-													<?php echo "<b>".$value->CategoryName."</b>";  ?>
+												<span title="Category Name" data-toggle="tooltip">
+													<?php echo "<b>".ucfirst($value->CategoryName)."</b>";  ?>
 												</span><br>   
 											<?php }?>
-											<!-- <div>
-											<?php //if(isset($value->ItemDescription) && $value->ItemDescription != ''){ ?><i class="fa fa-fw fa-list-alt"></i><span data-toggle="tooltip" title="<?php //echo $value->ItemDescription; ?>"><?php //echo displayText($value->ItemDescription,100);?></span><br> <?php //} ?>
-	</div>																		
-											</div> -->
-										</div>
-										
-																
+										</div>																
 										<div class="row-actions col-xs-12">			
 																														
 											<?php if($show == 0) { ?>
@@ -246,7 +234,6 @@ $CategoryListResult  = $ManagementObj->selectProductCategoryDetails($fields,$con
 										</div>
 									</div>
 								</td>
-								
 								<td>	
 									<?php
 									if($value->Discount > 0)
@@ -259,9 +246,9 @@ $CategoryListResult  = $ManagementObj->selectProductCategoryDetails($fields,$con
 										<?php if(isset($value->DiscountApplied) && $value->DiscountApplied == 1){
 												if(isset($value->Discount) && $value->Discount > 0){?>
 													<span title="Price"><?php echo '<b>Discount Tier</b> : '.$discountTierArray[$value->Discount]."%"; ?></span><br>
-										<?php  } } if(isset($value->Price) && $value->Price >= 0){ echo '<b>Price</b> : $'.floatval($value->Price); } ?><br>
+										<?php  } } if(isset($value->Price) && $value->Price >= 0){ echo '<b>Price</b> : '.price_fomat($value->Price); } ?><br>
 										<?php if(isset($value->DiscountApplied) && $value->DiscountApplied == 1){					
-												 if(isset($dis_cost) && $dis_cost > 0){ echo '<b>Discounted Price</b> : $'.$dis_cost;
+												 if(isset($dis_cost) && $dis_cost > 0){ echo '<b>Discounted Price</b> : '.price_fomat($dis_cost);
 										 }}?>
 									</div>						
 								</td>
@@ -324,7 +311,7 @@ $CategoryListResult  = $ManagementObj->selectProductCategoryDetails($fields,$con
 					</form>
 					
 					<?php } else { ?>	
-						<div class="alert alert-danger alert-dismissable col-sm-5 "><i class="fa fa-warning"></i>&nbsp;&nbsp;<?php if($show == 0) echo "No Products found"; else echo "No Products found for this merchant"; ?></div> 
+						<div class="alert alert-danger alert-dismissable col-xs-5 "><i class="fa fa-warning"></i>&nbsp;&nbsp;<?php if($show == 0) echo "No Products found"; else echo "No Products found for this merchant"; ?></div> 
 					<?php } ?>	
                </div>
            </div>

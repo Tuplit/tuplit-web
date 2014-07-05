@@ -43,5 +43,19 @@ class OrderController extends Controller
 		if ($this->OrderModelObj)
 			return $this->OrderModelObj->selectOrderDetails($field,$condition);
 	}
+	function getCartList($fields,$condition)
+	{
+		if (!isset($this->OrderModelObj))
+			$this->loadModel('OrderModel', 'OrderModelObj');
+		if ($this->OrderModelObj)
+			return $this->OrderModelObj->getCartList($fields,$condition);
+	}
+	function getOverallOrderList($fields,$condition)
+	{
+		if (!isset($this->OrderModelObj))
+			$this->loadModel('OrderModel', 'OrderModelObj');
+		if ($this->OrderModelObj)
+			return $this->OrderModelObj->getOverallOrderList($fields,$condition);
+	}
 }
 ?>

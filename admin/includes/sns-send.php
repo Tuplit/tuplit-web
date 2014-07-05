@@ -10,8 +10,8 @@ $sns = Aws\Sns\SnsClient::factory(array(
 	'credentials.cache' => $cacheAdapter,
 	'region' => REGION
 ));
-
 $badge = $badge + 1;
+
   if($EndpointArn  !=''){
 	  try
 	  {
@@ -26,8 +26,7 @@ $badge = $badge + 1;
 										'sound' => 'default',
 										'processId' => $processId,
 										'type' => $type,
-										'userId' => $userId ,
-										'unreadMessage'=>$unreadCount),
+										'userId' => $userId ),
 			        ))
 			    ))
 			 );
@@ -49,8 +48,7 @@ $badge = $badge + 1;
 											'sound' => 'default',
 											'processId' => $processId,
 											'type' => $type,
-											'userId' => $userId ,
-											'unreadMessage'=>$unreadCount),
+											'userId' => $userId),
 				        ))
 				    ))
 				 );
@@ -63,7 +61,7 @@ $badge = $badge + 1;
 	  {
 	  //  echo'<pre>';print_r($data);echo'</pre>';
 		//echo"<br>";
-		print($EndpointArn . " - Failed: " . $e->getMessage() . "!\n");
+		//print($EndpointArn . " - Failed: " . $e->getMessage() . "!\n");
 		return 0;
 	  }
   }

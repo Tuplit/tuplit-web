@@ -92,5 +92,26 @@ class UserController extends Controller
 		if ($this->UserModelObj)
 			return $this->UserModelObj->insertTutorialSlide($k);
 	}
+	function getUserListPN($fields,$condition)
+	{
+		if (!isset($this->UserModelObj))
+			$this->loadModel('UserModel', 'UserModelObj');
+		if ($this->UserModelObj)
+			return $this->UserModelObj->getUserListPN($fields,$condition);
+	}
+	function getDevicetoken($fields, $condition)
+	{
+		if (!isset($this->UserModelObj))
+			$this->loadModel('UserModel', 'UserModelObj');
+		if ($this->UserModelObj)
+			return $this->UserModelObj->getDevicetoken($fields,$condition);
+	}
+	function updateBadge($token)
+	{
+	if (!isset($this->UserModelObj))
+			$this->loadModel('UserModel', 'UserModelObj');
+		if ($this->UserModelObj)
+			return $this->UserModelObj->updateBadge($token);
+	}
 }
 ?>

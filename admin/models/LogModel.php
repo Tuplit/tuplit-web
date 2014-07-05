@@ -24,29 +24,52 @@ class LogModel extends Model
 			$where .= " AND date(l.start_time) >=  '".date('Y-m-d',strtotime($_SESSION['sess_logtrack_from_date']))."'";
 		else if(isset($_SESSION['sess_logtrack_to_date']) && $_SESSION['sess_logtrack_to_date'] != '')
 			$where .= " AND date(l.end_time) <=  '".date('Y-m-d',strtotime($_SESSION['sess_logtrack_to_date']))."'";
-		if(isset($_SESSION['sess_logtrack_process']) && $_SESSION['sess_logtrack_process'] != ''){
+		/*if(isset($_SESSION['sess_logtrack_process']) && $_SESSION['sess_logtrack_process'] != ''){
 			$where .= " AND l.status =  '".$_SESSION['sess_logtrack_process']."'  ";
 		}
 		 if(isset($_SESSION['sess_logtrack_searchUserName']) && $_SESSION['sess_logtrack_searchUserName'] != '')
 			$where .= " and ( u.FirstName LIKE '%".$_SESSION['sess_logtrack_searchUserName']."%' ||	u.LastName LIKE '%".$_SESSION['sess_logtrack_searchUserName']."%') ";
-			
+			*/
 		if(isset($_SESSION['sess_logtrack_searchIP']) && $_SESSION['sess_logtrack_searchIP'] != '')
 			$where .= " and l.ip_address LIKE '%".$_SESSION['sess_logtrack_searchIP']."%' ";
 
 		if(isset($_SESSION['sess_logtrack_urlString']) && $_SESSION['sess_logtrack_urlString'] != '')
 			$where .= " and l.url LIKE '%".$_SESSION['sess_logtrack_urlString']."%' ";
 		
-		$sql	=	"SELECT SQL_CALC_FOUND_ROWS l.*,u.*,ac.device_type
+		$sql	=	"SELECT SQL_CALC_FOUND_ROWS l.id as logId,l.*
+					FROM {$this->logTable} as l 
+					WHERE 1 ".$where." ORDER BY ".$sorting_clause.$limit_clause;
+		
+		/*$sql	=	"SELECT SQL_CALC_FOUND_ROWS l.*,u.*,ac.device_type
 					FROM {$this->logTable} as l 
 					left JOIN {$this->oauthSessionAccessTokensTable} as atk on(atk.access_token = l.user ) 
 					LEFT JOIN {$this->oauthSessionTable} as ses on ( ses.id = atk.session_id ) 
 					LEFT JOIN {$this->userTable} as u on (u.id = ses.owner_id) 
 					LEFT JOIN {$this->oauthClientsTable} as ac on(ac.id=ses.client_id) 
-					WHERE 1 ".$where." ORDER BY ".$sorting_clause.$limit_clause;
+					WHERE 1 ".$where." ORDER BY ".$sorting_clause.$limit_clause;*/
 		//echo "============>".$sql;
 		$result = 	$this->sqlQueryArray($sql);
 		if (count($result) == 0) return false;
 		return $result;
+	}
+	function logUsersDetails($fields,$logUserTokens){
+		$sql	=	"	SELECT ".$fields." FROM {$this->oauthSessionAccessTokensTable} as atk  
+						LEFT JOIN {$this->oauthSessionTable} as ses on ( ses.id = atk.session_id ) 
+						LEFT JOIN {$this->userTable} as u on (u.id = ses.owner_id) 
+						LEFT JOIN {$this->oauthClientsTable} as ac on(ac.id=ses.client_id)
+						WHERE atk.access_token IN(".$logUserTokens.") ";		
+		$result = 	$this->sqlQueryArray($sql);
+		if (count($result) == 0) return false;
+		return $result;
+	}
+	function selectUserDetails($field,$condition){
+		$sql	 =	"select ".$field." from {$this->userTable} as u 
+					LEFT JOIN {$this->oauthSessionTable} as ses on ( u.id = ses.owner_id ) 
+					LEFT JOIN {$this->oauthSessionAccessTokensTable} as atk  ON(ses.id=atk.session_id)
+					where ".$condition;					
+		$result = 	$this->sqlQueryArray($sql);
+			if($result) return $result;
+			else false;
 	}
 }
 ?>

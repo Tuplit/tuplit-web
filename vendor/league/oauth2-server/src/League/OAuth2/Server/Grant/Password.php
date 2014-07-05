@@ -141,19 +141,26 @@ class Password implements GrantTypeInterface {
         }
 
 	   
-	    $authParams['client_details'] = $clientDetails; // simplyshredded login check
+	    $authParams['client_details'] = $clientDetails; //  login check
 		
 			$flag = 0;
 			if(!is_null($authParams['Email']) && !is_null($authParams['Password'])){
 				$flag = 1;
 			}
 			// Check if user's facebookid or linkedin are correct
-	         $userId = call_user_func($this->getVerifyCredentialsCallback(), $authParams['Email'], $authParams['Password'], $authParams['FBId'], $authParams['GooglePlusId'], $authParams['DeviceToken'],$authParams['Token'],$authParams['UserData'], $authParams['Platform']);
+	         $userIdArray = call_user_func($this->getVerifyCredentialsCallback(), $authParams['Email'], $authParams['Password'], $authParams['FBId'], $authParams['GooglePlusId'], $authParams['DeviceToken'],$authParams['Token'],$authParams['UserData'], $authParams['Platform']);
 			
-        if ($userId === false) {
+        if ($userIdArray === false) {
             throw new Exception\ClientException($this->authServer->getExceptionMessage('invalid_credentials'), 0);
         }
 		else{
+			$userDetails = explode('##',$userIdArray);
+			$userId = $userDetails[0];
+			$userType = $userDetails[1];
+			if($userType == 1)
+				$userTypeText = 'user';
+			else
+				$userTypeText = 'merchant';
 		}
 
         // Validate any scopes that are in the request
@@ -193,7 +200,7 @@ class Password implements GrantTypeInterface {
         $accessTokenExpires = time() + $accessTokenExpiresIn;
 
         // Create a new session
-        $sessionId = $this->authServer->getStorage('session')->createSession($authParams['ClientId'], 'user', $userId);
+        $sessionId = $this->authServer->getStorage('session')->createSession($authParams['ClientId'],$userTypeText, $userId);
 
         // Associate an access token with the session
         $accessTokenId = $this->authServer->getStorage('session')->associateAccessToken($sessionId, $accessToken, $accessTokenExpires);

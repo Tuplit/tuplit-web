@@ -91,26 +91,25 @@ else{
 			
 }
 ?>
-
 <body class="skin-blue" onload="fieldfocus('CategoryName');">
 <?php if(isset($_GET['type']) && $_GET['type'] == 1){?>
 			<div class="col-xs-12 no-padding"> 
 				<h1><i class="fa <?php if(isset($_GET['editId']) && $_GET['editId'] != '' ) echo "fa-edit "; else echo 'fa-plus-circle ';?>"></i> <?php if(isset($_GET['editId']) && $_GET['editId'] != '' ) echo "Edit "; else echo 'Add ';?>Product Category</h1>
 			</div>
 			<?php if(isset($error_msg) && $error_msg != '') { ?>
-				 <?php if(isset($error_msg) && $error_msg != '')  { ?> <div class="alert <?php echo $class;  ?> alert-dismissable col-sm-5"><i class="fa <?php echo $class_icon ;  ?>"></i>  <?php echo $error_msg;  ?></div> <?php } ?>
+				 <?php if(isset($error_msg) && $error_msg != '')  { ?> <div class="clear alert <?php echo $class;  ?> alert-dismissable col-sm-5 col-xs-11"><i class="fa <?php echo $class_icon ;  ?>"></i>  <?php echo $error_msg;  ?></div> <?php } ?>
 			<?php } ?>			
 			<form action="" name="add_product_category_form" id="add_product_category_form"  method="post">
 				<div class="row">
 					<input type="Hidden" name="category_id" id="category_id" value="<?php if(isset($_GET['editId']) && $_GET['editId'] != '' ) echo $_GET['editId'];?>">
 					<input type="Hidden" name="merchant_id" id="merchant_id" value="<?php if(isset($MerchantId) && $MerchantId != '' ) echo $MerchantId;?>">
-					<div class="form-group col-md-12" style="height:80px">
-						<label class="col-sm-6 no-padding">Product Category Name</label>
-						<div class="col-sm-12 no-padding">
+					<div class="form-group col-xs-12" style="height:75px">
+						<label class="col-xs-12 no-padding">Product Category Name</label>
+						<div class="col-xs-12 no-padding">
 							<input type="text" class="form-control" id="CategoryName" name="CategoryName" maxlength="100" value="<?php if(isset($CategoryName) && $CategoryName != '') echo $CategoryName;  ?>" >
 						</div>
 					</div>	
-					<div class="footer col-md-12 text-center"> 
+					<div class="footer col-xs-12 text-center"> 
 						
 						<?php if(isset($_GET['editId']) && $_GET['editId'] != ''){ ?>
 						<input type="submit" class="btn btn-success" name="submit" id="submit" value="Save" title="Save" alt="Save">&nbsp;&nbsp;&nbsp;&nbsp;

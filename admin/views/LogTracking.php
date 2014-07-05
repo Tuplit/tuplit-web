@@ -6,6 +6,10 @@ require_once('controllers/LogController.php');
 $logObj   =   new LogController();
 $display   =   'none';
 $class  =  $msg    = $cover_path = '';
+$logUserTokens	=	$searchUserIds = '';
+$logUserArray	=	array();
+$logUserTokensArray	=	array();
+$searchUserIdsArray = array();
 global $link_type_array;
 $display	=	"none";
 $today		=	date('m-d-Y');
@@ -32,16 +36,82 @@ if(isset($_POST['Search']) && $_POST['Search'] != ''){
 	$_SESSION['sess_logtrack_urlString']      	= trim($_POST['urlString']);
 	//action_type
 }
+
 if(!isset($_SESSION['sess_logtrack_to_date'])) 
 	$_SESSION['sess_logtrack_to_date']	=	date('Y-m-d');	//=	$today;//
 if(!isset($_SESSION['sess_logtrack_from_date'])) 
 	$_SESSION['sess_logtrack_from_date']	=	date('Y-m-d');
+
+if(isset($_SESSION['sess_logtrack_searchUserName'])	&&	$_SESSION['sess_logtrack_searchUserName']	!=''){
+	$fields		= 	' u.id,atk.access_token ';
+	$condition	=	" FirstName LIKE '%".$_SESSION['sess_logtrack_searchUserName']."%' OR LastName LIKE '%".$_SESSION['sess_logtrack_searchUserName']."%'";
+	$usersList	=	$logObj->selectUserDetails($fields,$condition);
+	
+	if(isset($usersList) && is_array($usersList) && count($usersList) > 0){ 
+		foreach($usersList as $userKey=>$userValue){
+			if(isset($userValue->access_token)	&&	$userValue->access_token !='')
+				$searchUserIdsArray[]	=	$userValue->access_token;
+		}		
+		$searchUserIdsArray	=	array_unique($searchUserIdsArray);		
+		
+		foreach($searchUserIdsArray as $searchKey=>$searchValue)
+			$searchUserIds .= '"'.$searchValue.'",';
+		if(isset($searchUserIds)	&&	$searchUserIds !='')
+			$searchUserIds .= rtrim($searchUserIds,',');
+		else
+			$searchUserIds	=	'noresult';
+	}
+	else $searchUserIds	=	'noresult';
+}
+
 setPagingControlValues('l.id',ADMIN_PER_PAGE_LIMIT);
-$logtracksResult	=	$logObj->logtrackDetails($where);
+
+/*$logtracksResult	=	$logObj->logtrackDetails($where);
 $tot_rec 		 = $logObj->getTotalRecordCount();
 if($tot_rec==0 && !is_array($logtracksResult)) {
 	$_SESSION['curpage'] = 1;
 $logtracksResult	=	$logObj->logtrackDetails($where);
+}*/
+if($searchUserIds	!=	'noresult') {
+$searchUserIds	=	rtrim($searchUserIds,',');
+	if(	$searchUserIds !=	'')
+		$where      .=	" AND ( l.user IN(".$searchUserIds.") AND l.user !='' )";
+	$logtracksResult	=	$logObj->logtrackDetails($where);
+	$tot_rec 		 = $logObj->getTotalRecordCount();
+	if($tot_rec==0 && !is_array($logtracksResult)) {
+		$_SESSION['curpage'] = 1;
+		$logtracksResult	=	$logObj->logtrackDetails($where);
+	}
+}
+$fields		=	" atk.access_token,u.FirstName,u.LastName,ac.device_type ";
+if(isset($logtracksResult) && is_array($logtracksResult) && count($logtracksResult) > 0){
+	foreach($logtracksResult as $key=>$value){
+		if(isset($value->user)	&&	$value->user !='')
+			$logUserTokensArray[]	=	$value->user;
+	}
+	$logUserTokensArray	=	array_unique($logUserTokensArray);
+	foreach($logUserTokensArray as $key1=>$value1){
+		$logUserTokens .= '"'.$value1.'",';
+	}
+	$logUserTokens .= rtrim($logUserTokens,',');
+	if(isset($logUserTokens)	&&	$logUserTokens !='')
+		$logUsersResult	=	$logObj->logUsersDetails($fields,$logUserTokens);
+	if(isset($logUsersResult) && is_array($logUsersResult) && count($logUsersResult) > 0){ 
+		foreach($logUsersResult as $userKey=>$userValue){
+			if(isset($userValue->access_token)	&& $userValue->access_token != ''){
+				if((isset($userValue->FirstName)	&& $userValue->FirstName != '') 	&& (isset($userValue->LastName)	&& $userValue->LastName != '') )
+					$userName	=	ucfirst($userValue->FirstName).' '.ucfirst($userValue->LastName);
+				else if((isset($userValue->FirstName)	&& $userValue->FirstName != '') )	
+					$userName	=	 ucfirst($userValue->FirstName);
+				else if((isset($userValue->LastName)	&& $userValue->LastName != '') )	
+					$userName	=	ucfirst($userValue->LastName);
+				if(isset($userValue->device_type)	&& $userValue->device_type != ''){
+					$deviceType	=	$userValue->device_type;
+				}
+				$logUserArray[$userValue->access_token]	=	array('user'=>$userName,'device_type'=>$deviceType);
+			}
+		}
+	}
 }
 //echo '<pre>';print_r($logtracksResult);echo '</pre>';
 ?>
@@ -59,25 +129,29 @@ $logtracksResult	=	$logObj->logtrackDetails($where);
 			<div class="col-xs-12">
 				<form name="search_category" action="LogTracking" method="post">
 				<div class="box box-primary">
-					<div class="col-sm-3 form-group">
+					<div class="col-sm-4 form-group">
 						<label>Name</label>
 						<input  type="text" class="form-control " title="Name" name="searchUserName" value="<?php if(isset($_SESSION['sess_logtrack_searchUserName']) && $_SESSION['sess_logtrack_searchUserName'] != '') echo $_SESSION['sess_logtrack_searchUserName'];?>">
 					</div>
-					<div class="col-sm-3 form-group">
+					<div class="col-sm-4 form-group">
 						<label>IP Address</label>
 						<input type="text" class="form-control"  title="IP Address" name="searchIP" value="<?php if(isset($_SESSION['sess_logtrack_searchIP']) && $_SESSION['sess_logtrack_searchIP'] != '') echo $_SESSION['sess_logtrack_searchIP'];?>">
 					</div>
-					<div class="col-sm-2 form-group">
-						<label>Start Date</label>
-						<input  type="text" class="form-control datepicker" autocomplete="off" title="Select Date" name="from_date" value="<?php if(isset($_SESSION['sess_logtrack_from_date']) && $_SESSION['sess_logtrack_from_date'] != '') echo date('m/d/Y',strtotime($_SESSION['sess_logtrack_from_date']));?>">
-					</div>
-					<div class="col-sm-2 form-group">
-						<label>End Date</label>
-						<input type="text" class="form-control datepicker" autocomplete="off"  title="Select Date" name="to_date" value="<?php if(isset($_SESSION['sess_logtrack_to_date']) && $_SESSION['sess_logtrack_to_date'] != '') echo date('m/d/Y',strtotime($_SESSION['sess_logtrack_to_date']));?>">
-					</div>
-					<div class="col-sm-2 form-group">
+					<div class="col-sm-4 form-group">
 						<label>String</label>
 						<input type="text" class="form-control"   title="" name="urlString" value="<?php if(isset($_SESSION['sess_logtrack_urlString']) && $_SESSION['sess_logtrack_urlString'] != '') echo unEscapeSpecialCharacters($_SESSION['sess_logtrack_urlString']);?>">
+					</div>
+					<div class="col-sm-4 form-group">
+						<label>Start Date</label>
+						<div class="col-lg-6 no-padding">
+							<input  type="text" class="form-control datepicker" autocomplete="off" title="Select Date" name="from_date" value="<?php if(isset($_SESSION['sess_logtrack_from_date']) && $_SESSION['sess_logtrack_from_date'] != '') echo date('m/d/Y',strtotime($_SESSION['sess_logtrack_from_date']));?>">
+						</div>
+					</div>
+					<div class="col-sm-4 form-group">
+						<label>End Date</label>
+						<div class="col-lg-6 no-padding">
+							<input type="text" class="form-control datepicker" autocomplete="off"  title="Select Date" name="to_date" value="<?php if(isset($_SESSION['sess_logtrack_to_date']) && $_SESSION['sess_logtrack_to_date'] != '') echo date('m/d/Y',strtotime($_SESSION['sess_logtrack_to_date']));?>">
+						</div>
 					</div>
 					
 					<div class="col-sm-12 box-footer clear" align="center">
@@ -89,12 +163,12 @@ $logtracksResult	=	$logObj->logtrackDetails($where);
 			</div>
 		</div>
 		<div class="row paging">
-			<div class="col-xs-2">
+			<div class="col-xs-12 col-sm-2">
 				<?php if(isset($logtracksResult) && is_array($logtracksResult) && count($logtracksResult) > 0){ ?>
 				<div class="dataTables_info">No. of Log(s)&nbsp:&nbsp;<strong><?php echo $tot_rec; ?></strong> </div>
 				<?php } ?>
 			</div>
-			<div class="col-xs-10">
+			<div class="col-xs-12 col-sm-10">
 				<div class="dataTables_paginate paging_bootstrap row">
 				<?php if(isset($logtracksResult)	&&	is_array($logtracksResult) && count($logtracksResult) > 0 ) {
 							 	pagingControlLatest($tot_rec,'LogTracking'); ?>
@@ -105,7 +179,7 @@ $logtracksResult	=	$logObj->logtrackDetails($where);
 		
 		<?php if(isset($msg) && $msg != '') { ?>
 		 <div class="row">
-               <div align="center" class="alert <?php  echo $class;  ?> alert-dismissable col-sm-5"><i class="fa fa-check"></i>  <?php echo $msg; ?></div>
+               <div align="center" class="alert <?php  echo $class;  ?> alert-dismissable col-sm-5 col-xs-11"><i class="fa fa-check"></i>  <?php echo $msg; ?></div>
 		 </div>	
 		<?php } ?>
 		
@@ -127,13 +201,20 @@ $logtracksResult	=	$logObj->logtrackDetails($where);
 								<th width="6%">Duration&nbsp;&nbsp;</th>
                                </tr>
                               		<?php 	foreach($logtracksResult as $key=>$value) { 
-												$userName	=	'';
+										/*		$userName	=	'';
 								if(isset($value->FirstName)	&&	isset($value->LastName)) 	
 									$userName	=	ucfirst($value->FirstName).' '.ucfirst($value->LastName);
 								else if(isset($value->FirstName))	
 									$userName	=	 ucfirst($value->FirstName);
 								else if(isset($value->LastName))	
-									$userName	=	ucfirst($value->LastName);
+									$userName	=	ucfirst($value->LastName);*/
+									$userName	=	'';$deviceType = 0;
+									if(isset($value->user)	&&	$value->user !='' && array_key_exists($value->user,$logUserArray)){
+										if(isset($logUserArray[$value->user]['device_type']))	
+											$deviceType	=	$logUserArray[$value->user]['device_type'];											
+										if(isset($logUserArray[$value->user]['user']))	
+											$userName	=	$logUserArray[$value->user]['user'];
+									}
 									?>							
 							<tr>
 								<td align="center" valign="top"><?php echo (($_SESSION['curpage'] - 1) * ($_SESSION['perpage']))+$key+1;?></td>
@@ -145,6 +226,7 @@ $logtracksResult	=	$logObj->logtrackDetails($where);
 							</p>
 						</td>
 						<td align="left" valign="top">
+						<div class="mb_wrap">
 						<?php if(isset($value->log_stat)	&&	 ($value->log_stat ==1	||	$value->log_stat ==2)){ 
 								echo '-';
 							} else {?>
@@ -155,9 +237,12 @@ $logtracksResult	=	$logObj->logtrackDetails($where);
 							  	else echo '-';?>
 						<br><br><p><b class="head_color">Method : </b><?php if(isset($value->method)	&&	$value->method !='') echo $value->method; else echo '-';?></p>
 						<?php }?>
+						</div>
 						</td>
 			<!--								<td align="left"><?php //if(isset($value->method)	&&	$value->method !='') echo $value->method; else echo '-';?></td>	-->
 						<td align="left" class="brk_wrd_cell" valign="top">
+						<div class="mb_wrap">
+						
 							<?php if(isset($value->log_stat)	&&	 ($value->log_stat ==1	||	$value->log_stat ==2)){ 
 								echo '-';
 							} else {?>
@@ -168,13 +253,14 @@ $logtracksResult	=	$logObj->logtrackDetails($where);
 							  else echo '-';?></div>
 							<?php } ?>
 			<!--										<textarea class="cledito"  name="description" id="description"><?php //if(isset($value->response) && $value->response != '') echo $value->response;?></textarea>
-			-->
+			-->				</div>
 						</td>
 			
 			<!--									<td align="center"><p class="brk_wrd" ><?php //if(isset($value->response)	&&	$value->response !='') echo $value->response; else echo '-';?></p></td>	-->
-						<td align="center" valign="top"><?php if(isset($value->device_type)	&&	$value->device_type !='') {
-													if(isset($platformArray[$value->device_type]))
-														echo $platformArray[$value->device_type];
+						<td align="center" valign="top"><?php //if(isset($value->device_type)	&&	$value->device_type !='') {
+												if(isset($deviceType)	&&	$deviceType !='') {
+													if(isset($platformArray[$deviceType]))
+														echo $platformArray[$deviceType];
 													else echo '-';
 												}else echo '-'; //$platformArray?></td>
 						<td align="center" valign="top">
@@ -222,7 +308,7 @@ $logtracksResult	=	$logObj->logtrackDetails($where);
 					</form>
 					
 					<?php } else { ?>	
-						<div class="alert alert-danger alert-dismissable col-sm-5"><i class="fa fa-warning"></i> No result found</div> 
+						<div class="alert alert-danger alert-dismissable col-sm-5 col-lg-3  col-xs-11"><i class="fa fa-warning"></i> No result found</div> 
 					<?php } ?>	
                </div>
            </div>
@@ -231,7 +317,7 @@ $logtracksResult	=	$logObj->logtrackDetails($where);
 <script type="text/javascript">
 $(".datepicker").datepicker({
 	showButtonPanel	:	true,        
-    buttonText		:	'',
+    buttonText		:	'<i class="fa fa-calendar"></i>',
     buttonImageOnly	:	true,
     buttonImage		:	path+'webresources/images/calender.png',
     dateFormat		:	'mm/dd/yy',

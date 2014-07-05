@@ -320,7 +320,7 @@ function setOrderingWebService(ordering_value,service_id){
 	        }			
 	    });
 }
-sendNotification = function(frmname)
+/*sendNotification = function(frmname)
 {
 	flag=0;
 	var message = $('#message').val();
@@ -353,8 +353,25 @@ sendNotification = function(frmname)
 		}
 			  
 	}
+}*/
+sendNotification = function(frmname)
+{
+	flag=0;
+	var message = $('#message').val();
+	if(message == ''){
+		alert('Enter the message');
+		return false;
+	}
+	else {
+		$('#message_hidden').val(message);
+		if(confirm('Are you sure to send notification?')) {
+			frmname.submit();
+			//$.fancybox.close(); 	
+			// parent.$.colorbox.close();
+		}
+	}
+	
 }
-
 function deleteRow(id_val,type)
 {	
 		if(type == 1){
@@ -628,15 +645,175 @@ function hideAllDays() {
 	}
 }
 
-function setTime(id) {	
-	from = $('#from1_'+id).val();
-	to = $('#to1_'+id).val();
-	//alert(from+'  '+to)
-	if(from == '' && to == '')
+function setTime(id) {
+	fromhr = $('#fromhours_list'+id).val();
+	frommin = $('#fromminute_list'+id).val();
+	fromampm = $('#fromampm_list'+id).val();
+	tohr = $('#tohours_list'+id).val();
+	tomin = $('#tominute_list'+id).val();
+	toampm = $('#toampm_list'+id).val();
+	if(fromhr == '' && frommin == '' && fromampm == '' && tohr == '' && tomin == '' && toampm == '') {
 		$('#row_'+id).val('');
-	else if(from != '' || to != '')
+		$("#from1_"+id).val('')
+		$("#to1_"+id).val('')
+	}
+	else {
 		$('#row_'+id).val('1');
+		from		=	fromhr+':'+frommin+' '+fromampm;
+		to			=	tohr+':'+tomin+' '+toampm;
+		$("#from1_"+id).val(from)
+		$("#to1_"+id).val(to)
+	}
 }
 
 
+function selectProduct(product_value) {
+	var form_name 		= document.getElementById('Products_List');
+	var discount_tier 	= document.getElementById('DiscountTier');
+	for (i=0;i<discount_tier.options.length;i++) {
+		if(discount_tier.options[i].value == '3')
+			discount_tier.options[i].selected = true;
+	}
+	if(product_value == 'all'){
+		for (i=0;i<form_name.options.length;i++) {
+			if(form_name.options[i].value != 'all'){
+				form_name.options[i].selected = true;
+			}
+		}
+	}
+}
 
+
+function selectPrice(product_value) {
+	var form_name 	 = document.getElementById('Products_List');
+	for (i=0;i<form_name.options.length;i++) {
+			form_name.options[i].selected = false;
+	}
+}
+jQuery(function() {
+	jQuery("div.row-actions a").hide();
+	jQuery('table.table-hover tr[id^=test_id_]').hover(function() {
+		jQuery(this).find("div.row-actions a").css("visibility","visible");
+   	}, function() {
+       	jQuery(this).find("div.row-actions a").css("visibility","hidden");
+   	});
+});
+
+ function requestchartData(date1,date2){
+   
+    $.ajax({
+      type: "GET",
+     // dataType: 'json',
+     // url: sitePath+"./api", // This is the URL to the API
+	  url: actionPath+"models/AjaxAction.php",
+	  data: 'action=DRAW_CHART&start_date='+date1+'&end_date='+date2
+      //data: { action:chart }
+    })
+    .done(function( data ) {
+      // When the response to the AJAX request comes back render the chart with new data
+      //chart.setData(data);
+	  alert(data);
+    })
+    .fail(function() {
+      // If there is no communication between the server, show an error
+      alert( "error occured" );
+    });
+  }
+  function pushNotificationCheck(ref) {
+	var flag       = 0;
+	var Title_flag = 0;
+	$('.pnclass').attr('href','');
+	$('.pnclass').removeClass('notification_popup');
+		
+	$("input[name='checkdelete[]']").each(function(){		
+		if($(this).attr('checked')){
+			flag = 1;
+		}
+	});
+	if(flag == 1) {
+		/*$(".dapskip_pop_up").colorbox({
+			data:$("#UserListForm").serialize(),
+			width:"75%",
+			height:"55%",
+			open:true
+		});
+		return true;*/
+		$('.pnclass').attr('href','SendPushNotification?'+$("#UserListForm").serialize());
+		$('.pnclass').addClass('notification_popup');
+		$(".notification_popup").fancybox({
+			type:"iframe", 
+			width:"700", 
+			height:"100%",
+			 onClosed: function () {
+            	$('.pnclass').attr('href','');
+				$('.pnclass').removeClass('notification_popup');
+				window.location.href = actionPath+'UserList#sendPush';
+        	}
+		});
+		/*$(".dapskip_pop_up").onClosed({
+			$('.pnclass').attr('href','');
+		});*/
+		//$(".user_photo_pop_up").colorbox();
+		
+	}
+	else {
+		alert('Select atleast a single record');
+		return false;
+	}
+}
+
+function saveContent(id) {
+	var content 	=  tinyMCE.activeEditor.getContent();
+	var filename 	=  $('#ContentName').val();
+	var ContentUrl 	=  $('#ContentUrl').val();
+	if(id == 'Save'){
+		dataurl		=	"ContentManage?action=Save";
+		datapost	=	"Content="+content+"&filename="+filename+"&ContentUrl="+ContentUrl;
+	}
+	else {
+		dataurl		=	"ContentManage?action=Update";
+		datapost	=	"Content="+content+"&filename="+filename+"&id="+id+"&ContentUrl="+ContentUrl;
+	}
+	if(content != '' && filename != '' && ContentUrl != '') {
+		$.ajax({
+			type	: 	"POST",
+			url		: 	dataurl,
+			data	: 	datapost,
+			success	: 	function (result){
+				if(result == 1) {
+					$('#alreadyExists').hide();
+					window.location.href = "ContentList?msg=1";
+				}
+				else if(result == 2) {
+					$('#alreadyExists').show();
+				}
+				else if(result == 3) {
+					window.location.href = "ContentList?msg=2";
+				}
+				else if(result == 4) {
+					$('#idNotExists').show();
+				}
+			}			
+		});
+	}
+	return false;
+}
+
+function deleteAllContent(){
+	var flag       = 0;
+	$("input[name='checkdelete[]']").each(function(){		
+		if($(this).attr('checked')){
+			flag = 1;			
+		}
+	});
+	if(flag == 0){
+		alert('Select atleast a single record');
+		return false;
+	}	
+	if(flag == 1 ){
+		if(confirm('Are you sure to delete?'))
+			return true;
+		else
+			return false;
+	}
+}

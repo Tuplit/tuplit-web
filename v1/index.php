@@ -32,7 +32,6 @@ use Enumerations\HttpStatusCode as HttpStatusCode;
  */
 tuplitApi::init();
 $app = new \Slim\Slim();
-
 /**
  * Setup the database
  * GET /v1/setup

@@ -284,24 +284,24 @@ if(isset($_POST['submit']) && $_POST['submit'] != ''){
 			<div class="col-md-12"> 
 				<div class="box box-primary"> 
 					<div class="col-md-12 no-padding">
-					<?php if(isset($error_msg) && $error_msg != '')  { ?> <div class="alert <?php echo $class;  ?> alert-dismissable col-sm-4"><i class="fa <?php echo $class_icon ;  ?>"></i>  <?php echo $error_msg;  ?></div> <?php } ?>
+					<?php if(isset($error_msg) && $error_msg != '')  { ?> <div class="alert <?php echo $class;  ?> alert-dismissable col-lg-4  col-sm-5  col-xs-11 text-center"><i class="fa <?php echo $class_icon ;  ?>"></i>  <?php echo $error_msg;  ?></div> <?php } ?>
 					<input type="Hidden" name="user_id" id="user_id" value="<?php if(isset($_GET['editId']) && $_GET['editId'] != '' ) echo $_GET['editId'];?>">
 					</div>
 					
-					<div class="form-group col-md-6">
+					<div class="form-group col-sm-6">
 						<label>First Name</label>
 						<input type="text" class="form-control" id="FirstName" name="FirstName" maxlength="100" value="<?php if(isset($FirstName) && $FirstName != '') echo $FirstName;  ?>" >
 					</div>
-					<div class="form-group col-md-6">
+					<div class="form-group col-sm-6">
 						<label>Last Name</label>
 						<input type="text" class="form-control" id="LastName" name="LastName" maxlength="20" value="<?php if(isset($LastName) && $LastName != '' ) echo $LastName;  ?>" >
 					</div>
 					
-					<div class="form-group col-md-6">
+					<div class="form-group col-sm-6">
 						<label>Email</label>
 						<input type="text" class="form-control" name="Email" id="Email" maxlength="100" value="<?php if(isset($Email) && $Email != '') echo $Email;  ?>" >
 					</div>
-					<div class="form-group col-md-6">
+					<div class="form-group col-sm-6">
 						<label>Cell Number</label>
 						<input type="text" class="form-control" id="CellNumber" name="CellNumber" maxlength="15" onkeypress="return isNumberKey_Phone(event);" value="<?php if(isset($CellNumber) && $CellNumber != '' ) echo $CellNumber; ?>" >
 					</div>
@@ -314,51 +314,51 @@ if(isset($_POST['submit']) && $_POST['submit'] != ''){
 					?>	
 					
 					<?php if(!isset($_GET['editId'])){ ?>
-					<div class="form-group col-md-6">
+					<div class="form-group col-sm-6">
 						<label>Password</label>
 						<input type="<?php echo $type; ?>" class="form-control" id="Password" name="Password" maxlength="50" value="<?php if(isset($Password) && $Password != '') echo $Password; ?>" >
 					</div>
-					<div class="form-group col-md-6">
+					<div class="form-group col-sm-6">
 						<label>Confirm Password</label>
 						<input type="<?php echo $type; ?>" class="form-control" id="C_Password" name="C_Password" maxlength="30" value="<?php if(isset($Password) && $Password != '') echo $Password; ?>" >
 					</div>
 					<?php } ?>		
 							
-					<div class="form-group col-md-6">
+					<div class="form-group col-sm-6">
 						<label>Google Plus Id</label>
 						<input type="text" class="form-control" id="GooglePlusId" name="GooglePlusId" maxlength="30" value="<?php if(isset($GooglePlusId) && $GooglePlusId != '' ) echo $GooglePlusId; ?>" >
 					</div>	
-					<div class="form-group col-md-6">
+					<div class="form-group col-sm-6">
 						<label>Facebook Id</label>
 						<input type="text" class="form-control" id="FbId" name="FbId" maxlength="20" value="<?php if(isset($FbId) && $FbId != '' ) echo $FbId; ?>" >
 					</div>
-					<div class="form-group col-md-6">
+					<div class="form-group col-sm-6">
 						<label>Location</label>
 						<input type="text" class="form-control" id="Location" name="Location" maxlength="100" value="<?php if(isset($Location) && $Location != '' ) echo $Location; ?>" >
 					</div>
-					<div class="form-group col-md-6">
+					<div class="form-group col-sm-6">
 						<label>Country</label>
 						<input type="text" class="form-control" id="Country" name="Country" maxlength="100" value="<?php if(isset($Country) && $Country != '' ) echo $Country; ?>" >
 					</div>
-					<div class="form-group col-md-6">
+					<div class="form-group col-sm-6">
 						<label>Zip Code</label>
 						<input type="text" class="form-control" id="ZipCode" name="ZipCode" maxlength="30" value="<?php if(isset($ZipCode) && $ZipCode != '' ) echo $ZipCode; ?>" >
 					</div>
-					<div class="form-group col-md-6">
+					<div class="form-group col-sm-6">
 						<label>PIN Code</label>
-						<input type="text" class="form-control" id="PinCode" name="PinCode" maxlength="30" value="<?php if(isset($PinCode) && $PinCode != '' ) echo $PinCode; ?>" >
+						<input type="text" class="form-control" id="PinCode" name="PinCode" maxlength="4" onkeypress="return isNumberKey_numbers(event);" value="<?php if(isset($PinCode) && $PinCode != '' ) echo $PinCode; ?>" >
 					</div>	
 					
 					<?php if(!isset($_GET['editId'])) { ?>
-					<div class="form-group col-md-6">
+					<div class="form-group col-sm-6 col-lg-6 ">
 						<label>Photo</label>
 						<div class="row">
-						    <div class="col-md-6"> 
+						    <div class="col-sm-8  col-lg-5"> 
 								<input type="file"  name="user_photo" id="user_photo" title="User Photo" onclick="" onchange="return ajaxAdminFileUploadProcess('user_photo');"  /> 
 								<p class="help-block">(Minimum dimension 100x100)</p>
 								<span class="error" for="empty_user_photo" generated="true" style="display: none">User Image is required</span>
 							</div>
-						    <div class="col-md-3 text-center">
+						    <div class="col-sm-4">
 						         <div id="user_photo_img">
 									<?php  
 									if(isset($UserImagePath) && $UserImagePath != ''){  ?>
@@ -373,16 +373,16 @@ if(isset($_POST['submit']) && $_POST['submit'] != ''){
 					</div>	
 					<?php } else { ?>
 				
-					<div class="form-group col-md-6 ">
+					<div class="form-group col-sm-6 col-lg-6 ">
 						<label>Photo</label>
 						<div class="row">
-							<div class="col-md-6"> 
+							<div class="col-sm-8  col-lg-5"> 
 								<input type="file"  name="user_photo" id="user_photo" title="User Photo" onclick="" onchange="return ajaxAdminFileUploadProcess('user_photo');"  /> 
 								<p class="help-block">(Minimum dimension 100x100)</p>
 								<span class="error" for="empty_user_photo" generated="true" style="display: none">User Image is required</span>
 							</div><!-- imageValidation('empty_cat_sel_photo'); -->
 						
-							<div class="col-md-3 text-center" >
+							<div class="col-sm-4" >
 						      <div id="user_photo_img">
 								<?php  
 								if(isset($UserImagePath) && $UserImagePath != ''){  ?>
@@ -399,42 +399,42 @@ if(isset($_POST['submit']) && $_POST['submit'] != ''){
 					
 					<?php if(isset($_GET['editId']) && $_GET['editId'] != ''){ ?>
 					
-					<div class="col-md-12"> <h3>Notification Settings</h3></div>
+					<div class="col-sm-12"> <h3>Notification Settings</h3></div>
 					
-					<div class="form-group col-md-6 ">
-						<label class="notification">Push Notification</label>
-						<div class="radio ">
-							<label class="col-xs-2 no-padding"><input type="Radio" value="1" class=""   id="PushNotification"  name="PushNotification" <?php if(isset($PushNotification) && $PushNotification == '1') echo 'checked';?> > &nbsp;&nbsp;On</label>&nbsp;&nbsp;&nbsp;&nbsp;
-							<label class="col-xs-2 no-padding"><input type="Radio" value="0" id="PushNotification" name="PushNotification" <?php if(isset($PushNotification) && $PushNotification == '0') echo 'checked';?> > &nbsp;&nbsp;Off
+					<div class="form-group col-sm-6  col-xs-12">
+						<label class="notification col-xs-6 no-padding">Push Notification</label>
+						<div class=" col-xs-6 no-padding">
+							<label class="col-xs-5 no-padding"><input type="Radio" value="1" class=""   id="PushNotification"  name="PushNotification" <?php if(isset($PushNotification) && $PushNotification == '1') echo 'checked';?> > &nbsp;&nbsp;On</label>&nbsp;&nbsp;&nbsp;&nbsp;
+							<label class="col-xs-5 no-padding"><input type="Radio" value="0" id="PushNotification" name="PushNotification" <?php if(isset($PushNotification) && $PushNotification == '0') echo 'checked';?> > &nbsp;&nbsp;Off
 						</div>
 					</div>	
 					
-					<div class="form-group col-md-6 " style="clear : none;">
-						<label class="notification">Send Credit</label>
-						<div class="radio ">
-							<label class="col-xs-2 no-padding"><input type="Radio" value="1" class=""   id="SendCredit"  name="SendCredit" <?php if(isset($SendCredit) && $SendCredit == '1') echo 'checked';?> > &nbsp;&nbsp;On</label>&nbsp;&nbsp;&nbsp;&nbsp;
-							<label class="col-xs-2 no-padding"><input type="Radio" value="0" id="SendCredit" name="SendCredit" <?php if(isset($SendCredit) && $SendCredit == '0') echo 'checked';?> > &nbsp;&nbsp;Off
+					<div class="form-group col-sm-6 col-xs-12">
+						<label class="notification col-xs-6   no-padding">Send Credit</label>
+						<div class=" col-xs-6   no-padding">
+							<label class="col-xs-5 no-padding"><input type="Radio" value="1" class=""   id="SendCredit"  name="SendCredit" <?php if(isset($SendCredit) && $SendCredit == '1') echo 'checked';?> > &nbsp;&nbsp;On</label>&nbsp;&nbsp;&nbsp;&nbsp;
+							<label class="col-xs-5 no-padding"><input type="Radio" value="0" id="SendCredit" name="SendCredit" <?php if(isset($SendCredit) && $SendCredit == '0') echo 'checked';?> > &nbsp;&nbsp;Off
 						</div>
 					</div>
 					
-					<div class="form-group col-md-6 ">
-						<label class="notification">Recieve Credit</label>
-						<div class="radio ">
-							<label class="col-xs-2 no-padding"><input type="Radio" value="1" class="" id="RecieveCredit"  name="RecieveCredit" <?php if(isset($RecieveCredit) && $RecieveCredit == '1') echo 'checked';?> > &nbsp;&nbsp;On</label>&nbsp;&nbsp;&nbsp;&nbsp;
-							<label class="col-xs-2 no-padding"><input type="Radio" value="0" id="RecieveCredit" name="RecieveCredit" <?php if(isset($RecieveCredit) && $RecieveCredit == '0') echo 'checked';?> > &nbsp;&nbsp;Off</label>
+					<div class="form-group col-sm-6 col-xs-12">
+						<label class="notification col-xs-6   no-padding">Recieve Credit</label>
+						<div class=" col-xs-6   no-padding">
+							<label class="col-xs-5 no-padding"><input type="Radio" value="1" class="" id="RecieveCredit"  name="RecieveCredit" <?php if(isset($RecieveCredit) && $RecieveCredit == '1') echo 'checked';?> > &nbsp;&nbsp;On</label>&nbsp;&nbsp;&nbsp;&nbsp;
+							<label class="col-xs-5 no-padding"><input type="Radio" value="0" id="RecieveCredit" name="RecieveCredit" <?php if(isset($RecieveCredit) && $RecieveCredit == '0') echo 'checked';?> > &nbsp;&nbsp;Off</label>
 						</div>
 					</div>	
 						
-					<div class="form-group col-md-6 " style="clear : none;">
-						<label class="notification">Buy Something</label>
-						<div class="radio ">
-							<label class="col-xs-2 no-padding"><input type="Radio" value="1"  class=""  id="BuySomething"  name="BuySomething" <?php if(isset($BuySomething) && $BuySomething == '1') echo 'checked';?> > &nbsp;&nbsp;On</label>&nbsp;&nbsp;&nbsp;&nbsp;
-							<label class="col-xs-2 no-padding"><input type="Radio" value="0" id="BuySomething" name="BuySomething" <?php if(isset($BuySomething) && $BuySomething == '0') echo 'checked';?> > &nbsp;&nbsp;Off</label>
+					<div class="form-group col-sm-6 col-xs-12">
+						<label class="notification col-xs-6   no-padding">Buy Something</label>
+						<div class=" col-xs-6 no-padding">
+							<label class="col-xs-5 no-padding"><input type="Radio" value="1"  class=""  id="BuySomething"  name="BuySomething" <?php if(isset($BuySomething) && $BuySomething == '1') echo 'checked';?> > &nbsp;&nbsp;On</label>&nbsp;&nbsp;&nbsp;&nbsp;
+							<label class="col-xs-5 no-padding"><input type="Radio" value="0" id="BuySomething" name="BuySomething" <?php if(isset($BuySomething) && $BuySomething == '0') echo 'checked';?> > &nbsp;&nbsp;Off</label>
 						</div>
 					</div>
 					<?php } ?>
 					
-					<div class="box-footer col-md-12" align="center">
+					<div class="box-footer  col-xs-12" align="center">
 						<?php if(isset($_GET['editId']) && $_GET['editId'] != ''){ ?>
 							<input type="submit" class="btn btn-success" name="submit" id="submit" value="Save" title="Save" alt="Save">&nbsp;&nbsp;&nbsp;&nbsp;
 						<?php } else { ?>

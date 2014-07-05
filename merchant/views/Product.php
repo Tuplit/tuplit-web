@@ -3,6 +3,16 @@ require_once('includes/CommonIncludes.php');
 merchant_login_check();
 $hide = 0;
 $Photo = $PhotoContent = $ProductId = '';
+$adddeals	=	$addspecial	=	0;
+$ItemType	=	'1';
+if(isset($_GET['add']) && !empty($_GET['add'])) {
+	if($_GET['add'] == 'deals')
+		$adddeals	=	1;
+	if($_GET['add'] == 'specials') {
+		$addspecial	=	1;
+		$adddeals	=	1;
+	}
+}
 
 //getting merchant details
 if(isset($_SESSION['merchantDetailsInfo']) && is_array($_SESSION['merchantDetailsInfo'])) {
@@ -42,6 +52,7 @@ if(isset($_GET['edit']) && !empty($_GET['edit'])) {
 				$Photo 			= $ProductDetail[0]['Photo'];
 				$Category 		= $ProductDetail[0]['fkCategoryId'];
 				$ItemName 		= $ProductDetail[0]['ItemName'];
+				$ItemDescription= $ProductDetail[0]['ItemDescription'];
 				$Price 			= $ProductDetail[0]['Price'];	
 				$Status 		= $ProductDetail[0]['Status'];
 				$Discount 		= $ProductDetail[0]['DiscountApplied'];
@@ -64,25 +75,37 @@ if((isset($_POST['merchant_product_submit']) && $_POST['merchant_product_submit'
 		$PhotoContent	= $_POST['product_photo_upload'];
 	}	
 	
-	$Category 		= $_POST['Category'];
-	$ItemName 		= $_POST['ItemName'];
-	$Price 			= $_POST['Price'];
-	$Status 		= $_POST['Status'];
-	$Discount 		= $_POST['Discount'];
-	$DiscountPrice 	= $_POST['DiscountPrice'];
+	$Category 			= $_POST['Category'];
+	$ItemName 			= $_POST['ItemName'];
+	$Price 				= $_POST['Price'];
+	$Status 			= $_POST['Status'];
+	$Discount 			= $_POST['Discount'];
+	$DiscountPrice 		= $_POST['DiscountPrice'];
+	$ItemDescription 	= '';
+	
+	if($_POST['productType'] == 1) {
+		$ItemType		= '2';
+		$Category 		= '0';
+		$Discount 		= '0';
+		$ItemDescription= $_POST['ItemDescription'];
+	}
 	//echo'<pre>';print_r($_POST);echo'</pre>';
+	
 	$data	=	array(
 				'ProductId'				=> $ProductId,
 				'Photo' 				=> $PhotoContent,
-				'CategoryId'			=> $_POST['Category'],
-				'ItemName' 				=> $_POST['ItemName'],	
-				'Price' 				=> $_POST['Price'],	
-				'Status' 				=> $_POST['Status'],
-				'Discount' 				=> $_POST['Discount'],
-				'ImageAlreadyExists' 	=>	$_POST['empty_product_photo'],
+				'CategoryId'			=> $Category,
+				'ItemName' 				=> $ItemName,	
+				'ItemDescription'		=> $ItemDescription,	
+				'Price' 				=> $Price,	
+				'Status' 				=> $Status,
+				'Discount' 				=> $Discount,
+				'ItemType' 				=> $ItemType,
+				'ImageAlreadyExists' 	=> $_POST['empty_product_photo'],
 			);
 	
-	
+	//echo "<pre>"; echo print_r($data); echo "</pre>";
+	//die();
 	
 	if(isset($_GET['edit']) && !empty($_GET['edit'])) {
 		$method	=	'PUT';
@@ -138,12 +161,12 @@ commonHead();
 					top_header(); 
 			if(isset($msg) && $msg != '') {
 		?>
-		<br><br><div align="center" class="alert <?php  echo $class;  ?> alert-dismissable col-xs-10">
+		<div align="center" class="alert <?php  echo $class;  ?> alert-dismissable col-xs-10">
 			<i class="fa <?php  echo $class_icon;  ?>"></i>  <?php echo $msg; ?>
 		</div>
 		<?php } if(isset($hide) & $hide == 1) {  } else { ?>			
 			<form action="" name="<?php if(isset($_GET['edit']) && !empty($_GET['edit'])) echo "edit"; else echo "add"; ?>_product_form" id="<?php if(isset($_GET['edit']) && !empty($_GET['edit'])) echo "edit"; else echo "add"; ?>_product_form"  method="post">
-				<div class="row">
+				<div class="row popup">
 					<div class="form-group col-xs-12 no-padding" style="min-height:85px;">						   
 						<div class="col-xs-3 col-sm-3 no-padding" style="margin-left:16px;">
 							<label class="col-xs-3 " id="product_photo_img">
@@ -160,58 +183,94 @@ commonHead();
 							<input type="Hidden" name="empty_product_photo" id="empty_product_photo" value="<?php if(isset($Photo) && !empty($Photo)) echo "1"; ?>" />
 							<input type="Hidden" name="name_product_photo" id="name_product_photo" value="<?php echo $PhotoContent; ?>" />		
 						</div>				
-					</div>												
-					<div class="form-group col-xs-12 error_msg_hgt">
+					</div>
+					<div class="form-group col-xs-12 error_msg_hgt" <?php if($adddeals == 1) echo 'style="display:none;"'; ?>>
 						<label class="col-xs-3 no-padding">Category</label>
 						<p class="help-block">Item can be re-arranged into other category anytime</p>
 						<div class="col-xs-12 no-padding">
-							<select class="form-control " name="Category">
-								<option value="" >Select</option>								
-								<?php if(isset($productCategories) && !empty($productCategories)) {
-									foreach($productCategories as $key=>$val) {								
-								?>
-								<option value="<?php echo $val['CategoryId'];?>" <?php if(isset($Category) && $Category == $val['CategoryId']) echo "selected";?>><?php echo ucfirst($val['CategoryName']);?></option>
-								<?php } } ?>								
+							<select class="form-control " name="Category">								
+								<?php if($adddeals == 1) { ?>
+								<option value="deals" selected>Deals</option>
+								<?php } else {?>
+									<option value="" >Select</option>
+									<?php if(isset($productCategories) && !empty($productCategories)) {
+										foreach($productCategories as $key=>$val) {								
+									?>
+									<option value="<?php echo $val['CategoryId'];?>" <?php if(isset($Category) && $Category == $val['CategoryId']) echo "selected";?>><?php echo ucfirst($val['CategoryName']);?></option>
+								<?php } } } ?>								
 							</select>
 						</div>
-					</div>	
+					</div>
 					<div class="form-group col-xs-12 error_msg_hgt ">							
 						<label class="col-xs-3 no-padding">Item Name</label>
 						<p class="help-block col-xs-9">Max. 30 characters</p>
 						<div class="col-xs-12 no-padding">
 							<input class="form-control" type="text" maxlength="30" name="ItemName" id="ItemName" value="<?php if(isset($ItemName)) echo $ItemName; ?>" />
 						</div>
-					</div>	
+					</div>
+					<div class="form-group col-xs-12 error_msg_hgt " style="min-height:108px;<?php if($adddeals == 0 || $addspecial == 1) echo "display:none;"; ?>">							
+						<label class="col-xs-12 no-padding">Short Description</label>
+						<div class="col-xs-12 no-padding">
+							<textarea class="form-control" name="ItemDescription" id="ItemDescription"><?php if(isset($ItemDescription)) echo $ItemDescription; ?></textarea>
+						</div>
+					</div>
+					<div class="form-group col-xs-12 error_msg_hgt " style="min-height:108px;<?php if($addspecial == 0) echo "display:none;"; ?>">							
+						<label class="col-xs-12 no-padding">Products</label>
+						<div class="col-xs-12 no-padding">
+							<table class="specialProducts" id="specialProducts" name="specialProducts">
+								<tr id='row1'>
+									<td>
+										<select class="" name="Products" id="Products">								
+											<option value="">Select</option>
+											<option value="">11111111</option>
+											<option value="">22222222</option>
+										</select>
+									</td>
+									<td><input type="text"  class="" placeholder="Quantity" name="quantity" id="quantity" onkeypress="return isNumberKey(event);" maxlength="3" value="" onkeyup=""></td>
+									<td><input type="text"  class="" placeholder="Price" name="quantityTotalPrice" id="quantityTotalPrice" onkeypress="return isNumberKey(event);" value="" onkeyup="" readonly></td>
+									<td><i class="fa fa-plus" id="plusminus" name="plusminus" onclick="return newSpecialRow();" style="cursor:pointer"></i></td>
+								</tr>
+							</table>
+						</div>
+						<input type="text"	class="" placeholder="Totalrows" name="Totalrows" id="Totalrows" value="1" readonly>
+						<input type="text"  class="" placeholder="TotalPrice" name="TotalPrice" id="TotalPrice" onkeypress="return isNumberKey(event);" value="" onkeyup="" readonly>
+					</div>
 					<div class="form-group col-xs-12 error_msg_hgt60">							
 						<label class="col-xs-9 no-padding">Item Price</label>
 						<div class="col-xs-3 no-padding">
 							<span class="col-xs-1 LH30 no-padding">$</span>
 							<span class="col-xs-11 no-padding">
-								<input type="text"  class="form-control text-right" name="Price" id="Price" onkeypress="return isNumberKey(event);" maxlength="10" value="<?php if(isset($Price)) echo $Price; ?>" onkeyup="return calculateDiscountPrice();">
+								<input type="text"  class="form-control text-right" name="Price" id="Price" onkeypress="return isNumberKey_price(event);" maxlength="10" value="<?php if(isset($Price)) echo $Price; ?>" onkeyup="return calculateDiscountPrice();">
 							</span>							
 						</div>
 					</div>	
-					<div class="form-group col-xs-12" style="padding-right:0">
-						<label class="col-xs-6 col-sm-3 no-padding" style="display:inline-block;"><span><strong>Status</strong></label>
+					<div class="form-group col-xs-12">
+						<label class="col-xs-6 col-sm-3 no-padding">Status</label>
 						<div class="col-xs-6 col-sm-12 no-padding"> 
-						<input type="radio" name="Status" id="Active" value="1" <?php if(isset($Status) && $Status == '1') echo "checked"; else echo "checked"; ?>>&nbsp;<label for="Active" class="no_bold">Active</label>&nbsp;&nbsp;&nbsp;
-						<input type="radio" name="Status"  id="Inactive" value="2" <?php if(isset($Status) && $Status == '2') echo "checked";?>>&nbsp;<label for="Inactive" class="no_bold">Inactive</label>
+							<div class="col-xs-6 text-right no-padding"><input type="radio" name="Status" id="Active" value="1" <?php if(isset($Status) && $Status == '1') echo "checked"; else echo "checked"; ?>>&nbsp;<label for="Active" class="no_bold">Active</label></div>
+							<div class="col-xs-6 no-padding text-right"><input type="radio" name="Status"  id="Inactive" value="2" <?php if(isset($Status) && $Status == '2') echo "checked";?>>&nbsp;<label for="Inactive" class="no_bold">Inactive</label></div>
 						</div>
 					</div>
-					<div class="" style="display:inline-block;min-width:395px;padding-bottom:15px;">
-						<label style="display:inline-block;float:left"><span style="float:left">&nbsp;&nbsp;&nbsp;&nbsp;<strong>Discounted Item</strong></span>
-							<span class="" style="display:inline-block;font-size:11px;float:left;width:188px;padding:3px 0 0 17px;">You are in <?php if(isset($merchantInfo['DiscountTier'])) echo "<span id='discounttier'>".$merchantInfo['DiscountTier']."</span>"; ?> Tier&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
-						</label>
-						<select class="Discount" name="Discount" id="Discount">
-							<option value="1" <?php if(isset($Discount) && $Discount == '1') echo "selected"; else echo "selected"; ?>>On</option>
-							<option value="0" <?php if(isset($Discount) && $Discount == '0') echo "selected"; ?>>Off</option>
-						</select>
+					<div class="form-group col-xs-12" <?php if($adddeals == 1) echo 'style="display:none;"'; ?>>
+						<div class="col-xs-9 no-padding">
+							<label class="col-xs-6 col-sm-3 no-padding">Discounted Item</label>
+							<p class="help-block col-xs-6">You are in <?php if(isset($merchantInfo['DiscountTier'])) echo "<span id='discounttier'>".$merchantInfo['DiscountTier']."</span>"; ?> Tier</p>
+							
+						</div>						
+						<div class="col-xs-3 col-sm-12 no-padding text-right"> 
+								<select class="Discount" name="Discount" id="Discount">
+									<option value="1" <?php if(isset($Discount) && $Discount == '1') echo "selected"; else echo "selected"; ?>>On</option>
+									<option value="0" <?php if(isset($Discount) && $Discount == '0') echo "selected"; ?>>Off</option>
+								</select>
+						</div>
 					</div>
-					<div class="form-group col-xs-12">
-						<label class="col-xs-4 no-padding">Discounted Price</label>
-						<p class="help-block col-xs-5">Calculated automatically</p> 
-						<div class="col-xs-3 no-padding text-right">
-							<span class="col-xs-11 LH30 no-padding" id="discount_price">
+					<div class="form-group col-xs-12" <?php if($adddeals == 1) echo 'style="display:none;"'; ?>>
+					<div class="col-xs-9 no-padding">	
+						<label class="col-xs-6 col-sm-3 no-padding">Discounted Price</label>
+						<p class="help-block col-xs-6">Calculated automatically</p>
+					</div> 
+						<div class="col-xs-3 col-sm-12 no-padding text-right">
+							<span class="no-padding" id="discount_price">
 							<?php if(isset($DiscountPrice))
 									echo "$".$DiscountPrice;
 								else
@@ -220,13 +279,14 @@ commonHead();
 							</span> 
 							<input type="Hidden"  class="form-control text-right" name="DiscountPrice" id="DiscountPrice" value="<?php if(isset($DiscountPrice)) echo $DiscountPrice; else echo "0"; ?>" readonly>
 						</div>
-					</div>						
+					</div>
+					<input type="Hidden"  class="form-control text-right" name="productType" id="productType" value="<?php if(isset($adddeals)) echo $adddeals; else echo "0"; ?>" readonly>
 					<div class="footer col-xs-12 text-center clear"> 
 						<a href="#" class="link" onclick="parent.jQuery.fancybox.close();">Cancel</a>&nbsp;&nbsp;&nbsp;
 						<?php if(isset($_GET['edit']) && !empty($_GET['edit'])) { ?>
 							<input type="Hidden" name="editId" id="editId" value="<?php echo $_GET['edit']; ?>" />
 							<input type="submit" name="merchant_product_update" id="merchant_product_update" value="Update" class="btn btn-success ">&nbsp;&nbsp;&nbsp;
-							<a href="Product?show=0&delete=<?php echo $_GET['edit']; ?>" class="link" onclick="return confirm('Are you sure to delete?')">Delete</a>
+							<a href="Product?show=0&delete=<?php echo $_GET['edit']; ?>" class="link text-red" onclick="return confirm('Are you sure to delete?')">Delete</a>
 						<?php }  else {  ?>
 							<input type="submit" name="merchant_product_submit" id="merchant_product_submit" value="Save" class="btn btn-success ">
 						<?php } ?>
@@ -240,8 +300,8 @@ commonHead();
 	<?php commonFooter(); ?>
 </html>
 <script type="text/javascript">
-$(document).ready(function() {
-	$('.icon_fancybox').fancybox();	
-	$('.Discount').switchify(); 	
-});
+	$(document).ready(function() {
+		$('.icon_fancybox').fancybox();	
+		$('.Discount').switchify();
+	});	
 </script>

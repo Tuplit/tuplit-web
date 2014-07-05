@@ -29,7 +29,7 @@ commonHead();
 	<?php top_header(); ?>
 	<div class="form-box" id="login-box">
 		<form action="" name="forget_password_form" id="forget_password_form"  method="post">
-			<div class="body">
+			<div class="body top-spacing">
 				<?php if($responseErrorMessage !='') { ?><div class="alert alert-danger alert-dismissable col-xs-12" style="margin-top:7px"><i class="fa fa-warning"></i>&nbsp;&nbsp;<?php echo $responseErrorMessage;?></div><?php  } ?>
 				<?php if($responseSuccessMessage !='') { ?><div class="alert alert-success alert-dismissable col-xs-12" style="margin-top:7px"><i class="fa fa-check"></i></i>&nbsp;&nbsp;<?php echo $responseSuccessMessage;?></div><?php  } ?>
 				<div class="form-group">

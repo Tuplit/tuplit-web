@@ -11,16 +11,17 @@
  * Load configuration
  */
 require_once('../../config.php');
+require_once "../../admin/includes/CommonFunctions.php";
+require_once "../../admin/includes/phmagick.php";
 
 /**
  * Load models
  */
-require_once '../../lib/ModelBaseInterface.php';            // base interface class for RedBean models
-require_once '../../lib/Model_Users.php';                 	// user model
-require_once '../../lib/Model_Friends.php';                 // friends model
-require_once '../../lib/Model_Favorites.php';
-require_once "../../admin/includes/CommonFunctions.php";
-require_once "../../admin/includes/phmagick.php";
+require_once '../../lib/ModelBaseInterface.php';        // base interface class for RedBean models
+require_once '../../models/Users.php';                 	// user model
+require_once '../../models/Friends.php';                // friends model
+require_once '../../models/Orders.php';                 // orders model
+require_once '../../models/Favorites.php';				// favourites model
 
 /**
  * Library objects
@@ -52,59 +53,60 @@ $app->post('/', function () use ($app) {
 
         /**
          * Get a new user account
-         * @var Model_Users $user
+         * @var Users $user
          */
-        $user = R::dispense('users');
-       // $user->UserName 		= $req->params('UserName');
-		$user->FirstName 		= $req->params('FirstName');
-		$user->LastName 		= $req->params('LastName');
-		$user->Email 			= $req->params('Email');
-		$user->Password 		= $req->params('Password');
+        $user 					= 	R::dispense('users');
+		$user->FirstName 		= 	$req->params('FirstName');
+		$user->LastName 		= 	$req->params('LastName');
+		$user->Email 			= 	$req->params('Email');
+		$user->Password 		= 	$req->params('Password');
 		if($req->params('CellNumber'))
-			$user->CellNumber 		= $req->params('CellNumber');
+			$user->CellNumber 	= 	$req->params('CellNumber');
 		
 		if($req->params('FBId'))
-			$user->FBId = $req->params('FBId');
+			$user->FBId 		= 	$req->params('FBId');
 		if($req->params('GooglePlusId'))
-			$user->GooglePlusId = $email = $req->params('GooglePlusId');
+			$user->GooglePlusId = 	$email = $req->params('GooglePlusId');
 		if($req->params('PinCode'))
-			$user->PinCode = $req->params('PinCode');
+			$user->PinCode 		= 	$req->params('PinCode');
 		if($req->params('ZipCode'))
-			$user->ZipCode = $req->params('ZipCode');
+			$user->ZipCode 		= 	$req->params('ZipCode');
 		if($req->params('Country'))
-			$user->Country = $req->params('Country');
+			$user->Country 		= 	$req->params('Country');
+		if($req->params('Location'))
+			$user->Location 	= 	$req->params('Location');
 		if($req->params('Platform')){
-			$platformText = $req->params('Platform');
+			$platformText 		= 	$req->params('Platform');
 			if($platformText == 'ios')
-				$platform = 1;
+				$platform 		= 	1;
 			else if($platformText == 'android')
-				$platform = 2;
+				$platform 		= 	2;
 			else
-				$platform = 0;
+				$platform 		= 	0;
 		}
 		else{
-			$platform = 0;
+			$platform 			= 	0;
 		}
-		$user->Platform = $platform;
-		$flag = $coverFlag = 0;
+		$user->Platform 		= 	$platform;
+		$flag = $coverFlag 		= 	0;
 		if (isset($_FILES['Photo']['tmp_name']) && $_FILES['Photo']['tmp_name'] != '') {
-			$flag = checkImage($_FILES['Photo'],1);
+			$flag 				= 	checkImage($_FILES['Photo'],1);
 		}
 		
-	    $user->PhotoFlag 			= $flag;
+	    $user->PhotoFlag 		= 	$flag;
 	    /**
          * Create the account
          */
-	    $userId = $user->create();
+	    $userId 				= 	$user->create();
 		/**
          * Saving user Photo
          */
 		 if($userId){
-				$user->Photo = '';
+				$user->Photo = 	'';
 				if (isset($_FILES['Photo']['tmp_name']) && $_FILES['Photo']['tmp_name'] != '') {
-					$imageName 				= $userId . '_' . time() . '.png';
-					$imageOriginalPath 		= UPLOAD_USER_PATH_REL.$imageName;
-					$imageThumbPath 		= UPLOAD_USER_THUMB_PATH_REL.$imageName;
+					$imageName 				= 	$userId . '_' . time() . '.png';
+					$imageOriginalPath 		= 	UPLOAD_USER_PATH_REL.$imageName;
+					$imageThumbPath 		= 	UPLOAD_USER_THUMB_PATH_REL.$imageName;
 					copy($_FILES['Photo']['tmp_name'],$imageOriginalPath);
 					
 					$phMagick = new phMagick($imageOriginalPath);
@@ -189,7 +191,7 @@ $app->get('/checkResetPassword/:userId', function ($userId) use ($app) {
 		/**
          * Get a user table instance
          */
-		$users = new Model_Users();
+		$users = new Users();
 		/**
          * Call check reset password function
          */
@@ -201,9 +203,6 @@ $app->get('/checkResetPassword/:userId', function ($userId) use ($app) {
 			$response->setStatus(HttpStatusCode::Created);
         	$response->meta->dataPropertyName = 'user';
 			$response->addNotification('You are allowed to reset password.');
-			/*$content	=	array("status"	    =>	"Success",
-						  	 	  "message"  	=>	"You are allowed to reset password");
-			$response->returnedObject = $content;*/
 			echo $response;
 		}
 		else{
@@ -235,36 +234,38 @@ $app->get('/checkResetPassword/:userId', function ($userId) use ($app) {
 $app->get('/favorites/',tuplitApi::checkToken(),function () use ($app) {	
     try {
 		// Create a http request		
-        $req = $app->request();			
-		$requestedById = tuplitApi::$resourceServer->getOwnerId();		
-		$start = 0;
+        $req 				= 	$app->request();			
+		$requestedById 		= 	tuplitApi::$resourceServer->getOwnerId();		
+		$start 				= 	0;
 		// Create a json response object
-        $response = new tuplitApiResponse();
+        $response 			= 	new tuplitApiResponse();
 			
 		/**
          * Get a favorites table instance
          */
-        $favorite 			= R::dispense('favorites');
-		$favorite->UsersId	= $requestedById;		
+        $favorite 			= 	R::dispense('favorites');
+		$favorite->UsersId	= 	$requestedById;		
 		if($req->params('Latitude'))
-			$favorite->Latitude		= $req->params('Latitude');
+			$favorite->Latitude		= 	$req->params('Latitude');
 		if($req->params('Longitude'))
-			$favorite->Longitude	= $req->params('Longitude');
+			$favorite->Longitude	= 	$req->params('Longitude');
 		if($req->params('Start'))
-			$favorite->Start	= $req->params('Start');
+			$favorite->Start		= 	$req->params('Start');
 		else
-			$favorite->Start	= $start;		
+			$favorite->Start		= 	$start;
+		if($req->params('Search'))
+			$favorite->Name			= 	$req->params('Search');
 		/**	
 		*	Getting Favorites List
 		*/
-		$favoriteList	= $favorite->usersFavoritesList();
+		$favoriteList				=	$favorite->usersFavoritesList();
 		
 		if($favoriteList){
      		$response->setStatus(HttpStatusCode::Created);
-      		$response->meta->dataPropertyName = 'userFavoritesList';
-			$response->meta->totalCount = $favoriteList['totalCount'];
-			$response->meta->listedCount = $favoriteList['listedCount'];
-			$response->returnedObject = $favoriteList['result'];
+      		$response->meta->dataPropertyName 	= 	'userFavoritesList';
+			$response->meta->totalCount 		= 	$favoriteList['totalCount'];
+			$response->meta->listedCount 		= 	$favoriteList['listedCount'];
+			$response->returnedObject 			= 	$favoriteList['result'];
 			echo $response;
 		}
 		else{
@@ -300,27 +301,30 @@ $app->get('/favorites/',tuplitApi::checkToken(),function () use ($app) {
 $app->post('/checkbalance',tuplitApi::checkToken(),function () use ($app) {	
     try {
 		// Create a http request		
-        $req = $app->request();			
-		$requestedById = tuplitApi::$resourceServer->getOwnerId();
+        $req 			= 	$app->request();			
+		$userId 		= 	tuplitApi::$resourceServer->getOwnerId();
 		
 		// Create a json response object
-        $response = new tuplitApiResponse();
+        $response		 = 	new tuplitApiResponse();
 			
 		/**
          * Get a users table instance
          */
-        $user = R::dispense('users');
-		$user->UsersId			= $requestedById;		
-		$user->PaymentAmount	= $req->params('PaymentAmount');
+		$user 					= 	R::dispense('users');
+		if($req->params('UserId') == '')
+			$user->UsersId		= 	$userId;
+		else
+			$user->UsersId		= 	$req->params('UserId');
+		$user->PaymentAmount	= 	$req->params('PaymentAmount');
 		
 		/**
 		*	Checking weather user having enough balance for payment
 		*/
-		$AllowPayment	= $user->checkBalance();
+		$AllowPayment			= 	$user->checkBalance();
 		if($AllowPayment){
      		$response->setStatus(HttpStatusCode::Created);
-      		$response->meta->dataPropertyName = 'AllowPayment';		
-			$response->returnedObject = $AllowPayment;
+      		$response->meta->dataPropertyName 	= 	'AllowPayment';		
+			$response->returnedObject 			= 	$AllowPayment;
 			echo $response;
 		}
 		else{
@@ -355,24 +359,24 @@ $app->post('/checkbalance',tuplitApi::checkToken(),function () use ($app) {
 $app->post('/checklocation',function () use ($app) {	
      try {
 		// Create a http request
-        $req = $app->request();		
-		$requestedById = tuplitApi::$resourceServer->getOwnerId();
+        $req 				= 	$app->request();		
+		$requestedById 		= 	tuplitApi::$resourceServer->getOwnerId();
 		
 		// Create a json response object
-       $response = new tuplitApiResponse();
+       $response 			= 	new tuplitApiResponse();
 		/**
          * Get a merchants table instance
          */
-        $merchant = R::dispense('merchants');
-		$merchant->MerchantId = $req->params('MerchantId');
-		$merchant->Latitude = $req->params('Latitude');
-		$merchant->Longitude = $req->params('Longitude');
+        $merchant 				= 	R::dispense('merchants');
+		$merchant->MerchantId 	= 	$req->params('MerchantId');
+		$merchant->Latitude 	= 	$req->params('Latitude');
+		$merchant->Longitude 	= 	$req->params('Longitude');
 		
-		$AllowCart	= $merchant->checkLocation();
+		$AllowCart				= 	$merchant->checkLocation();
 		if($AllowCart){
      		$response->setStatus(HttpStatusCode::Created);
-      		$response->meta->dataPropertyName = 'AllowCart';
-			$response->returnedObject = $AllowCart;
+      		$response->meta->dataPropertyName 	= 	'AllowCart';
+			$response->returnedObject 			= 	$AllowCart;
 			echo $response;
 		}
 		else{
@@ -408,13 +412,12 @@ $app->put('/resetPassword', function () use ($app) {
 
     try {
 		// Create a http request
-        $request = $app->request();
-    	$body = $request->getBody();
-		
-    	$input = json_decode($body); 
+        $request 	= 	$app->request();
+    	$body 		= 	$request->getBody();
+    	$input 		= 	json_decode($body); 
 		
 		// Create a json response object
-       $response = new tuplitApiResponse();
+       $response 	= 	new tuplitApiResponse();
 		/**
          * Get a users table instance
          */
@@ -457,7 +460,7 @@ $app->put('/resetPassword', function () use ($app) {
 });
 /**
  * Forgot password
- * POST /v1/users/forgotpassword
+ * GET /v1/users/forgotpassword
  */
 $app->get('/forgetPassword', function () use ($app) {
 
@@ -520,63 +523,6 @@ $app->get('/forgetPassword', function () use ($app) {
 });
 
 
-/**
- * Get user Details
- * GET /v1/users
- */
-$app->get('/',tuplitApi::checkToken(), function () use ($app) {
-
-    try {		
-		// Create a http request
-        $req = $app->request();
-		$requestedById = tuplitApi::$resourceServer->getOwnerId();
-		$ownerType = tuplitApi::$resourceServer->getOwnerType();
-        /**
-         * Get a user account details
-         * @var Model_Users $user
-         */
-        $user = R::dispense('users');
-		$details = array();
-		
-        $userDetails 	= $user->getUserDetails($requestedById);	
-		//echo "<pre>";echo print_r($userDetails);echo "<pre>";
-		if(  $userDetails ){
-	        $response = new tuplitApiResponse();
-	        $response->setStatus(HttpStatusCode::Ok);
-	        $response->meta->dataPropertyName = 'userDetails';
-	
-			/**
-	        * returning upon repsonse of user details 
-			*/
-			
-			$response->returnedObject = $userDetails;
-	        $response->addNotification('User details has been retrieved successfully');
-	        echo $response;
-		}
-		else {
-			/** 
-			* Some error has occurred while getting user details
-			*/
-			throw new ApiException("User not found", ErrorCodeType::NoResultFound);
-		}
-
-    }
-    catch (ApiException $e){
-        // If occurs any error message then goes here
-        tuplitApi::showError(
-            $e,
-            $e->getHttpStatusCode(),
-            $e->getErrors()
-        );
-    }
-    catch (\Slim\Exception\Stop $e){
-        // If occurs any error message for slim framework then goes here
-    }
-    catch (Exception $e) {
-        // If occurs any error message then goes here
-        tuplitApi::showError($e);
-    }
-});
 
 /**
  * Edit User Details
@@ -589,16 +535,14 @@ $app->put('/',tuplitApi::checkToken(), function () use ($app) {
         // Create a http request
         $request = $app->request();
     	$body = $request->getBody();
-		
-    	$input = json_decode($body); 
+    	$input = json_decode($body);
 		$requestedById = $userId = tuplitApi::$resourceServer->getOwnerId();
         /**
          * Get a new user account
-         * @var Model_Users $user
+         * @var Users $user
          */
         $user = R::dispense('users');
         $user->id = $requestedById;
-		
 		$platform = 0;
 		if(isset($input->Platform)){
 			$platformText = $input->Platform;
@@ -611,73 +555,65 @@ $app->put('/',tuplitApi::checkToken(), function () use ($app) {
 			$platformText = 'web';
 		}
 		
-		//if(isset($input->UserName)) 	$user->UserName 		= $input->UserName;
 		if(isset($input->FirstName)) 	$user->FirstName 		= $input->FirstName;
 		if(isset($input->LastName)) 	$user->LastName 		= $input->LastName;
 		if(isset($input->Email)) 		$user->Email 			= $input->Email;
 		if(isset($input->Password)) 	$user->Password 		= $input->Password;
-		//if(isset($input->FBId)) 		$user->FBId 			= $input->FBId;
-		//if(isset($input->TwitterId)) 	$user->TwitterId 		= $input->TwitterId;
-		//if(isset($input->GooglePlusId)) $user->GooglePlusId 	= $input->GooglePlusId;
-		if(isset($input->Gender)) 		$user->Gender 			= $input->Gender;
-		if(isset($input->AgeRange)) 	$user->AgeRange 		= $input->AgeRange;
+		if(isset($input->CellNumber)) 	$user->CellNumber 		= $input->CellNumber;
 		if(isset($input->ZipCode)) 		$user->ZipCode 			= $input->ZipCode;
 		if(isset($input->Country)) 		$user->Country 			= $input->Country;
-		if(isset($input->AgeRange)) 	$user->AgeRange 		= $input->AgeRange;
 		if(isset($input->PassCode)) 	$user->PassCode 		= $input->PassCode;
-		
 		$userListResult  = R::getAll("select Photo from users where id = ".$requestedById);
 		if(isset($input->Photo) && $input->Photo !=''){
-			
-			$image_base64 = $input->Photo;
-			$decode_img = base64_decode($image_base64);
-			$typecheck = getImageMimeType($decode_img);
-				if($typecheck != ''){
-					$img = imagecreatefromstring($decode_img);
-					if($img != false)
-				    {
-				    	$imageName = $userId . '_' . time() . '.png';
-						$imageOriginalPath 		= UPLOAD_USER_PATH_REL.$imageName;
-						$imageThumbPath 		= UPLOAD_USER_THUMB_PATH_REL.$imageName;
+			$image_base64 	= $input->Photo;
+			$decode_img 	= base64_decode($image_base64);
+			$typecheck 		= getImageMimeType($decode_img);
+			if($typecheck != ''){
+				$img = imagecreatefromstring($decode_img);
+				if($img != false)
+				{
+					$imageName = $userId . '_' . time() . '.png';
+					$imageOriginalPath 		= UPLOAD_USER_PATH_REL.$imageName;
+					$imageThumbPath 		= UPLOAD_USER_THUMB_PATH_REL.$imageName;
+				
+					imagepng($img, $imageOriginalPath);
 					
-						imagepng($img, $imageOriginalPath);
-						
-						$phMagick = new phMagick($imageOriginalPath);
-						$phMagick->setDestination($imageThumbPath)->resize(100,100);
-						
-						$userImage = $userListResult[0]['Photo'];	
-						if(!SERVER){
-							if($userImage != ''){
-								$imageOriginalPath 		= UPLOAD_USER_PATH_REL.$userImage;
-								$imageThumbPath 		= UPLOAD_USER_THUMB_PATH_REL.$userImage;
-								if(file_exists($imageThumbPath))
-									unlink($imageThumbPath);
-								if(file_exists($imageOriginalPath))
-									unlink($imageOriginalPath);
-							}
+					$phMagick = new phMagick($imageOriginalPath);
+					$phMagick->setDestination($imageThumbPath)->resize(100,100);
+					
+					$userImage = $userListResult[0]['Photo'];	
+					if(!SERVER){
+						if($userImage != ''){
+							/*$imageOriginalPath 		= UPLOAD_USER_PATH_REL.$userImage;
+							$imageThumbPath 		= UPLOAD_USER_THUMB_PATH_REL.$userImage;
+							if(file_exists($imageThumbPath))
+								unlink($imageThumbPath);
+							if(file_exists($imageOriginalPath))
+								unlink($imageOriginalPath);*/
 						}
+					}
+					
+					if(SERVER){
+						deleteImages(1,$userImage);
+						deleteImages(2,$userImage);
 						
-						if(SERVER){
-							deleteImages(1,$userImage);
-							deleteImages(2,$userImage);
-							
-							uploadImageToS3($imageThumbPath,2,$imageName);
-							uploadImageToS3($imageOriginalPath,1,$imageName);
-							
-							unlink($imageThumbPath);
-							unlink($imageOriginalPath);
-						}
-						$user->Photo = $imageName;
-				    }
-			   }
-			   else{
-			   		/**
-			        * Error in photo creation
-					*/
-					throw new ApiException("Please check the user's properties (Photo)" ,ErrorCodeType::ProblemInImage);
-			   }
+						uploadImageToS3($imageThumbPath,2,$imageName);
+						uploadImageToS3($imageOriginalPath,1,$imageName);
+						
+						unlink($imageThumbPath);
+						unlink($imageOriginalPath);
+					}
+					$user->Photo = $imageName;
+				}
+		   }
+		   else{
+				/**
+				* Error in photo creation
+				*/
+				throw new ApiException("Please check the user's properties (Photo)" ,ErrorCodeType::ProblemInImage);
+		   }
 		}
-       
+		//echo "<pre>"; echo print_r($user); echo "</pre>";
 		$user->modify($userId,1);
         /**
          * New user creation was made success
@@ -803,10 +739,10 @@ $app->get('/friends/',tuplitApi::checkToken(),function () use ($app) {
 		
 		if($friendsList){
      		$response->setStatus(HttpStatusCode::Created);
-      		$response->meta->dataPropertyName = 'userFriendsList';
-			$response->meta->totalCount  = $friendsList['totalCount'];
-			$response->meta->listedCount  = $friendsList['listedCount'];
-			$response->returnedObject 	 = $friendsList['result'];
+      		$response->meta->dataPropertyName 	= 	'userFriendsList';
+			$response->meta->totalCount  		= 	$friendsList['totalCount'];
+			$response->meta->listedCount  		= 	$friendsList['listedCount'];
+			$response->returnedObject 	 		= 	$friendsList['result'];
 			echo $response;
 		}
 		else{
@@ -848,7 +784,7 @@ $app->put('/setPIN',tuplitApi::checkToken(), function () use ($app) {
 		$requestedById = $userId = tuplitApi::$resourceServer->getOwnerId();
         /**
          * Get a new user account
-         * @var Model_Users $user
+         * @var Users $user
          */
         $user = R::dispense('users');
         $user->id = $requestedById;
@@ -950,13 +886,13 @@ $app->post('/verifyPin',tuplitApi::checkToken(),function () use ($app) {
 
 /**
  * Search Users
- * GET/v1/users/search
+ * GET/v1/users/
  */
-$app->get('/search',tuplitApi::checkToken(),function () use ($app) {	
+$app->get('/',tuplitApi::checkToken(),function () use ($app) {	
     try {
 		// Create a http request		
         $req = $app->request();			
-		$requestedById = tuplitApi::$resourceServer->getOwnerId();		
+		$MerchantId = tuplitApi::$resourceServer->getOwnerId();		
 		
 		// Create a json response object
         $response = new tuplitApiResponse();
@@ -965,31 +901,31 @@ $app->get('/search',tuplitApi::checkToken(),function () use ($app) {
          * Get a users table instance
          */
         $user 	= R::dispense('users');
-		//$user->MerchantId	= $requestedById;		
-		//$user->Latitude	= $req->params('Latitude');
-		//$user->Longitude	= $req->params('Longitude');
-		//$user->Radius		= $req->params('Radius');
-		
-		$user->Name	= $req->params('Name');
-		
+		if($req->params('Search') != '')
+			$user->Search		= $req->params('Search');
+		$user->Latitude		= $req->params('Latitude');
+		$user->Longitude	= $req->params('Longitude');
+		if($req->params('Start') != '') 
+			$user->Start	= $req->params('Start');
+		else
+			$user->Start	= 0;
 		/**	
 		*	Getting users List
 		*/
-		$usersList	= $user->getUserList();
-		
+		$usersList	= $user->getUserList($MerchantId);
 		if($usersList){
      		$response->setStatus(HttpStatusCode::Created);
-      		$response->meta->dataPropertyName = 'userList';
-			$response->meta->totalCount = $usersList['totalCount'];
-			$response->meta->listedCount = $usersList['listedCount'];
-			$response->returnedObject = $usersList['result'];
+      		$response->meta->dataPropertyName 	= 'userList';
+      		$response->meta->TotalUsers 		= $usersList['TotalCount'];
+      		//$response->meta->TotalListed 		= $usersList['TotalListed'];
+			$response->returnedObject 			= $usersList['result'];
 			echo $response;
 		}
 		else{
 			/** 
-			* Some error has occurred while searching user
+			* No users found in your location
 			*/
-			throw new ApiException("Error has occurred while searching user." ,  ErrorCodeType::UserFavouriteListError);
+			throw new ApiException(" No users found in your location." ,  ErrorCodeType::NoResultFound);
 		}
     }
     catch (ApiException $e){
@@ -1009,6 +945,345 @@ $app->get('/search',tuplitApi::checkToken(),function () use ($app) {
     }
 });
 
+/**
+ * User's orders
+ * GET/v1/users/
+ */
+$app->get('/:userId/orders',tuplitApi::checkToken(),function ($userId) use ($app) {	
+    try {
+		// Create a http request		
+        $req = $app->request();			
+		
+		// Create a json response object
+        $response = new tuplitApiResponse();
+
+		/**
+         * Get a users table instance
+         */
+        $orders 	= R::dispense('orders');
+		if($req->params('Start') != '') 
+			$orders->Start	= $req->params('Start');
+		else
+			$orders->Start	= 0;
+		/**	
+		*	Getting orders List
+		*/
+		
+		$ordersList	= $orders->getUserOrderDetails($userId);
+		if($ordersList['Total'] > 0){
+     		$response->setStatus(HttpStatusCode::Created);
+      		$response->meta->dataPropertyName 	= 'OrdersList';
+      		$response->meta->TotalOrders 		= $ordersList['Total'];
+      		$response->meta->ListedOrders 		= count($ordersList['OrderDetails']);
+			$response->returnedObject 			= $ordersList['OrderDetails'];
+			echo $response;
+		}
+		else{
+			/** 
+			* No orders found
+			*/
+			throw new ApiException(" No Orders found for this user." ,  ErrorCodeType::NoResultFound);
+		}
+    }
+    catch (ApiException $e){
+        // If occurs any error message then goes here
+        tuplitApi::showError(
+            $e,
+            $e->getHttpStatusCode(),
+            $e->getErrors()
+        );
+    }
+    catch (\Slim\Exception\Stop $e){
+        // If occurs any error message for slim framework then goes here
+    }
+    catch (Exception $e) {
+        // If occurs any error message then goes here
+        tuplitApi::showError($e);
+    }
+});
+
+/**
+ * get user transaction list 
+ * GET /v1/users/transactions
+ */
+$app->get('/transactions',tuplitApi::checkToken(), function () use ($app) {
+    try {
+		$req 			= 	$app->request();		
+		$userId 		= 	tuplitApi::$resourceServer->getOwnerId();
+		// Create a json response object
+        $response 		= 	new tuplitApiResponse();
+		
+		/**
+         * Get a orders table instance
+         */
+        $orders 	= 	R::dispense('orders');
+		if($req->params('Start') !='')		$orders->Start 		=  $req->params('Start');
+		if($req->params('Limit') !='')		$orders->Limit 		=  $req->params('Limit');
+
+		$transactionList						=  $orders->getUserOrderDetails($userId);
+		if($transactionList){
+	        $response->setStatus(HttpStatusCode::Created);
+	        $response->meta->dataPropertyName 	= 'TransactionList';		
+			$response->returnedObject 			= $transactionList['OrderDetails'];	
+			echo $response;
+		}
+		else{
+			 /**
+	         * throwing error when no transaction found
+	         */
+			  throw new ApiException("No transactions found", ErrorCodeType::NoResultFound);
+		}
+		
+    }
+    catch (ApiException $e){
+        // If occurs any error message then goes here
+        tuplitApi::showError(
+            $e,
+            $e->getHttpStatusCode(),
+            $e->getErrors()
+        );
+    }
+    catch (\Slim\Exception\Stop $e){
+        // If occurs any error message for slim framework then goes here
+    }
+    catch (Exception $e) {
+        // If occurs any error message then goes here
+        tuplitApi::showError($e);
+    }
+});
+
+/*
+/**
+ * Get user Details
+ * GET /v1/users
+ */
+$app->get('/:userId',tuplitApi::checkToken(), function ($userId) use ($app) {
+
+    try {		
+		// Create a http request
+        $req = $app->request();
+		$requestedById = tuplitApi::$resourceServer->getOwnerId();
+		$ownerType = tuplitApi::$resourceServer->getOwnerType();
+        /**
+         * Get a user account details
+         * @var Users $user
+         */
+        $user = R::dispense('users');
+		$details = array();$type = 'all';
+		
+		 if($userId == 'self')
+		 	$userId = $requestedById;
+		 if($req->params('Type') != '') {
+		 		$type =	$req->params('Type');
+		 }
+		$user->Type = $type;
+        $userDetails 	= $user->getUserDetails($userId);	
+		if($userDetails){
+	        $response = new tuplitApiResponse();
+	        $response->setStatus(HttpStatusCode::Ok);
+	        $response->meta->dataPropertyName 	= 	'userDetails';
+			$response->meta->CurrentTime 		= 	date('Y-m-d H:i:s');
+			if(isset($userDetails['userMetaDetails']) && is_array($userDetails['userMetaDetails'])){
+				$response->meta->TotalOrders 		= 	$userDetails['userMetaDetails']['TotalOrders'];
+				$response->meta->TotalComments 		= 	$userDetails['userMetaDetails']['TotalComments'];
+			}
+			$response->returnedObject 			= 	$userDetails['userDetails'];
+	        $response->addNotification('User details has been retrieved successfully');
+	        echo $response;
+		}
+		else {
+			/** 
+			* Some error has occurred while getting user details
+			*/
+			throw new ApiException("User not found", ErrorCodeType::NoResultFound);
+		}
+
+    }
+    catch (ApiException $e){
+        // If occurs any error message then goes here
+        tuplitApi::showError(
+            $e,
+            $e->getHttpStatusCode(),
+            $e->getErrors()
+        );
+    }
+    catch (\Slim\Exception\Stop $e){
+        // If occurs any error message for slim framework then goes here
+    }
+    catch (Exception $e) {
+        // If occurs any error message then goes here
+        tuplitApi::showError($e);
+    }
+});
+
+
+/**
+ * Put settings
+ * GET /v1/Users
+ */
+$app->put('/settings',tuplitApi::checkToken(), function () use ($app) {
+
+    try {
+
+        /**
+         * update settingds
+         */
+        $response 				= new tuplitApiResponse();
+		
+		 // Create a http request
+        $request 				= $app->request();
+    	$body 					= $request->getBody();
+    	$input 					= json_decode($body); 
+		$userId 				= tuplitApi::$resourceServer->getOwnerId();
+		
+    	$user 					= R::dispense('users');
+		
+		if(isset($input->Type) && !empty($input->Type))
+			$user->Type 		= $input->Type;
+		
+		if(isset($input->Action))
+			$user->Action 		= $input->Action;
+		
+		$settings 				= $user->updateSettings($userId);
+		if($settings) {
+			$response->setStatus(HttpStatusCode::Ok);
+			$response->meta->dataPropertyName = 'settings';
+			$response->addNotification('Settings has been updated successfully');
+			echo $response;
+		}else {
+			/** 
+			* throw error when the failed to update
+			*/
+			throw new ApiException("Update settings failed." ,  ErrorCodeType::UpdateSettingsError);
+		}
+    }
+    catch (ApiException $e){
+        // If occurs any error message then goes here
+        tuplitApi::showError(
+            $e,
+            $e->getHttpStatusCode(),
+            $e->getErrors()
+        );
+    }
+    catch (\Slim\Exception\Stop $e){
+        // If occurs any error message for slim framework then goes here
+    }
+    catch (Exception $e) {
+        // If occurs any error message then goes here
+        tuplitApi::showError($e);
+    }
+});
+
+/**
+ * POST Transfer Amount
+ * POST /v1/transfer
+ */
+$app->POST('/transfer',tuplitApi::checkToken(), function () use ($app) {
+
+    try {
+		 // Create a http request
+        $req = $app->request();
+		$userId 				= 	tuplitApi::$resourceServer->getOwnerId();
+        $users 					= 	R::dispense('users');
+		$users->UserId	 		= 	$userId;
+		$users->ToUserId 		= 	$req->params('ToUserId');
+		$users->Amount 			= 	$req->params('Amount');
+		if($req->params('Notes'))
+			$users->Notes 		= 	$req->params('Notes');
+		else
+			$users->Notes 		= 	'';
+	   
+	    $transferId 			= 	$users->transferAmount();		
+		 if($transferId){
+			$response 			= 	new tuplitApiResponse();
+			$response->setStatus(HttpStatusCode::Created);
+			$response->meta->dataPropertyName = 'TransferAmount';		
+			$response->addNotification('Amount transferred successfully');
+			echo $response;	
+		 }
+    }
+    catch (ApiException $e){
+        // If occurs any error message then goes here
+        tuplitApi::showError(
+            $e,
+            $e->getHttpStatusCode(),
+            $e->getErrors()
+        );
+    }
+    catch (\Slim\Exception\Stop $e){
+        // If occurs any error message for slim framework then goes here
+    }
+    catch (Exception $e) {
+        // If occurs any error message then goes here
+        tuplitApi::showError($e);
+    }
+});
+/**
+ * Users Connect(Mangopay)
+ * POST /v1/users/connect
+ */
+$app->post('/connect',tuplitApi::checkToken(),function () use ($app) {
+
+    try {
+		// Create a http request
+        $req 			= 	$app->request();		
+		$requestedById 	= 	tuplitApi::$resourceServer->getOwnerId();
+		// Create a json response object
+        $response 		= 	new tuplitApiResponse();
+		
+		/**
+         * Get a merchants table instance
+         */
+		$users 				= R::dispense('users');		
+		
+		
+		if($req->params('FirstName'))
+			$users->FirstName			=	$req->params('FirstName');
+		if($req->params('LastName'))
+			$users->LastName			=	$req->params('LastName');
+		if($req->params('Email'))
+			$users->Email				=	$req->params('Email');
+		if($req->params('Address'))
+			$users->Address				=	$req->params('Address');
+		if($req->params('Nationality'))
+	    	$users->Nationality			=	$req->params('Nationality');
+		if($req->params('Country'))
+			$users->Country				=	$req->params('Country');
+		if($req->params('Occupation'))
+			$users->Occupation			=	$req->params('Occupation');
+		if($req->params('Currency'))
+			$users->Currency			=	$req->params('Currency');
+		if($req->params('Birthday'))
+			$users->Birthday			=	$req->params('Birthday');
+		if($req->params('IncomeRange'))
+			$users->IncomeRange			=	$req->params('IncomeRange');
+			
+		$mangopayDetails				=   $users->addMangoPayDetails($requestedById);
+		if($mangopayDetails){
+	        $response->setStatus(HttpStatusCode::Created);
+	        $response->meta->dataPropertyName 	= 'MangoPay Account';		
+			$response->addNotification('MangoPay account has been created successfully');
+       		echo $response;
+		}
+		
+    
+    }
+    catch (ApiException $e){
+        // If occurs any error message then goes here
+        tuplitApi::showError(
+            $e,
+            $e->getHttpStatusCode(),
+            $e->getErrors()
+        );
+    }
+    catch (\Slim\Exception\Stop $e){
+        // If occurs any error message for slim framework then goes here
+    }
+    catch (Exception $e) {
+        // If occurs any error message then goes here
+        tuplitApi::showError($e);
+    }
+});
 /**
  * Start the Slim Application
  */

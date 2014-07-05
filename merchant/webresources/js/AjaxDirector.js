@@ -142,7 +142,7 @@ function settabindex(index) {
 function ajaxAdminFileUploadProcess(process_pram)
 {	
 	var loadingIMG  =  '<span class="photo_load load_upimg"><i class="fa fa-circle-o-notch fa-spin fa-lg text-olive "></i></span>';	
-    $(loadingIMG).insertAfter($("#"+process_pram+"_img"));
+	$(loadingIMG).insertAfter($("#"+process_pram+"_img"));
     $("#"+process_pram+"_img").hide();	
 	var hiddenVal = $("#empty_"+process_pram).val();
     $.ajaxFileUpload
@@ -195,18 +195,6 @@ function ajaxAdminFileUploadProcess(process_pram)
 				}
                 $(".photo_load").remove();
                 $("#"+process_pram+"_img").show();
-				
-				//alert(process_pram);
-				/*if(process_pram == 'merchant_photo') {
-					var name = $("#merchant_photo_upload").val();
-					if(name != 'undefind')
-						$("#old_merchant_photo").val(name);
-				}
-				if(process_pram == 'icon_photo') {
-					var name = $("#icon_photo_upload").val();
-					if(name != 'undefind')
-						$("#old_icon_photo").val(name);
-				}*/
             }
         },
         error: function (data, status, e)
@@ -214,7 +202,6 @@ function ajaxAdminFileUploadProcess(process_pram)
            alert(e);
         }
     });
-
     return false;
 }
 function deleteAll(del_name){
@@ -608,7 +595,7 @@ function hideAllDays() {
 	var check = $('#showdays').val();	
 	if(check == 0) {
 		$('.rowHide').fadeOut('slow');
-		$('.rowshow').html('Monday to Sunday : ');
+		$('.rowshow').html('Monday to Sunday');
 		$('#showdays').val('1');
 		for(i=1;i<=6;i++) {
 			$('#from1_'+i).val('');
@@ -619,15 +606,453 @@ function hideAllDays() {
 	}else {
 		$('.rowHide').fadeIn('slow');
 		$('#showdays').val('0');
-		$('.rowshow').html('Monday : ');
+		$('.rowshow').html('Monday ');
 	}
 }
 
 function setTime(id) {	
-	from = $('#from1_'+id).val();
-	to = $('#to1_'+id).val();
-	if(from == '' && to == '')
+	fromhr = $('#fromhours_list'+id).val();
+	frommin = $('#fromminute_list'+id).val();
+	fromampm = $('#fromampm_list'+id).val();
+	tohr = $('#tohours_list'+id).val();
+	tomin = $('#tominute_list'+id).val();
+	toampm = $('#toampm_list'+id).val();
+	if(fromhr == '' && frommin == '' && fromampm == '' && tohr == '' && tomin == '' && toampm == '') {
 		$('#row_'+id).val('');
-	else if(from != '' || to != '')
+		$("#from1_"+id).val('')
+		$("#to1_"+id).val('')
+	}
+	else {
 		$('#row_'+id).val('1');
+		from		=	fromhr+':'+frommin+' '+fromampm;
+		to			=	tohr+':'+tomin+' '+toampm;
+		$("#from1_"+id).val(from)
+		$("#to1_"+id).val(to)
+	}
 }
+
+function showAllItems(tag) {
+	if($('#link'+tag).html() == 'Show all items'){
+		$('.otherItems'+tag).fadeIn('slow');
+		$('#link'+tag).html('Hide items');
+	}
+	else {
+		$('.otherItems'+tag).fadeOut('slow');
+		$('#link'+tag).html('Show all items');
+	}
+}
+
+function productCategoryHideShow(id) {
+	$('#showmessage').slideUp('slow');
+	$('#rowHide'+id).slideToggle('slow');
+	if($('#rowHidden'+id).val() == 1){		
+		$('#rowHidden'+id).val('0');
+		$("#plusMinus"+id).removeClass('fa-caret-down');	
+		$("#plusMinus"+id).addClass('fa-caret-up');	  
+	}
+	else {
+		$('#rowHidden'+id).val('1');
+		$("#plusMinus"+id).removeClass('fa-caret-up');	
+		$("#plusMinus"+id).addClass('fa-caret-down');
+	}
+}
+
+function hideShowOrders(id,name,photo,price,disprice) {
+	$('#showmessage').slideUp('slow');
+	if(confirm('Are you sure to add this product?')) {
+		if(disprice == 0)
+			setprice = price;
+		else
+			setprice = disprice;
+		var prodIds = $('#OrderProductIds').val();
+		show = 0;
+		ordertot = 0;
+		if(prodIds == ''){
+			prodIds = id;
+			$('#OrderProductIds').val(prodIds);
+			show = 1;
+		}
+		else {
+			idsArray = prodIds.split(',');		
+			if(jQuery.inArray( id, idsArray ) !== -1) {
+				if(confirm('Product is already in your cart. Do you need to increment the quantity'))
+				{
+					addRemoveQuantity(id,1)
+				}
+				else
+					return false;
+			}
+			else {
+				prodIds = prodIds+','+id;
+				$('#OrderProductIds').val(prodIds);
+				show = 1;
+			}				
+		}
+		
+		
+		
+		if(show == 1) {
+			text = '<tr id="orderrow'+id+'"><td><i class="fa fa-minus"   style="cursor:pointer" onclick="return addRemoveQuantity('+id+',2);"></i>&nbsp;<input type="text" id="quantity'+id+'" maxlength="3" name="quantity'+id+'" style="width:50px;text-align:center;" value="1" onkeypress="return isNumberKeyQuantity(event);" onkeyup="return addRemoveQuantity('+id+',3);">&nbsp;<i  style="cursor:pointer" class="fa fa-plus" onclick="return addRemoveQuantity('+id+',1);"></i><input type="hidden" id="imagePath'+id+'" name="imagePath'+id+'" value="'+photo+'" /></td>';
+			text = text+'<td><img width="25" height="25" alt="" src="'+photo+'">&nbsp;&nbsp;'+name+'</td><td align="right">$<span id="orderPrice'+id+'">'+numberWithCommas(setprice)+'</span><input type="hidden" id="discountprice'+id+'" name="discountprice'+id+'" value="'+setprice+'"/><input type="hidden" id="originalprice'+id+'" name="originalprice'+id+'" value="'+price+'"/><input type="hidden" id="originalTotalprice'+id+'" name="originalTotalprice'+id+'" value="'+setprice+'"/><input type="hidden" id="orderItemName'+id+'" name="orderItemName'+id+'" value="'+name+'"/></td></tr>';
+			$('#tbl1 tr').last().after(text);
+			idsArray = prodIds.split(',');		
+			for(i=0;i<idsArray.length;i++) {
+				ordertot = ordertot + parseFloat($('#originalTotalprice'+idsArray[i]).val());
+			}
+		}
+		ordertot= ordertot.toFixed(2);
+		$('#Oders_Merchant').slideDown('slow');	
+		$('#OrderTotal').val(ordertot);
+		$('#order_submit').val('Charge $'+numberWithCommas(ordertot));
+		$('.OrderTotalShow').html(numberWithCommas(ordertot));  
+		$("html, body").animate({ scrollTop: '0px' },{duration: 1000});
+	}
+}
+
+function addRemoveQuantity(id,type) {
+	$('#showmessage').slideUp('slow');
+	tot 	= $('#quantity'+id).val();
+	price 	= parseFloat($('#discountprice'+id).val());
+	if(tot == 'NaN' || tot == '')
+		tot = 0;
+	
+	if(type == 1)
+		tot = parseInt(tot) + 1;
+	else if(type == 2) {
+		if(tot == 0)
+			tot = tot;
+		else	
+			tot = tot - 1;
+	}
+	else if(type == 3)
+		tot = tot;
+	
+	if(tot >= 1) {				
+		price	= parseFloat(price * tot);
+		price	= price.toFixed(2);
+	
+		$('#quantity'+id).val(tot);
+		$('#originalTotalprice'+id).val(price);
+		$('#orderPrice'+id).html(numberWithCommas(price));
+		
+		var prodIds = $('#OrderProductIds').val();
+		ordertot = 0;
+		idsArray = prodIds.split(',');		
+		for(i=0;i<idsArray.length;i++) {
+			ordertot = ordertot + parseFloat($('#originalTotalprice'+idsArray[i]).val());
+		}
+		ordertot= ordertot.toFixed(2);
+		$('#OrderTotal').val(ordertot);
+		$('#order_submit').val('Charge $'+numberWithCommas(ordertot));
+		$('.OrderTotalShow').html(numberWithCommas(ordertot)); 
+	}
+	else if(tot < 1 && type == 2) {
+		if(confirm('Are you sure to remove this product from order?')) {
+			$('table#tbl1 tr#orderrow'+id).remove();
+			var prodIds = $('#OrderProductIds').val();
+			idsArray = prodIds.split(',');
+			newProductIds = '';
+			for(i=0;i<idsArray.length;i++) {
+				if(idsArray[i] != id) {
+					if(newProductIds == '')
+						newProductIds = idsArray[i];
+					else
+						newProductIds = newProductIds+','+idsArray[i];
+				}
+			}
+			$('#OrderProductIds').val(newProductIds);
+			
+			ordertot = 0;
+			idsArray = newProductIds.split(',');		
+			for(i=0;i<idsArray.length;i++) {
+				ordertot = ordertot + parseFloat($('#originalTotalprice'+idsArray[i]).val());
+			}
+			ordertot= ordertot.toFixed(2);
+			if(ordertot != 'NaN') {
+				$('#OrderTotal').val(ordertot);
+				$('#order_submit').val('Charge $'+numberWithCommas(ordertot));
+				$('.OrderTotalShow').html(numberWithCommas(ordertot));
+			}
+			else {
+				$('#Oders_Merchant').slideUp('slow');
+			}
+		}
+		else {
+			tot		= 1;
+			price	= parseFloat(price * tot);
+			price	= price.toFixed(2);
+		
+			$('#quantity'+id).val(tot);
+			$('#originalTotalprice'+id).val(price);
+			$('#orderPrice'+id).html(numberWithCommas(price));
+			
+			var prodIds = $('#OrderProductIds').val();
+			ordertot = 0;
+			idsArray = prodIds.split(',');		
+			for(i=0;i<idsArray.length;i++) {
+				ordertot = ordertot + parseFloat($('#originalTotalprice'+idsArray[i]).val());
+			}
+			ordertot= ordertot.toFixed(2);
+			$('#OrderTotal').val(ordertot);
+			$('#order_submit').val('Charge $'+numberWithCommas(ordertot));
+			$('.OrderTotalShow').html(numberWithCommas(ordertot)); 
+		}
+	}
+	else {
+		price	= parseFloat(price * tot);
+		price	= price.toFixed(2);
+	
+		$('#quantity'+id).val('');
+		$('#originalTotalprice'+id).val(price);
+		$('#orderPrice'+id).html(numberWithCommas(price));
+		
+		var prodIds = $('#OrderProductIds').val();
+		ordertot = 0;
+		idsArray = prodIds.split(',');		
+		for(i=0;i<idsArray.length;i++) {
+			ordertot = ordertot + parseFloat($('#originalTotalprice'+idsArray[i]).val());
+		}
+		ordertot= ordertot.toFixed(2);
+		$('#OrderTotal').val(ordertot);
+		$('#order_submit').val('Charge $'+numberWithCommas(ordertot));
+		$('.OrderTotalShow').html(numberWithCommas(ordertot));;
+	}
+}
+
+function numberWithCommas(x) {
+    return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+}
+
+function hideShowUsers(id,photo,name,CurrentBalance) {
+	$('#showmessage').slideUp('slow');
+	current = $("#CurrentUserId").val();
+	if($('#OrderProductIds').val() == '') {
+		alert('Please select the products and then choose the user.');
+		return false;
+	}
+	
+	if (current == id) {
+		alert('This user was already added.');
+		return false;
+	} else {	
+		if(confirm('Are you sure to make order for this user?')) {
+			$('#Oders_Merchant').slideDown('slow');
+			$("#userImage").attr('src', photo);
+			$("#username").html(name);
+			$("#bottom").html('Change user');
+			$("#userImageValue").val('1');
+			$("#CurrentUserId").val(id);
+			$("#OrderUserImage").val(photo);
+			$("#OrderUserName").val(name);
+			$("html, body").animate({ scrollTop: '0px'}, {duration: $("#userinstore").offset().top});
+			$("#user"+id).addClass('userselected');
+			if(current != '')
+				$("#user"+current).removeClass('userselected');
+		}
+	}
+}
+
+function clearOrders() {
+	$('#showmessage').slideUp('slow');
+	if(confirm('Are you sure to clear orders?')) {		
+		var prodIds = $('#OrderProductIds').val();
+		idsArray = prodIds.split(',');
+		for(i=0;i<idsArray.length;i++) {
+			$('table#tbl1 tr#orderrow'+idsArray[i]).remove();
+		}
+		$('#OrderProductIds').val('');				
+		$('#OrderTotal').val('');
+		$('#order_submit').val('');
+		$('.OrderTotalShow').html('');
+		photo = $("#userDefaultImage").val();
+		$("#userImage").attr('src', photo);
+		$("#username").html('No User Selected');
+		$("#bottom").html('Select User');
+		$("#userImageValue").val('');
+		$("#CurrentUserId").val('');
+		$("#OrderUserImage").val(photo);
+		$("#OrderUserName").val('');
+		$("#showmessage").hide();
+		$('#Oders_Merchant').slideUp('slow');
+		
+		 $.ajax({
+			type: "GET",
+			url : "./CreateOrder?cs=1&ajax=true",	
+			success: function(result){
+			}
+		});	
+	}
+}
+
+function checkBalance() {
+	$('#showmessage').slideUp('slow');
+	var prodIds = $('#OrderProductIds').val();
+	idsArray = prodIds.split(',');
+	quantity = 1;
+	for(i=0;i<idsArray.length;i++) {
+		if(($('#quantity'+idsArray[i]).val() == 0 ) || ($('#quantity'+idsArray[i]).val() == '' ))
+			quantity = 0;
+	}
+
+	if(quantity	==	0) {
+		alert('Please select products with quantity to place the order.')
+		return false;
+	} else {
+		if($("#userImageValue").val() != 1) {
+			alert('Please select the user to place the order.')
+			return false;
+		} else {
+			if(confirm('Are you sure to place this order?')) {
+				return true;
+			}
+		}		
+	}	
+}
+function loadGraph(search,graghType)
+{
+    var queryString		=	'';
+	//$('.chart').html('<img align="absmiddle" src="'+actionPath+'webresources/images/no_datas.png">');
+    if(search=='1')
+	{
+		queryString		=	$("div.dashboard_filter #dashboard_list_search").serialize();
+	}
+     else
+        queryString		=	"cs=1";
+	if(graghType=='0') {
+		var chart_url = 'AjaxLineChart';
+	} else {
+		var chart_url = 'AjaxBarChart';
+	}
+   $.ajax({
+        type: "POST",
+        url : chart_url,
+		data : "action=GET_CHART&"+queryString,
+        success: function(result){
+            result	=	$.trim(result);
+                $('.graph').html(result);
+        }
+    });
+    return false;
+}
+function showLoader()
+{
+    if($.browser.msie)
+    {
+        var loaderBlock = $('<div id="preloaderImage" style="filter:alpha(opacity=40);display:none;position:fixed;left:0px;top:0px;background-color:#000;layer-background-color:#ffffff;height:100%;width:100%;z-index:1000;"></div>');
+    }
+    else
+    {
+        var loaderBlock = $('<div id="preloaderImage" style="opacity:0.4;display:none;position:fixed;left:0px;top:0px;background-color:#000;layer-background-color:#ffffff;height:100%;width:100%;z-index:1000;"></div>');
+    }
+    loaderBlock.append('<div id="sub" style="text-align:center;margin-top:20%"><i class="fa fa-circle-o-notch fa-spin fa-lg text-olive "></i></div>');
+    $('body').append(loaderBlock);
+    $('#preloaderImage').show();
+}
+
+function removeLoader()
+{
+    $('#preloaderImage').remove();
+}
+$('body').ajaxStart(function() {
+  showLoader();
+}).ajaxStop(function() {
+  removeLoader();
+});
+
+function approveReject(type) {
+	if(confirm('Are you sure to '+type+' this order?')) {	
+		return true;
+	}
+	else
+		return false;
+}
+
+function loadMoreUser() {
+	var start					= parseInt($('#UserStart').val());
+	var total					= parseInt($('#userTotalhide').val());
+	var usersearch				= $('#usersearch').val();
+	var perviousUserSearch		= $('#perviousUserSearch').val();
+	if(perviousUserSearch == '') {
+		perviousUserSearch		=	usersearch;
+		$('#perviousUserSearch').val(usersearch)
+	}
+	if(usersearch == perviousUserSearch) {
+		var dataparams	=	'load=1&usersearch='+usersearch;
+	}
+	else {
+		$('#perviousUserSearch').val(usersearch)
+		if(usersearch != '')
+			var dataparams	=	'load=1&usersearch='+usersearch;
+		else
+			var dataparams	=	'load=1';
+	}
+	
+	var searchPath = './Search?search=1';
+	 $.ajax({
+		type: "GET",
+		url: searchPath,
+		data: dataparams,			
+		success: function (result){
+			$('#users_block').append(result);					
+			start	= start + 6;
+			$('#UserStart').val(start);
+			if((total-start) <= 0)
+				$('#loadmore').hide();
+			$('#loadmorehome').remove()
+		}			
+	});
+   return false;		  
+}
+
+function loadMoreNewOrders() {
+	var start		= parseInt($('#newOrderStart').val());
+	//console.log('Old Start = '+start);
+	var total		= parseInt($('#newOrderTotalhide').val());
+	//console.log('Old Total = '+total);
+	var searchPath  = './ajax_orders?orders=1';
+	 $.ajax({
+		type: "GET",
+		url: searchPath,
+		data: '',			
+		success: function (result){
+			$('#NewOrderListHtml').append(result);					
+			start	= start + 12;
+			//console.log('new Start = '+start);
+			//console.log('orders to show = '+(total-start));
+			$('#newOrderStart').val(start);
+			distot	=	(start + 12);
+			//console.log('distot = '+distot);
+			if(distot > total)
+				distot	= total;
+			dis	=	'Orders Displayed - '+distot;
+			$('#OrdersDisplayed').html(dis);
+			$('#loadmorehome').remove();
+		}			
+	});
+   return false;		  
+}
+
+function newSpecialRow() {		
+	if(confirm('Are you sure to Add another product?')) {	
+		Totalrows 	= 	parseInt($('#Totalrows').val());		
+		var $clone = $("#specialProducts tbody tr:first").clone();
+		$clone.attr({
+			id: "Row_" + Totalrows,
+			name: "Row_" + Totalrows,
+			style: "" // remove "display:none"
+		});
+		$clone.find("input,select,i").each(function(){
+			$(this).attr({
+				id: $(this).attr("id") + Totalrows,
+				name: $(this).attr("name") + Totalrows
+			});
+		});
+		$("#specialProducts tbody").append($clone);
+		if(Totalrows == 1)
+			$("#plusminus").hide();
+		else
+			$("#plusminus"+Totalrows).hide();
+		Totalrows	=	Totalrows	+	1;
+		$('#Totalrows').val(Totalrows);
+	}	
+}	

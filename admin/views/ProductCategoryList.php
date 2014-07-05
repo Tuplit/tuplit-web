@@ -58,10 +58,14 @@ if(isset($_GET['show']) && $_GET['show'] == '2' ){
 	$join_condition 	= ' LEFT JOIN  merchants as m ON (m.id = pc.fkMerchantId)';
 	$condition = " and pc.Status in (1,2) and pc.fkMerchantId != 0";
 }else{
-	$_SESSION['tuplit_sess_search_type']=1;
+	/*$_SESSION['tuplit_sess_search_type']=1;
 	$fields    = " pc.* ";
 	$join_condition 	= '';
-	$condition = " and pc.Status in (1,2) and pc.fkMerchantId = 0";
+	$condition = " and pc.Status in (1,2) and pc.fkMerchantId = 0";*/
+	$_SESSION['tuplit_sess_search_type']=2;
+	$fields    = " pc.*,m.CompanyName,m.Icon ";
+	$join_condition 	= ' LEFT JOIN  merchants as m ON (m.id = pc.fkMerchantId)';
+	$condition = " and pc.Status in (1,2) and pc.fkMerchantId != 0";
 }
 
 $CategoryListResult  = $managementObj->getProductCategoryList($fields,$condition,$join_condition );
@@ -101,10 +105,10 @@ if(!isset($_GET['show']))
 	
 	<!-- Content Header (Page header) -->
 	<section class="content-header no-padding">
-		<div class="col-xs-7">
+		<div class="col-xs-12 col-sm-7">
 			<h1><i class="fa fa-list"></i>&nbsp;Product Category List</h1>
 		</div>
-		<div class="col-xs-5"><h3><a href="ProductCategoryManage?type=1" class="addProductCategory"><i class="fa fa-plus-circle"></i> Add Product Category</a></h3></div>
+		<!--<div class="col-xs-12 col-sm-5"><h3><a href="ProductCategoryManage?type=1" class="addProductCategory"><i class="fa fa-plus-circle"></i> Add Product Category</a></h3></div>-->
 	</section>
 	
 	 <!-- Main content -->
@@ -116,22 +120,9 @@ if(!isset($_GET['show']))
 					
 					<div class="box-body no-padding" >
 				
-						<div class="col-sm-3 form-group">
+						<div class="col-sm-4 form-group">
 							<label>Category Name</label>
 							<input type="text" class="form-control" name="CategoryName" id="CategoryName"  value="<?php  if(isset($_SESSION['tuplit_sess_product_category_name']) && $_SESSION['tuplit_sess_product_category_name'] != '') echo unEscapeSpecialCharacters($_SESSION['tuplit_sess_product_category_name']);  ?>" >
-						</div>
-						<div class="col-sm-3 form-group">
-							<label>Status</label>
-							<select name="Status" id="Status"  class="form-control col-sm-4">
-								<option value="">Select</option>
-								<option value="1" <?php  if(isset($_SESSION['tuplit_sess_product_category_status']) && $_SESSION['tuplit_sess_product_category_status'] != '' && $_SESSION['tuplit_sess_product_category_status'] == '1') echo 'Selected';  ?> >Active</option>
-								<option value="2" <?php  if(isset($_SESSION['tuplit_sess_product_category_status']) && $_SESSION['tuplit_sess_product_category_status'] != '' && $_SESSION['tuplit_sess_product_category_status'] == '2') echo 'Selected';  ?>>Inactive</option>
-							</select>
-						</div>
-						<div class="col-sm-4 form-group mb_full">
-							<label>Created Date</label>
-							<div class="col-sm-6 no-padding"> <input type="text"  maxlength="10" class="form-control  fleft" name="SearchDate" id="SearchDate" title="Select Date" value="<?php if(isset($_SESSION['tuplit_sess_product_category_registerdate']) && $_SESSION['tuplit_sess_product_category_registerdate'] != '') echo date('m/d/Y',strtotime($_SESSION['tuplit_sess_product_category_registerdate'])); else echo '';?>" ></div>
-							<div class="col-sm-6">(mm/dd/yyyy)</div>
 						</div>
 						<?php if(isset($_SESSION['tuplit_sess_search_type']) && $_SESSION['tuplit_sess_search_type'] == 2){?>
 						<div class="col-sm-4 form-group">
@@ -145,8 +136,22 @@ if(!isset($_GET['show']))
 							</select>
 						</div>
 						<?php } ?>
+						<div class="col-sm-4 form-group">
+							<label>Status</label>
+							<select name="Status" id="Status"  class="form-control col-sm-4">
+								<option value="">Select</option>
+								<option value="1" <?php  if(isset($_SESSION['tuplit_sess_product_category_status']) && $_SESSION['tuplit_sess_product_category_status'] != '' && $_SESSION['tuplit_sess_product_category_status'] == '1') echo 'Selected';  ?> >Active</option>
+								<option value="2" <?php  if(isset($_SESSION['tuplit_sess_product_category_status']) && $_SESSION['tuplit_sess_product_category_status'] != '' && $_SESSION['tuplit_sess_product_category_status'] == '2') echo 'Selected';  ?>>Inactive</option>
+							</select>
+						</div>
+						<div class="col-sm-5 col-xs-12 col-md-4 form-group">
+							<label>Created Date</label>
+							<div class="col-xs-6 no-padding"> <input type="text"  maxlength="10" class="form-control  fleft" name="SearchDate" id="SearchDate" title="Select Date" value="<?php if(isset($_SESSION['tuplit_sess_product_category_registerdate']) && $_SESSION['tuplit_sess_product_category_registerdate'] != '') echo date('m/d/Y',strtotime($_SESSION['tuplit_sess_product_category_registerdate'])); else echo '';?>" ></div>
+							<div class="col-xs-6">(mm/dd/yyyy)</div>
+						</div>
+						
 					</div>
-					<div class="box-footer col-sm-12" align="center">
+					<div class="box-footer col-xs-12" align="center">
 						<input type="submit" class="btn btn-success" name="Search" id="Search" value="Search">
 					</div>
 					
@@ -155,12 +160,12 @@ if(!isset($_GET['show']))
 			</div>
 		</div>
 		<div class="row paging">
-			<div class="col-xs-2">
+			<div class="col-xs-12 col-sm-2">
 				<?php if(isset($CategoryListResult) && is_array($CategoryListResult) && count($CategoryListResult) > 0){ ?>
 				<div class="dataTables_info">No. of Category(s)&nbsp:&nbsp;<strong><?php echo $tot_rec; ?></strong> </div>
 				<?php } ?>
 			</div>
-			<div class="col-xs-10">
+			<div class="col-xs-12 col-sm-10">
 				<div class="dataTables_paginate paging_bootstrap row">
 				<?php if(is_array($CategoryListResult) && count($CategoryListResult) > 0 ) {
 							 	pagingControlLatest($tot_rec,'ProductCategoryList?show='.$_GET['show']); ?>
@@ -171,17 +176,17 @@ if(!isset($_GET['show']))
 		
 		<?php if(isset($msg) && $msg != '') { ?>
 		 <div class="row">
-               <div align="center" class="alert <?php  echo $class;  ?> alert-dismissable col-sm-5"><i class="fa fa-check"></i>  <?php echo $msg; ?></div>
+               <div align="center" class="alert <?php  echo $class;  ?> alert-dismissable col-sm-5   col-lg-3 col-xs-11"><i class="fa fa-check"></i>  <?php echo $msg; ?></div>
 		 </div>	
 		<?php } ?>
 		<div class="row">
 			<div class="col-md-12">
 		     <div class="nav-tabs-custom">
                   <ul class="nav nav-tabs">
-                      <li <?php if(isset($_SESSION['tuplit_sess_search_type']) && $_SESSION['tuplit_sess_search_type'] == 1) { ?> class="active" <?php } ?>><a href="ProductCategoryList?show=1&cs=1" title="Admin Created" >Admin Created</a></li>
-                      <li <?php if(isset($_SESSION['tuplit_sess_search_type']) && $_SESSION['tuplit_sess_search_type'] == 2) { ?> class="active" <?php } ?>><a href="ProductCategoryList?show=2&cs=1"  title="Merchant Created" >Merchant Created</a></li>
+                      <!--<li <?php if(isset($_SESSION['tuplit_sess_search_type']) && $_SESSION['tuplit_sess_search_type'] == 1) { ?> class="active" <?php } ?>><a href="ProductCategoryList?show=1&cs=1" title="Admin Created" >Admin Created</a></li>-->
+                     <!-- <li <?php if(isset($_SESSION['tuplit_sess_search_type']) && $_SESSION['tuplit_sess_search_type'] == 2) { ?> class="active" <?php } ?>><a href="ProductCategoryList?show=2&cs=1"  title="Merchant Created" >Merchant Created</a></li>-->
                   </ul>
-                  <div class="tab-content">
+                  <!--<div class="tab-content">-->
 				  	  <?php if(isset($CategoryListResult) && is_array($CategoryListResult) && count($CategoryListResult) > 0 ) {?> 
                       <div  class="tab-pane active">
                           <form action="ProductCategoryList?show=<?php if(isset($_GET['show'])) echo $_GET['show']; else echo '1' ;?>" class="l_form" name="ProductCategoryList" id="ProductCategoryList"  method="post">
@@ -220,10 +225,9 @@ if(!isset($_GET['show']))
 									<?php 
 										if( $i%2 == 0) { ?>
 										<!-- first col -->
-											<!-- <td align="center"><input id="checkdelete" name="checkdelete[]" value="<?php  //if(isset($value->id) && $value->id != '') echo $value->id  ?>" type="checkbox" hashCount="<?php //if(isset($value->hash_count) && $value->hash_count > 0 ) echo $value->hash_count; ?>"/></td> -->
 											<td align="center" nowrap><?php echo (($_SESSION['curpage'] - 1) * ($_SESSION['perpage']))+$key+1;?></td>												
 											<td>
-													<div class=""> <?php if(isset($value->CategoryName) && $value->CategoryName != ''){ echo ucfirst($value->CategoryName).' ';  } ?></br>
+													<div class="mb_wrap_sm"> <?php if(isset($value->CategoryName) && $value->CategoryName != ''){ echo ucfirst($value->CategoryName).' ';  } ?></br>
 													<i class="fa fa-fw fa-calendar"></i> <?php if(isset($value->DateCreated) && $value->DateCreated != '0000-00-00 00:00:00'){ echo date('m/d/Y',strtotime($value->DateCreated)); }else echo '-';?></br>
 													<?php if(isset($_SESSION['tuplit_sess_search_type']) && $_SESSION['tuplit_sess_search_type'] == 2) { ?>
 														<?php if(!empty($value->Icon)) { ?>
@@ -256,12 +260,11 @@ if(!isset($_GET['show']))
 											<td width="30%">&nbsp;</td>
 											</tr>
 										<?php  } else if( $i%2 != 0)   {?>
-											<tr>
+											<tr id="test_id_<?php echo $value->id;?>">
 											<!-- sec col -->
-											<!-- <td align="center"><input id="checkdelete" name="checkdelete[]" value="<?php  //if(isset($value->id) && $value->id != '') echo $value->id  ?>" type="checkbox" hashCount="<?php //if(isset($value->hash_count) && $value->hash_count > 0 ) echo $value->hash_count; ?>"/></td> -->
 											<td align="center" nowrap><?php echo (($_SESSION['curpage'] - 1) * ($_SESSION['perpage']))+$key+1;?></td>												
 											<td>
-													<div class=""> <?php if(isset($value->CategoryName) && $value->CategoryName != ''){ echo ucfirst($value->CategoryName).' '; } ?></br>
+													<div class="mb_wrap_sm"> <?php if(isset($value->CategoryName) && $value->CategoryName != ''){ echo ucfirst($value->CategoryName).' '; } ?></br>
 													<i class="fa fa-fw fa-calendar"></i> <?php if(isset($value->DateCreated) && $value->DateCreated != '0000-00-00 00:00:00'){ echo date('m/d/Y',strtotime($value->DateCreated)); }else echo '-';?></br>
 													<?php if(isset($_SESSION['tuplit_sess_search_type']) && $_SESSION['tuplit_sess_search_type'] == 2) { ?>
 														
@@ -299,9 +302,9 @@ if(!isset($_GET['show']))
 							</form> 
                       </div><!-- /.tab-pane -->
 					  <?php } else { ?>	
-					  <div class="alert alert-danger alert-dismissable col-sm-5"><i class="fa fa-warning"></i> No Product Category found</div> 
+					  <div class="alert alert-danger alert-dismissable col-sm-5  col-lg-3 col-xs-11"><i class="fa fa-warning"></i> No Product Category found</div> 
 					  <?php } ?>	
-                  </div><!-- /.tab-content -->
+                 <!-- </div><!-- /.tab-content -->
               </div>
 			  </div>
 		 </div>

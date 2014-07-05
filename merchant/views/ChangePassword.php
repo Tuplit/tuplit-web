@@ -61,7 +61,7 @@ commonHead();
 					<div class="form-group col-xs-12 no-padding no-margin"  style="height:65px">
 						<input type="password" name="Password" id="Password" class="form-control" required placeholder="New Password" value=""/>
 					</div> 
-					<div class="form-group col-xs-12 no-padding no-margin"  style="height:65px">
+					<div class="form-group col-xs-12 no-padding no-margin"  style="height:80px">
 						<input type="password" name="C_Password" id="C_Password" class="form-control"  required placeholder="Confirm Password" value=""/>
 					</div>          
 					</div>

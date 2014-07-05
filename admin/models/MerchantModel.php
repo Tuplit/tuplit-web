@@ -27,7 +27,8 @@ class MerchantModel extends Model
 			$condition .= " and mca.fkMerchantId = m.id ";
 		}
 		
-		$sql = "select SQL_CALC_FOUND_ROWS ".$fields." from {$this->merchantTable} as m	".$join." 
+		$sql = "select SQL_CALC_FOUND_ROWS ".$fields.", c.id as commentId from {$this->merchantTable} as m	".$join. " 
+				left join comments c on (m.id = c.fkMerchantsId and c.Status = 1) 
 				WHERE 1".$condition." group by m.id ORDER BY ".$sorting_clause." ".$limit_clause;
 		//echo "<br/>======".$sql;
 		$result	=	$this->sqlQueryArray($sql);
@@ -88,7 +89,7 @@ class MerchantModel extends Model
 			else false;
 	}
 	
-	function updateDetails($data,$icon,$img,$openhours){
+	function updateDetails($data,$icon,$img){
 	
 		$update_string = '';
 		if(!empty($data['FirstName']))
@@ -127,16 +128,29 @@ class MerchantModel extends Model
 			$update_string .= " ShortDescription ='".$data['ShortDescription']."',";
 		if(!empty($data['DiscountTier']))
 			$update_string .= " DiscountTier ='".$data['DiscountTier']."',";
+		if(!empty($data['Products_List'])) {
+			$update_string .= " DiscountType ='1', DiscountProductId ='";
+			foreach($data['Products_List'] as $val) {
+				if($data['Products_List'][0] == 'all') {
+					$update_string .= "all";
+					break;
+				}
+				else {
+					$update_string .= $val.",";
+				}
+			}
+			$update_string = rtrim($update_string, ",");
+			$update_string .= "',";
+		} else {
+			$update_string .= " DiscountType='0', DiscountProductId='',";
+		}
 		if(!empty($data['min_price']) && !empty($data['max_price']))
 			$update_string .= " PriceRange ='".$data['min_price'].",".$data['max_price']."',";			
-		if(!empty($openhours))
-			$update_string .= " OpeningHours ='".$openhours."',";
 		if(!empty($data['min_price']) && !empty($data['max_price']))
 			$update_string .= " PriceRange ='".$data['min_price'].",".$data['max_price']."',";
+			
 		if(!empty($data['categorySelected'])) {
-		    //echo $data['categorySelected'];
 			$sqldel = "delete from {$this->merchantcategoriesTable} where fkCategoriesId not in (".$data['categorySelected'].") and fkMerchantId = '".$data['merchant_id']."'";
-			//echo "========>".$sqldel;
 			$this->updateInto($sqldel);
 			
 			$category = explode(',',$data['categorySelected']);	
@@ -145,22 +159,15 @@ class MerchantModel extends Model
 				$res = $this->selectCategoryDetail($data['merchant_id'],$val);
 				if(count($res) == 0) {
 					$sql1 =	"insert into {$this->merchantcategoriesTable}(fkMerchantId,fkCategoriesId,DateCreated) values('".$data['merchant_id']."','".$val."','".date('Y-m-d H:i:s')."')";
-					//echo "<br/>======".$sql1; 
 					$this->updateInto($sql1);
 				}
 			}
 		}			
-		//echo'<pre>';print_r($update_string);echo'</pre>';die();
 		$update_string = rtrim($update_string, ",");			
 		$sql =	"update {$this->merchantTable}  set ".$update_string." where id=".$data['merchant_id'];
-		//echo "<br/>======".$sql; die();
 		$this->updateInto($sql);
-		//die();	
 	}
 	function updateShoppingHours($data){		
-		
-		//echo'<pre>';print_r($data);echo'</pre>';
-		//DIE();
 		if(isset($data['merchant_id']) && $data['merchant_id'] !=''){
 			if(isset($data['samehours']) && $data['samehours'] == 'on') {
 				$sql = "update {$this->merchantshoppingTable} set 
@@ -172,6 +179,7 @@ class MerchantModel extends Model
 									DateCreated 	= '".date('Y-m-d H:i:s')."'
 									where id 		= '".strtoupper($data["id_0"])."'
 									";
+				//echo $sql;
 				$this->updateInto($sql);
 				for($i=1;$i<=6;$i++) {
 					$sql = "update {$this->merchantshoppingTable} set 
@@ -183,6 +191,7 @@ class MerchantModel extends Model
 									DateCreated 	= '".date('Y-m-d H:i:s')."'
 									where id 		= '".strtoupper($data["id_".$i.""])."'
 									";
+					//echo $sql;
 					$this->updateInto($sql);
 				}
 			}

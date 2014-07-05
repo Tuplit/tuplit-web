@@ -42,23 +42,29 @@ commonHead(); ?>
 	<section class="content">
 		<div class="row">
 		<!-- left column -->
-			<div class="col-md-6">
+			<div class="col-md-12 col-lg-6">
 				<form name="change_password_form" id="change_password_form" action="" method="post">
 				<div class="box box-primary">
 				<!-- form start -->
-						<div class="box-body">
-							<?php if(isset($msg) && $msg != '') { ?><div class="alert  alert-dismissable <?php  echo $class;  ?> col-sm-5"><span><i class="fa <?php  echo $class_icon;  ?>"></i> <?php echo $msg;  ?></span></div><?php } ?>
-							<div class="form-group">
+						<div class="box-body row">
+							<?php if(isset($msg) && $msg != '') { ?><div class="alert  alert-dismissable <?php  echo $class;  ?> col-sm-5  col-xs-10" align="center"><span><i class="fa <?php  echo $class_icon;  ?>"></i> <?php echo $msg;  ?></span></div><?php } ?>
+							<div class="form-group col-xs-12">
 								<label>Old Password</label>
-								<input type="Password" class="form-control" name="old_password" id="old_password"  value="" >
+								<div class="col-sm-6 col-xs-12  no-padding">
+									<input type="Password" class="form-control" name="old_password" id="old_password"  value="" >
+								</div>
 							</div>
-							<div class="form-group">
+							<div class="form-group col-xs-12">
 								<label>New Password</label>
+								<div class="col-sm-6 col-xs-12  no-padding">
 								<input type="Password" class="form-control" name="new_password" id="new_password"  value="" >
+								</div>
 							</div>
-							<div class="form-group">
+							<div class="form-group col-xs-12">
 								<label>Confirm Password</label>
+								<div class="col-sm-6 col-xs-12  no-padding">
 								<input type="Password" class="form-control" id="confirm_password" name="confirm_password"  value="" >
+								</div>
 							</div>
 						</div><!-- /.box-body -->
 					

@@ -54,7 +54,7 @@ class ErrorCodeType {
 	
 	const CheckBalanceError = 2009;
 	const CheckLocationError = 2010;
-	const SetPinError = 2011;
+	const SetPinError = 2011;	
 	const UpdatePinError = 2012;
 	
 	
@@ -64,5 +64,17 @@ class ErrorCodeType {
 	const verifyPinError = 2014;
 	
 	const CategoryAlreadyExist = 2015;
+	const CartIdAlreadyExist = 2016;
+	
+	const OrderAlreadyApproved = 2017;
+	const OrderAlreadyRejected = 2018;
+	const NotAllowed = 2019;
+	
+	const UserOnlyCanRequestProfile = 2020;
+	
+	const UpdateSettingsError = 2021;
+	const ErrorInSettingTypeOrSettingAction = 2022;
+	
+	const SetPinValidateError = 2023;
 	
 }

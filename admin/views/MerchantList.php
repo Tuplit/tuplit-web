@@ -130,6 +130,8 @@ if($tot_rec!=0 && !is_array($merchantListResult)) {
 	$_SESSION['curpage'] = 1;
 	$merchantListResult  = $MerchantObj->getMerchantList($fields,$condition);
 }
+//echo "<pre>"; echo print_r($merchantListResult); echo "</pre>";
+
 ?>
 <body class="skin-blue" onload="">
 	<?php top_header(); ?>
@@ -146,23 +148,23 @@ if($tot_rec!=0 && !is_array($merchantListResult)) {
 				<form name="search_merchant" action="MerchantList" method="post">
 				<div class="box box-primary">
 					<div class="box-body no-padding" >				
-						<div class="col-sm-3 form-group">
+						<div class="col-sm-4 form-group">
 							<label>Name</label>
 							<input type="text" class="form-control" name="Merchantname" id="MerchantName"  value="<?php if(isset($_SESSION['mer_sess_name']) && $_SESSION['mer_sess_name'] != '') echo unEscapeSpecialCharacters($_SESSION['mer_sess_name']); ?>" >
 						</div>
-						<div class="col-sm-3 form-group">
+						<div class="col-sm-4 form-group">
 							<label>Email</label>
 							<input type="text" class="form-control" id="Email" name="Email"  value="<?php if(isset($_SESSION['mer_sess_email']) && $_SESSION['mer_sess_email'] != '') echo unEscapeSpecialCharacters($_SESSION['mer_sess_email']);  ?>" >
 						</div>					
-						<div class="col-sm-3 form-group">
+						<div class="col-sm-4 form-group">
 							<label>Company Name</label>
 							<input type="text" class="form-control" id="CompanyName" name="CompanyName"  value="<?php if(isset($_SESSION['mer_sess_company']) && $_SESSION['mer_sess_company'] != '') echo unEscapeSpecialCharacters($_SESSION['mer_sess_company']); ?>" >
 						</div>						
-						<div class="col-sm-3 form-group">
+						<div class="col-sm-4 form-group">
 							<label>Location</label>
 							<input type="text"  maxlength="10" class="form-control" name="Location" id="Location" value="<?php if(isset($_SESSION['mer_sess_location']) && $_SESSION['mer_sess_location'] != '') echo unEscapeSpecialCharacters($_SESSION['mer_sess_location']); ?>" >
 						</div>
-						<div class="col-sm-3 form-group">
+						<div class="col-sm-4 form-group">
 							<label>Status</label>
 							<select name="Status" id="Status" class="form-control col-sm-4">
 								<option value="">Select</option>
@@ -170,7 +172,7 @@ if($tot_rec!=0 && !is_array($merchantListResult)) {
 								<option value="1" <?php  if(isset($_SESSION['mer_sess_status']) && $_SESSION['mer_sess_status'] != '' && $_SESSION['mer_sess_status'] == '1') echo 'Selected';  ?>>Activated</option>
 							</select>
 						</div>
-						<div class="col-sm-3 form-group">
+						<div class="col-sm-4 form-group">
 							<label>Category</label>
 							<select name="merchantCategory" id="merchantCategory" class="form-control col-sm-4">
 								<option value="">Select</option>
@@ -192,12 +194,12 @@ if($tot_rec!=0 && !is_array($merchantListResult)) {
 	
 	
 		<div class="row paging">
-			<div class="col-xs-2">
+			<div class="col-xs-12 col-sm-2">
 				<?php if(isset($merchantListResult) && is_array($merchantListResult) && count($merchantListResult) > 0){ ?>
 				<div class="dataTables_info">No. of Merchant(s)&nbsp;:&nbsp;<strong><?php echo $tot_rec; ?></strong> </div>
 				<?php } ?>
 			</div>
-			<div class="col-xs-10">
+			<div class="col-xs-12 col-sm-10">
 				<div class="dataTables_paginate paging_bootstrap row">
 				<?php if(is_array($merchantListResult) && count($merchantListResult) > 0 ) {
 						pagingControlLatest($tot_rec,'MerchantList'); ?>
@@ -208,7 +210,7 @@ if($tot_rec!=0 && !is_array($merchantListResult)) {
 		
 		<?php if(isset($msg) && $msg != '') { ?>
 		 <div class="row">
-               <div align="center" class="alert <?php  echo $class;  ?> alert-dismissable col-sm-4"><i class="fa fa-check"></i>  <?php echo $msg; ?></div>
+               <div class="alert <?php  echo $class;  ?> alert-dismissable col-xs-11  col-sm-5  col-lg-3"><i class="fa fa-check"></i>  <?php echo $msg; ?></div>
 		 </div>	
 		<?php } ?>
 		
@@ -218,14 +220,14 @@ if($tot_rec!=0 && !is_array($merchantListResult)) {
 				<form action="MerchantList" class="l_form" name="MerchantList" id="MerchantList"  method="post">
                    <div class="box">
                        <div class="box-body table-responsive no-padding">
-                           <table class="table table-hover">
+                           <table class="table table-hover" id="myTable">
                                <tr>
-                                  	<th align="center" width="1%" style="text-align:center"><input onclick="checkAllDelete('MerchantList');" type="Checkbox" name="checkAll"/></th>
-									<th align="center" width="2%" style="text-align:center">#</th>												
-									<th width="15%">Merchant Details</th>
-									<th width="10%">Company Details</th>
-									<th width="10%" align="center">Location</th>		
-									<th width="3%">Image</th>							
+                                  	<th align="center" width="1%" class="text-center"><input onclick="checkAllDelete('MerchantList');" type="Checkbox" name="checkAll"/></th>
+									<th align="center" width="1%" class="text-center">#</th>												
+									<th width="30%">Merchant Details</th>
+									<th width="30%">Company Details</th>
+									<th width="25%" align="center">Location</th>		
+									<th width="8%">Image</th>							
 								</tr>
                               <?php
 							  	foreach($merchantListResult as $key=>$value){
@@ -242,17 +244,19 @@ if($tot_rec!=0 && !is_array($merchantListResult)) {
 										}
 									}
 							 ?>									
-							<tr>
+							<tr id="test_id_<?php echo $value->id;?>">
 								<td align="center"><input id="checkdelete" name="checkdelete[]" value="<?php  if(isset($value->id) && $value->id != '') echo $value->id  ?>" type="checkbox" hashCount="<?php if(isset($value->hash_count) && $value->hash_count > 0 ) echo $value->hash_count; ?>"/></td>
-								<td align="center"><?php echo (($_SESSION['curpage'] - 1) * ($_SESSION['perpage']))+$key+1;?></td>												
+								<td align="center" nowrap><?php echo (($_SESSION['curpage'] - 1) * ($_SESSION['perpage']))+$key+1;?></td>												
 								<td>
+									<div class="col-xs-11 col-md-5 col-lg-3 no-padding">
 									<?php if(isset($image_path) && $image_path != ''){ ?>
 									<?php if($value->Status == 0) { ?>
-									<div  class="col-xs-2 no-padding" data-toggle="tooltip" title="Approve">
-										<a onclick="javascript:return confirm('Are you sure to approve this merchant?')" href="MerchantList?approveId=<?php if(isset($value->id) && $value->id != '') echo $value->id;?>"><i class="fa fa-thumbs-up text-olive fa-2x icon-shadow"></i></a>
-									</div>
+									
+										<a data-toggle="tooltip" title="Approve" onclick="javascript:return confirm('Are you sure to approve this merchant?')" href="MerchantList?approveId=<?php if(isset($value->id) && $value->id != '') echo $value->id;?>"><i class="fa fa-thumbs-up text-olive fa-2x icon-shadow"></i></a>
+									
+									
 									<?php } ?>
-									<div class="col-xs-2 no-padding">
+									
 										<?php if(!empty($value->Icon)) { ?>
 										<a href="<?php echo $image_path; ?>" class="fancybox" title="<?php echo ucfirst($value->CompanyName);?>">
 											<img id="<?php echo $value->id ;?>"  width="36" height="36" align="top" class="img_border" src="<?php echo $image_path;?>" >
@@ -262,7 +266,7 @@ if($tot_rec!=0 && !is_array($merchantListResult)) {
 										<?php } ?>
 									</div> 
 									<?php } ?>								
-									<div class="col-xs-8 "> 
+									<div class="col-xs-12 col-md-12  col-lg-9 no-padding "> 
 										<i class="fa fa-fw fa-user"></i> <?php if(isset($value->FirstName) && $value->FirstName != ''){ echo ucfirst($value->FirstName).' '; } ?>
 										<?php if(isset($value->LastName) && $value->LastName != ''){ echo ucfirst($value->LastName); } ?><br>
 										<?php if(isset($value->Email) && $value->Email != '' ){ ?> <i class="fa fa-fw fa-envelope"></i> <?php echo $value->Email;}?><br>								
@@ -270,32 +274,38 @@ if($tot_rec!=0 && !is_array($merchantListResult)) {
 									<div class="row-actions col-xs-12">																						
 										<a href="MerchantManage?editId=<?php if(isset($value->id) && $value->id != '') echo $value->id; ?>" data-toggle="tooltip" data-original-title="Edit" class="edit"><i class="fa fa-edit "></i></a>		
 										<a href="MerchantDetail?viewId=<?php if(isset($value->id) && $value->id != '') echo $value->id; ?>" data-toggle="tooltip" data-original-title="View" class="view"><i class="fa fa-search "></i></a>		
-										<a href="<?php echo SITE_PATH.'/admin/ProductList?mer_id='.$value->id.'&cs=1'; ?>" class="view newWindow" data-toggle="tooltip" data-original-title="Product in action"><i class="fa fa-shopping-cart"></i></a>	
+										<a href="<?php echo SITE_PATH.'/admin/ProductList?mer_id='.$value->id.'&cs=1'; ?>" class="view newWindow" data-toggle="tooltip" data-original-title="Product in action"><i class="fa fa fa-tags"></i></a>	
+										<a href="<?php echo SITE_PATH.'/admin/OrderList?mer_id='.$value->id.'&cs=1'; ?>"  class="view newWindow" data-toggle="tooltip" data-original-title="order list"><i class="fa fa fa-shopping-cart"></i></a>
+										<?php if(!empty($value->commentId)) { ?>
+										<a href="<?php if(isset($value->id) && $value->id != '') echo SITE_PATH.'/admin/CommentList?mer_id='.$value->id.'&cs=1'; else echo "#"; ?>"  class="view newWindow" data-toggle="tooltip" data-original-title="comment list"><i class="fa fa-comments"></i></a>
+										<?php } ?>										
 										<a onclick="javascript:return confirm('Are you sure to delete?')" href="MerchantList?delId=<?php if(isset($value->id) && $value->id != '') echo $value->id;?>" data-toggle="tooltip" data-original-title="Delete" class="delete"><i class="fa fa-trash-o "></i></a>
 									</div>
 								</td>
-								<td style="white-space:normal">
-									<div>
+								<td>
+									<div class="col-xs-12 no-padding mb_wrap">
 										<?php if(isset($value->CompanyName) && $value->CompanyName != ''){ ?><span><i class="fa fa-fw fa-building-o"></i>  <?php echo "<b>".ucfirst($value->CompanyName)."</b>";  ?></span><br>   <?php } ?>
 										<?php if(isset($value->ShortDescription) && $value->ShortDescription != ''){ ?><span data-toggle="tooltip" title="<?php echo $value->Description; ?>"><i class="fa fa-fw fa-list-alt"></i>   <?php echo displayText($value->ShortDescription,250);?></span><br> <?php } ?>
 										<?php $merchantOpeningHoursResult = $MerchantObj->selectOpeningHoursDetail($value->id);
 												if(isset($merchantOpeningHoursResult) && !empty($merchantOpeningHoursResult)){
-													$openinghours = openingHoursString($merchantOpeningHoursResult);
+													$openinghours = openingHoursStringupdated($merchantOpeningHoursResult);													
 													if(count($openinghours['Open']) > 0 ) {
 														foreach($openinghours['Open'] as $val) {
+															
 															echo $val."<br>";
 														}									
 													}
 													if(!empty($openinghours['Closed'])) {
-														echo "<font color='#01A99A'><b>".$openinghours['Closed']."</b></font><br>";							
+														echo "<font color='#01A99A'><b>Closed ".$openinghours['Closed']."</b></font><br>";							
 													} 
 												}
 										 ?>
 										<?php if(isset($value->DiscountTier) && $value->DiscountTier != ''){?><span><?php echo "<b>Discount Tier</b> : ".$discountTierArray[$value->DiscountTier]."%";?></span><br>	 <?php  } ?>
-										<?php if($value->PriceRange != 0) { $priceran = explode(',',$value->PriceRange);  echo "<b>Price Range</b> : $".$priceran[0]." to $".$priceran[1]; } ?></div>	
-									</div>
+										<?php if($value->PriceRange != 0) { $priceran = explode(',',$value->PriceRange);  echo "<b>Price Range</b> : $".$priceran[0]." to $".$priceran[1]; } ?>
+									</div>	
 								</td>
-								<td style="white-space:normal">
+								<td>
+									<div class="col-xs-12 no-padding mb_wrap">
 									<?php 
 										if(isset($value->Address) && $value->Address == '' && isset($value->PhoneNumber) && $value->PhoneNumber == '' && isset($value->WebsiteUrl) && $value->WebsiteUrl == '') {
 											echo "-";
@@ -304,7 +314,7 @@ if($tot_rec!=0 && !is_array($merchantListResult)) {
 									<?php if(isset($value->Address) && $value->Address != ''){ ?><span title="Address"><i class="fa fa-fw fa-map-marker"></i> <?php echo nl2br(ucfirst($value->Address)); } ?></span><br>
 									<?php if(isset($value->PhoneNumber) && $value->PhoneNumber != ''){?><span title="Phone Number"><i class="fa fa-fw fa-phone"></i> <?php echo $value->PhoneNumber; } ?></span><br>
 									<?php if(isset($value->WebsiteUrl) && $value->WebsiteUrl != ''){ ?><span title="Website Url"><i class="fa fa-fw fa-link"></i> <a href="<?php echo $value->WebsiteUrl;?>" target="_blank"> <?php echo $value->WebsiteUrl; } ?></a></span><br>
-									
+									</div>	
 								</td>
 								<?
 									$cimage_path = '';
@@ -322,14 +332,12 @@ if($tot_rec!=0 && !is_array($merchantListResult)) {
 										}
 									}
 								?>
-								<td>
+								<td style="white-space:normal">
+									<div class="col-xs-10 no-padding"> 
 									<?php if(!empty($value->Image)) { ?>
-										<a href="<?php echo $cimage_path; ?>" class="fancybox" title="<?php echo ucfirst($value->CompanyName); ?>">
-											<img id="<?php echo $value->id ;?>"  width="200" align="top" class="img_border" src="<?php echo $cimage_path;?>" >
-										</a>
-									<?php } else {?>
-										<img id="<?php echo $value->id ;?>"  width="200" align="top" class="img_border" src="<?php echo $cimage_path;?>" >
-									<?php } ?>
+										<a href="<?php echo $cimage_path; ?>" class="fancybox" title="<?php echo ucfirst($value->CompanyName); ?>"><img id="<?php echo $value->id ;?>"  width="200" height="100" align="top" class="img_border" src="<?php echo $cimage_path;?>" ></a>
+									<?php } else {?><img id="<?php echo $value->id ;?>"  width="200"  height="100" align="top" class="img_border" src="<?php echo $cimage_path;?>" ><?php } ?>
+									</div>
 								</td>	
 
 							</tr>
@@ -346,7 +354,7 @@ if($tot_rec!=0 && !is_array($merchantListResult)) {
 					</form>
 					
 					<?php } else { ?>	
-						<div class="alert alert-danger alert-dismissable col-sm-5 "><i class="fa fa-warning"></i> No Merchants found</div> 
+						<div class="alert alert-danger alert-dismissable col-sm-5 col-xs-11"><i class="fa fa-warning"></i> No Merchants found</div> 
 					<?php } ?>	
                </div>
            </div>
@@ -354,7 +362,6 @@ if($tot_rec!=0 && !is_array($merchantListResult)) {
 	</section><!-- /.content -->	
 						  	
 <?php commonFooter(); ?>
-	autoSize: true
 <script type="text/javascript">
 	$(document).ready(function() {
 		$('.fancybox').fancybox();	
@@ -362,9 +369,21 @@ if($tot_rec!=0 && !is_array($merchantListResult)) {
 		$(".newWindow").fancybox({
 				scrolling: 'auto',			
 				type: 'iframe',
+				width: '800',
+				maxWidth: '100%',
 				
 				fitToView: false,
 			});
 	});
+$(document).ready(function() {
+	 $("table#myTable tr").not(':first').hover(
+	     function () {
+	      jQuery(this).find("div.row-actions a").css("visibility","visible");
+	     }, 
+	     function () {
+	      jQuery(this).find("div.row-actions a").css("visibility","hidden");
+	     }
+	  );
+});
 </script>
 </html>

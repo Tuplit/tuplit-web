@@ -2,7 +2,7 @@
 
 /**
  * Description of tuplitApiSetup
- * This class is used to setup the simplyshredded api
+ * This class is used to setup the tuplit api
  *
  * @author 
  */
@@ -39,7 +39,7 @@ class tuplitApiSetup {
 
         /**
          * Create the admin account
-         * @var Model_User $accountAdmin
+         * @var User $accountAdmin
          */
         $accountAdmin = R::dispense('user');
         $accountAdmin->Email = '';

@@ -57,7 +57,7 @@ if(isset($_GET['viewId']) && $_GET['viewId'] != '' ){
 	
 	<!-- Content Header (Page header) -->
 	<section class="content-header no-padding">
-		<div class="col-xs-12"> 
+		<div class="col-xs-12 col-sm-6"> 
 			<h1><i class="fa fa-search"></i> View User</h1>
 		</div>
 	</section>
@@ -66,130 +66,133 @@ if(isset($_GET['viewId']) && $_GET['viewId'] != '' ){
 		<div class="row">
 			<div class="col-md-12 view-page"> 
 				<div class="box box-primary"> 
-			<!--	<div class="form-group col-sm-6 row">
-					<label class="col-sm-4"  class="col-sm-4" >Username</label>
-					<div  class="col-sm-8"> <?php //if(isset($UserName) && $UserName !='') echo ucfirst($UserName); else echo '-'; ?></div>
+			<!--	<div class="form-group col-xs-12 col-sm-6 row">
+					<label class="col-xs-6  col-sm-5"  class="col-xs-6  col-sm-5" >Username</label>
+					<div  class="col-xs-6  col-sm-7"> <?php //if(isset($UserName) && $UserName !='') echo ucfirst($UserName); else echo '-'; ?></div>
 				</div>
 			-->
-				<div class="form-group col-sm-6 row">
-					<label class="col-sm-4" >First Name</label>
-					<div  class="col-sm-8">
+				<div class="form-group col-xs-12 col-sm-6 row">
+					<label class="col-xs-6  col-sm-5" >First Name</label>
+					<div  class="col-xs-6  col-sm-7">
 					<?php if(isset($FirstName) && $FirstName != '') echo ucfirst($FirstName); else echo '-'; ?>	</div>
 				</div>	
-				<div class="form-group col-sm-6 row">									
-					<label class="col-sm-4" >Last Name</label>
-					<div  class="col-sm-8">										
+				<div class="form-group col-xs-12 col-sm-6 row">									
+					<label class="col-xs-6  col-sm-5" >Last Name</label>
+					<div  class="col-xs-6  col-sm-7">										
 					<?php if(isset($LastName) && $LastName != '') echo ucfirst($LastName);  else echo '-'; ?>	</div>									
 				</div>
-				<div class="form-group col-sm-6 row">
-					<label class="col-sm-4" >Email</label>
-					<div  class="col-sm-8"><?php if(isset($Email) && $Email != '' ) echo $Email; else echo '-'; ?>	</div>	
+				<div class="form-group col-xs-12 col-sm-6 row">
+					<label class="col-xs-6  col-sm-5" >Email</label>
+					<div  class="col-xs-6  col-sm-7"><?php if(isset($Email) && $Email != '' ) echo $Email; else echo '-'; ?>	</div>	
 				</div>					
 			
 									
 				<?php 
 				//if($_SERVER['HTTP_HOST']=='172.21.4.104' || (isset($_SERVER['HTTP_X_FORWARDED_FOR']) && ($_SERVER['HTTP_X_FORWARDED_FOR'] == '125.19.192.66' || $_SERVER['HTTP_X_FORWARDED_FOR'] == '27.124.58.85')) ) { ?>
 				
-			<!--	<div class="form-group col-sm-6 row">
-					<label class="col-sm-4" >Password</label>
-					<div  class="col-sm-8">
+			<!--	<div class="form-group col-xs-12 col-sm-6 row">
+					<label class="col-xs-6  col-sm-5" >Password</label>
+					<div  class="col-xs-6  col-sm-7">
 					<?php //if(isset($actualPassword) && $actualPassword != '' ) echo $actualPassword; else echo '-'; ?>		</div>					
 					
 				</div>
 			-->
-				<div class="form-group col-sm-6 row">
-					<label class="col-sm-4" >PIN Code</label>
-					<div  class="col-sm-8">
+				<div class="form-group col-xs-12 col-sm-6 row">
+					<label class="col-xs-6  col-sm-5" >PIN Code</label>
+					<div  class="col-xs-6  col-sm-7">
 					<?php if(isset($PinCode) && $PinCode !='') echo $PinCode; else echo '-'; ?></div>
 				</div>	
 													
 				
 				<?php //} ?>
-				
-				
-				
-				<div class="form-group col-sm-6 row">
-					<label class="col-sm-4" >Facebook Id</label>
-					<div  class="col-sm-8">
-					<?php if(isset($FbId) && $FbId != '' ) echo $FbId; else echo '-';  ?></div>
+				<div class="form-group col-xs-12 col-sm-6 row">
+					<label class="col-xs-6  col-sm-5" >Facebook Id</label>
+					<div  class="col-xs-6  col-sm-7">
+						<?php if(isset($FbId) && $FbId != '' ) echo $FbId; else echo '-';  ?>
+					</div>
 				</div>	
-				<div class="form-group col-sm-6 row">
-					<label class="col-sm-4" >Google Plus Id</label>
-					<div  class="col-sm-8">
-					<?php if(isset($GooglePlusId) && $GooglePlusId != '' ) echo $GooglePlusId; else echo '-'; ?></div>
+				<div class="form-group col-xs-12 col-sm-6 row">
+					<label class="col-xs-6  col-sm-5" >Google Plus Id</label>
+					<div  class="col-xs-6  col-sm-7">
+						<?php if(isset($GooglePlusId) && $GooglePlusId != '' ) echo $GooglePlusId; else echo '-'; ?>
+					</div>
 					
 				</div>	
-				<div class="form-group col-sm-6 row">
-					<label class="col-sm-4" >Location</label>
-					<div  class="col-sm-8">
-					<?php if(isset($Location) && $Location !='') echo ucfirst($Location); else echo '-'; ?></div>
+				<div class="form-group col-xs-12 col-sm-6 row">
+					<label class="col-xs-6  col-sm-5" >Location</label>
+					<div  class="col-xs-6  col-sm-7">
+						<?php if(isset($Location) && $Location !='') echo ucfirst($Location); else echo '-'; ?>
+					</div>
 				</div>	
-				<div class="form-group col-sm-6 row">
-					<label class="col-sm-4" >Country</label>
-					<div  class="col-sm-8">
+				<div class="form-group col-xs-12 col-sm-6 row">
+					<label class="col-xs-6  col-sm-5" >Country</label>
+					<div  class="col-xs-6  col-sm-7">
 					<?php if(isset($Country) && $Country != '' ) echo ucfirst($Country); else echo '-'; ?></div>
 				</div>	
-				<div class="form-group col-sm-6 row">
-					<label class="col-sm-4" >Zip Code</label>
-					<div  class="col-sm-8">
-					<?php if(isset($ZipCode) && $ZipCode != '' ) echo $ZipCode; else echo '-'; ?></div>
+				<div class="form-group col-xs-12 col-sm-6 row">
+					<label class="col-xs-6  col-sm-5" >Zip Code</label>
+					<div  class="col-xs-6  col-sm-7">
+						<?php if(isset($ZipCode) && $ZipCode != '' ) echo $ZipCode; else echo '-'; ?>
+					</div>
 				</div>	
-				<div class="form-group col-sm-6 row">
-					<label class="col-sm-4" >Cell Number</label>
-					<div  class="col-sm-8">
-					<?php if(isset($CellNumber) && $CellNumber != '') echo $CellNumber; else echo '-'; ?></div>
+				<div class="form-group col-xs-12 col-sm-6 row">
+					<label class="col-xs-6  col-sm-5" >Cell Number</label>
+					<div  class="col-xs-6  col-sm-7">
+						<?php if(isset($CellNumber) && $CellNumber != '') echo $CellNumber; else echo '-'; ?>
+					</div>
 				</div>	
-				<div class="form-group col-sm-6 row">
-					<label class="col-sm-4" >Registered Date</label>
-					<div  class="col-sm-8">
-					<?php if(isset($dateCreated) && $dateCreated != '' ) echo date('m/d/Y',strtotime($dateCreated)); else echo '-'; ?></div>
+				<div class="form-group col-xs-12 col-sm-6 row">
+					<label class="col-xs-6  col-sm-5" >Registered Date</label>
+					<div  class="col-xs-6  col-sm-7">
+						<?php if(isset($dateCreated) && $dateCreated != '' ) echo date('m/d/Y',strtotime($dateCreated)); else echo '-'; ?>
+					</div>
 				</div>	
-				<div class="form-group col-sm-6 row">
-					<label class="col-sm-4" >Platform</label>
-					<div  class="col-sm-8">
-					<?php if(isset($Platform) && $Platform != '' ) echo $platformArray[$Platform]; else echo '-'; ?>	</div>
+				<div class="form-group col-xs-12 col-sm-6 row">
+					<label class="col-xs-6  col-sm-5" >Platform</label>
+					<div  class="col-xs-6  col-sm-7">
+						<?php if(isset($Platform) && $Platform != '' ) echo $platformArray[$Platform]; else echo '-'; ?>
+					</div>
 				</div>												
-					
-					
-				<div class="form-group col-sm-6 row">
-					<label class="col-sm-4" >Photo</label>
-					<div  class="col-sm-8">
-					<a <?php if(isset($original_image_path) && $original_image_path != '') {  ?> href="<?php echo $original_image_path; ?>" class="fancybox"<?php } else { ?> href="Javascript:void(0);"<?php } ?> title="Click here" alt="Click here" ><?php if(isset($image_path) && $image_path != '') { ?> <img width="75" height="75" src="<?php echo $image_path;?>"><?php } ?></a></div>
+				<div class="form-group col-xs-12 col-sm-6 row">
+					<label class="col-xs-6  col-sm-5" >Photo</label>
+					<div  class="col-xs-6  col-sm-7">
+						<a <?php if(isset($original_image_path) && $original_image_path != '') {  ?> href="<?php echo $original_image_path; ?>" class="fancybox"<?php } else { ?> href="Javascript:void(0);"<?php } ?> title="Click here" alt="Click here" ><?php if(isset($image_path) && $image_path != '') { ?> <img width="75" height="75" src="<?php echo $image_path;?>"><?php } ?></a>
+					</div>
 				</div>
-				<div class="col-sm-12"> <h3 >Notifications</h3></div>
-				<div class="form-group col-sm-6 row">
-					<label class="col-sm-4"  class="notification">Push Notification</label>
-					<div  class="col-sm-8">
-						<?php if(isset($PushNotification) && $PushNotification == '1') echo 'On'; else echo 'Off'; ?> </div>
+				
+				<div class="col-xs-12"> <h3 >Notifications</h3></div>
+				<div class="form-group col-xs-12 col-sm-6 row">
+					<label class="col-xs-7 col-sm-5"  class="notification">Push Notification</label>
+					<div  class="col-xs-4 col-sm-7">
+						<?php if(isset($PushNotification) && $PushNotification == '1') echo 'On'; else echo 'Off'; ?>
+					</div>
 				</div>	
-				<div class="form-group col-sm-6 row">
+				<div class="form-group col-xs-12 col-sm-6 row">
 							
-					<label class="col-sm-4"  class="notification">Send Credit</label>
-					<div  class="col-sm-8">
-						<?php if(isset($SendCredit) && $SendCredit == '1') echo 'On'; else echo 'Off'; ?></div>
+					<label class="col-xs-7 col-sm-5"  class="notification">Send Credit</label>
+					<div  class="col-xs-4 col-sm-7">
+						<?php if(isset($SendCredit) && $SendCredit == '1') echo 'On'; else echo 'Off'; ?>
+					</div>
 															
 				</div>
 				
-				<div class="form-group col-sm-6 row">
-					<label class="col-sm-4"  class="notification">Recieve Credit</label>
-					<div  class="col-sm-8">
-						<?php if(isset($RecieveCredit) && $RecieveCredit == '1') echo 'On'; else echo 'Off'; ?></div>
+				<div class="form-group col-xs-12 col-sm-6 row">
+					<label class="col-xs-7 col-sm-5"  class="notification">Recieve Credit</label>
+					<div  class="col-xs-4 col-sm-7">
+						<?php if(isset($RecieveCredit) && $RecieveCredit == '1') echo 'On'; else echo 'Off'; ?>
+					</div>
 				</div>	
-				<div class="form-group col-sm-6 row">
-							
-					<label class="col-sm-4"  class="notification">Buy Something</label>
-					<div  class="col-sm-8">
-						<?php if(isset($BuySomething) && $BuySomething == '1') echo 'On'; else echo 'Off'; ?></div>
-															
+				<div class="form-group col-xs-12 col-sm-6 row">
+					<label class="col-xs-7 col-sm-5"  class="notification">Buy Something</label>
+					<div  class="col-xs-4 col-sm-7">
+						<?php if(isset($BuySomething) && $BuySomething == '1') echo 'On'; else echo 'Off'; ?>
+					</div>
 				
 				</div>	
-				<div class="box-footer col-sm-12" align="center">
-						<?php 
-							$href_page = "UserList";
-						?>	
+				<div class="box-footer col-xs-12" align="center">
+						<?php  $href_page = "UserList"; ?>	
 						<a href="UserManage?editId=<?php if(isset($_GET['viewId']) && $_GET['viewId'] != '') echo $_GET['viewId']; ?>" title="Edit" alt="Edit" class="btn btn-success">Edit</a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 						<a href="<?php if(isset($href_page) && $href_page != '' ) echo $href_page; else echo 'UserList';?>" class="btn btn-default" name="Back" id="Back" title="Back" alt="Back" >Back </a>
-					
 				</div>
 			</div>		
 			</div>		

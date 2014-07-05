@@ -277,7 +277,7 @@ function pagingControlLatest($total,$action='')
 {
 	$per_page 		= $_SESSION['perpage'];
 	$page 			= $_SESSION['curpage'];
-	$pagination 	= ' <div class="col-xs-10" align="center">';
+	$pagination 	= ' <div class="col-sm-9 col-xs-12  mb_clr" align="center">';
 	if ($action == '')
 		$action = $_SERVER['SCRIPT_NAME'];
 	?>
@@ -406,14 +406,15 @@ function pagingControlLatestAjax($total,$functionName='')
 {
 	$per_page 		= $_SESSION['perpage'];
 	$page 			= $_SESSION['curpage'];
-	$pagination 	= '<br><table cellspacing="0" cellpadding="0" width="100%" border="0" align="center">
-	<tr>
-	<td align="center" width="90%" ><table cellspacing="0" cellpadding="0" border="0" align="center"><tr><td> ';
+	
+	//echo 'level 0 ---- '.$per_page.'*****'.$page.'----';
+	$pagination 	= '<div class="col-sm-9 col-xs-12  mb_clr" align="center">';
 	?>
-	<form name="pagingAjax" id="pagingAjax" method="post"   >
+	<form name="pagingAjax" id="pagingAjax" method="post" action="<?php echo($functionName);?>"  >
 		<input type="Hidden" value="<?php echo($_SESSION['curpage']);?>" name="cur_page" id="cur_page">
 		<input type="Hidden" value="<?php echo($_SESSION['orderby']);?>" name="order_by" id="order_by">
 		<input type="Hidden" value="<?php echo($_SESSION['ordertype']);?>" name="order_type" id="order_type">
+		<input type="Hidden" id="total_records" name="total_records" value="<?php echo $total;?>">
 		<?php
 		if ($total > $per_page)
 		{
@@ -433,25 +434,27 @@ function pagingControlLatestAjax($total,$functionName='')
     	if($lastpage > 1)
     	{
     		$pagination .= "<ul class='pagination'>";
-                    $pagination .= "<li class='details'>Page $page of $lastpage</li>";
+                    $pagination .= "<li class='details LH30'>Page $page of $lastpage &nbsp;&nbsp;</li>";
 			if ($page == 1)
 			{
-				$pagination.= "<li><a class='current'><i class='fa fa-angle-double-left fa-lg'></i></a></li>";
-				$pagination.= "<li><a class='current'><i class='fa fa-angle-double-right fa-lg'></i></a></li>";
+				$pagination.= "<li><span><i class='fa fa-angle-double-left fa-lg'></i></span></li>";
+				$pagination.= "<li><span><i class='fa fa-angle-left fa-lg'></i></span></li>";
 			}
 			else
 			{
-				$pagination.= "<li><a href='javascript:void(0);' onclick=\"javascript:setPagingControlValuesAjax('".$_SESSION['orderby']."','".$_SESSION['ordertype']."',$firstPage); $functionName \" ><<</a></li>";
-				$pagination.= "<li><a href='javascript:void(0);' onclick=\"javascript:setPagingControlValuesAjax('".$_SESSION['orderby']."','".$_SESSION['ordertype']."',$prev); $functionName \" ><</a></li>";
+				$pagination.= "<li><a href='javascript:void(0);' onclick=\"javascript:setPagingControlValuesAjax('".$_SESSION['orderby']."','".$_SESSION['ordertype']."',$firstPage); \" ><i class='fa fa-angle-double-left fa-lg'></i></a></li>";
+				$pagination.= "<li><a href='javascript:void(0);' onclick=\"javascript:setPagingControlValuesAjax('".$_SESSION['orderby']."','".$_SESSION['ordertype']."',$prev);\" ><i class='fa fa-angle-left fa-lg'></i></a></li>";
 			}
     		if ($lastpage < 7 + ($adjacents * 2))
     		{
     			for ($counter = 1; $counter <= $lastpage; $counter++)
     			{
     				if ($counter == $page)
-    					$pagination.= "<li><a class='current'>$counter</a></li>";
+    					$pagination.= "<li class='active'><span><i>$counter</i></span></li>";
     				else
-    					$pagination.= "<li><a href='javascript:void(0);' onclick=\"javascript:setPagingControlValuesAjax('".$_SESSION['orderby']."','".$_SESSION['ordertype']."',$counter); $functionName \">$counter</a></li>";
+    					$pagination.= "<li><a href='javascript:void(0);' onclick=\"javascript:setPagingControlValuesAjax('".$_SESSION['orderby']."','".$_SESSION['ordertype']."',$counter);\">$counter</a></li>";
+						//$pagination.= "<li><a href='javascript:void(0);' onclick=\"javascript:setPagingControlValues2($counter); $functionName \">$counter</a></li>";
+					
     			}
     		}
     		elseif($lastpage > 5 + ($adjacents * 2))
@@ -461,73 +464,71 @@ function pagingControlLatestAjax($total,$functionName='')
     				for ($counter = 1; $counter < 4 + ($adjacents * 2); $counter++)
     				{
     					if ($counter == $page)
-    						$pagination.= "<li><a class='current'>$counter</a></li>";
+    						$pagination.= "<li class='active'><span><i>$counter</i></span></li>";
     					else
-    						$pagination.= "<li><a href='javascript:void(0);' onclick=\"javascript:setPagingControlValuesAjax('".$_SESSION['orderby']."','".$_SESSION['ordertype']."',$counter); $functionName \">$counter</a></li>";
+							$pagination.= "<li><a href='javascript:void(0);' onclick=\"javascript:setPagingControlValuesAjax('".$_SESSION['orderby']."','".$_SESSION['ordertype']."',$counter);\">$counter</a></li>";
+
     				}
-    				$pagination.= "<li class='dot'>...</li>";
-    				$pagination.= "<li><a href='javascript:void(0);' onclick=\"javascript:setPagingControlValuesAjax('".$_SESSION['orderby']."','".$_SESSION['ordertype']."',$lpm1); $functionName \">$lpm1</a></li>";
-    				$pagination.= "<li><a href='javascript:void(0);' onclick=\"javascript:setPagingControlValuesAjax('".$_SESSION['orderby']."','".$_SESSION['ordertype']."',$lastpage); $functionName \">$lastpage</a></li>";
+    				//$pagination.= "<li class='dot'>...</li>";
+    				$pagination.= "<li><a href='javascript:void(0);' onclick=\"javascript:setPagingControlValuesAjax('".$_SESSION['orderby']."','".$_SESSION['ordertype']."',$lpm1); \">$lpm1</a></li>";
+    				$pagination.= "<li><a href='javascript:void(0);' onclick=\"javascript:setPagingControlValuesAjax('".$_SESSION['orderby']."','".$_SESSION['ordertype']."',$lastpage);\">$lastpage</a></li>";
     			}
     			elseif($lastpage - ($adjacents * 2) > $page && $page > ($adjacents * 2))
     			{
-    				$pagination.= "<li><a href='javascript:void(0);' onclick=\"javascript:setPagingControlValuesAjax('".$_SESSION['orderby']."','".$_SESSION['ordertype']."',1); $functionName \">1</a></li>";
-    				$pagination.= "<li><a href='javascript:void(0);' onclick=\"javascript:setPagingControlValuesAjax('".$_SESSION['orderby']."','".$_SESSION['ordertype']."',2); $functionName \">2</a></li>";
-    				$pagination.= "<li class='dot'>...</li>";
+    				$pagination.= "<li><a href='javascript:void(0);' onclick=\"javascript:setPagingControlValuesAjax('".$_SESSION['orderby']."','".$_SESSION['ordertype']."',1);  \">1</a></li>";
+    				$pagination.= "<li><a href='javascript:void(0);' onclick=\"javascript:setPagingControlValuesAjax('".$_SESSION['orderby']."','".$_SESSION['ordertype']."',2);  \">2</a></li>";
+    				//$pagination.= "<li class='dot'>...</li>";
     				for ($counter = $page - $adjacents; $counter <= $page + $adjacents; $counter++)
     				{
     					if ($counter == $page)
     						$pagination.= "<li><a class='current'>$counter</a></li>";
     					else
-    						$pagination.= "<li><a href='javascript:void(0);' onclick=\"javascript:setPagingControlValuesAjax('".$_SESSION['orderby']."','".$_SESSION['ordertype']."',$counter); $functionName \">$counter</a></li>";
+    						$pagination.= "<li><a href='javascript:void(0);' onclick=\"javascript:setPagingControlValuesAjax('".$_SESSION['orderby']."','".$_SESSION['ordertype']."',$counter);\">$counter</a></li>";
     				}
-    				$pagination.= "<li class='dot'>..</li>";
-    				$pagination.= "<li><a href='javascript:void(0);' onclick=\"javascript:setPagingControlValuesAjax('".$_SESSION['orderby']."','".$_SESSION['ordertype']."',$lpm1); $functionName \" >$lpm1</a></li>";
-    				$pagination.= "<li><a href='javascript:void(0);' onclick=\"javascript:setPagingControlValuesAjax('".$_SESSION['orderby']."','".$_SESSION['ordertype']."',$lastpage); $functionName \" >$lastpage</a></li>";
+    				//$pagination.= "<li class='dot'>..</li>";
+    				$pagination.= "<li><a href='javascript:void(0);' onclick=\"javascript:setPagingControlValuesAjax('".$_SESSION['orderby']."','".$_SESSION['ordertype']."',$lpm1); \" >$lpm1</a></li>";
+    				$pagination.= "<li><a href='javascript:void(0);' onclick=\"javascript:setPagingControlValuesAjax('".$_SESSION['orderby']."','".$_SESSION['ordertype']."',$lastpage);\" >$lastpage</a></li>";
     			}
     			else
     			{
-    				$pagination.= "<li><a href='javascript:void(0);' onclick=\"javascript:setPagingControlValuesAjax('".$_SESSION['orderby']."','".$_SESSION['ordertype']."',1); $functionName \" >1</a></li>";
-    				$pagination.= "<li><a href='javascript:void(0);' onclick=\"javascript:setPagingControlValuesAjax('".$_SESSION['orderby']."','".$_SESSION['ordertype']."',2); $functionName \" >2</a></li>";
-    				$pagination.= "<li class='dot'>..</li>";
+    				$pagination.= "<li><a href='javascript:void(0);' onclick=\"javascript:setPagingControlValuesAjax('".$_SESSION['orderby']."','".$_SESSION['ordertype']."',1); \" >1</a></li>";
+    				$pagination.= "<li><a href='javascript:void(0);' onclick=\"javascript:setPagingControlValuesAjax('".$_SESSION['orderby']."','".$_SESSION['ordertype']."',2);  \" >2</a></li>";
+    				//$pagination.= "<li class='dot'>..</li>";
     				for ($counter = $lastpage - (2 + ($adjacents * 2)); $counter <= $lastpage; $counter++)
     				{
     					if ($counter == $page)
     						$pagination.= "<li><a class='current'>$counter</a></li>";
     					else
-    						$pagination.= "<li><a href='javascript:void(0);' onclick=\"javascript:setPagingControlValuesAjax('".$_SESSION['orderby']."','".$_SESSION['ordertype']."',$counter); $functionName \" >$counter</a></li>";
+    						$pagination.= "<li><a href='javascript:void(0);' onclick=\"javascript:setPagingControlValuesAjax('".$_SESSION['orderby']."','".$_SESSION['ordertype']."',$counter); \" >$counter</a></li>";
     				}
     			}
     		}
     		if ($page < $counter - 1){
-    			$pagination.= "<li><a href='javascript:void(0);' onclick=\"javascript:setPagingControlValuesAjax('".$_SESSION['orderby']."','".$_SESSION['ordertype']."',$next); $functionName \" >></a></a></li>";
-                $pagination.= "<li><a href='javascript:void(0);' onclick=\"javascript:setPagingControlValuesAjax('".$_SESSION['orderby']."','".$_SESSION['ordertype']."',$lastpage); $functionName \" >>></a></a></li>";
+    			$pagination.= "<li><a href='javascript:void(0);' onclick=\"javascript:setPagingControlValuesAjax('".$_SESSION['orderby']."','".$_SESSION['ordertype']."',$next); \" ><i class='fa fa-angle-right fa-lg'></i></a></li>";
+                $pagination.= "<li><a href='javascript:void(0);' onclick=\"javascript:setPagingControlValuesAjax('".$_SESSION['orderby']."','".$_SESSION['ordertype']."',$lastpage); \" ><i class='fa fa-angle-double-right fa-lg'></i></a></li>";
     		}else{
-    			$pagination.= "<li><a class='current'>></a></a></li>";
-                $pagination.= "<li><a class='current'>>></a></a></li>";
+    			$pagination.= "<li><a class='pre_arr'><i class='fa fa-angle-right fa-lg'></i></a></li>";
+                $pagination.= "<li><a class='pre_arr_lt'><i class='fa fa-angle-double-right fa-lg'></i></a></li>";
             }
     		$pagination.= "</ul>";
     	}
 	}
 		 echo $pagination; ?>
-		 	</td></tr>
-		 </table>
-		</td>
+		</div>
 		<?php  $per_page_array =  eval(MERCHANT_PER_PAGE_ARRAY);
 		if($total > $per_page_array[0]){ ?>
-		<td  class="record">
-		Per page 
-		</td><td class="record" width="20%" style="padding-right:10px;">
-
-			<select name="per_page" id="per_page" onchange="setPerPageAjax(this.value);<?php  echo $functionName; ?>" style="width:40px;">
+		<div class="col-xs-12  col-sm-3 mb_clr pad no-padding">
+			<span class="pull-right">
+			<select name="per_page" id="per_page" onchange="setPerPageAjax(this.value);" style="width:60px;">
 			<?php foreach($per_page_array as $value){?>
 				<option value="<?php echo($value);?>" <? if($per_page == $value) echo " selected='selected'"?>><?php echo($value);?></option>
 			<?php }?>
 			</select>
-		</td>
+			</span>
+			<div class="pull-right">Per page &nbsp;</div>
+	 </div>
+
 		<?php }?>
-		</tr>
-		</table>
 	</form>
 <?php } 
 
@@ -973,7 +974,7 @@ function displayDate($postedDate,$time_zone='')
 /********************************************************
 * Function : displayDate
 ********************************************************/
-function displayConversationTime($postedDate,$time_zone='')
+/*function displayConversationTime($postedDate,$time_zone='')
 {
 	//$endDate = '2012-07-24 14:00:01';
 	if($postedDate != '')
@@ -1027,7 +1028,7 @@ function displayConversationTime($postedDate,$time_zone='')
 	else
 		$time = 'Null';
 	return $time;
-}
+}*/
 
 /********************************************************
 * Function : Emoji Comment Text
@@ -1574,24 +1575,380 @@ function getLatLngFromAddress($address) {
 		return 0;
 	}
 }
-
-function OpeingHours(){
-	/*$restaurent->restaurent_opening_hours_day1=($restaurent->restaurent_opening_hours_day1from==00 && $restaurent->restaurent_opening_hours_day1to==00?0:1);
-	$restaurent->restaurent_opening_hours_day2=($restaurent->restaurent_opening_hours_day2from==00 && $restaurent->restaurent_opening_hours_day2to==00?0:1);
-	$restaurent->restaurent_opening_hours_day3=($restaurent->restaurent_opening_hours_day3from==00 && $restaurent->restaurent_opening_hours_day3to==00?0:1);
-	$restaurent->restaurent_opening_hours_day4=($restaurent->restaurent_opening_hours_day4from==00 && $restaurent->restaurent_opening_hours_day4to==00?0:1);
-	$restaurent->restaurent_opening_hours_day5=($restaurent->restaurent_opening_hours_day5from==00 && $restaurent->restaurent_opening_hours_day5to==00?0:1);
-	$restaurent->restaurent_opening_hours_day6=($restaurent->restaurent_opening_hours_day6from==00 && $restaurent->restaurent_opening_hours_day6to==00?0:1);
-	$restaurent->restaurent_opening_hours_day7=($restaurent->restaurent_opening_hours_day7from==00 && $restaurent->restaurent_opening_hours_day7to==00?0:1);
-	
-	$working_hours=($restaurent->restaurent_opening_hours_day1==1?'Mon '.number_hours($restaurent->restaurent_opening_hours_day1from).' - '.number_hours($restaurent->restaurent_opening_hours_day1to):'Mon Closed').'<br />  ';
-	$working_hours.=($restaurent->restaurent_opening_hours_day2==1?'Tue '.number_hours($restaurent->restaurent_opening_hours_day2from).' - '.number_hours($restaurent->restaurent_opening_hours_day2to):'Tue Closed').'<br /> ';
-	$working_hours.=($restaurent->restaurent_opening_hours_day3==1?'Wed '.number_hours($restaurent->restaurent_opening_hours_day3from).' - '.number_hours($restaurent->restaurent_opening_hours_day3to):'Wed Closed').'<br /> ';
-	$working_hours.=($restaurent->restaurent_opening_hours_day4==1?'Thu '.number_hours($restaurent->restaurent_opening_hours_day4from).' - '.number_hours($restaurent->restaurent_opening_hours_day4to):'Thu Closed').'<br /> ';
-	$working_hours.=($restaurent->restaurent_opening_hours_day5==1?'Fri '.number_hours($restaurent->restaurent_opening_hours_day5from).' - '.number_hours($restaurent->restaurent_opening_hours_day5to):'Fri Closed').' <br />';
-	$working_hours.=($restaurent->restaurent_opening_hours_day6==1?'Sat '.number_hours($restaurent->restaurent_opening_hours_day6from).' - '.number_hours($restaurent->restaurent_opening_hours_day6to):'Sat Closed').' <br />';
-	$working_hours.=($restaurent->restaurent_opening_hours_day7==1?'Sun '.number_hours($restaurent->restaurent_opening_hours_day7from).' - '.number_hours($restaurent->restaurent_opening_hours_day7to):'Sun Closed');
-
-	$open_hours=$working_hours;*/
+function imagethumb_addbg($src,$des,$itype,$exn,$maxwidth,$hght)
+{
+	ini_set('memory_limit', '100M');
+	if(file_exists($src))
+	   	$size=getimagesize($src);
+	$mime_type	=	$size['mime'];
+	$itype	=	substr($mime_type,strpos($mime_type,'/')+1);
+	if($mime_type	==	'image/gif') $exn	= 'gif';
+	if($mime_type	==	'image/pjpeg') $exn	= 'pjpeg';
+	if($mime_type	==	'image/jpg') $exn	= 'jpg';
+	if($mime_type	==	'image/jpeg') $exn	= 'jpeg';
+	if($mime_type	==	'image/png') $exn	= 'png';
+	$n_width=$size[0];
+	$n_height=$size[1];
+	$imagehw = GetImageSize($src);
+	$imagewidth = $imagehw[0];
+	$imageheight = $imagehw[1];
+	$imgorig = $imagewidth;
+	$n_width1 = $maxwidth;
+	$n_height1 = $hght;
+	if (($n_width - $n_width1) > ($n_height - $n_height1))
+	{
+	  //$imageprop=($n_width1*100)/$imagewidth;
+	  //$imagevsize= ($imageheight*$imageprop)/100 ;
+	 	$imagewidth=$n_width1;
+	    $imageheight=($n_width1/$n_width)*$n_height;
+	}else
+	{
+		//$imageprop=($n_height1*100)/$imageheight;
+	  	//$imagevsize= ($imageheight*$imageprop)/100 ;
+	    $imagewidth=($n_height1/$n_height)*$n_width;
+	    $imageheight=$n_height1;
+	}
+	if($imagewidth > $n_width1){
+		$imagewidth = $n_width1;
+		$imageheight = round($imageheight / ($imagewidth/$n_width1));
+	}
+	if($n_width <= $n_width1 && $n_height <= $n_height1){
+		$imagewidth = $n_width;
+		$imageheight = $n_height;
+	}
+	$destimg=ImageCreatetruecolor($n_width1,$n_height1) or die("Problem In Creating image");
+	switch($exn)
+	{
+	case "jpg":
+		$srcimg=ImageCreateFromJPEG($src) or die("Problem In opening Source Image");
+		$destimg=ImageCreatetruecolor($n_width1,$n_height1) or die("Problem In Creating image");
+	break;
+	case "jpeg":
+		$srcimg=ImageCreateFromJPEG($src) or die("Problem In opening Source Image");
+		$destimg=ImageCreatetruecolor($n_width1,$n_height1) or die("Problem In Creating image");
+	break;
+	case "pjpeg":
+		$srcimg=ImageCreateFromJPEG($src) or die("Problem In opening Source Image");
+		$destimg=ImageCreatetruecolor($n_width1,$n_height1) or die("Problem In Creating image");
+	break;
+	case "gif":
+		$srcimg=ImageCreateFromGIF($src) or die("Problem In opening Source Image");
+		$destimg=ImageCreate($n_width1,$n_height1) or die("Problem In Creating image");
+	break;
+	case "png":
+		$srcimg=ImageCreateFromPNG($src) or die("Problem In opening Source Image");
+		$destimg=ImageCreatetruecolor($n_width1,$n_height1) or die("Problem In Creating image");
+	break;
+	}
+	//$int = hexdec('c19383');
+	//$int =  repeat-x scroll 0 top #BD8E7C;
+	$int = hexdec('FFFFFF');
+	$arr = array("red" => 0xFF & ($int >> 0x10),
+               "green" => 0xFF & ($int >> 0x8),
+               "blue" => 0xFF & $int);
+	//$black = ImageColorAllocate($image, $arr["red"], $arr["green"], $arr["blue"]);
+	$transparent = imagecolorallocate($destimg,  $arr["red"], $arr["green"], $arr["blue"]);
+	for($x=0;$x<$n_width1;$x++) {
+           for($y=0;$y<$n_height1;$y++) {
+             imageSetPixel( $destimg, $x, $y, $transparent );
+           }
+         }
+	$dest_x = (( $n_width1 / 2 ) - ( $imagewidth / 2 )); // centered
+	$dest_y = (( $n_height1 / 2 ) - ( $imageheight / 2 )); // centered
+	ImageCopyresampled($destimg,$srcimg,$dest_x,$dest_y,0,0,$imagewidth,$imageheight,$n_width,$n_height) or die("Problem In resizing");
+	if(($itype=="jpeg")||($itype=="jpg")||($itype=="pjpeg"))
+	{
+		//ImageJPEG($destimg,$des) or die("Problem In saving");
+		imagejpeg($destimg,$des);
+	}
+	else
+	if($itype=="gif")
+	{
+		ImageGIF($destimg,$des) or die("Problem In saving");
+	}
+	else
+	if($itype=="png")
+	{
+		ImagePNG($destimg,$des) or die("Problem In saving");
+	}
+	imagedestroy($destimg);
 }
+
+/* Chart Functions Starts */
+	/* To get inbetween dates from the given dates */
+function createDateRangeArray($strDateFrom,$strDateTo)//date format should be ('Y-m-d')
+{
+	// takes two dates formatted as YYYY-MM-DD and creates an
+    // inclusive array of the dates between the from and to dates.
+
+    // could test validity of dates here but I'm already doing
+    // that in the main script
+
+    $aryRange=array();
+    $iDateFrom=mktime(1,0,0,substr($strDateFrom,5,2),     substr($strDateFrom,8,2),substr($strDateFrom,0,4));
+    $iDateTo=mktime(1,0,0,substr($strDateTo,5,2),     substr($strDateTo,8,2),substr($strDateTo,0,4));
+    if ($iDateTo>=$iDateFrom)
+    {
+        array_push($aryRange,date('Y-m-d',$iDateFrom)); // first entry
+        while ($iDateFrom<$iDateTo)
+        {
+            $iDateFrom+=86400; // add 24 hours
+            array_push($aryRange,date('Y-m-d',$iDateFrom));
+        }
+    }
+    return $aryRange;
+}
+function getStringForDay($dataArray,$start_date='',$end_date='',$type='') {
+	foreach($dataArray as $key => $value) {
+			list($month,$day,$year) = explode('/',$value["day"]);
+			$date_format = date('Y-m-d',strtotime($month.'/'.$day.'/'.$year));
+			$data_content_array[$date_format] =$value["TotalPrice"];
+		}
+		if(isset($start_date) && $start_date=='' && isset($end_date) && $end_date=='') {
+			$last_date =  date('m-t-Y');
+			$curr_date = date('Y-m-d');
+			$cur_month = date('m');
+			$cur_year = date('Y');
+			if($type == 1){
+				$start_date = date('Y-m-d',strtotime("-7days"));
+				$end_date = date('Y-m-d',strtotime($curr_date));
+			}
+			else {
+				$start_date = date('Y-m-d',strtotime($cur_year.'-'.$cur_month.'-01'));
+				$end_date = date('Y-m-d',strtotime($curr_date));
+			}
+		} /*else if(isset($start_date) && $start_date!='' && isset($end_date) && $end_date!='') {
+			list($start_date_year,$start_date_month,$start_date_day) = explode('-',$start_date);
+			list($end_date_year,$end_date_month,$end_date_day) = explode('-',$end_date);
+			if($start_date_month==$end_date_month) {
+				$last_date =  date('t-'.$start_date_month.'-Y');
+				$start_date = date('Y-m-d',strtotime($start_date_year.'-'.$start_date_month.'-01'));
+				$end_date = date('Y-m-d',strtotime($last_date));
+			}
+		}*/
+		$date_differ_array = createDateRangeArray($start_date,$end_date);
+		$total_count = count($date_differ_array);
+		foreach($date_differ_array as $key => $value) {
+			if($value!=$start_date && $value!=$end_date) {
+				$exclude_mrgindate_differ_array[$key] = $value;
+			}
+		}
+		if($type == 1){
+			foreach($date_differ_array as $key => $value) {
+				list($year,$month,$date) = explode('-',$value);
+				$month_array[] = $month;
+				if(array_key_exists($value,$data_content_array)) {
+					$category_array[$value] = $data_content_array[$value];
+				} else {
+					$category_array[$value] = 0;
+				}
+			}
+		}
+		else if($total_count<=31) {
+			foreach($date_differ_array as $key => $value) {
+				list($year,$month,$date) = explode('-',$value);
+				$month_array[] = $month;
+				if(array_key_exists($value,$data_content_array)) {
+					$category_array[$value] = $data_content_array[$value];
+				} else {
+					$category_array[$value] = 0;
+				}
+			}
+		} else {
+			$random_category_keys = array_rand($exclude_mrgindate_differ_array,28);
+			$random_date_differ_array[] = $start_date;
+			foreach($random_category_keys as $key => $value) {
+				$random_date_differ_array[] = $date_differ_array[$value];
+			}
+			$random_date_differ_array[] = $end_date;
+			foreach($random_date_differ_array as $key => $value) {
+				list($year,$month,$date) = explode('-',$value);
+				$month_array[] = $month;
+				if(array_key_exists($value,$data_content_array)) {
+					$category_array[$value] = $data_content_array[$value];
+				} else {
+					$category_array[$value] = 0;
+				}
+			}
+		}
+		$month_array = array_unique($month_array);
+		foreach($category_array as $date => $value) {
+			if(isset($month_array) && is_array($month_array) && count($month_array)==1) {
+				list($year,$month,$day) = explode('-',$date);
+				$x_labels[] = $day;
+			} else { 
+				$date_format = date('M d',strtotime($date));
+				$x_labels[] = "'".$date_format."'";
+			}
+			$values[] = $value;
+		}
+		$x_labels_string = implode(',',$x_labels);
+		$value_string = implode(',',$values);
+		return $x_labels_string.'###'.$value_string;
+		
+		
+}
+function getStringForMonth($dataArray) {
+	foreach($dataArray as $key => $value) {
+		$month_arr[] = $value["month"];
+		$value_arr[$value["month"]] = $value["TotalPrice"];
+	}
+	$month_arr = array_unique($month_arr);
+	for($i=1;$i<=12;$i++) {
+		if(in_array($i,$month_arr)) {
+			$category_arr[$i] = $value_arr[$i];
+		} else {
+			$category_arr[$i] = 0;
+		}
+	}
+	foreach($category_arr as $key => $value) {
+		$values[] = $value;
+	}
+	$value_string = implode(',',$values);
+	return $value_string;
+}
+function getStringForHour($dataArray) {
+	foreach($dataArray as $key => $value) {
+		$hour_arr[] = $value["hour"];
+		$value_arr[$value["hour"]] = $value["TotalPrice"];
+	}
+	$hour_arr = array_unique($hour_arr);
+	for($i=1;$i<=24;$i++) {
+		if(in_array($i,$hour_arr)) {
+			$category_arr[$i] = $value_arr[$i];
+		} else {
+			$category_arr[$i] = 0;
+		}
+	}
+	foreach($category_arr as $key => $value) {
+		$x_labels[] = $key;
+		$values[] = $value;
+	}
+	$x_labels_string = implode(',',$x_labels);
+	$value_string = implode(',',$values);
+	return $x_labels_string.'###'.$value_string;
+}
+function GetBetween($var1="",$var2="",$pool){
+	$temp1 = strpos($pool,$var1)+strlen($var1);
+	$result = substr($pool,$temp1,strlen($pool));
+	$dd=strpos($result,$var2);
+	if($dd == 0){
+	$dd = strlen($result);
+	}
+	return substr($result,0,$dd);
+}
+function getStringForDayTime($dataArray) {
+//echo "<pre>"; print_r($dataArray ); echo "</pre>";
+$morning_arr = $noon_arr = $evening_arr  = $value_morning_arr = array();
+$value_morning_arr['Late Night'] = $value_morning_arr['Evening'] = $value_morning_arr['Afternoon'] =  $value_morning_arr['Morning']  = 0;
+	foreach($dataArray as $key => $value) {
+		if ($value["hour"] < 12) {
+    		$morning_arr[] = $value["hour"];
+			$value_morning_arr['Morning'] += $value["TotalPrice"];
+		} else if ($value["hour"]  >= 12 && $value["hour"]  < 16) {
+		    $noon_arr[] = $value["hour"];
+			$value_morning_arr['Afternoon'] += $value["TotalPrice"];
+		} else if($value["hour"] >= 16 && $value["hour"]  < 22) {
+		   $evening_arr[] = $value["hour"];
+		   $value_morning_arr['Evening'] += $value["TotalPrice"];
+		}
+		 else{
+		   $night_arr[] = $value["hour"];
+		   $value_morning_arr['Late Night'] += $value["TotalPrice"];
+		}
+		//$value_morning_arr[] = $value["TotalPrice"];
+	}
+	//echo "<pre>"; print_r( $value_morning_arr); echo "</pre>";
+	foreach($value_morning_arr as $key => $value) {
+		$x_labels[] = $key;
+		$values[] 	= $value;
+	}
+	$x_labels_string 	= implode(',',$x_labels);
+	$value_string 		= implode(',',$values);
+	return $x_labels_string.'###'.$value_string;
+}
+/* Chart Function Ends */
+
+function formOpeningHours($openinghours) {
+	//echo "<pre>"; echo print_r($openinghours); echo "</pre>";
+	$newopeninghours	=	array();
+	foreach($openinghours as $key=>$value) {
+		$value	=	(array)$value;
+		//From time
+		$timeampm = $ampm	=	$hr	=	$min	=	$hrmin	=	'';
+		$time	=	$splittime	=	$fromtime	=	array();
+		
+		$timeampm		=	$value['Start'];
+		if(!empty($timeampm)) {
+			$time					=	explode(" ", $timeampm);
+			$hrmin					=	$time[0];
+			$ampm					=	$time[1];
+			$splittime				=	explode(":", $hrmin);
+			$hr						=	$splittime[0];
+			$min					=	$splittime[1];
+			$fromtime['fromTime']	=	$value['Start'];
+			$fromtime['hr']			=	$hr;
+			$fromtime['min']		=	$min;
+			$fromtime['ampm']		=	$ampm;
+		}
+		//to time			
+		$timeampm = $ampm	=	$hr	=	$min	=	$hrmin	=	'';
+		$time	=	$splittime	=	$toTime	=	array();
+		
+		$timeampm		=	$value['End'];
+		if(!empty($timeampm)) {
+			$time				=	explode(" ", $timeampm);
+			$hrmin				=	$time[0];
+			$ampm				=	$time[1];
+			$splittime			=	explode(":", $hrmin);
+			$hr					=	$splittime[0];
+			$min				=	$splittime[1];
+			$toTime['toTime']	=	$value['End'];
+			$toTime['hr']		=	$hr;
+			$toTime['min']		=	$min;
+			$toTime['ampm']		=	$ampm;
+		}
+		$newopeninghours[$key]['id'] 			= $value['id'];
+		$newopeninghours[$key]['fkMerchantId'] 	= $value['fkMerchantId'];
+		$newopeninghours[$key]['OpeningDay'] 	= $value['OpeningDay'];
+		$newopeninghours[$key]['Start'] 		= $fromtime;
+		$newopeninghours[$key]['End'] 			= $toTime;
+		$newopeninghours[$key]['DateType'] 		= $value['DateType'];
+		$newopeninghours[$key]['DateCreated'] 	= $value['DateCreated'];
+	}
+	return	$newopeninghours;
+}
+
+function time_ago($date,$granularity=2) {
+    $date 	= strtotime($date);
+    $retval	=	'';
+	$difference = time() - $date;
+    $periods = array('decade' => 315360000,
+        'year' => 31536000,
+        'month' => 2628000,
+        'week' => 604800, 
+        'day' => 86400,
+        'hr' => 3600,
+        'min' => 60,
+        'sec' => 1);
+    if ($difference < 5) { // less than 5 seconds ago, let's say "just now"
+        $retval = "just now";
+        return $retval;
+    } else { 
+        foreach ($periods as $key => $value) {
+            if ($difference >= $value) {
+                $time = floor($difference/$value);
+                $difference %= $value;
+                $retval .= ($retval ? ' ' : '').$time.' ';
+                $retval .= (($time > 1) ? $key.'s' : $key);
+                $granularity--;
+            }
+            if ($granularity == '0') { break; }
+			if(!empty($retval))
+				break;
+        }
+        return $retval.' ago';      
+    }
+}
+
 ?>

@@ -232,3 +232,128 @@ $("#add_account_form").submit(function() {
 		return false;
 });
 //--------------------My Account - Opening Hours ------------------end
+
+//-------------- My Store---------------start
+$("#mystore_form").validate({	
+		rules:{
+			ShopName          			:	{ required:true},			
+            ShopDescription			  	:	{ required:true},			
+			Category		  			:	{ required:true },		
+			PriceRange		  			:	{ required:true },		
+			MoreInfo		  			:	{ required:true },	
+			Street		  				:	{ required:true },	
+			City		  				:	{ required:true },	
+			State		  				:	{ required:true },	
+			Country		  				:	{ required:true },	
+			Phone		  				:	{ required:true },	
+			Email		  				:	{ required:true },	
+			Website		  				:	{ required:true },	
+			Facebook		  			:	{ required:true },	
+			Twiter			  			:	{ required:true },	
+			ZipCode			  			:	{ required:true },	
+		},
+		messages:{
+			ShopName      	 			:	{ required:'Shop name is required'},
+			ShopDescription			    :   { required:'ShopDescription is required'},			
+			Category		  			:	{ required:'Category is required' },		
+			MoreInfo		  			:	{ required:'MoreInfo is required' },			
+			Street		  				:	{ required:'Street is required' },			
+			City		  				:	{ required:'City is required' },			
+			State		  				:	{ required:'State is required' },			
+			Country		  				:	{ required:'Country is required' },			
+			Phone		  				:	{ required:'Phone is required' },			
+			Email		  				:	{ required:'Email is required' },			
+			Website		  				:	{ required:'Website is required' },			
+			Facebook		  			:	{ required:'Facebook is required' },			
+			Twiter			  			:	{ required:'Twiter is required' },		
+			ZipCode			  			:	{ required:'ZipCode is required' },		
+		}		
+	});	
+//--------------My Store----------------End
+
+//--------------------My store - Opening Hours ------------------Start
+$("#mystore_form").submit(function() {
+	var validatetime = '1';
+	var myregex = new RegExp("");
+	var checksame = 6;
+	if($('#samehours').is(':checked')) {
+		checksame = 0;
+		$('#row_0').val('1');
+		if($("#from1_0").val() == '' || $("#from1_0").val() == ''){
+			$('#error_0').html('Enter From time and To time.');
+			validatetime = '0';
+			return false;
+		}
+	} else {
+		$('#row_0').val('');
+	}
+	for(i=0;i<=checksame;i++) {
+		$('#error_'+i).html('');
+		if($('#row_'+i).val() != '') {
+			if(!$("#from1_"+i).val().match(/^(0?[1-9]|1[012])(:[0-5]\d) [APap][mM]$/)) {			
+				$('#error_'+i).html('Invalid From time. It should be in HH:MM AM or HH:MM PM');
+				validatetime = '0';
+			}
+			else if(!$("#to1_"+i).val().match(/^(0?[1-9]|1[012])(:[0-5]\d) [APap][mM]$/)) {			
+				$('#error_'+i).html('Invalid To time. It should be in HH:MM AM or HH:MM PM');
+				validatetime = '0';
+			}
+			else {
+				var start = $('#from1_'+i).val();
+				start = start.toLowerCase();
+                var end = $('#to1_'+i).val();
+				end = end.toLowerCase();
+				if(start != '' && end != '') {
+					if(start == end) {
+						$('#error_'+i).html('From time and To time should not be same');
+						validatetime = '0';
+					}
+					//Start time
+					var startsplit 		= start.split(" ");
+					var startarray 		= startsplit[0].split(":").map(Number);
+					if(startsplit[1] == 'pm') {
+						startarray[0] = startarray[0] + 12;
+					}
+					//End Time
+					var endsplit 		= end.split(" ");
+					var endarray 		= endsplit[0].split(":").map(Number);	
+					if(endsplit[1] == 'pm') {
+						endarray[0] = endarray[0] + 12;
+					}
+					//Checking
+					if((startarray[0] > endarray[0]) || ((startarray[0] == endarray[0]) && (startarray[1] > endarray[1]))) {
+						$('#error_'+i).html('To time must be greater then From time');
+						validatetime = '0';
+					}					
+				}				
+			}
+		}
+	}	
+	
+	if(validatetime == '1')
+		return true;
+	else
+		return false;
+});
+//--------------------My store - Opening Hours ------------------end
+
+//--------------Add Mangopay---------------start
+$("#add_mangopay_account").validate({
+		rules:{
+			FirstName          :	{ required:true},
+			LastName           :	{ required:true},
+			Address	       	   :    { required:true},
+            Country			   :	{ required:true},
+			Currency		   :	{ required:true },
+			DOB				   :	{ required:true }
+		},
+		messages:{
+			FirstName       	:	{ required:'First Name is required'},
+			LastName       		:	{ required:'Last Name is required'},
+			Address				:	{ required:'Address is required'},
+			Country				:	{ required:'Country is required'},
+			Currency		    :   { required:'Currency is required'},
+			DOB				    :   { required:'Birth date is required'}
+		}
+	});
+//--------------Add Mangopay-----------End

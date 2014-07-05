@@ -139,5 +139,43 @@ class UserModel extends Model
 		$insertId = $this->sqlInsertId();
         return $insertId;
 	}
+	function getUserListPN($fields,$condition)
+	{
+		$limit_clause='';
+		$sorting_clause = ' id desc';
+		if(!empty($_SESSION['ordertype']))
+			$sorting_clause = $_SESSION['orderby'] . ' ' . $_SESSION['ordertype'];
+		if(isset($_SESSION['sortBy']) && isset($_SESSION['orderType']))
+			$sorting_clause	= $_SESSION['sortBy']. ' ' .$_SESSION['orderType'];
+		if(isset($_SESSION['curpage']))
+			$limit_clause = ' LIMIT '.(($_SESSION['curpage'] - 1) * ($_SESSION['perpage'])) . ', '. $_SESSION['perpage'];
+		if(isset($_SESSION['tuplit_sess_user_platform']) && $_SESSION['tuplit_sess_user_platform'] != '')
+			$condition .= " and u.Platform  = ".$_SESSION['tuplit_sess_user_platform'];
+		if(isset($_SESSION['tuplit_sess_user_name']) && $_SESSION['tuplit_sess_user_name'] != '')
+			$condition .= " and ( u.FirstName LIKE '%".$_SESSION['tuplit_sess_user_name']."%' || u.LastName LIKE '%".$_SESSION['tuplit_sess_user_name']."%' )";
+		if(isset($_SESSION['tuplit_sess_email']) && $_SESSION['tuplit_sess_email'] != '')
+			$condition .= " and u.Email LIKE '".$_SESSION['tuplit_sess_email']."%' ";
+		if(isset($_SESSION['tuplit_sess_user_status']) && $_SESSION['tuplit_sess_user_status'] != '')
+			$condition .= " and u.Status = '".$_SESSION['tuplit_sess_user_status']."' ";
+		if(isset($_SESSION['tuplit_sess_country']) && $_SESSION['tuplit_sess_country'] != '')
+			$condition .= " and u.Country LIKE '%".$_SESSION['tuplit_sess_country']."%' ";
+		if(isset($_SESSION['tuplit_sess_location']) && $_SESSION['tuplit_sess_location'] != '')
+			$condition .= " and u.Location LIKE '%".$_SESSION['tuplit_sess_location']."%' ";
+		$sql = "select ".$fields." from {$this->userTable} 
+				WHERE 1 ".$condition." ORDER BY ".$sorting_clause." ";	
+		$result	=	$this->sqlQueryArray($sql);
+		if(count($result) == 0) return false;
+		else return $result;
+	}
+	function getDevicetoken($fields, $condition){
+		$sql	 =	"select ".$fields." from {$this->devicetokenTable} where ".$condition;
+		$result = 	$this->sqlQueryArray($sql);
+		if($result) return $result;
+			else false;
+	}
+	function updateBadge($token){
+		$sql	 =	"update {$this->devicetokenTable} set BadgeCount = BadgeCount + 1 where DeviceToken = '".$token."'";
+		$result = 	$this->updateInto($sql);
+	}
 }
 ?>

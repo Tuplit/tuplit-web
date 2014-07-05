@@ -4,30 +4,31 @@ require_once('includes/CommonIncludes.php');
 $msg_class 		= "alert alert-danger alert-dismissable col-xs-12";
 $class_icon   	= "fa-warning";
 $doLogin  = 0;
+
 //echo'<pre>';print_r($_SESSION);echo'</pre>';die();
 if(isset($_COOKIE['tuplit_merchant_email']) && $_COOKIE['tuplit_merchant_email'] != '' && isset($_COOKIE['tuplit_merchant_password']) && $_COOKIE['tuplit_merchant_password'] != '' && isset($_COOKIE['tuplit_merchant_logout']) && $_COOKIE['tuplit_merchant_logout'] != '') {
-	$cookie_email = $_COOKIE['tuplit_merchant_email'];
-	$cookie_password = decryption($_COOKIE['tuplit_merchant_password']);
+	$cookie_email 		= 	$_COOKIE['tuplit_merchant_email'];
+	$cookie_password 	= 	decryption($_COOKIE['tuplit_merchant_password']);
 	if($_COOKIE['tuplit_merchant_logout'] == 'login') {
-			$data	=	array(
-					'ClientId' => CLIENT_ID,
-					'ClientSecret' => CLIENT_SECRET,
-					'Email' => $cookie_email,
-					'Password' => $cookie_password
-				);
-			$doLogin  = 1;
+			$data		=	array(
+							'ClientId' => CLIENT_ID,
+							'ClientSecret' => CLIENT_SECRET,
+							'Email' => $cookie_email,
+							'Password' => $cookie_password
+						);
+			$doLogin  	= 	1;
 	}
 	else{
 		if(!empty($cookie_email) || !empty($cookie_password) )
-		$cookie_rem = 1;
+		$cookie_rem 	= 	1;
 	}
 }
 
 //login after sign up process
 if(isset($_GET['type']) && $_GET['type'] == 1){
-	$responseMessage = 'You have registered successfully.Please wait till you get approval mail.';
-	$msg_class 		 = "alert alert-success alert-col-xs-4";
-	$class_icon   	 = "fa-check";
+	$responseMessage 	= 	'You have registered successfully.Please wait till you get approval mail.';
+	$msg_class 		 	= 	"alert alert-success alert-col-xs-4";
+	$class_icon   		= 	"fa-check";
 }
 
 if (isset($_SESSION['merchantInfo']['AccessToken']) && $_SESSION['merchantInfo']['AccessToken'] != ''){
@@ -35,37 +36,38 @@ if (isset($_SESSION['merchantInfo']['AccessToken']) && $_SESSION['merchantInfo']
 	die();
 }
 if(isset($_SESSION['ErrorMessages']) && $_SESSION['ErrorMessages'] !=''){
-	$responseMessage 	= $_SESSION['ErrorMessages'];
+	$responseMessage 	= 	$_SESSION['ErrorMessages'];
 	unset($_SESSION['ErrorMessages']);
 }
 
 $error = '';
 if(isset($_POST['merchant_login_submit']) && $_POST['merchant_login_submit'] == 'LOG IN'){
-	$data	=	array(
-					'ClientId' => CLIENT_ID,
-					'ClientSecret' => CLIENT_SECRET,
-					'Email' => $_POST['Email'],
-					'Password' => $_POST['Password']
-				);
-	$doLogin  = 1;
+	$data				=	array(
+							'ClientId' => CLIENT_ID,
+							'ClientSecret' => CLIENT_SECRET,
+							'Email' => $_POST['Email'],
+							'Password' => $_POST['Password']
+						);
+	$doLogin  			= 	1;
 }
 if($doLogin){
-	$url			=	WEB_SERVICE.'oauth2/password/token/merchants/';
-	$method			=	'POST';
-	$curlResponse	=	curlRequest($url,$method,$data);
+	$url							=	WEB_SERVICE.'oauth2/password/token/merchants/';
+	$method							=	'POST';
+	$curlResponse					=	curlRequest($url,$method,$data);
 	if(isset($curlResponse) && is_array($curlResponse) && $curlResponse['meta']['code'] == 201 && $curlResponse['login']['Status'] == 'success' ) {
 		$_SESSION['merchantInfo']   =	$curlResponse['login'];
+		
 		//cookie assign		
 		if (isset($_POST['remember_me']) && $_POST['remember_me'] != '' && $_POST['remember_me'] == 'on') {			
 			setCookies($_POST);
 		} else {
 			destroyCookies();
 		}
-		//echo'<pre>';print_r($_SESSION['merchantInfo'] );echo'</pre>';die();
+		
 		//login after sign up process		
-		$merchantId			= 	$_SESSION['merchantInfo']['MerchantId'];
-		$url				=	WEB_SERVICE.'v1/merchants/'.$merchantId;
-		$curlMerchantResponse 	= 	curlRequest($url, 'GET', null, $_SESSION['merchantInfo']['AccessToken']);	
+		$merchantId					= 	$_SESSION['merchantInfo']['MerchantId'];
+		$url						=	WEB_SERVICE.'v1/merchants/'.$merchantId.'?From=0';
+		$curlMerchantResponse 		= 	curlRequest($url, 'GET', null, $_SESSION['merchantInfo']['AccessToken']);
 		if(isset($curlMerchantResponse) && is_array($curlMerchantResponse) && $curlMerchantResponse['meta']['code'] == 201 && $curlMerchantResponse['merchant']['MerchantId'] != '' ) {
 			$_SESSION['merchantDetailsInfo']   =	$curlMerchantResponse['merchant'];
 			if(isset($curlMerchantResponse['merchant']['Address']) && !empty($curlMerchantResponse['merchant']['Address'])){
@@ -81,9 +83,9 @@ if($doLogin){
 			$responseMessage 	= 	$curlMerchantResponse['meta']['errorMessage'];
 		}
 	} else if(isset($curlResponse['meta']['errorMessage']) && $curlResponse['meta']['errorMessage'] != '') {
-		$responseMessage	=	$curlResponse['meta']['errorMessage'];
+		$responseMessage		=	$curlResponse['meta']['errorMessage'];
 	} else {
-		$responseMessage 	= 	"Bad Request";
+		$responseMessage 		= 	"Bad Request";
 	}
 }
 commonHead();
@@ -114,7 +116,7 @@ commonHead();
 					</div>
 				</div>
 				<div class="footer">                                                               
-					<input type="submit" name="merchant_login_submit" id="merchant_login_submit" title="LOG IN" value="LOG IN" class="btn btn-success btn-lg btn-block ">
+					<input type="submit" name="merchant_login_submit" id="merchant_login_submit" title="LOG IN" value="LOG IN" class="btn btn-success btn-lg btn-block top-margin">
 				</div>
 				
 				<div class="" align="center"><a href="Signup" title="Sign Up"><i class="fa fa-long-arrow-right"></i>&nbsp;&nbsp;Sign Up</a></div>

@@ -45,12 +45,12 @@ class MerchantController extends Controller
 			return $this->MerchantModelObj->selectMerchantDetail($id);
 	}
 	
-	function updateDetails($data,$icon,$img,$openhours)
+	function updateDetails($data,$icon,$img)
 	{
 		if (!isset($this->MerchantModelObj))
 			$this->loadModel('MerchantModel', 'MerchantModelObj');
 		if ($this->MerchantModelObj)
-			return $this->MerchantModelObj->updateDetails($data,$icon,$img,$openhours);
+			return $this->MerchantModelObj->updateDetails($data,$icon,$img);
 	}
 	
 	function updateShoppingHours($data)

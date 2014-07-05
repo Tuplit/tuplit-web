@@ -220,7 +220,7 @@ commonHead(); ?>
 	
 		<div class="row">
 		<!-- left column -->
-			<div class="col-md-12 slider_page">
+			<div class="col-md-12 col-lg-8 slider_page">
 			<form name="add_home_slider_form" id="add_home_slider_form" action="" method="post" >
 				<div class="box box-primary no-padding">
 					<div class="box-header no-padding">
@@ -228,7 +228,7 @@ commonHead(); ?>
 					</div>
 					
 					<?php if(isset($msg) && $msg != '') { ?>
-					<div align="center" class="alert <?php  echo $class;  ?> alert-dismissable col-sm-5"><i class="fa fa-check"></i>  <?php echo $msg; ?></div>
+					<div align="center" class="alert <?php  echo $class;  ?> alert-dismissable col-sm-5 col-xs-11"><i class="fa fa-check"></i>  <?php echo $msg; ?></div>
 					<?php } ?>
 					
 					<div class="box-body">
@@ -258,11 +258,11 @@ commonHead(); ?>
 							$i++;?>
 						<?php if(isset($h_val->id) && $h_val->id != ''){?>
 							<div class="row  pad" id="exist_id_home_<?php echo $h_val->id;?>" clone="<?php echo $i;?>">
-								<div class="col-md-3">Slider Image <?php echo $i;?></div>
-								<div class="col-md-6" id="">
+								<div class="col-md-3 col-xs-3">Slider Image <?php echo $i;?></div>
+								<div class="col-md-6 col-xs-6" id="">
 									<div class="col-sm-8 "> <input type="file"  class="file_input_old" name="Slider_Image_Old_<?php echo $i;?>" id="Slider_Image_Old_<?php echo $i;?>" title="Home Slider" onclick="" onchange="return ajaxAdminFileUploadProcess('Slider_Image_Old_<?php echo $i;?>');"  /></div>
 								
-									<div class="col-sm-4 " align="center">
+									<div class="col-sm-4 ">
 										<div id="Slider_Image_Old_<?php echo $i;?>_img">
 										<?php  if(isset($original_path) && $original_path != '') {  ?>
 											<a <?php if(isset($original_path) && $original_path != '') {  ?> href="<?php echo $original_path; ?>" class="fancybox"<?php } else { ?> href="Javascript:void(0);"<?php } ?> ><?php if(isset($original_path) && $original_path != '') { ?> <img class="img_border" width="75" height="75" src="<?php echo $original_path;?>"><?php } ?></a>
@@ -270,7 +270,7 @@ commonHead(); ?>
 										</div>
 									</div>
 								</div>
-								<div class="col-md-3 ">
+								<div class="col-md-3 col-xs-3 slider-order-image">
 									<div class="col-sm-6 no-padding">
 										<input type="text" class="form-control" maxlength="4"  value="<?php echo $h_val->Order;?>" id="order_0" name="order[]" onchange="setOrderingSlider(this.value,'<?php echo $h_val->id;?>',1);" onkeypress="return isNumberKey(event);" maxlength="5"> 
 										<input type="hidden" class=""  value="<?php echo $h_val->id;?>" id="hdden_id_val_<?php echo $i;?>" name="hdden_id_val_<?php echo $i;?>">
@@ -292,14 +292,14 @@ commonHead(); ?>
 						<?php } } ?>
 						
 							<div <?php if ($home_count != 0) {?> style="display:none" <?php } ?>class="row pad" id="slider_home" clone="<?php echo $home_count+1;?>">
-								<div class="col-md-3" id="Slider_image_name">Slider Image <?php echo $home_id_count+1;?></div>
+								<div class="col-md-3 col-xs-3" id="Slider_image_name">Slider Image <?php echo $home_id_count+1;?></div>
 								
-								<div class="col-md-6">
+								<div class="col-md-6 col-xs-6">
 									<div class="col-sm-8 " id="slider_home_new"><input type="file" class="file_input"   name="Slider_Image_<?php echo $home_count+1;?>" id="Slider_Image_<?php echo $home_count+1;?>" title="Home Slider" onclick="" onchange="return ajaxAdminFileUploadProcess(this.name);"  />
 										<span class="error" for="empty_Slider_Image_<?php echo $home_count+1;?>" generated="true" style="display: none">Slider Image is required</span>
 									</div>
 								
-									<div class="col-sm-4" align="center">
+									<div class="col-sm-4">
 										<div class="image_disp" id="Slider_Image_<?php echo $home_count+1;?>_img"></div>
 									</div>
 								</div><!-- /col-md-6 -->
@@ -308,7 +308,7 @@ commonHead(); ?>
 								<?php  }  ?>
 								<input class="hidd_1" type="Hidden" name="empty_Slider_Image_<?php echo $home_count+1;?>" id="empty_Slider_Image_<?php echo $home_count+1;?>" value="" />
 								<input class="hidd_2" type="Hidden" name="name_Slider_Image_<?php echo $home_count+1;?>" id="name_Slider_Image_<?php echo $home_count+1;?>" value="" />
-								<div class="col-md-3 ">
+								<div class="col-md-3 col-xs-3 slider-order-image">
 									<div class="col-sm-6 no-padding">
 										<input type="text" class="form-control" maxlength="4"  value="<?php echo $home_count+1;?>" id="order_<?php echo $home_count+1;?>" name="order[]" onchange="ChangeImageName(1,this.value,this.id);">
 										<input type="hidden" value="<?php echo $home_count+1;?>" id="hidden_home_count_<?php echo $home_count+1;?>" name="hidden_home_count" class="Hidden4"> 
@@ -337,7 +337,7 @@ commonHead(); ?>
 						<i class="fa fa-picture-o"></i><h3 class="box-title">Tutorial Slider Images</h3>
 					</div>
 					<?php if(isset($msg1) && $msg1 != '') { ?>
-						<div align="center" class="alert <?php  echo $class1;  ?> alert-dismissable col-sm-5"><i class="fa fa-check"></i>  <?php echo $msg1; ?></div>
+						<div align="center" class="alert <?php  echo $class1;  ?> alert-dismissable col-sm-5 col-xs-11"><i class="fa fa-check"></i>  <?php echo $msg1; ?></div>
 					<?php } ?>
 					<div class="box-body">
 					
@@ -367,12 +367,12 @@ commonHead(); ?>
 							
 						<?php if(isset($t_val->id) && $t_val->id != ''){?>
 							<div class="row  pad" id="exist_id_tutorial_<?php echo $t_val->id;?>" clone="<?php echo $i_val;?>">
-								<div class="col-md-3">Tutorial Image <?php echo $i_val;?></div>
-								<div class="col-md-6" id="">
+								<div class="col-md-3 col-xs-3">Tutorial Image <?php echo $i_val;?></div>
+								<div class="col-md-6 col-xs-6" id="">
 									<div class="col-sm-8 ">
 										<input type="file"  class="file_input_old" name="Tutorial_Image_Old_<?php echo $i_val;?>" id="Tutorial_Image_Old_<?php echo $i_val;?>" title="Tutorial Slider" onclick="" onchange="return ajaxAdminFileUploadProcess('Tutorial_Image_Old_<?php echo $i_val;?>');"  />
 									</div>
-									<div class="col-sm-4" align="center">
+									<div class="col-sm-4">
 										<div id="Tutorial_Image_Old_<?php echo $i_val;?>_img">
 										<?php  if(isset($original_path_tutorial) && $original_path_tutorial != ''){  ?>
 											<a <?php if(isset($original_path_tutorial) && $original_path_tutorial != '') {  ?> href="<?php echo $original_path_tutorial; ?>" class="fancybox"<?php } else { ?> href="Javascript:void(0);"<?php } ?>  >
@@ -382,7 +382,7 @@ commonHead(); ?>
 									</div>
 								</div><!-- /col-md-6 -->
 								
-								<div class="col-md-3">
+								<div class="col-md-3 col-xs-3 slider-order-image">
 									<div class="col-sm-6 no-padding">
 										<input type="text" class="form-control" maxlength="4"  value="<?php echo $t_val->Order;?>" id="order_0" name="order[]" onchange="setOrderingSlider(this.value,'<?php echo $t_val->id;?>',2);" onkeypress="return isNumberKey(event);" maxlength="5"> 
 										<input type="hidden" class="" maxlength="4"  value="<?php echo $t_val->id;?>" id="hdden_id_val_<?php echo $i_val;?>" name="hdden_id_val_<?php echo $i_val;?>">
@@ -400,13 +400,13 @@ commonHead(); ?>
 							<input type="hidden" class="" maxlength="4"  value="<?php echo $tutorial_id_count;?>" id="hidden_tutorial_count" name="hidden_tutorial_count">
 						<?php } } ?>
 							<div class="row pad" <?php if ($tutorial_count != 0) {?> style="display:none" <?php } ?> id="slider_tutorial" clone="<?php echo $tutorial_count+1;?>">
-								<div class="col-md-3" id="Tutorial_image_name">Tutorial Image <?php echo $tutorial_id_count+1;?></div>
-								<div class="col-md-6" id="slider_tutorial_new">
+								<div class="col-md-3 col-xs-3" id="Tutorial_image_name">Tutorial Image <?php echo $tutorial_id_count+1;?></div>
+								<div class="col-md-6 col-xs-6" id="slider_tutorial_new">
 									<div class="col-sm-8 ">
 										<input type="file" class="file_input"   name="Tutorial_Image_<?php echo $tutorial_count+1;?>" id="Tutorial_Image_<?php echo $tutorial_count+1;?>" title="Tutorial Slider" onclick="" onchange="return ajaxAdminFileUploadProcess(this.name);"  />
 										<span class="error" for="empty_Tutorial_Image_<?php echo $tutorial_count+1;?>" generated="true" style="display: none">Slider Image is required</span>
 									</div>
-									<div class="col-sm-4" align="center">
+									<div class="col-sm-4">
 										<div class="image_disp" id="Tutorial_Image_<?php echo $tutorial_count+1;?>_img"></div>
 									</div>
 								</div>
@@ -415,7 +415,7 @@ commonHead(); ?>
 								<?php  }  ?>
 								<input class="hidd_1" type="Hidden" name="empty_Tutorial_Image_<?php echo $tutorial_count+1;?>" id="empty_Tutorial_Image_<?php echo $tutorial_count+1;?>" value="<?php  //if(isset($SLIDERImageName) && $SLIDERImageName != '') { echo $SLIDERImageName; }  ?>" />
 								<input class="hidd_2" type="Hidden" name="name_Tutorial_Image_<?php echo $tutorial_count+1;?>" id="name_Tutorial_Image_<?php echo $tutorial_count+1;?>" value="<?php  //if(isset($SLIDERImageName) && $SLIDERImageName != '') { echo $SLIDERImageName; }  ?>" />
-								<div class="col-md-3">
+								<div class="col-md-3 col-xs-3 slider-order-image">
 									<div class="col-sm-6 no-padding">
 										<input type="text" class="form-control" maxlength="4"  onchange="ChangeImageName(2,this.value,this.id);" value="<?php echo $tutorial_count+1;?>" id="order_<?php echo $tutorial_count+1;?>" name="order[]">
 										<input type="Hidden" value="<?php echo $tutorial_count+1;?>" id="hidden_tutorial_count_<?php echo $tutorial_count+1;?>" name="hidden_tutorial_count" class="Hidden4"> 
