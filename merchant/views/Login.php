@@ -110,7 +110,7 @@ commonHead();
 						<input type="password" name="Password" id="Password" class="form-control" placeholder="Password" value="<?php if(isset($_POST['Password']) && $_POST['Password'] != '') echo $_POST['Password']; else if(isset($cookie_password) && !empty($cookie_password)) echo $cookie_password;?>"/>
 					</div>          
 					<div class="form-group">
-						<div class="col-xs-6 no-padding"><input type="checkbox" id='remember_me'  name="remember_me" class="fleft"<?php if(isset($_POST['remember_me']) && $_POST['remember_me']  == 'on') echo "checked";  else if(!isset($_POST['Email']) && isset($cookie_rem) && $cookie_rem == '1')  echo "checked"; ?>><label for='remember_me' class="fleft">&nbsp;&nbsp;Remember me</label></div>
+						<div class="col-xs-6 no-padding"><input type="checkbox" id='remember_me'  name="remember_me" class="fleft no-margin"<?php if(isset($_POST['remember_me']) && $_POST['remember_me']  == 'on') echo "checked";  else if(!isset($_POST['Email']) && isset($cookie_rem) && $cookie_rem == '1')  echo "checked"; ?>><label for='remember_me' class="fleft">&nbsp;&nbsp;Remember me</label></div>
 						<div class="col-xs-6 no-padding" align="right"><a href="ForgotPassword" title="Forgot password"><i class="fa fa-lock"></i>&nbsp;&nbsp;Forgot password</a></div>
 						
 					</div>

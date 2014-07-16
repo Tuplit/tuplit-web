@@ -10,7 +10,8 @@ unset($_SESSION['ordertype']);
 if(isset($_GET['viewId']) && $_GET['viewId'] != '' ){
 	$condition       = " id = ".$_GET['viewId']." and Status in (1,2) LIMIT 1 ";	
 	//$field			= " user.UserName,user.Name,user.Email,user.FBId,user.TwitterId,user.Photo,user.CoverPhoto,user.Location,ct.ContactId,htp.fkHashTagId,ht.hashTagName,user.DateCreated,user.ActualPassword,user.EmailNotification ";
-	$field				=	' id,FirstName,LastName,Email,FBId,GooglePlusId,Photo,PinCode,Location,Country,ZipCode,DateCreated,PushNotification,Platform,SendCredit,RecieveCredit,BuySomething,CellNumber';
+	$field				=	' id,FirstName,LastName,Email,FBId,GooglePlusId,Photo,PinCode,Location,Country,ZipCode,DateCreated,PushNotification,Platform,SendCredit,
+							 RecieveCredit,BuySomething,CellNumber,MangoPayUniqueId,WalletId';
 	$userDetailsResult  = $userObj->selectUserDetails($field,$condition);
 	if(isset($userDetailsResult) && is_array($userDetailsResult) && count($userDetailsResult) > 0){
 		$_GET['viewId']				= $userDetailsResult[0]->id;
@@ -32,6 +33,8 @@ if(isset($_GET['viewId']) && $_GET['viewId'] != '' ){
 		$BuySomething   			= $userDetailsResult[0]->BuySomething;
 		$Platform					= $userDetailsResult[0]->Platform;
 		$CellNumber					= $userDetailsResult[0]->CellNumber;
+		$MangoPayId					= $userDetailsResult[0]->MangoPayUniqueId;
+		$WalletId					= $userDetailsResult[0]->WalletId;
 		$image_path = ADMIN_IMAGE_PATH.'no_user.jpeg'; 
 		$original_image_path = '';
  		if(isset($userDetailsResult[0]->Photo) && $userDetailsResult[0]->Photo != ''){
@@ -152,7 +155,19 @@ if(isset($_GET['viewId']) && $_GET['viewId'] != '' ){
 					<div  class="col-xs-6  col-sm-7">
 						<?php if(isset($Platform) && $Platform != '' ) echo $platformArray[$Platform]; else echo '-'; ?>
 					</div>
-				</div>												
+				</div>			
+				<div class="form-group col-xs-12 col-sm-6 row">
+					<label class="col-xs-6  col-sm-5" >MangoPay Id</label>
+					<div  class="col-xs-6  col-sm-7">
+						<?php if(isset($MangoPayId) && $MangoPayId != '' ) echo $MangoPayId; else echo '-'; ?>
+					</div>
+				</div>	
+				<div class="form-group col-xs-12 col-sm-6 row">
+					<label class="col-xs-6  col-sm-5" >Wallet Id</label>
+					<div  class="col-xs-6  col-sm-7">
+						<?php if(isset($WalletId) && $WalletId != '' ) echo $WalletId; else echo '-'; ?>
+					</div>
+				</div>											
 				<div class="form-group col-xs-12 col-sm-6 row">
 					<label class="col-xs-6  col-sm-5" >Photo</label>
 					<div  class="col-xs-6  col-sm-7">

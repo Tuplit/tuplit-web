@@ -250,12 +250,12 @@ else {
 					<div class="form-group col-sm-6 col-xs-12 clear">
 						<label>Image</label>
 						<div class="row">
-						    <div class="col-sm-6"> 
+						    <div class="col-sm-8 col-md-6"> 
 								<input type="file"  name="product_photo" id="product_photo" title="User Photo" onclick="" onchange="return ajaxAdminFileUploadProcess('product_photo');"  /> 
 								<p class="help-block">(Minimum dimension 100x100)</p>
 								<span class="error" for="empty_product_photo" generated="true" style="display: none">User Image is required</span>
 							</div>
-						    <div class="col-sm-3 ">
+						    <div class="col-sm-4 ">
 						         <div id="product_photo_img">
 									<?php  
 									if(isset($image_path) && $image_path != ''){  ?>
@@ -273,13 +273,13 @@ else {
 					<div class="form-group col-sm-6 col-xs-12 clear ">
 						<label>Image</label>
 						<div class="row">
-							<div class="col-sm-6"> 
+							<div class="col-sm-8 col-md-7"> 
 								<input type="file"  name="product_photo" id="product_photo" title="User Photo" onclick="" onchange="return ajaxAdminFileUploadProcess('product_photo');"  /> 
 								<p class="help-block">(Minimum dimension 100x100)</p>
 								<span class="error" for="empty_product_photo" generated="true" style="display: none">User Image is required</span>
 							</div><!-- imageValidation('empty_cat_sel_photo'); -->
 						
-							<div class="col-sm-3 " >
+							<div class="col-sm-4 " >
 						      <div id="product_photo_img">
 								<?php  
 								if(isset($image_path) && $image_path != ''){  ?>

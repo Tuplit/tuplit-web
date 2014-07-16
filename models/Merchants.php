@@ -76,7 +76,7 @@ class Merchants extends RedBean_SimpleModel implements ModelBaseInterface {
 	* Create an merchant account
 	* Validation for email
 	*/
-    public function create(){ 
+    public function create($type=''){ 
 		 
 		/**
 		* Get the bean
@@ -85,7 +85,7 @@ class Merchants extends RedBean_SimpleModel implements ModelBaseInterface {
         $bean 						= 	$this->bean;
 		
 		// validate the model
-        $this->validate();
+        $this->validate($type);
 
         // validate the creation
         $this->validateCreate();
@@ -117,16 +117,25 @@ class Merchants extends RedBean_SimpleModel implements ModelBaseInterface {
     * Validate the model
     * @throws ApiException if the models fails to validate required fields
     */
-    public function validate()
+    public function validate($type='')
     {
-		$bean = $this->bean;		
-		$rules = [
-			'required' => [
-				 ['FirstName'],['LastName'],['Email'],['Password'],['CompanyName']
-			],
-			'Email' => 'Email',
-		];
-		
+		$bean = $this->bean;
+		if($type != '') {
+			$rules = [
+				'required' => [
+					 ['FirstName'],['LastName'],['Email'],['PhoneNumber'],['BusinessName'],['BusinessType'],['CompanyName'],['RegisterCompanyNumber'],['Address'],['Country'],['PostCode'],['Password'],['Currency'],['HowHeared']
+				],
+				'Email' => 'Email',
+			];
+		}
+		else {
+			$rules = [
+				'required' => [
+					 ['FirstName'],['LastName'],['Email'],['Password'],['CompanyName']
+				],
+				'Email' => 'Email',
+			];
+		}
         $v = new Validator($this->bean);
         $v->rules($rules);
         if (!$v->validate()) {
@@ -201,6 +210,7 @@ class Merchants extends RedBean_SimpleModel implements ModelBaseInterface {
     public function validateModifyMerchant($iconExist,$merchantExist)
     {
 		$bean 		= 	$this->bean;
+		//$temp 		= 	array(array('CompanyName'),array('Address'),array('PhoneNumber'),array('WebsiteUrl'),array('DiscountTier'),array('PriceRange'));
 		$temp 		= 	array(array('CompanyName'),array('Address'),array('PhoneNumber'),array('WebsiteUrl'),array('DiscountTier'),array('PriceRange'));
 		if($iconExist == '' && $merchantExist == '' ){
 		   $temp[] 	= 	array('IconPhoto');
@@ -267,6 +277,7 @@ class Merchants extends RedBean_SimpleModel implements ModelBaseInterface {
     public function getMerchantsDetails($merchantId){
 		global	$discountTierArray;
 		$fields	= $userId = $joinCondition	=  $latitude = $longitude ='';
+		$alreadyFavourited	= $AllowCart = 0;
 		$bean 	= $this->bean;
 		$userId = $bean->UserId;
 		if($bean->From != '')
@@ -285,9 +296,10 @@ class Merchants extends RedBean_SimpleModel implements ModelBaseInterface {
 		
 			//validate merchant
 			$this->validateMerchants($merchantId,3);
-			
+//			echo "==============".$userId;die();
 			//Already Favourited
 			if(!empty($userId) && !empty($latitude) && !empty($longitude)){
+			
 				$this->validateUser($userId);				
 				$fields			.= ",FavouriteType as AlreadyFavourited";
 				$joinCondition	= "LEFT JOIN favorites as f ON(m.id = f.fkMerchantsId and f.fkMerchantsId = ".$merchantId." and f.fkUsersId = ".$userId." and FavouriteType = 1) ";
@@ -296,9 +308,10 @@ class Merchants extends RedBean_SimpleModel implements ModelBaseInterface {
 		
 		// Merchant details		
 		$sql 	= "SELECT m.id,m.id as MerchantId,m.FirstName,m.LastName,m.Email,m.CompanyName,m.Address,m.Location,m.Latitude,
-				  m.Longitude,m.PhoneNumber,m.WebsiteUrl,m.Icon,m.Image,m.Description,m.ShortDescription,m.MangoPayUniqueId,
+				  m.Longitude,m.PhoneNumber,m.WebsiteUrl,m.Icon,m.Image,m.Description,m.ShortDescription,m.MangoPayUniqueId,m.City,m.FBId,m.TwitterId,m.PostCode,m.Country,m.State,
 				  m.DiscountTier, m.DiscountType, m.DiscountProductId,m.SpecialIcon,m.ItemsSold,m.OpeningHours,m.PriceRange,m.SpecialsSold".$fields." 
 				  FROM merchants as m	".$joinCondition."	where m.Status = 1 and m.id=".$merchantId." ";
+		//echo '-->'. $sql .'<br>';		  die();
 		$merchants 		= R::getAll($sql);
 		$merchants 		= $merchants[0];		
         if (!$merchants) {
@@ -308,20 +321,23 @@ class Merchants extends RedBean_SimpleModel implements ModelBaseInterface {
 		else
 		{	
 			//condition to check whether we can allow cart to be enabled
-			if(isset($merchants['distance']) && !empty($merchants['distance'])) {					
-				$result 		= R::findOne('admins', 'id = ? ', array('1'));
-				$distanceLimit 	= $result->LocationLimit;
-				if($merchants['distance'] > $distanceLimit) 
-					$AllowCart = 0;
-				else
-					$AllowCart = 1;
-			}
-			
+			if(!empty($latitude) && !empty($longitude)){
+				if($merchants['distance'] != '') {					
+					$result 		= R::findOne('admins', 'id = ? ', array('1'));
+					$distanceLimit 	= $result->LocationLimit;
+					if($merchants['distance'] > $distanceLimit) 
+						$AllowCart = 0;
+					else
+						$AllowCart = 1;
+				}
+			}	
 			//AlreadyFavourited  
 			if($userId != '' && $from == 1 && $merchants['AlreadyFavourited']  == '')
 				$merchants['AlreadyFavourited'] 	= 	'0';
-			else
-				$merchants['AlreadyFavourited']  	= 	'0';
+			if(!isset($merchants['AlreadyFavourited'] ))
+				$merchants['AlreadyFavourited'] 	= 	'0';
+			/*else
+				$merchants['AlreadyFavourited']  	= 	'';*/
 				 
 			//Merchants Discount Tier
 		    if($merchants['DiscountTier']  > 0)
@@ -350,20 +366,20 @@ class Merchants extends RedBean_SimpleModel implements ModelBaseInterface {
 				$merchantsDetails['Comments'] 				= 	$comments->getMerchantCommentList();
 				
 				//Total users shopped
-				$totalShopped 								= 	new Orders();
+				$totalShopped 								= 	R::dispense('orders');
 				$totalShoppedList							= 	$totalShopped->getAlreadyShoppedFriends($merchantId,$userId);				
 				$merchantsDetails['CustomersCount']			=	$totalShoppedList['OrderCount'];
 				$merchantsDetails['OrderedFriendsCount']	=	$totalShoppedList['OrderedFriendsCount'];
 				$merchantsDetails['OrderedFriendsList']		=	$totalShoppedList['OrderedFriendsList'];
 				
 				//Product Details
-				$productDetail 								= 	new Products();
+				$productDetail 								= 	R::dispense('products');
 				$ProductList								= 	$productDetail->getProductListWithCategory($merchantId,null,1);//1-mobile
 				$merchantsDetails['ProductList'] 			=  	$ProductList;
 			}					
 			$merchantsDetailsOut['merchantDetails'] 		= 	$merchantsDetails;
-			if(isset($AllowCart))
-				$merchantsDetailsOut['AllowCart'] 			= 	$AllowCart;				
+			//if(isset($AllowCart))
+			$merchantsDetailsOut['AllowCart'] 				= 	$AllowCart;				
 			return $merchantsDetailsOut;
 		}
     }
@@ -737,7 +753,7 @@ class Merchants extends RedBean_SimpleModel implements ModelBaseInterface {
 				$merchantid					= 	$value['MerchantId'];
 				
 				//Product Details
-				$productDetail 				= 	new Products();
+				$productDetail 				= 	R::dispense('products');
 				$countResult				= 	$productDetail->getProductsDiscounttype($merchantid);				
 				foreach($countResult as $kk=>$vv)
 				{
@@ -887,7 +903,7 @@ class Merchants extends RedBean_SimpleModel implements ModelBaseInterface {
 		
 		//validate param
 		$this->validatecheckLocationParams();
-		
+		$message = '';
 		$result 			= 	R::findOne('merchants', 'id = ? ', array($bean->MerchantId));	
 		if($result) {
 			// User Distance from latitude & longitude
@@ -898,12 +914,16 @@ class Merchants extends RedBean_SimpleModel implements ModelBaseInterface {
 			$distanceLimit 	= 	$adminResult->LocationLimit;
 			
 			//check for user in the location
-			if($distance > $distanceLimit) 
+			if($distance > $distanceLimit) {
 				$AllowCart 	= 	0;
-			else
+				$message	= 'Your location is too far to order this item';
+			}
+			else{
 				$AllowCart 	= 	1;
-				
-			$AllowCartArray['AllowCart'] = $AllowCart;			
+				$message	= 'You are allowed to order this item';
+			}	
+			$AllowCartArray['AllowCart'] = $AllowCart;		
+			$AllowCartArray['Message'] = $message;	
 			return $AllowCartArray;
 		}
 		else {
@@ -1073,6 +1093,7 @@ class Merchants extends RedBean_SimpleModel implements ModelBaseInterface {
 		$mangopayDetails 				=   merchantRegister($merchantArray);
 
 		if(isset($mangopayDetails) && count($mangopayDetails)>0 ){
+		//echo "<pre>"; print_r( $mangopayDetails); echo "</pre>";
 			$uniqueId								=	$mangopayDetails->Id;
 			$walletId								=	createWallet($uniqueId,$merchantArray['Currency']);
 			$merchants 								= 	R::dispense('merchants');
@@ -1105,5 +1126,75 @@ class Merchants extends RedBean_SimpleModel implements ModelBaseInterface {
 			// the action was not found
             throw new ApiException("Please check the mango pay properties. Fill CompanyName,FirstName,LastName,Email,Address,Country,Currency,Birthday with correct values" ,  ErrorCodeType::SomeFieldsRequired, $errors);
         }
+    }
+	
+	/**
+    * transaction list for merchant
+    */
+	public function getPaymentsList()
+    {
+		$bean 				= 	$this->bean;
+				
+		$merchantDetail 	=	 R::findOne('merchants', 'id = ? and Status = ?', [$bean->merchantId,StatusType::ActiveStatus]);	
+		if($merchantDetail) {
+			if(!empty($merchantDetail->WalletId) && !empty($merchantDetail->MangoPayUniqueId)) {
+				
+				//forming input array
+				$inputarr['Id']				=	$merchantDetail->WalletId;
+				if(isset($bean->Start) && !empty($bean->Start))
+					$inputarr['Start']		=	$bean->Start;
+				if(isset($bean->End) && !empty($bean->End))
+					$inputarr['End']		=	$bean->End;
+				if(isset($bean->Status) && !empty($bean->Status)) {
+					if($bean->Status == 1)
+						$inputarr['Status']		=	'SUCCEEDED';
+					else if($bean->Status == 2)
+						$inputarr['Status']		=	'FAILED';
+				}
+					
+				$result		=	GetTransactionsNew($inputarr);				
+				if($result) {
+				
+					//getting user's namelist 
+					$sql =	"SELECT DISTINCT o.fkUsersId, u.FirstName, u.LastName, u.MangoPayUniqueId, u.WalletId FROM `orders` o
+								LEFT JOIN users u ON ( o.fkUsersId = u.id )
+								WHERE 1 AND o.fkMerchantsId =".$bean->merchantId." AND u.MangoPayUniqueId != '' AND u.WalletId != ''";					
+					$userList 	=	R::getAll($sql);
+					if($userList) {
+						foreach($userList as $key=>$val) {
+							$nameArray[$val['MangoPayUniqueId']]	=	ucfirst($val['FirstName'].' '.$val['LastName']);
+						}
+					}
+					
+					//forming result 
+					foreach($result as $key=>$val){
+						$out[$key]					= 	(array)$val;
+						//user uniqueId
+						$id							=	$val->AuthorId;
+						if(array_key_exists($id,$nameArray))
+							$out[$key]['Customer']	=	$nameArray[$id];
+						else
+							$out[$key]['Customer']	=	'';
+					}	
+					return $out;
+				}
+				else {
+					/*
+					*No Transactions Found
+					*/
+					throw new ApiException("No Transactions Found", ErrorCodeType::NoResultFound);
+				}
+			} else {
+				/*
+				*Account error
+				*/
+				throw new ApiException("You are not connected with any payment accounts", ErrorCodeType::NoResultFound);
+			}
+		} else {
+			/**
+	        * throwing error when no data found
+	        */
+			throw new ApiException("Merchant not in active status or not found", ErrorCodeType::NoResultFound);
+		}
     }
 }

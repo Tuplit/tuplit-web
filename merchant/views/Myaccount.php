@@ -18,9 +18,6 @@ if(isset($curlMerchantResponse) && is_array($curlMerchantResponse) && $curlMerch
 	$merchantInfo  			= 	$_SESSION['merchantDetailsInfo']   =	$curlMerchantResponse['merchant'];
 	$newCategory			=	$merchantInfo['Category'];
 }
-
-//echo'<pre>';print_r($merchantInfo);echo'</pre>';
-//echo"<br>===================>".$newCategory;
 if(isset($merchantInfo['PriceRange']) && $merchantInfo['PriceRange'] != ''){
   $prizeArray		=	explode(',',$merchantInfo['PriceRange']);
   if(isset( $prizeArray[0] ) &&  $prizeArray[0] !='')
@@ -67,9 +64,9 @@ if(isset($_POST['merchant_account_submit']) && $_POST['merchant_account_submit']
 		$merchantInfo['ShortDescription']	=	$_POST['ShortDescription'];
 	if(isset($_POST['categorySelected']))
 		$newCategory						=	$_POST['categorySelected'];
-	if(isset($_POST['DiscountTier']))
+	if(isset($_POST['DiscountTier']) && !empty($_POST['DiscountTier'])) {
 		$merchantInfo['DiscountTier']		=	$discountTierArray[$_POST['DiscountTier']].'%';
-	
+	}
 	//Opening Hours
 	$openTiming = array();	
 	if(isset($_POST['samehours']) && $_POST['samehours'] == 'on'){
@@ -115,8 +112,7 @@ if(isset($_POST['merchant_account_submit']) && $_POST['merchant_account_submit']
 		
 	/* product price scheme */
 	$product_list = '';
-	if(isset($_POST['Products_List']) && is_array($_POST['Products_List']) ){
-		
+	if(isset($_POST['Products_List']) && is_array($_POST['Products_List']) ){		
 		if(in_array('all',$_POST['Products_List'])){
 			$product_list = 'all';
 		}else{
@@ -144,37 +140,35 @@ if(isset($_POST['merchant_account_submit']) && $_POST['merchant_account_submit']
 		$max_val		=	$_POST['max_price'];
 	if($min_val != '' && $max_val != '')
 		$prizeRange		=	$min_val.','.$max_val;
-	if (isset($_POST['icon_photo_upload']) && !empty($_POST['icon_photo_upload'])) {
-		
+	if(isset($_POST['icon_photo_upload']) && !empty($_POST['icon_photo_upload'])) {		
 		$iconPath		=	TEMP_IMAGE_PATH_REL.$_POST['icon_photo_upload'];
 		if(isset($merchantInfo['Icon']) && $merchantInfo['Icon'] != ''){
 			if(!SERVER){
 				if(file_exists(MERCHANT_ICONS_IMAGE_PATH_REL.$merchantInfo['Icon']))
 					unlink(MERCHANT_ICONS_IMAGE_PATH_REL .$merchantInfo['Icon']);
 			}
-			else{
+			/*else{
 				if(image_exists(6,$merchantInfo['Icon'])) 
 					deleteImages(6,$merchantInfo['Icon']);
-			}
+			}*/
 		}
 		$merchantInfo['Icon']	=	TEMP_IMAGE_PATH.$_POST['icon_photo_upload'];
 	}
-	if (isset($_POST['merchant_photo_upload']) && !empty($_POST['merchant_photo_upload'])) {
+	if(isset($_POST['merchant_photo_upload']) && !empty($_POST['merchant_photo_upload'])) {
 		$imagePath		=	TEMP_IMAGE_PATH_REL.$_POST['merchant_photo_upload'];
 		if(isset($merchantInfo['Image']) && $merchantInfo['Image'] != ''){
 			if(!SERVER){
 				if(file_exists(MERCHANT_COVER_IMAGE_PATH_REL.$merchantInfo['Image']))
 					unlink(MERCHANT_COVER_IMAGE_PATH_REL . $merchantInfo['Image']);
 			}
-			else{
+			/*else{
 				if(image_exists(7,$merchantInfo['Image'])) {
 					deleteImages(7,$merchantInfo['Image']);
 				}
-			}
+			}*/
 		}
 		$merchantInfo['Image']	=	TEMP_IMAGE_PATH.$_POST['merchant_photo_upload'];
 	}
-	//echo "<pre>".print_r($_POST)."</pre>"; die();
 	$data	=	array(
 					'CompanyName' 		=> $_POST['CompanyName'],
 					'Email' 			=> $_POST['Email'],
@@ -194,20 +188,14 @@ if(isset($_POST['merchant_account_submit']) && $_POST['merchant_account_submit']
 					'PriceRange' 		=> $prizeRange,
 					'Categories' 		=> $_POST['categorySelected']
 				);
+	//echo json_encode($data);die();
 	$url	=	WEB_SERVICE.'v1/merchants/';
 	$method	=	'PUT';
-	//echo json_encode($data);die();
 	$curlResponse	=	curlRequest($url,$method,json_encode($data), $_SESSION['merchantInfo']['AccessToken']);
-	//echo "<pre>"; print_r( $curlResponse); echo "</pre>";
-	//die();
 	if(isset($curlResponse) && is_array($curlResponse) && $curlResponse['meta']['code'] == 201) {
-		//unset($_SESSION['merchantDetailsInfo']);
-		//echo'<pre>';print_r($_SESSION);echo'</pre>';
 		$merchantId					= 	$_SESSION['merchantInfo']['MerchantId'];
 		$url						=	WEB_SERVICE.'v1/merchants/'.$merchantId;
 		$curlMerchantResponse 		= 	curlRequest($url, 'GET', null, $_SESSION['merchantInfo']['AccessToken']);
-		//echo'<pre>';print_r($curlMerchantResponse);echo'</pre>';
-		//die();
 		if(isset($curlMerchantResponse) && is_array($curlMerchantResponse) && $curlMerchantResponse['meta']['code'] == 201 && $curlMerchantResponse['merchant']['MerchantId'] != '' ) 
 		 {
 			$merchantInfo  						= 	$curlMerchantResponse['merchant'];
@@ -216,16 +204,12 @@ if(isset($_POST['merchant_account_submit']) && $_POST['merchant_account_submit']
 		}
 	
 		$successMessage	=	$curlResponse['notifications'][0];
-		//header("location:Myaccount");
-		//die();
 	} else if(isset($curlResponse['meta']['errorMessage']) && $curlResponse['meta']['errorMessage'] != '') {
 		$errorMessage		=	$curlResponse['meta']['errorMessage'];
 	} else {
 		$errorMessage		= 	"Bad Request";
 	}
 }
-//echo'<pre>';print_r($merchantInfo);echo'</pre>';
-//echo'<pre>';print_r($_SESSION['merchantDetailsInfo']);echo'</pre>';
 if(isset($errorMessage) && $errorMessage != ''){
 	$msg			=	$errorMessage;
 	$display 		= 	"block";
@@ -241,6 +225,7 @@ if(isset($errorMessage) && $errorMessage != ''){
 }
 
 $merchantInfo['OpeningHours']	=	formOpeningHours($merchantInfo['OpeningHours']);
+
 commonHead();
 ?>
 
@@ -292,7 +277,7 @@ commonHead();
 						</div>
 						<div class="form-group col-sm-6  col-md-12">
 							<label>Description</label>
-							<textarea class="form-control" id="Description" name="Description" cols="5"><?php if(isset($merchantInfo['Description']) && !empty($merchantInfo['Description'])) echo $merchantInfo['Description'];?></textarea>
+							<textarea class="form-control" id="Description" name="Description" rows="6"><?php if(isset($merchantInfo['Description']) && !empty($merchantInfo['Description'])) echo $merchantInfo['Description'];?></textarea>
 						</div>
 						<div class="form-group col-sm-12 col-md-12">
 							<div class="form-group col-md-12 no-padding"><label>Open Hours leave as HH MM AM/PM for not service</label></div>
@@ -306,7 +291,7 @@ commonHead();
 										<input type="hidden" id="showdays" name="showdays" value="<?php if(isset($merchantInfo['OpeningHours'][0]['DateType']) && $merchantInfo['OpeningHours'][0]['DateType'] == '1') echo 'checked'; ?>"/>
 									</div>
 									<div class="col-sm-4 col-xs-6 no-padding LH30">From :</div>
-									<div class="col-sm-4 col-xs-6 no-padding LH30">To :</div>
+									<div class="col-sm-4 col-xs-5 no-padding LH30">To :</div>
 									
 								<?php } ?>
 								<div class="col-sm-4  col-lg-3 col-xs-12  no-padding LH30"><strong><span class="<?php if($key == 0) echo "rowshow";?>"><?php if(isset($merchantInfo['OpeningHours'][0]['DateType']) && $merchantInfo['OpeningHours'][0]['DateType'] == '1' && $key == 0) echo "Monday to Sunday : "; else echo $val." : "; ?></span></strong></div>
@@ -374,7 +359,7 @@ commonHead();
 								foreach($categories as $key=>$val) {
 								if($key != 'totalCount') {
 							?>
-							<option value="<?php echo $val['CategoryId'];?>"  style="background-image:url(<?php echo $val['CategoryIcon']; ?>);"><?php echo ucfirst($val['CategoryName']);?></option>
+							<option value="<?php echo $val['CategoryId'];?>"  style="background-image:url('<?php echo $val['CategoryIcon']; ?>');"><?php echo ucfirst($val['CategoryName']);?></option>
 							<?php } } } ?>
 						</select><span id="njkj"></span>				
 						</div>
@@ -385,7 +370,7 @@ commonHead();
 								<span id="cat_id_<?php echo $val['CategoryId']; ?>" <?php if(in_array($val['CategoryId'],$merchantCategory )){ ?> class="cat_box" <?php } else {?> style="display:none;" class="cat_box" <?php } ?>>
 									<img width="30" src="<?php echo $val['CategoryIcon']; ?>"/>
 									<span class="cname"><?php echo ucfirst($val['CategoryName']);?></span>
-									<a class="delete" title="Remove" href="javascript:void(0)" onclick="removeCategory(<?php echo $val['CategoryId']; ?>)">
+									<a class="delete" title="Remove" href="javascript:void(0)" onclick="removeCategory(<?php echo $val['CategoryId']; ?>,'<?php echo $val['CategoryIcon']; ?>')">
 										<i class="fa fa-trash-o "></i>
 									</a>
 								</span>
@@ -444,9 +429,9 @@ commonHead();
 								 <?php 
 								 if(!empty($merchantInfo['Image'])) { 
 								 	$cimage_path = $merchantInfo['Image'];
-								 ?>
+									?>
 								  <a href="<?php echo $cimage_path;?>" class="image_fancybox" title="">
-								  <img class="img_border" src="<?php echo $cimage_path;?>" width="200" height="100" alt="Image"/>
+								  <img class="img_border" src="<?php echo $cimage_path;?>" width="200" alt="Image"/>
 								  </a>
 								<?php } ?>
 							  </div>
@@ -468,14 +453,14 @@ commonHead();
 							<h3 class="box-title">Price Range</h3>
 						</div>
 						<div class="form-group col-md-12 error_msg_align">							
-								<div class="col-xs-5 no-padding">
-									<div class="col-xs-2 no-padding LH30">$</div>
-									<div class="col-xs-9 no-padding"><input type="Text" onchange="price_val(this.value);" maxlength="7" name="min_price" value="<?php echo $min_val;?>" id="min_price" onkeypress="return isNumberKey_price(event);" class="form-control"></div>
+								<div class="col-xs-5 col-md-5 no-padding">
+									<div class="col-xs-2 col-md-2 no-padding LH30">$</div>
+									<div class="col-xs-9 col-md-10 no-padding"><input type="Text" onchange="price_val(this.value);" maxlength="7" name="min_price" value="<?php echo $min_val;?>" id="min_price" onkeypress="return isNumberKey_price(event);" class="form-control"></div>
 								</div>
-								<div class="col-xs-1 no-padding LH30" align="center"><strong>to</strong></div>
-								<div class="col-xs-5 no-padding">
-									<div class="col-xs-2 no-padding LH30">$</div>
-									<div class="col-xs-9 no-padding"><input type="Text" onchange="price_val(this.value);" maxlength="7" name="max_price" value="<?php echo $max_val;?>" id="max_price" onkeypress="return isNumberKey_price(event);" class="form-control"></div>
+								<div class="col-xs-1 col-md-2 no-padding LH30" align="center"><strong>to</strong></div>
+								<div class="col-xs-5 col-md-5 no-padding">
+									<div class="col-xs-2 col-md-2 no-padding LH30">$</div>
+									<div class="col-xs-9 col-md-10 no-padding"><input type="Text" onchange="price_val(this.value);" maxlength="7" name="max_price" value="<?php echo $max_val;?>" id="max_price" onkeypress="return isNumberKey_price(event);" class="form-control"></div>
 								</div>
 								<input  type="hidden" id="priceValidation" name="priceValidation" value="">
 						</div>
@@ -513,12 +498,12 @@ commonHead();
 				<div class="col-md-6 col-sm-12">
 					<div class="box box-primary no-padding">
 						<div class="box-header ">
-							<h3 class="box-title">Price Scheme</h3>
+							<h3 class="box-title">Discount Scheme</h3>
 						</div>
 						<div class="form-group col-md-12 ">
-							<label class="col-xs-7 no-padding">Select Price Scheme</label>
+							<label class="col-xs-7 no-padding">Select Discount Scheme</label>
 							<div class="col-xs-5 no-padding""> 
-							<select class="form-control" id="DiscountTier" name="DiscountTier" onclick="selectPrice(this.value);">
+							<select class="form-control" id="DiscountTier" name="DiscountTier" onclick="selectPrice(this.value,'<?php if(isset($ProductsArray) && count($ProductsArray) > 0) echo "1"; else echo "0"; ?>');">
 								<option value="" >Select
 								<?php if(isset($discountTierArray) && is_array($discountTierArray) && count($discountTierArray) > 0) {
 										foreach($discountTierArray as $key=>$value){

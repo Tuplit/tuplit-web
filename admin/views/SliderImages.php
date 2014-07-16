@@ -220,7 +220,7 @@ commonHead(); ?>
 	
 		<div class="row">
 		<!-- left column -->
-			<div class="col-md-12 col-lg-8 slider_page">
+			<div class="col-md-12 col-lg-10 slider_page">
 			<form name="add_home_slider_form" id="add_home_slider_form" action="" method="post" >
 				<div class="box box-primary no-padding">
 					<div class="box-header no-padding">
@@ -260,9 +260,9 @@ commonHead(); ?>
 							<div class="row  pad" id="exist_id_home_<?php echo $h_val->id;?>" clone="<?php echo $i;?>">
 								<div class="col-md-3 col-xs-3">Slider Image <?php echo $i;?></div>
 								<div class="col-md-6 col-xs-6" id="">
-									<div class="col-sm-8 "> <input type="file"  class="file_input_old" name="Slider_Image_Old_<?php echo $i;?>" id="Slider_Image_Old_<?php echo $i;?>" title="Home Slider" onclick="" onchange="return ajaxAdminFileUploadProcess('Slider_Image_Old_<?php echo $i;?>');"  /></div>
+									<div class="col-sm-9 no-left-padding"> <input type="file"  class="file_input_old" name="Slider_Image_Old_<?php echo $i;?>" id="Slider_Image_Old_<?php echo $i;?>" title="Home Slider" onclick="" onchange="return ajaxAdminFileUploadProcess('Slider_Image_Old_<?php echo $i;?>');"  /></div>
 								
-									<div class="col-sm-4 ">
+									<div class="col-sm-3 no-left-padding">
 										<div id="Slider_Image_Old_<?php echo $i;?>_img">
 										<?php  if(isset($original_path) && $original_path != '') {  ?>
 											<a <?php if(isset($original_path) && $original_path != '') {  ?> href="<?php echo $original_path; ?>" class="fancybox"<?php } else { ?> href="Javascript:void(0);"<?php } ?> ><?php if(isset($original_path) && $original_path != '') { ?> <img class="img_border" width="75" height="75" src="<?php echo $original_path;?>"><?php } ?></a>
@@ -295,11 +295,11 @@ commonHead(); ?>
 								<div class="col-md-3 col-xs-3" id="Slider_image_name">Slider Image <?php echo $home_id_count+1;?></div>
 								
 								<div class="col-md-6 col-xs-6">
-									<div class="col-sm-8 " id="slider_home_new"><input type="file" class="file_input"   name="Slider_Image_<?php echo $home_count+1;?>" id="Slider_Image_<?php echo $home_count+1;?>" title="Home Slider" onclick="" onchange="return ajaxAdminFileUploadProcess(this.name);"  />
+									<div class="col-sm-9 no-left-padding" id="slider_home_new"><input type="file" class="file_input"   name="Slider_Image_<?php echo $home_count+1;?>" id="Slider_Image_<?php echo $home_count+1;?>" title="Home Slider" onclick="" onchange="return ajaxAdminFileUploadProcess(this.name);"  />
 										<span class="error" for="empty_Slider_Image_<?php echo $home_count+1;?>" generated="true" style="display: none">Slider Image is required</span>
 									</div>
 								
-									<div class="col-sm-4">
+									<div class="col-sm-3 no-left-padding">
 										<div class="image_disp" id="Slider_Image_<?php echo $home_count+1;?>_img"></div>
 									</div>
 								</div><!-- /col-md-6 -->
@@ -369,10 +369,10 @@ commonHead(); ?>
 							<div class="row  pad" id="exist_id_tutorial_<?php echo $t_val->id;?>" clone="<?php echo $i_val;?>">
 								<div class="col-md-3 col-xs-3">Tutorial Image <?php echo $i_val;?></div>
 								<div class="col-md-6 col-xs-6" id="">
-									<div class="col-sm-8 ">
+									<div class="col-sm-9 no-left-padding">
 										<input type="file"  class="file_input_old" name="Tutorial_Image_Old_<?php echo $i_val;?>" id="Tutorial_Image_Old_<?php echo $i_val;?>" title="Tutorial Slider" onclick="" onchange="return ajaxAdminFileUploadProcess('Tutorial_Image_Old_<?php echo $i_val;?>');"  />
 									</div>
-									<div class="col-sm-4">
+									<div class="col-sm-3 no-left-padding">
 										<div id="Tutorial_Image_Old_<?php echo $i_val;?>_img">
 										<?php  if(isset($original_path_tutorial) && $original_path_tutorial != ''){  ?>
 											<a <?php if(isset($original_path_tutorial) && $original_path_tutorial != '') {  ?> href="<?php echo $original_path_tutorial; ?>" class="fancybox"<?php } else { ?> href="Javascript:void(0);"<?php } ?>  >
@@ -402,11 +402,11 @@ commonHead(); ?>
 							<div class="row pad" <?php if ($tutorial_count != 0) {?> style="display:none" <?php } ?> id="slider_tutorial" clone="<?php echo $tutorial_count+1;?>">
 								<div class="col-md-3 col-xs-3" id="Tutorial_image_name">Tutorial Image <?php echo $tutorial_id_count+1;?></div>
 								<div class="col-md-6 col-xs-6" id="slider_tutorial_new">
-									<div class="col-sm-8 ">
+									<div class="col-sm-9 no-left-padding">
 										<input type="file" class="file_input"   name="Tutorial_Image_<?php echo $tutorial_count+1;?>" id="Tutorial_Image_<?php echo $tutorial_count+1;?>" title="Tutorial Slider" onclick="" onchange="return ajaxAdminFileUploadProcess(this.name);"  />
 										<span class="error" for="empty_Tutorial_Image_<?php echo $tutorial_count+1;?>" generated="true" style="display: none">Slider Image is required</span>
 									</div>
-									<div class="col-sm-4">
+									<div class="col-sm-3 no-left-padding">
 										<div class="image_disp" id="Tutorial_Image_<?php echo $tutorial_count+1;?>_img"></div>
 									</div>
 								</div>

@@ -52,6 +52,7 @@ $app->post('/', tuplitApi::checkToken(),function () use ($app) {
 			$order->OrderDoneBy		= 	'2';
 			$order->TotalItems		= 	'2';
 			$order->TotalPrice		= 	'340';
+			$order->Amount			= 	'340';
 			$order->CartDetails		= 	'[ { "ProductId":"1", "ProductsQuantity":"2", "ProductsCost":"100", "DiscountPrice":"15"},{ "ProductId":"1", "ProductsQuantity":"2", "ProductsCost":"100", "DiscountPrice":"15"}]';
 			
 			$type					=	'2';
@@ -92,8 +93,9 @@ $app->post('/', tuplitApi::checkToken(),function () use ($app) {
 			$order->OrderDoneBy		= 	$type;
 			$order->TotalItems		= 	$req->params('TotalItems');
 			$order->TotalPrice		= 	$req->params('TotalPrice');
+			$order->Amount			= 	$req->params('TotalPrice');
 			$order->CartDetails		= 	$req->params('CartDetails');
-			
+			//echo "<pre>"; echo print_r($order); echo "</pre>";
 		}
 		
 		//getting user details
@@ -343,7 +345,7 @@ $app->get('/:OrderId', tuplitApi::checkToken(), function ($OrderId) use ($app) {
          */
 		 $request 							= 	$app->request();
 		 $requestedById 					= 	tuplitApi::$resourceServer->getOwnerId();
-		 $orders	 						=	new Orders();
+		 $orders	 						=	R::dispense('orders');
 		 $OrderDetails						= 	$orders->getOrderDetails($OrderId);    
 		 if($OrderDetails){
 			$response 	   					= 	new tuplitApiResponse();
@@ -489,8 +491,7 @@ $app->put('/', tuplitApi::checkToken(), function () use ($app) {
 		/**
          * update the orders details
          */
-	    $orders->modify();
-				
+		$orders->modify();
 		 /**
 		 * product update was made success
 		 */
@@ -517,6 +518,52 @@ $app->put('/', tuplitApi::checkToken(), function () use ($app) {
     }
 });
 
+/**
+ * POST Do payment
+ * POST /v1/orders
+ */
+$app->post('/payment',tuplitApi::checkToken(), function () use ($app) {
+
+    try {
+		 // Create a http request
+        $req 						= 	$app->request();
+		$merchantId					= 	tuplitApi::$resourceServer->getOwnerId();
+        $orders 					= 	R::dispense('orders');
+		$orders->MerchantId			= 	$req->params('MerchantId');
+		$orders->UserId 			= 	$req->params('UserId');
+		$orders->Amount 			= 	$req->params('Amount');
+		$orders->Currency 			= 	$req->params('Currency');
+	    $paymentId	 				= 	$orders->doPayment();		
+		if( $paymentId->Id != ''){
+			$response 			= 	new tuplitApiResponse();
+			$response->setStatus(HttpStatusCode::Created);
+			$response->meta->dataPropertyName = 'Payment';		
+			if ($paymentId->Status == 'SUCCEEDED')
+				$response->addNotification('Payment has been done successfully');
+			else
+				$response->addNotification($paymentId->ResultMessage);
+			echo $response;	
+		}
+		 else{
+			throw new ApiException("Sorry! payment is not successful" ,  ErrorCodeType::PaymentError);
+		}
+    }
+    catch (ApiException $e){
+        // If occurs any error message then goes here
+        tuplitApi::showError(
+            $e,
+            $e->getHttpStatusCode(),
+            $e->getErrors()
+        );
+    }
+    catch (\Slim\Exception\Stop $e){
+        // If occurs any error message for slim framework then goes here
+    }
+    catch (Exception $e) {
+        // If occurs any error message then goes here
+        tuplitApi::showError($e);
+    }
+});
 
 
 /**

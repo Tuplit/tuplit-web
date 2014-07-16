@@ -1,8 +1,3 @@
-/*! 
- *   AdminLTE v1.2
-    Core: General style
-----------------------------
-*/
 html,
 body {
   overflow-x: hidden!important;
@@ -60,12 +55,12 @@ body > .header {
 /*right side - contins main content*/
 .right-side {
   background-color: #f9f9f9;
-  margin-left: 220px
+  margin-left: 250px
 }
 /*left side - contains sidebar*/
 .left-side {
   position: absolute;
-  width: 220px;
+  width: 250px;
 /*  top: 0 */
 }
 
@@ -83,7 +78,7 @@ body > .header {
   }
   /* Left side collapse */
   .left-side.collapse-left {
-    left: -220px;
+    left: -250px;
   }
 }
 /*Give content full width on xs screens*/
@@ -339,6 +334,10 @@ h1, .h1, h2, .h2, h3, .h3 {
 .no-margin {
   margin: 0  !important
 }
+/* Remove left padding */
+.no-left-padding {
+ padding-left:0px !important;
+}
 /* Remove box shadow */
 .no-shadow {
   box-shadow: none!important
@@ -377,6 +376,7 @@ table.text-center td,
 table.text-center th {
   text-align: center
 }
+.table-hover>tbody>tr:hover>td,.table-hover>tbody>tr:hover>th {background-color:#fff;}
 /* _fix for sparkline tooltip */
 .jqstooltip {
   padding: 5px!important;
@@ -459,7 +459,7 @@ body > .header .logo {
   line-height: 50px;
   text-align: left;
   padding: 0 10px;
-  width: 220px;
+  width: 250px;
   font-family: Calibri,Trebuchet ms;
   font-weight: 500;
   height: 50px;
@@ -657,16 +657,16 @@ body > .header .logo .icon {
     position: relative;
   }
   .row-offcanvas-right .sidebar-offcanvas {
-    right: -220px;
+    right: -250px;
   }
   .row-offcanvas-left .sidebar-offcanvas {
-    left: -220px;
+    left: -250px;
   }
   .row-offcanvas-right.active {
-    right: 220px;
+    right: 250px;
   }
   .row-offcanvas-left.active {
-    left: 220px;
+    left: 250px;
 	
 	-webkit-transition: all 500ms ease-in-out;
 	-moz-transition: all 500ms ease-in-out;
@@ -1093,6 +1093,8 @@ h1, .h1 {
     font-size: 22px;
 }
   .col-xs-8 .btn-inline {padding-top:10px; margin-left:0px;display:block;}
+  
+
 }
 /* 
    All form elements including input, select, textarea etc.
@@ -3782,6 +3784,12 @@ footer {text-align :center; padding : 10px 0}
 		float : left;
 	}
 }
+
+@media only screen and (min-device-width : 768px) and (max-device-width : 1024px) and (orientation : portrait) {
+.row_bg .col-sm-9 {width:75%}
+.row_bg .col-sm-3 {width:25%}
+}
+
 @media only screen and (max-width: 480px) { /* slider Images page only */
 	body { border : 0px solid #ff0; }
 	
@@ -3802,6 +3810,11 @@ footer {text-align :center; padding : 10px 0}
 		display:inline-block;
 		position:absolute;
 	}
+		.content-header .col-xs-8 {
+		width : 63%;
+	}
+	
+
 }
 @media only screen and (max-width: 320px) { /* slider Images page only */
 	body { border : 0px solid #ff0; }
@@ -3819,6 +3832,9 @@ footer {text-align :center; padding : 10px 0}
 	.slider_page .col-sm-6 { width : 40%; }
 	.slider_page .box-body {
 		padding : 0;
+	}
+	.content-header .col-xs-8 {
+		width : 68%;
 	}
 }
 
@@ -3867,7 +3883,7 @@ footer {text-align :center; padding : 10px 0}
 .Merchant b:before {  content: "\f1ad"; }
 .Product b:before {  content: "\f1b3"; }
 .Category b:before {  content: "\f02b"; }
-.Report b:before {  content: "\f080"; }
+.Reports b:before {  content: "\f080"; }
 .Order b:before {  content: "\f07a"; }
 /*Only for ie 10*/
 .ie10 body {width:99%}
@@ -3879,3 +3895,6 @@ footer {text-align :center; padding : 10px 0}
 	display : inline-block;
 
 }
+
+$('#fancybox-content').css('height','auto');
+

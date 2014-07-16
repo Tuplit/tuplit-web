@@ -46,127 +46,7 @@ function unEscapeSpecialCharacters($data)
 	$data = is_array($data) ? array_map('unEscapeSpecialCharacters', $data) :stripslashes($data);
     return $data;
 }
-function sendMail($mailContentArray,$type)
-{
-	error_reporting(0);
-	if(is_array($mailContentArray))
-	{
-		$heardFrom		= 	'';
-		$message		=	'';
-		$from 	  		=   $mailContentArray['from'];
-		$to   		    =   $mailContentArray['toemail'];
-		$subject		= 	$mailContentArray['subject'];
-		$sitelinkpath	=	MERCHANT_SITE_PATH.'/webresources/mail_content/';
-		$filename       = 	MERCHANT_ABS_PATH.'/webresources/mail_content/'.$mailContentArray['fileName'];
-		$mailData 		= 	file_get_contents($filename);
-		$filearray 		= 	explode('/',$mailContentArray['fileName']);
-		$typearray 		= 	end($filearray);
-		$typeextn 		= 	explode('.',$typearray);
-		switch($type)
-		{
-			case 1:
-				//User forgot password
-				$mailData 			=	str_replace('{NAME}', $mailContentArray['name'], $mailData);
-				//$mailData			=	str_replace('{USERNAME}', $mailContentArray['email'], $mailData);
-				$mailData 			=	str_replace('{PASSWORD}',  $mailContentArray['password'], $mailData);
-				$mailData 			=	str_replace('{SITE_MAIL_PATH}',  $sitelinkpath, $mailData);
-				break;
-			case 2:
-				//User Registeration 
-				$mailData 			=	str_replace('{NAME}', $mailContentArray['name'], $mailData);
-				$mailData 			=	str_replace('{PASSWORD}',  $mailContentArray['password'], $mailData);
-				$mailData 			=	str_replace('{SITE_MAIL_PATH}',  $sitelinkpath, $mailData);
-				break;
-			case 3:
-				//Admin User Registeration
-				$mailData			=	str_replace('{MERCHANT_ID}', $mailContentArray['merchantId'], $mailData);
-				$mailData 			=	str_replace('{MERCHANT_NAME}',  $mailContentArray['merchantName'], $mailData);
-				$mailData 			=	str_replace('{SITE_MAIL_PATH}',  $sitelinkpath, $mailData);
-				break;
-		}
-		$mail_image 	= 	MERCHANT_SITE_PATH.'/webresources/mail_content/';
-		$mailData 		=	str_replace('{SITE_PATH}',$sitelinkpath ,$mailData);
-		$mailData		=   str_replace('{YEAR}', date('Y'), $mailData);
-		$headers  		= 	"MIME-Version: 1.0\n";
-		$headers 		.= 	"Content-Transfer-Encoding: 8bit\n";
-		$headers        .= 	"From: $from\r\n";
-		$headers 		.= 	"Content-type: text/html\r\n";
-		if ($_SERVER['HTTP_HOST'] == '172.21.4.104'){
-			echo $mailData;
-			//$sendmail = sendMailSes($from,$to,$subject,$mailData,'');
-		}
-		else {
-			//echo $mail_data;
-			mail($to,$subject,$mailData,$headers);
-			//$sendmail = mailThroughAmazon($from,$to,$subject,$mailData,'','','','','','','','');
-			//$sendmail = sendMailSes($from,$to,$subject,$mailData,'');
-		}
-	}
-}
 
-function sendMailSes($from,$to,$subject,$html_message,$text_msg=''){
-	
-	require_once('sdk.class.php');// Include the SDK
-	
-	$ses = new AmazonSES();//// Instantiate the  class
-	//$region = $ses->set_region(REGION_US_W2);
-	$result = $ses->send_email($from, array(
-		        'ToAddresses' => array($to),
-		    	), 
-				array(
-				        // Subject is required
-				        'Subject' => array(
-				            // Data is required
-				            'Data' => $subject,
-				            'Charset' => 'utf8',
-				        ),
-				        // Body is required
-				        'Body' => array(
-				            'Html' => array(
-				                // Data is required
-				                'Data' => $html_message,
-				                'Charset' => 'utf8',
-				            ),
-				        ),
-		    	)
-			);
-	//echo'<pre>';print_r($result);echo'</pre>';
-}
-
-function mailThroughAmazon($from,$to,$subject,$html_message='',$text_msg='',$file_text_path='',$file_html_path='',$http_url='',$replyto='',$cc='',$bcc='',$return_path=''){
-
-	//require_once('ses.php');
-
-	$ses = new SimpleEmailService('', '');//tuplit -server
-		//$ses->verifyEmailAddress($to);
-
-	$m = new SimpleEmailServiceMessage();
-	$m->addTo($to);
-	$m->setFrom($from);
-	$m->setSubject($subject);
-	if($text_msg != '' || $html_message != '') {
-		$m->setMessageFromString($text_msg,$html_message);
-	}
-	else if($file_text_path != '' || $file_html_path != '') {
-		$m->setMessageFromFile($file_text_path,$file_html_path);
-	}
-	else if($http_url != '') {
-		$m->setMessageFromURL($http_url);
-	}
-	else {
-		return 'Attempt to send mail with out message';
-	}
-	if($cc != '')
-		$m->addCC($cc);
-	if($bcc != '')
-		$m->addBCC($bcc);
-	if($return_path != '')
-		$m->setReturnPath($return_path);
-	if($replyto != '')
-		$m->addReplyTo($replyto);
-	//echo '<pre>';print_r($m);echo '</pre>';
-	return $ses->sendEmail($m);
-}
 
 function destroyPagingControlsVariables() { //clear paging session variables
     unset($_SESSION['orderby']);
@@ -532,107 +412,6 @@ function pagingControlLatestAjax($total,$functionName='')
 	</form>
 <?php } 
 
-function uploadImageToS3($image_path,$type,$image_name){
-	error_reporting(0);
-	/*echo "<br>==================>".$image_path;
-	echo "<br>==================>".$type;
-	echo "<br>==================>".$image_name;*/
-	
-	$image_upload_path = '';
-	 if($type == 6){ //merchants icon
-		$image_upload_path = 'merchants/icons/'.$image_name;
-	}else if($type == 7){ //merchants
-		$image_upload_path = 'merchants/'.$image_name;
-	} else if($type == 8){ //merchants
-		$image_upload_path = 'products/'.$image_name;
-	}
-	require_once('sdk.class.php');// Include the SDK
-	
-	$s3 = new AmazonS3();//// Instantiate the AmazonS3 class
-	
-	$bucket = BUCKET_NAME;
-	// Create our new bucket in the US-West region.
-	$exists = $s3->if_bucket_exists($bucket);
-	if(!$exists){
-		$create_bucket_response = $s3->create_bucket($bucket, AmazonS3::REGION_US_W2);
-	}
-		$filename = $image_path;
-		$s3->batch()->create_object($bucket, $image_upload_path, array(
-					'fileUpload' => $filename,
-					'contentType' => 'image/png',
-					'acl' => AmazonS3::ACL_PUBLIC,
-					 'headers' => array( // Custom $requestHeaders //meta headers
-					           	 	"Cache-Control" => "max-age=315360000",
-					            	"Expires" => gmdate("D, d M Y H:i:s T", strtotime("+5 years"))
-								  )
-					),
-					array( // Custom $requestHeaders //meta headers
-					           	 	"Cache-Control" => "max-age=315360000",
-					            	"Expires" => gmdate("D, d M Y H:i:s T", strtotime("+5 years"))
-								  )
-					
-			);
-		$file_upload_response = $s3->batch()->send();
-		//echo'<br>-------file---------<pre>';print_r($file_upload_response);echo'</pre>';
-}
-
-function image_exists($type,$image_name){
-	return true;
-	
-	if($type == 3){ //category 
-		$filename = 'category/'.$image_name;
-	} else if($type == 4){ //category thumb
-		$filename = 'category/thumbnail/'.$image_name;
-	} else if($type == 4){ //category 
-		$filename = 'sliderImages/'.$image_name;
-	} else if($type == 5){ //category thumb
-		$filename = 'sliderImages/thumbnail/'.$image_name;
-	} else if($type == 5){ //category thumb
-		$filename = 'sliderImages/thumbnail/'.$image_name;
-	} else if($type == 6){ //merchants icon
-		$filename = 'merchants/icons/'.$image_name;
-	} else if($type == 7){ //merchants
-		$filename = 'merchants/'.$image_name;
-	} else if($type == 8){ //merchants
-		$filename = 'products/'.$image_name;
-	}
-	$bucket = BUCKET_NAME;
-	require_once('sdk.class.php');// Include the SDK
-	$s3 = new AmazonS3();// Instantiate the AmazonS3 class
-	$s3->get_object_url($bucket, $filename);
-	if ($info){
-	 return true;
-	}
-	else{
-		return false;
-	}
-}
-function deleteImages($type,$image_name){
-	if($type == 3){ //category thumb
-		$filename = 'category/'.$image_name;
-	} else if($type == 4){ //category thumb
-		$filename = 'sliderImages/'.$image_name;
-	} else if($type == 5){ //category thumb
-		$filename = 'sliderImages/thumbnail/'.$image_name;
-	} else if($type == 6){ //merchants icon
-		$filename = 'merchants/icons/'.$image_name;
-	} else if($type == 7){ //merchants
-		$filename = 'merchants/'.$image_name;
-	} else if($type == 8){ //merchants
-		$filename = 'products/'.$image_name;
-	}
-	$bucket = BUCKET_NAME;
-	
-	require_once('sdk.class.php');// Include the SDK
-	$s3 = new AmazonS3();// Instantiate the AmazonS3 class
-	$info = $s3->delete_object($bucket, $filename);
-	if ($info){
-	 return true;
-	}
-	else{
-		return false;
-	}
-}
 
 function ipAddress(){
 	/*if (!empty($_SERVER['HTTP_CLIENT_IP'])){
@@ -823,7 +602,9 @@ function checkVideo($files){
 	    }
 	}
 }
-function subval_sort($a,$subkey) {
+function subval_sort($a,$subkey,$type='') {
+		//$type = '' for ascending 
+		//$type = 1 for descending 
 			$b  = $c  =	array();
 			if(is_array($a) && count($a) > 0) {
 				foreach($a as $k=>$v) {
@@ -831,7 +612,10 @@ function subval_sort($a,$subkey) {
 				}
 			}
 			if(is_array($b) && count($b) > 0) {
-				asort($b);
+				if($type == 1)
+					arsort($b);
+				else
+					asort($b);
 				foreach($b as $key=>$val) {
 					$c[]   = $a[$key];
 				}
@@ -1527,7 +1311,7 @@ function curlRequest($url, $method, $data = null, $access_token = '')
 		break;
 	}
 	$response = curl_exec($handle);
-	if($_SERVER['REMOTE_ADDR'] == '172.21.4.215'){
+	if($_SERVER['REMOTE_ADDR'] == '172.21.4.130'){
 		//echo'<div style="width:200px"><pre>';print_r($response);echo'</pre></div>';
 	}
 	
@@ -1717,15 +1501,7 @@ function getStringForDay($dataArray,$start_date='',$end_date='',$type='') {
 				$start_date = date('Y-m-d',strtotime($cur_year.'-'.$cur_month.'-01'));
 				$end_date = date('Y-m-d',strtotime($curr_date));
 			}
-		} /*else if(isset($start_date) && $start_date!='' && isset($end_date) && $end_date!='') {
-			list($start_date_year,$start_date_month,$start_date_day) = explode('-',$start_date);
-			list($end_date_year,$end_date_month,$end_date_day) = explode('-',$end_date);
-			if($start_date_month==$end_date_month) {
-				$last_date =  date('t-'.$start_date_month.'-Y');
-				$start_date = date('Y-m-d',strtotime($start_date_year.'-'.$start_date_month.'-01'));
-				$end_date = date('Y-m-d',strtotime($last_date));
-			}
-		}*/
+		} 
 		$date_differ_array = createDateRangeArray($start_date,$end_date);
 		$total_count = count($date_differ_array);
 		foreach($date_differ_array as $key => $value) {
@@ -1778,9 +1554,13 @@ function getStringForDay($dataArray,$start_date='',$end_date='',$type='') {
 				$x_labels[] = $day;
 			} else { 
 				$date_format = date('M d',strtotime($date));
-				$x_labels[] = "'".$date_format."'";
+				if($type == 1)
+					$x_labels[] = "".$date_format."";
+				else
+					$x_labels[] = "'".$date_format."'";
 			}
 			$values[] = $value;
+			
 		}
 		$x_labels_string = implode(',',$x_labels);
 		$value_string = implode(',',$values);
@@ -1950,5 +1730,52 @@ function time_ago($date,$granularity=2) {
         return $retval.' ago';      
     }
 }
+function price_fomat($price_val){
+	$price = number_format($price_val,2,'.',',');
+	if(strstr($price,'$'))
+		return $price;
+	else
+		return '$'.$price;
+}
+function getStringForDayProduct($dataArray,$start_date='',$end_date='',$type='') {
+	usort( $dataArray, function( $a, $b) {  
+	    if( $a['TotalOrders']== $b['TotalOrders']) 
+	        return 0; 
+	    return $a['TotalOrders'] < $b['TotalOrders'] ? 1 : -1; // Might need to switch 1 and -1
+	});
+	foreach($dataArray as $key => $value) {
+	   if($key <= 9){
+			$x_labels[] = $value['Name'];
+			$y_labels[] = $value['TotalOrders'];
+	   }
+	}
+	$x_labels_string = implode(',',$x_labels);
+	$value_string = implode(',',$y_labels);
+	return $x_labels_string.'###'.$value_string;
+		
+		
+}
 
+/*
+function getCurrencyFromCountry($country_name)
+{
+	$url = "http://www.webservicex.net/country.asmx/GetCurrencyByCountry?CountryName=".$country_name;
+	
+	try{
+		$page = file_get_contents($url);
+		$service_xml = new SimpleXMLElement($page);
+		$xml_object = simplexml_load_string($service_xml);
+		if (isset($xml_object->Table)) {
+			return $xml_object->Table;
+		}
+		else  {
+			return 0;
+		}
+	}
+	catch(Exception $e){
+		return 0;
+	}
+	
+}
+*/
 ?>

@@ -3,8 +3,7 @@ require_once('includes/CommonIncludes.php');
 merchant_login_check();
 $condition  = '';
 $search		= $userSearch = '';
-unset($_SESSION['tuplitCreateOrderUser']);
-unset($_SESSION['tuplitCreateOrderTotalUser']);
+
 if((isset($_GET['cs']) && $_GET['cs'] == 1) && (isset($_GET['ajax']) && $_GET['ajax'] == 'true') ) {
 	unset($_SESSION['CreateOrder']);
 	die();
@@ -16,6 +15,9 @@ if(isset($_SESSION['SuccessMsg']) && !empty($_SESSION['SuccessMsg'])) {
 	$successMessage 		= 	$_SESSION['SuccessMsg'];
 	unset($_SESSION['SuccessMsg']);
 }
+
+unset($_SESSION['tuplitCreateOrderUser']);
+unset($_SESSION['tuplitCreateOrderTotalUser']);
 	
 //Order submit
 if(isset($_POST['order_submit']) && !empty($_POST['order_submit'])) {
@@ -123,7 +125,9 @@ if(isset($showorder) && $showorder = 1 && isset($UserId) && !empty($UserId)) {
 		}
 		else
 			$errorMessage		=  	"This user not having enough balance to accept this order";
-	} 
+	} else if(isset($curlCategoryResponse['meta']['errorMessage']) && $curlCategoryResponse['meta']['errorMessage'] != '') {
+		$errorMessage	=	$curlCategoryResponse['meta']['errorMessage'];
+	}
 }
 
 //getting merchant details
@@ -178,14 +182,16 @@ if(isset($curlCategoryResponse) && is_array($curlCategoryResponse) && $curlCateg
 	$productList 			= 	$curlCategoryResponse['ProductList'];	
 }
 
-if(isset($productList) && !empty($productList)) { 
-	foreach($productList[0] as $data) {
-		if($data['ItemType']	==	2) 
-			$dealsArray[]	=	$data;
-		if($data['ItemType']	==	3) 
-			$specialArray[]	=	$data;
+if(isset($productList) && !empty($productList)) {
+	if(isset($productList[0]) && count($productList[0])>0) {
+		foreach($productList[0] as $data) {
+			if($data['ItemType']	==	2) 
+				$dealsArray[]	=	$data;
+			if($data['ItemType']	==	3) 
+				$specialArray[]	=	$data;
+		}
+		unset($productList[0]);
 	}
-	unset($productList[0]);
 }
 
 
@@ -223,9 +229,13 @@ commonHead();
 		<?php top_header(); ?>
 		
 		<section class="content">
-		<?php if(isset($msg) && $msg != '') { ?>
+		<?php if(empty($merchantInfo['MangoPayUniqueId'])){?>
+				<div align="center" class="alert alert-danger alert-dismissable  col-lg-5 col-sm-7  col-md-5 col-xs-12"><i class="fa fa-warning"></i>&nbsp;&nbsp;Please connect with MangoPay in My Account to create orders.</div>
+		<?php }
+		else{
+			 if(isset($msg) && $msg != '') { ?>
 			<div align="center" id="showmessage" class="alert <?php  echo $class;  ?> alert-dismissable  col-xs-10 col-sm-5 col-lg-4"><i class="fa <?php  echo $class_icon;  ?>"></i>  <?php echo $msg; ?></div>
-		<?php } ?>		
+			<?php } ?>		
 		<div class="col-lg-12 box-center">
 			<form method="post" action="CreateOrder" id="OrderForm" name="OrderForm">
 			<div class="product_list" id="Oders_Merchant" style="<?php if(isset($showorder) && $showorder >0) echo ''; else echo "display:none;"; ?>">
@@ -275,8 +285,8 @@ commonHead();
 							<tr><td colspan="4" height="20"></td></tr>
 							<tr id="userTable">
 								<td ><a style="cursor:pointer" class="userTotal" onclick="return clearOrders()">Clear Order</a><input type="hidden" id="userDefaultImage" name="userDefaultImage" value="<?php echo MERCHANT_SITE_IMAGE_PATH."no_user.jpeg";?>"/></td>
-								<td><img width="25" height="25" id="userImage" class="" src="<?php if(isset($UsersImagepath)) echo $UsersImagepath; else echo MERCHANT_SITE_IMAGE_PATH."no_user.jpeg";?>">&nbsp;&nbsp;<span id="username"><?php if(isset($Username)) echo $Username; else echo 'No User Selected'; ?></span> </td>
-								<td><a id="bottom" href="#bottom"><?php if(isset($UserId)) echo "Change User"; else echo "Select User"; ?></a><input type="hidden" id="CurrentUserId" name="CurrentUserId" value="<?php if(isset($UserId)) echo $UserId; ?>"><input type="hidden" id="OrderUserImage" name="OrderUserImage" value="<?php if(isset($UsersImagepath)) echo $UsersImagepath; ?>"><input type="hidden" id="OrderUserName" name="OrderUserName" value="<?php if(isset($Username)) echo $Username;?>"> </td>
+								<td><img width="25" height="25" id="userImage" class="" src="<?php if(isset($UsersImagepath)) echo $UsersImagepath; else echo MERCHANT_SITE_IMAGE_PATH."no_user.jpeg";?>">&nbsp;&nbsp;<span id="username"><?php if(isset($Username)) echo $Username; else echo 'No Customer Selected'; ?></span> </td>
+								<td><a id="bottom" href="#bottom"><?php if(isset($UserId)) echo "Change Customer"; else echo "Select Customer"; ?></a><input type="hidden" id="CurrentUserId" name="CurrentUserId" value="<?php if(isset($UserId)) echo $UserId; ?>"><input type="hidden" id="OrderUserImage" name="OrderUserImage" value="<?php if(isset($UsersImagepath)) echo $UsersImagepath; ?>"><input type="hidden" id="OrderUserName" name="OrderUserName" value="<?php if(isset($Username)) echo $Username;?>"> </td>
 								<td align="right"><input id="order_submit" class="btn btn-success " type="Submit" name="order_submit" value="<?php if(isset($OrderTotal)) echo "Charge $".$OrderTotal; ?>" onclick="return checkBalance();"></td>
 							</tr>
 						</table>
@@ -296,11 +306,11 @@ commonHead();
 									<div class="col-xs-6 col-sm-3 col-md-2 " style="cursor:pointer;" onclick="return hideShowOrders('<?php echo $value1['fkProductsId'];?>','<?php echo $value1['ItemName'];?>','<?php echo $value1['Photo']; ?>','<?php echo $value1['Price']; ?>','<?php echo $value1['DiscountPrice']; ?>');">
 										<div class="small-box ">
 												<img height="100" width="100" src="<?php echo $value1['Photo']; ?>" alt=""><br>
-											<div class="product_price">
+											<div class="product_price" style="cursor:text;">
 											<span class="title_product" style=""><?php echo $value1['ItemName'];?></span>
-											<?php echo "<div class='cal'>$".$value1['Price']."</div> "; 
+											<?php echo "<div class='cal pull-right'><strong>$".$value1['Price']."</strong></div> "; 
 												if($value1['DiscountPrice'] != 0)
-													echo "<div class=''>$".$value1['DiscountPrice']."</div>";
+													echo "<div class='cal actual_price pull-right' style='color:gray;'>$".$value1['DiscountPrice']."</div>";
 											?>
 											</div>
 										</div>
@@ -320,35 +330,59 @@ commonHead();
 				<div class="col-lg-2 col-md-3  col-sm-4 col-xs-12 pull-right no-padding">
 					<div class="search-form no-margin">
 						<i class="fa fa-search"></i>
-                        <input type="text" placeholder="Search Products" value="<?php if(!empty($Search)) echo $Search; ?>" class="form-control" name="productsearch" id="productsearch">
+                        <input type="text" placeholder="Search Products" value="<?php if(!empty($Search)) echo $Search; ?>" class="form-control LH12" name="productsearch" id="productsearch">
 					</div>
                 </div>
 				
 				<div class="box box-primary no-padding">
 					<div class="box-body" id="products_block">
-						<div style="cursor:pointer"  class="col-xs-8 no-padding" style="cursor:pointer;" onclick="return productCategoryHideShow('0_0')">
-							<h4>Deals</h4>
-						</div>
-						<div class="col-xs-4 text-right pad" style="font-size:20px;cursor:pointer" onclick="return productCategoryHideShow('0_0')"><i id="plusMinus0_0" class="fa <?php if(empty($Search)) echo "fa-caret-down"; else echo "fa-caret-up"; ?>"></i><input type="hidden" id="rowHidden0_0" value="1"></div>
-						
-						<div class="row clear" id="rowHide0_0" <?php if(empty($Search)) echo 'style="display:none;"'; ?>>										
-							<?php foreach($dealsArray as $key1=>$value1) { ?>	
-								<div class="col-xs-6 col-sm-3 col-md-2 <?php if($value1['Status'] == 2) echo "inactive";?>" style="cursor:pointer;" onclick="return hideShowOrders('<?php echo $value1['ProductId'];?>','<?php echo $value1['ItemName'];?>','<?php echo $value1['Photo']; ?>','<?php echo $value1['Price']; ?>','<?php echo $value1['DiscountPrice']; ?>');">
-									<div class="small-box ">
-										<img height="100" width="100" src="<?php echo $value1['Photo']; ?>" alt=""><br>
-										<div class="product_price">
-										<span class="title_product" style=""><?php echo $value1['ItemName'];?></span>
-										<?php 	echo "<div class='cal'>$".$value1['Price']."</div> ";
-												if($value1['DiscountPrice'] != 0)
-													echo "<div class=''>$".$value1['DiscountPrice']."</div>";  
-										?>
+						<?php if(isset($dealsArray) && !empty($dealsArray) && count($dealsArray)>0) { ?>
+							<div style="cursor:pointer"  class="col-xs-8 no-padding" onclick="return productCategoryHideShow('0_0')">
+								<h4>Deals</h4>
+							</div>
+							<div class="col-xs-4 text-right pad" style="font-size:20px;cursor:pointer" onclick="return productCategoryHideShow('0_0')"><i id="plusMinus0_0" class="fa <?php if(empty($Search)) echo "fa-caret-down"; else echo "fa-caret-up"; ?>"></i><input type="hidden" id="rowHidden0_0" value="1"></div>
+							
+							<div class="row clear" id="rowHide0_0" <?php if(empty($Search)) echo 'style="display:none;"'; ?>>										
+								<?php foreach($dealsArray as $key1=>$value1) { ?>	
+									<div class="col-xs-6 col-sm-3 col-md-2 <?php if($value1['Status'] == 2) echo "inactive";?>" style="cursor:pointer;" onclick="return hideShowOrders('<?php echo $value1['ProductId'];?>','<?php echo $value1['ItemName'];?>','<?php echo $value1['Photo']; ?>','<?php echo $value1['Price']; ?>','<?php echo $value1['DiscountPrice']; ?>');">
+										<div class="small-box ">
+											<img height="100" width="100" src="<?php echo $value1['Photo']; ?>" alt=""><br>
+											<div class="product_price" style="cursor:text;">
+											<span class="title_product" style=""><?php echo $value1['ItemName'];?></span>
+											<?php 	echo "<div class='cal pull-right'><strong>$".$value1['Price']."</strong></div> ";
+													if($value1['DiscountPrice'] != 0)
+														echo "<div class='cal actual_price pull-right' style='color:gray;'>$".$value1['DiscountPrice']."</div>";  
+											?>
+											</div>
 										</div>
-									</div>
-								</div> 
-							<?php } ?>										
-						</div><!-- /row -->
-						<div class="col-xs-12 clear no-padding"><hr class="no-margin"></div> <!-- sep line -->
-						
+									</div> 
+								<?php } ?>										
+							</div><!-- /row -->
+							<div class="col-xs-12 clear no-padding"><hr class="no-margin"></div> <!-- sep line -->
+						<?php } 
+						if(isset($specialArray) && !empty($specialArray) && count($specialArray)>0) { ?>
+							<div style="cursor:pointer"  class="col-xs-8 no-padding" style="cursor:pointer;" onclick="return productCategoryHideShow('0_1')">
+								<h4>Specials</h4>
+							</div>
+							<div class="col-xs-4 text-right pad" style="font-size:20px;cursor:pointer" onclick="return productCategoryHideShow('0_1')"><i id="plusMinus0_1" class="fa <?php if(empty($Search)) echo "fa-caret-down"; else echo "fa-caret-up"; ?>"></i><input type="hidden" id="rowHidden0_1" value="1"></div>
+							
+							<div class="row clear" id="rowHide0_1" <?php if(empty($Search)) echo 'style="display:none;"'; ?>>										
+								<?php foreach($specialArray as $key1=>$value1) { ?>	
+									<div class="col-xs-6 col-sm-3 col-md-2 <?php if($value1['Status'] == 2) echo "inactive";?>" style="cursor:pointer;" onclick="return hideShowOrders('<?php echo $value1['ProductId'];?>','<?php echo $value1['ItemName'];?>','<?php echo $value1['Photo']; ?>','<?php echo $value1['Price']; ?>','<?php echo $value1['DiscountPrice']; ?>');">
+										<div class="small-box ">
+											<img height="100" width="100" src="<?php echo $value1['Photo']; ?>" alt=""><br>
+											<div class="product_price" style="cursor:text;">
+											<span class="title_product" style=""><?php echo $value1['ItemName'];?></span>
+											<?php 	echo "<div class='cal pull-right'><strong>$".$value1['OriginalPrice']."</strong></div> ";
+													echo "<div class='cal actual_price pull-right' style='color:gray;'>$".$value1['Price']."</div>";  
+											?>
+											</div>
+										</div>
+									</div> 
+								<?php } ?>										
+							</div><!-- /row -->
+							<div class="col-xs-12 clear no-padding"><hr class="no-margin"></div> <!-- sep line -->
+						<?php } ?>
 					
 						<?php if(isset($productList) && !empty($productList)) { ?>						
 						<!-- start product List -->
@@ -363,11 +397,11 @@ commonHead();
 										<div class="col-xs-6 col-sm-3 col-md-2 <?php if($value1['Status'] == 2) echo "inactive";?>" style="cursor:pointer;" onclick="return hideShowOrders('<?php echo $value1['ProductId'];?>','<?php echo $value1['ItemName'];?>','<?php echo $value1['Photo']; ?>','<?php echo $value1['Price']; ?>','<?php echo $value1['DiscountPrice']; ?>');">
 											<div class="small-box ">
 												<img height="100" width="100" src="<?php echo $value1['Photo']; ?>" alt=""><br>
-												<div class="product_price">
+												<div class="product_price" style="cursor:text;">
 												<span class="title_product" style=""><?php echo $value1['ItemName'];?></span>
-												<?php 	echo "<div class='cal'>$".$value1['Price']."</div> ";
+												<?php 	echo "<div class='cal pull-right'><strong>$".$value1['Price']."</strong></div> ";
 														if($value1['DiscountPrice'] != 0)
-															echo "<div class=''>$".$value1['DiscountPrice']."</div>";  
+															echo "<div class='cal actual_price pull-right' style='color:gray;'>$".$value1['DiscountPrice']."</div>";  
 												?>
 												</div>
 											</div>
@@ -386,11 +420,11 @@ commonHead();
 			
 			<div class="col-xs-12 product_list no-padding" id="userinstore">
 			
-				<h1 class="col-sm-8 no-padding no-margin">Users in store   <?php if($TotalUsers > 0) echo "-   ".$TotalUsers; ?></h1> 
+				<h1 class="col-sm-8 no-padding no-margin" id="Totalusers">Customers in store   <?php if($TotalUsers > 0) echo "-   ".$TotalUsers; ?></h1> 
 				<div class="col-lg-2 col-md-3  col-sm-4 col-xs-12 pull-right no-padding">
 					<div class="search-form no-margin">
 						<i class="fa fa-search"></i>
-                        <input type="text" placeholder="Search Users" value="<?php if(!empty($userSearch)) echo $userSearch; ?>" class="form-control" name="usersearch" id="usersearch">
+                        <input type="text" placeholder="Search Customers" value="<?php if(!empty($userSearch)) echo $userSearch; ?>" class="form-control LH12" name="usersearch" id="usersearch">
 					</div>
                 </div>
 				
@@ -411,7 +445,7 @@ commonHead();
 							<!-- End user List -->
 							<input type="hidden" id="userTotalhide" name="userTotalhide" value="<?php if(isset($_SESSION['tuplitCreateOrderTotalUser'])) echo $_SESSION['tuplitCreateOrderTotalUser']; ?>"/>
 						<?php } else { ?>
-								 <div align="center" class="clear alert alert-danger alert-dismissable col-lg-4 col-sm-5 col-xs-10"><i class="fa fa-warning"></i>  No users found in your location.</div>							
+								 <div align="center" class="clear alert alert-danger alert-dismissable col-lg-4 col-sm-5 col-xs-10"><i class="fa fa-warning"></i>  No customers found in your location.</div>							
 						<?php } ?>
 						<?php if(isset($userList) && !empty($userList) && $_SESSION['tuplitCreateOrderTotalUser'] > 12) { ?>
 						<div class="col-xs-12 clear text-center" id="loadmorehome"> <a style="cursor:pointer" class="loadmore" id="loadmore" name="loadmore" class="btn btn-success" title="Load More" onclick="return loadMoreUser(<?php echo $userLoadMore; ?>);"><i class="fa fa-download"></i> <strong>Load More</strong></a></div>
@@ -426,6 +460,7 @@ commonHead();
 			<!-- <input type="submit" id="SearchSubmit" name="SearchSubmit" value="search" style="display:none;"/> -->
 			</form>
 		 </div>		
+		 <?php } ?>
 		</section>
 		<?php footerLogin(); ?>
 	<?php commonFooter(); ?>

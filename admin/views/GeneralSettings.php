@@ -8,17 +8,19 @@ $display = 'none';
 $error = $msg = '';
 $fields		  =	" * ";
 $where		  =	" 1 ";
+$fees         = '';
 $user_details = $adminLoginObj->getAdminDetails($fields,$where);
 if(isset($user_details) && is_array($user_details) && count($user_details)>0){
 	foreach($user_details as $key => $value){
 		$user_name 	= 	$value->UserName;
 		$email		=	$value->EmailAddress;
 		$limit 		=	$value->LocationLimit;
+		$fees 		=	$value->MangoPayFees;
 	}
 }
 if(isset($_POST['general_settings_submit']) && $_POST['general_settings_submit'] != '' )
 {	
-	$updateString   =   " UserName  = '".$_POST['user_name']."',EmailAddress = '".$_POST['email']."',LocationLimit= '".$_POST['limit']."'";
+	$updateString   =   " UserName  = '".$_POST['user_name']."',EmailAddress = '".$_POST['email']."',LocationLimit= '".$_POST['limit']."',MangoPayFees='".$_POST['fees']."'";
 	$condition      =   " id = 1 ";
 	$adminLoginObj->updateAdminDetails($updateString,$condition);
 	header('location:GeneralSettings?msg=1');
@@ -53,15 +55,21 @@ commonHead(); ?>
 							<div class="form-group  col-xs-12">
 								<label>Email</label>
 								<div class="col-sm-6 col-xs-12  no-padding">
-									<input type="text" class="form-control" name="email" id="email" value="<?php  if(isset($email) && $email) echo $email  ?>"  >
+									<input type="text" class="form-control" name="email" id="email" value="<?php  if(isset($email) && $email) echo $email;  ?>"  >
 								</div>
 							</div>
 							<div class="form-group col-xs-12">
 								<label>Location Limit</label>
 								<div class="col-sm-3 col-xs-5  no-padding">
-									<input type="text" class="form-control" name="limit" id="limit" maxlength="6" onkeypress="return isNumberKey_numbers(event);" value="<?php if(isset($limit)) echo $limit ?>"  >
+									<input type="text" class="form-control" name="limit" id="limit" maxlength="6" onkeypress="return isNumberKey_numbers(event);" value="<?php if(isset($limit)) echo $limit; ?>"  >
 								</div>
 								<span class="help-block LH30">&nbsp;&nbsp;(In kilometer)</span>
+							</div>
+							<div class="form-group col-xs-12">
+								<label>MangoPay Fees </label>
+								<div class="col-sm-4 col-xs-12  no-padding">
+									<input type="text" class="form-control" name="fees" id="fees" maxlength="3" onkeypress="return isNumberKey_numbers(event);" value="<?php if(isset($fees)) echo $fees; ?>"  >
+								</div>
 							</div>
 						</div><!-- /.box-body -->
 						<div class="box-footer" align="center">

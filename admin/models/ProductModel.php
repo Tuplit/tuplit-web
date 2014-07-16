@@ -23,9 +23,9 @@ class ProductModel extends Model
 			$condition .= " and p.fkCategoryId = '".$_SESSION['item_sess_product_category']."' ";
 		$sql = "select SQL_CALC_FOUND_ROWS ".$fields." from {$this->productTable} as p	
 				left join merchants as m on m.id = p.fkMerchantsId
-				left join productcategories as pc on pc.id = p.fkCategoryId
+				left join productcategories as pc on (pc.id = p.fkCategoryId)
 				WHERE 1".$condition." group by p.id ORDER BY ".$sorting_clause." ".$limit_clause;
-		//echo "<br/>======".$sql;
+		//echo "<br/><br><br><br>======".$sql;
 		$result	=	$this->sqlQueryArray($sql);
 		//echo "<pre>";   print_r($result);   echo "</pre>";
 		if(count($result) == 0) return false;
@@ -40,7 +40,8 @@ class ProductModel extends Model
 	function selectProductDetail($id){
 		$sql	 =	"select p.*,p.Status as ProductStat ,m.CompanyName,m.DiscountTier as Discount,m.Icon,m.CompanyName,pc.CategoryName from {$this->productTable} p 
 					left join merchants as m on m.id = p.fkMerchantsId 
-					left join productcategories as pc on pc.id = p.fkCategoryId where p.id=".$id;
+					left join productcategories as pc on pc.id = p.fkCategoryId 
+					where p.id=".$id;
 		//echo "<br/>======".$sql;
 		$result	=	$this->sqlQueryArray($sql);
 		//echo "<pre>";   print_r($result);   echo "</pre>";		

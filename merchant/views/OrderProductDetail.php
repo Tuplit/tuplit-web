@@ -112,7 +112,7 @@ commonHead();
 																<?php if(isset($pro_val["ProductsQuantity"]) && $pro_val["ProductsQuantity"] > 0){ echo $pro_val["ProductsQuantity"]; } ?>
 															</div>						
 														</td>
-														<td align="center"><?php echo ' $'.number_format($pro_val['TotalPrice'],2,'.',','); ?></td>
+														<td><div class="col-xs-8 no-padding text-right"><?php echo ' $'.number_format($pro_val['TotalPrice'],2,'.',','); ?></div></td>
 													</tr>
 											<?php } } 
 												?>

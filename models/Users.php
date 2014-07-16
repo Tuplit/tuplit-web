@@ -19,6 +19,10 @@ use Helpers\RedBeanHelper as RedBeanHelper;
 require_once	'Notifications.php';
 require_once	'Orders.php';
 require_once	'Comments.php';
+require_once	'Cards.php';
+require_once '../../admin/includes/mangopay/functions.php';
+require_once '../../admin/includes/mangopay/config.php';
+require_once '../../admin/includes/mangopay/MangoPaySDK/mangoPayApi.inc';
 
 class Users extends RedBean_SimpleModel implements ModelBaseInterface {
 
@@ -60,7 +64,7 @@ class Users extends RedBean_SimpleModel implements ModelBaseInterface {
 				 throw new ApiException("User not in active state", ErrorCodeType::UserNotInActiveStatus);
 			}
 			else{
-				$user = new Users();
+				$user = R::dispense('users');
 				$endpointARN = '';
 				if($deviceToken !=''){
 					$linkARN['Token'] 		= $deviceToken;
@@ -106,7 +110,7 @@ class Users extends RedBean_SimpleModel implements ModelBaseInterface {
 			 $tokenExists 		= 	R::findOne('devicetokens','DeviceToken = ?',[$valueToken]);
 			 if($tokenExists)
 			 {
-			 	$endpointARN 	=  	$tokenExists['EndPointARN'];
+			 	$endpointARN 	=  	$tokenExists['EndpointARN'];
 			 }
 		}
 		return $endpointARN;
@@ -126,16 +130,28 @@ class Users extends RedBean_SimpleModel implements ModelBaseInterface {
 		$this->validatecheckBalanceParams();
 		
 		$result 	= 	R::findOne('users', 'id = ? ', array($bean->UsersId));
-		if($result) {			
-			if($bean->PaymentAmount <= $result->CurrentBalance) 
-				$AllowPayment 	= 	1;
-			else
-				$AllowPayment 	= 	0;
+		if($result) {
+			if(!empty($result->MangoPayUniqueId) && !empty($result->WalletId)) {
+				$walletDetails		=	getWalletDetails($result->WalletId);
+				if(isset($walletDetails->Balance->Amount) && ($walletDetails->Balance->Amount >= $bean->PaymentAmount)) {
+					$AllowPayment 	= 	1;
+					$message		= 	'You can proceed your process';
+				}
+				else{
+					$AllowPayment 	= 	0;
+					$message		= 	'Your balance is insufficient to process';
+				}
+					
+				$AllowPaymentArray['PaymentAmount'] 	= 	$bean->PaymentAmount;		
+				$AllowPaymentArray['CurrentBalance'] 	= 	$result->CurrentBalance;
+				$AllowPaymentArray['AllowPayment'] 		= 	$AllowPayment;	
+				$AllowPaymentArray['Message'] 			= 	$message;			
+				return $AllowPaymentArray;					
 				
-			$AllowPaymentArray['PaymentAmount'] 	= 	$bean->PaymentAmount;		
-			$AllowPaymentArray['CurrentBalance'] 	= 	$result->CurrentBalance;
-			$AllowPaymentArray['AllowPayment'] 		= 	$AllowPayment;			
-			return $AllowPaymentArray;
+			} else {
+				//mangopay error
+				throw new ApiException("Sorry, user not connected with banking account", ErrorCodeType::NoResultFound);
+			}
 		}
 		else {
 			/**
@@ -355,9 +371,14 @@ class Users extends RedBean_SimpleModel implements ModelBaseInterface {
         * @var $bean Users
         */
 		$bean 						= 	$this->bean;
-		
 		// encrypt the password
 		if($modify == 1){
+			// validate the model
+			$this->validateModifyParams();
+
+			// validate the creation
+			$this->validateModify($bean->id);
+			
 			if($bean->Password && $bean->Password != ''){
 	        	$bean->Password 	= 	PasswordHelper::encrypt($bean->Password);
 			}
@@ -373,7 +394,44 @@ class Users extends RedBean_SimpleModel implements ModelBaseInterface {
         R::store($this);
     }
 	
-
+	/**
+    * Validate the model
+    * @throws ApiException if the models fails to validate required fields
+    */
+    public function validateModifyParams()
+    {
+		$bean 		= 	$this->bean;		
+		if($bean->Platform != ''){
+			$rules 	= 	[
+							'required' => [
+								 ['FirstName'],['LastName'],['Email']
+							],
+							'Email' => 'Email',
+							'in' =>[
+							['Platform',['0','1','2']]
+						]
+						];
+		}
+		else{
+		
+			$rules 	= 	[
+							'required' => [
+								 ['FirstName'],['LastName'],['Email']
+							],
+							'Email' => 'Email'
+						];
+		
+		}
+		
+		
+        $v 			= 	new Validator($this->bean);
+        $v->rules($rules);
+        if (!$v->validate()) {
+            $errors = $v->errors();
+            throw new ApiException("Please check the user's properties" ,  ErrorCodeType::SomeFieldsRequired, $errors);
+        }
+    }
+	
 	/**
     * Validate the modification
     */
@@ -393,7 +451,7 @@ class Users extends RedBean_SimpleModel implements ModelBaseInterface {
 
         if (!$modifiedBy) {
             // the User was not found
-            throw new ApiException("You have no access to edit the datas", ErrorCodeType::NotAccessToDoProcess);
+            throw new ApiException("You have no access to edit the data's", ErrorCodeType::NotAccessToDoProcess);
         }
 		
         /**
@@ -453,7 +511,7 @@ class Users extends RedBean_SimpleModel implements ModelBaseInterface {
 		 if($bean->Type)
 		 	$type	=	$bean->Type;
 			//echo"<br>===================>".$type;
-		$sql 	= 	"SELECT id as UserId,UniqueId,FirstName,LastName,Email,Photo,CurrentBalance as AvailableBalance,ZipCode,Location,Country,CellNumber  
+		$sql 	= 	"SELECT id as UserId,UniqueId,FirstName,LastName,Email,Photo,CurrentBalance as AvailableBalance,ZipCode,Location,Country,CellNumber,MangoPayUniqueId,WalletId  
 						FROM users where Status = 1 and id='".$userId."'";
    		$user 	= 	R::getAll($sql);//FBId,GooglePlusId,PushNotification,ZipCode,Location,Country,SendCredit,RecieveCredit,BuySomething 
         if (!$user) {
@@ -462,6 +520,7 @@ class Users extends RedBean_SimpleModel implements ModelBaseInterface {
         }
 		else
 		{
+			//echo "<pre>"; echo print_r($user); echo "</pre>";
 			$orderArray	=	$commentsArray	 	= 	array();
 			$imagePath 							= 	$originalPath = '';
 			if($user[0]['Photo'] !=''){
@@ -476,6 +535,15 @@ class Users extends RedBean_SimpleModel implements ModelBaseInterface {
 						$originalPath 			= 	USER_IMAGE_PATH.$user[0]['Photo'];
 				}
 			}
+			if(!empty($user[0]['WalletId'])) {
+				$walletDetails					=	getWalletDetails($user[0]['WalletId']);
+				if(isset($walletDetails->Balance->Amount))
+					$user[0]['AvailableBalance']	= 	$walletDetails->Balance->Amount;
+				else
+					$user[0]['AvailableBalance']	= 	0;
+			}
+			else
+				$user[0]['AvailableBalance']	= 	0;
 			$user[0]['Photo']		  			= 	$imagePath;
 			$user[0]['OriginalPhoto'] 			= 	$originalPath;
 			$userDetails['Details'] 			= 	$user[0];
@@ -486,15 +554,27 @@ class Users extends RedBean_SimpleModel implements ModelBaseInterface {
 				return  $userData;
 				exit;
 			}
-			else{
+			else {
 				$userDetails['Orders']				= array();
 				$userDetails['comments'] 			= array();
+				$userDetails['UserLinkedCards']		= array();
 				$totalOrders	= $totalComments	=	0;
+				
+				//Linked Cards
+				$cards 								= 	R::dispense('cards');
+				$cards->UserId						=   $userId;
+				$cards->Type						=	1;
+				$cards->MangoPayUniqueId			=	$user[0]['MangoPayUniqueId'];
+				$cardArray 							= 	$cards->getCards();
+				//echo "<pre>"; print_r($cardArray  ); echo "</pre>";die();
+				if($cardArray){
+					$userDetails['UserLinkedCards'] = 	$cardArray['result'];
+				}
 				//Recent Orders
 				$orders 							= 	R::dispense('orders');
 				$orders->Start 						= 	0;
 				$orders->Limit 						= 	3;
-				$orderArray 						= 	$orders->getUserOrderDetails($userId);
+				$orderArray 						= 	$orders->getUserOrderDetails($userId,1,1);
 				if($orderArray){
 					$userDetails['Orders'] 			= 	$orderArray['OrderDetails'];
 					$totalOrders					=	$orderArray['Total'];
@@ -755,7 +835,7 @@ class Users extends RedBean_SimpleModel implements ModelBaseInterface {
 		{
 			$valueToken1 			= 	ltrim($post['DeviceToken'],'<');
 			$valueToken 			= 	Rtrim( $valueToken1,'>');
-			$tokenExists 			= 	R::findOne('devicetokens','Token = ?',[$valueToken]);
+			$tokenExists 			= 	R::findOne('devicetokens','DeviceToken = ?',[$valueToken]);
 			if($tokenExists){
 				$post['EndPointARN']=  	$tokenExists['EndPointARN'];
 			}
@@ -771,19 +851,18 @@ class Users extends RedBean_SimpleModel implements ModelBaseInterface {
 			$valueToken 			= 	Rtrim( $valueToken1,'>');
 			$token 					= 	R::dispense('devicetokens');
 			$token->LoginedDate 	= 	date('Y-m-d H:i:s');
-			$token->fkUserId 		= 	$post['UserId'];
-			$token->Token 			= 	$valueToken;
+			$token->fkUsersId 		= 	$post['UserId'];
+			$token->DeviceToken		= 	$valueToken;
 			$token->EndPointARN 	= 	$post['EndPointARN'];
 			$token->Platform 		= 	$platform;
 			$token->Status 			= 	1;
 			
-			$sql 					= 	"update devicetokens set Status = 0 where Token = '".$valueToken."'";
+			$sql 					= 	"update devicetokens set Status = 0 where DeviceToken = '".$valueToken."'";
 			R::exec($sql);
 			
-			$tokenExists 			= 	R::findOne('devicetokens','Token = ? and fkUserId = ?',[$valueToken, $post['UserId']]);
+			$tokenExists 			= 	R::findOne('devicetokens','DeviceToken = ? and fkUsersId = ?',[$valueToken, $post['UserId']]);
 			if($tokenExists)
 				$token->id 			=  	$tokenExists['id'];
-			
 			R::store($token);
 		}
 	}
@@ -927,6 +1006,7 @@ class Users extends RedBean_SimpleModel implements ModelBaseInterface {
 					where 1".$condition." 
 					and (((acos(sin((".$bean->Latitude."*pi()/180)) * sin((u.`Latitude`*pi()/180))+cos((".$bean->Latitude."*pi()/180)) * cos((u.`Latitude`*pi()/180)) * cos(((".$bean->Longitude."- u.`Longitude`)*pi()/180))))*180/pi())*60*1.1515) <= $distanceLimit
 					and Status = 1 order by u.FirstName asc ".$limit;
+		//echo "===>".$sql;
 		$user 			= 	R::getAll($sql);		
 		$user1			=	R::getAll('SELECT FOUND_ROWS() as count ');
 		$usertotal		=	$user1[0]['count'];
@@ -990,47 +1070,62 @@ class Users extends RedBean_SimpleModel implements ModelBaseInterface {
 		/**
         * Get the bean
         */
-		$bean 										= $this->bean;
+		$bean 											= 	$this->bean;
 		
 		// validate the model
-        $this->validateTransferAmountParams();
+        $this->validateTransferParams();
 		
-		//getTransferAmounts		
-        $newBalance									=	$this->getTransferAmounts();
-		if($newBalance) {
+		//validate and get userdetails		
+        $userInfo										=	$this->validateTransferAmounts();
+		if($userInfo) {
+			$fromuser									=	$userInfo['fromuser'];
+			$touser										=	$userInfo['touser'];
 			
-			//Storing transfer amount
-			$transfer								= 	R::dispense('transfer');
-			$transfer->fkUsersId					=	$bean->UserId;
-			$transfer->fkTransferUsersId			=	$bean->ToUserId;
-			$transfer->Amount						=	$bean->Amount;
-			
-			$transfer->Notes						=	$bean->Notes;
-			$transfer->TransferDate					=	date('Y-m-d H:i:s');
-			$transferId								=	R::store($transfer);
-			if($transferId) {
-			
-				//updating from user current balance
-				$fromsql = "update users set CurrentBalance = ".$newBalance['from']." where id = '".$bean->UserId."'";
-				R::exec($fromsql);
+			$amountDetails								=	getWalletDetails($fromuser->WalletId);
+			if($amountDetails) {
+				if(isset($amountDetails->Balance->Amount) && ($amountDetails->Balance->Amount >= $bean->Amount)) {
 				
-				//updating to user current balance
-				$tosql = "update users set CurrentBalance = ".$newBalance['to']." where id = '".$bean->ToUserId."'";
-				R::exec($tosql);			
-				$notification 						= new Notification();
-				$notification->userId 				= $bean->UserId;
-				$notification->toUserId 			= $bean->ToUserId;
-				$notification->Amount	 			= $bean->Amount;
-				$notification->sendNotification(1);
-				return $transferId;
-			}			
-		}		
+					$userDetails['AuthorId']			=	$fromuser->MangoPayUniqueId;
+					$userDetails['CreditedUserId']		=	$touser->MangoPayUniqueId;
+					$userDetails['Currency']			=	'USD';
+					$userDetails['Amount']				=	$bean->Amount;
+					$userDetails['DebitedWalletId']		=	$fromuser->WalletId;
+					$userDetails['CreditedWalletId']	=	$touser->WalletId;
+					$result								=	transfer($userDetails);
+					if($result) {
+					
+						//Storing transfer amount
+						$transfer							= 	R::dispense('transfer');
+						$transfer->fkUsersId				=	$bean->UserId;
+						$transfer->fkTransferUsersId		=	$bean->ToUserId;
+						$transfer->Amount					=	$bean->Amount;					
+						$transfer->Notes					=	$bean->Notes;
+						$transfer->TransferDate				=	date('Y-m-d H:i:s');
+						$transferId							=	R::store($transfer);
+						
+						//Push Notification
+						$notification 						= 	R::dispense('notifications');
+						$notification->userId 				= 	$bean->UserId;
+						$notification->toUserId 			= 	$bean->ToUserId;
+						$notification->Amount	 			= 	$bean->Amount;
+						$notification->Notes	 			= 	$bean->Notes;
+						$notification->sendNotification(1);
+						
+						return $transferId;
+						
+					}
+				} else {
+					// low balance
+					throw new ApiException("You are not having enough balance to transfer the amount.", ErrorCodeType::CheckBalanceError);
+				}
+			}		
+		}			
     }
 	
 	/**
     * Validate the fields of transferAmount
     */
-    public function validateTransferAmountParams()
+    public function validateTransferParams()
     {
 		$bean 		= 	$this->bean;
 	  	$rules 		= 	[
@@ -1047,62 +1142,69 @@ class Users extends RedBean_SimpleModel implements ModelBaseInterface {
             throw new ApiException("Please check transfer amount fields." ,  ErrorCodeType::SomeFieldsRequired, $errors);
         }
 	}
-	
+		
 	/**
     * Validate the transferAmount
     */
-    public function getTransferAmounts()
+    public function validateTransferAmounts()
     {
 		$bean 		= 	$this->bean;
-		$result 	= 	R::findOne('users', 'id = ? and Status=1', array($bean->ToUserId));
-		if(!$result) {
+		
+		//From User
+		$fromuser = R::findOne('users', 'id = ? and Status=1', array($bean->UserId));
+		if(!$fromuser) {
 			// the User was not found
-            throw new ApiException("The user you are going to transfer amount was not found.", ErrorCodeType::NoResultFound);
-		}
-		 else {
-			$result1 = R::findOne('users', 'id = ? and Status=1', array($bean->UserId));
-			if(!$result1) {
-				// the User was not found
-				throw new ApiException("you are not in active state to transfer amount.", ErrorCodeType::NoResultFound);
-			}
-			else {
-				if($result1->CurrentBalance < $bean->Amount) {
-					// low balance
-					throw new ApiException("You are not having enough balance to transfer the amount.", ErrorCodeType::CheckBalanceError);
-				} else {
-					$Newbalance['from']		=	$result1->CurrentBalance - $bean->Amount;
-					$Newbalance['to']		=	$result->CurrentBalance + $bean->Amount;
-					return $Newbalance;
-				}
+			throw new ApiException("you are not in active state to transfer amount.", ErrorCodeType::UserNotInActiveStatus);
+		} else {
+			if($fromuser->MangoPayUniqueId == '') {
+				//Not connected with payment accounts
+				throw new ApiException("You are not connected with payment account to transfer amount.", ErrorCodeType::PaymentAccountError);
 			}
 		}
+		
+		//To User
+		$touser = R::findOne('users', 'id = ? and Status=1', array($bean->ToUserId));
+		if(!$touser) {
+			// the User was not found
+			throw new ApiException("The user you are going to transfer amount was not found.", ErrorCodeType::UserNotInActiveStatus);
+		} else {
+			if($touser->MangoPayUniqueId == '') {
+				//Not connected with payment accounts
+				throw new ApiException("The user you are going to transfer amount was not connected with payment account.", ErrorCodeType::PaymentAccountError);
+			}
+		}	
+		
+		$out['fromuser']	=	$fromuser;
+		$out['touser']		=	$touser;
+		return $out;
 	}
+	
 	/*
 	* Add MangoPay Details
 	*/
 	public function addMangoPayDetails($userId)
     {
 		$bean 			=	 $this->bean;
+		//echo'<pre>';print_r($bean);echo'</pre>';
 		$usersArray 	= array();
-		
-		//Validate MangoPay params
 		$this->validateMangoPay();
-		
 		$usersArray['FirstName']			=	$bean->FirstName;
 		$usersArray['LastName']				=	$bean->LastName;
 		$usersArray['Email']				=	$bean->Email;
 		$usersArray['Address']				=	$bean->Address;
-		$usersArray['Nationality']			=	$bean->Nationality;
-		$usersArray['CountryOfResidence']	=	$bean->Country;
+		$usersArray['Nationality']			=	'US';
+		$usersArray['CountryOfResidence']	=	'US';
 		$usersArray['Occupation']			=	$bean->Occupation;
 		$usersArray['Currency']				=	$bean->Currency;
 		$usersArray['Birthday']				=	$bean->Birthday;
-		$usersArray['IncomeRange']				=	$bean->IncomeRange;
-		
+		$usersArray['IncomeRange']			=	$bean->IncomeRange;
 		$mangopayDetails 					=   userRegister($usersArray);
-		if(isset($mangopayDetails) && count($mangopayDetails) >0){
-			$uniqueId					=	$mangopayDetails->Id;
-			$walletId					=	createWallet($uniqueId,$usersArray['Currency']);
+		$mangopayDetails = json_decode(json_encode($mangopayDetails), true);
+		//
+		if( isset($mangopayDetails['Id']) && $mangopayDetails['Id'] != ''){
+			//throw new ApiException("checking ----333333333----------".$mangopayDetails['Id'], ErrorCodeType::PaymentAccountError);
+			$uniqueId					=	$mangopayDetails['Id'];
+			$walletId					=	createWallet($uniqueId,$bean->Currency);
 			$users 						= 	R::dispense('users');
 			$users->id 					= 	$userId;
 			$users->MangoPayResponse 	= 	serialize($mangopayDetails);
@@ -1111,6 +1213,18 @@ class Users extends RedBean_SimpleModel implements ModelBaseInterface {
 			$usersUpdate 				= 	R::store($users);
 			return $userId;
 		}
+		/*$usersArray 	= array();
+		throw new ApiException("checking ------1------ You are not connected with payment account to transfer amount. - ".$bean->FirstName, ErrorCodeType::PaymentAccountError);
+		//Validate MangoPay params
+		$this->validateMangoPay();
+		throw new ApiException("checking ------1--s---- You are not connected with payment account to transfer amount. - ".$bean->FirstName, ErrorCodeType::PaymentAccountError);
+		
+		throw new ApiException("checking -----2------- You are not connected with payment account to transfer amount. - ".$bean->FirstName, ErrorCodeType::PaymentAccountError);
+		$mangopayDetails 					=   userRegister($usersArray);
+		
+		if(isset($mangopayDetails->Id) && $mangopayDetails->Id != ''){
+			
+		}*/
 	}
 	/**
     * Validate MangoPay params
@@ -1121,9 +1235,9 @@ class Users extends RedBean_SimpleModel implements ModelBaseInterface {
 		$bean = $this->bean;
 	  	$rules = [
             'required' => [
-                ['FirstName'],['LastName'],['Email'],['Address'], ['Nationality'],['Country'],['Occupation'],['Currency'],['Birthday'],['IncomeRange']
+                ['FirstName'],['LastName'],['Email'],['Address'], ['Nationality'],['Country'],['Currency'],['Birthday'],
             ],
-			
+			'Email' => 'Email',
         ];
 		
         $v = new Validator($this->bean);

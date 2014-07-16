@@ -77,4 +77,10 @@ class ErrorCodeType {
 	
 	const SetPinValidateError = 2023;
 	
+	const PaymentAccountError = 2025;
+	
+	const PaymentError = 2026;
+	
+	const ErrorInCardRegistration = 2027;
+	const ErrorInPaymentRegistration = 2028;
 }

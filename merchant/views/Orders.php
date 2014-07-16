@@ -14,7 +14,7 @@ if(isset($_GET['Reject']) || isset($_GET['Approve'])) {
 					'OrderStatus'	=> '2'
 					);
 	}
-	if(isset($_GET['Approve']) && !empty($_GET['Approve'])) {
+	if(isset($_GET['Approve']) && !empty($_GET['Approve'])) {	
 		$data	=	array(
 					'OrderId'		=> $_GET['Approve'],
 					'OrderStatus'	=> '1'
@@ -22,6 +22,8 @@ if(isset($_GET['Reject']) || isset($_GET['Approve'])) {
 	}
 	$url				=	WEB_SERVICE.'v1/orders/';
 	$method				=	'PUT';
+	//echo $url;
+	//echo json_encode($data);die();
 	$curlResponse		=	curlRequest($url,$method,json_encode($data),$_SESSION['merchantInfo']['AccessToken']);
 	if(isset($curlResponse) && is_array($curlResponse) && $curlResponse['meta']['code'] == 201) {
 		$_SESSION['successMessage'] = $curlResponse['notifications'][0];		
@@ -38,7 +40,28 @@ if(isset($_SESSION['successMessage']) && !empty($_SESSION['successMessage'])) {
 	$successMessage		=	$_SESSION['successMessage'];
 	unset($_SESSION['successMessage']);
 }
+//getting merchant details
+if(isset($_SESSION['merchantDetailsInfo']) && is_array($_SESSION['merchantDetailsInfo'])){
+	$merchantInfo  				=	$_SESSION['merchantDetailsInfo'];	
+	if(!empty($merchantInfo['DiscountTier']) || $merchantInfo['DiscountTier'] != 0 ) {
+	}
+	else {
+		$hide					= 	1;	
+	}
+}
 
+if(isset($_SESSION['merchantDetailsInfo']) && is_array($_SESSION['merchantDetailsInfo'])){
+	$merchantInfo  				=	$_SESSION['merchantDetailsInfo'];	
+}
+else{
+	$merchantId					= 	$_SESSION['merchantInfo']['MerchantId'];
+	$url						=	WEB_SERVICE.'v1/merchants/'.$merchantId."?From=0";
+	$curlMerchantResponse 		= 	curlRequest($url, 'GET', null, $_SESSION['merchantInfo']['AccessToken']);
+	if(isset($curlMerchantResponse) && is_array($curlMerchantResponse) && $curlMerchantResponse['meta']['code'] == 201 && $curlMerchantResponse['merchant']['MerchantId'] != '' ) 
+	 {
+		$merchantInfo  			= 	$_SESSION['merchantDetailsInfo']   =	$curlMerchantResponse['merchant'];
+	}
+}
 if(isset($_SESSION['merchantInfo']['AccessToken'])){ 	
 
 	//getting Order List
@@ -92,18 +115,21 @@ commonHead();
 ?>
 <body class="skin-blue fixed">
 		<?php top_header(); ?>		
-		<section class="content" align="center">
-			<?php if(isset($msg) && $msg != '') { ?>
+		<section class="content top-spacing" align="center">
+		<?php if(empty($merchantInfo['MangoPayUniqueId'])){?>
+				<div align="center" class="alert alert-danger alert-dismissable  col-lg-5 col-sm-7  col-md-5 col-xs-12"><i class="fa fa-warning"></i>&nbsp;&nbsp;Please connect with MangoPay in My Account to view orders.</div>
+		<?php }else{
+			 if(isset($msg) && $msg != '') { ?>
 			<div align="center" class="alert <?php  echo $class;  ?> alert-dismissable col-xs-10 col-sm-5 col-lg-3"><i class="fa <?php  echo $class_icon;  ?>"></i>  <?php echo $msg; ?></div>
 			<?php } ?>			
 			<div class="col-md-12 col-lg-12 box-center" >				
 				<section class="content-header">
 					
-	                <h1 class="col-sm-9 col-lg-10 no-padding no-margin">New Orders <?php if(isset($_SESSION['tuplitNewOrderTotal']) && !empty($_SESSION['tuplitNewOrderTotal'])) echo " - ".$_SESSION['tuplitNewOrderTotal']; ?></h1>
+	                <h1 class="col-sm-9 col-lg-10 no-padding no-margin text-left">New Orders <?php if(isset($_SESSION['tuplitNewOrderTotal']) && !empty($_SESSION['tuplitNewOrderTotal'])) echo " - ".$_SESSION['tuplitNewOrderTotal']; ?></h1>
 					<a href="OrderHistory?cs=1" class="col-sm-3  col-lg-2  btn btn-success margin-bottom" title="View Orders History"><i class="fa fa-history"></i> View Orders History</a>
 					
 	                <?php  if ($_SERVER['HTTP_HOST'] == '172.21.4.104') { ?>
-						<div class="no-padding col-xs-12" style="color:#01a99a;font-size:20px;" id="OrdersDisplayed" name="OrdersDisplayed">Orders Displayed 
+						<div class="no-padding col-xs-12 text-left" style="color:#01a99a;font-size:20px;" id="OrdersDisplayed" name="OrdersDisplayed">Orders Displayed 
 							<?php 
 								if(isset($totalorderlist) && !empty($totalorderlist)) {
 									echo " - ".$totalorderlist; 
@@ -192,9 +218,9 @@ commonHead();
 		 </div>
 		 <div class="col-md-12 col-lg-12 box-center">				
 				<section class="content-header">
-	                <h1>Approved / Rejected Today Orders</h1>
+	                <h1 class="col-sm-9 col-lg-10 no-padding no-margin text-left">Approved / Rejected Today Orders</h1>
 	            </section>
-				<div class="box box-primary  order_list">
+				<div class="box box-primary  order_list clear ">
 					<div class="box-body no-padding">
 					<!-- Start Today Orders List -->						
 						<?php if(isset($todayOrderList) && !empty($todayOrderList)) {
@@ -264,6 +290,7 @@ commonHead();
 					</div><!-- /.box-body -->
 				</div>					
 		 </div>		
+		 <?php } ?>
 		</section>
 		<?php footerLogin();  commonFooter(); ?>
 	<script type="text/javascript">

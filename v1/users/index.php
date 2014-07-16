@@ -50,7 +50,7 @@ $app->post('/', function () use ($app) {
 
         // Create a http request
         $req = $app->request();
-
+		
         /**
          * Get a new user account
          * @var Users $user
@@ -71,10 +71,25 @@ $app->post('/', function () use ($app) {
 			$user->PinCode 		= 	$req->params('PinCode');
 		if($req->params('ZipCode'))
 			$user->ZipCode 		= 	$req->params('ZipCode');
-		if($req->params('Country'))
+		
+		if($req->params('Country')) {
 			$user->Country 		= 	$req->params('Country');
-		if($req->params('Location'))
+			$Nationality 		= 	$req->params('Country');
+		}
+		else {
+			$user->Country 		= 	'US';
+			$Nationality 		= 	'US';
+		}
+			
+		if($req->params('Location')) {
 			$user->Location 	= 	$req->params('Location');
+			$Address 			= 	$req->params('Location');
+		}
+		else  {
+			$user->Location 	= 	'US';
+			$Address 			= 	'US';
+		}
+			
 		if($req->params('Platform')){
 			$platformText 		= 	$req->params('Platform');
 			if($platformText == 'ios')
@@ -94,22 +109,35 @@ $app->post('/', function () use ($app) {
 		}
 		
 	    $user->PhotoFlag 		= 	$flag;
+		
+		
+
 	    /**
          * Create the account
          */
-	    $userId 				= 	$user->create();
+	   $userId 				= 	$user->create();
 		/**
          * Saving user Photo
          */
-		 if($userId){
-				$user->Photo = 	'';
+		 if(isset($userId) && $userId != ''){
+				$user->Nationality			=	$Nationality;
+				$user->Address				=	$Address; 
+				$user->Currency				=	'USD';
+				$user->Birthday				=	'1991-01-01';		 
+				$user->addMangoPayDetails($userId);
+				unset($user->Currency);
+				unset($user->Birthday);
+				unset($user->Nationality);
+				unset($user->Address);
+				
+				$user->Photo 				= 	'';
 				if (isset($_FILES['Photo']['tmp_name']) && $_FILES['Photo']['tmp_name'] != '') {
 					$imageName 				= 	$userId . '_' . time() . '.png';
 					$imageOriginalPath 		= 	UPLOAD_USER_PATH_REL.$imageName;
 					$imageThumbPath 		= 	UPLOAD_USER_THUMB_PATH_REL.$imageName;
 					copy($_FILES['Photo']['tmp_name'],$imageOriginalPath);
 					
-					$phMagick = new phMagick($imageOriginalPath);
+					$phMagick 				= 	new phMagick($imageOriginalPath);
 					$phMagick->setDestination($imageThumbPath)->resize(100,100);
 					
 					if(SERVER){
@@ -118,11 +146,13 @@ $app->post('/', function () use ($app) {
 						unlink($imageOriginalPath);
 						unlink($imageThumbPath);
 					}
-					$user->Photo = $imageName;
+					$user->Photo 			= 	$imageName;
 					unlink($_FILES['Photo']['tmp_name']);
-					$user->PhotoFlag = 5;//success
+					$user->PhotoFlag 		= 	5;//success
 					$user->modify($userId);
 				}
+				
+				
 		 }
 		/**
          * After successful registration email was sent to registered user
@@ -184,18 +214,21 @@ $app->get('/checkResetPassword/:userId', function ($userId) use ($app) {
 
     try {
 		// Create a http request
-        $req = $app->request();
+        $req 			= 	$app->request();
 		
 		// Create a json response object
-       $response = new tuplitApiResponse();
+       $response 		= 	new tuplitApiResponse();
+	   
 		/**
          * Get a user table instance
          */
-		$users = new Users();
+		$users 			= 	R::dispense('users');
+		
 		/**
          * Call check reset password function
          */
-		$userDetails = $users->checkResetPassword($userId);
+		$userDetails 	= 	$users->checkResetPassword($userId);
+		
 		/**
          * Send mail to registered user
          */
@@ -533,88 +566,104 @@ $app->put('/',tuplitApi::checkToken(), function () use ($app) {
     try {
 
         // Create a http request
-        $request = $app->request();
-    	$body = $request->getBody();
-    	$input = json_decode($body);
-		$requestedById = $userId = tuplitApi::$resourceServer->getOwnerId();
+        $request 		= 	$app->request();
+    	$body 			= 	$request->getBody();
+    	$input 			= 	json_decode($body);
+		$userId 		= 	tuplitApi::$resourceServer->getOwnerId();
         /**
          * Get a new user account
          * @var Users $user
          */
-        $user = R::dispense('users');
-        $user->id = $requestedById;
-		$platform = 0;
-		if(isset($input->Platform)){
-			$platformText = $input->Platform;
-			if($platformText == 'ios')
-				$platform = 1;
-			else
-				$platform = 2;
-		}
-		else{
-			$platformText = 'web';
-		}
-		
+		$platform 		= 	0;
+        $user 			= 	R::dispense('users');
+        $user->id 		= 	$userId;
 		if(isset($input->FirstName)) 	$user->FirstName 		= $input->FirstName;
 		if(isset($input->LastName)) 	$user->LastName 		= $input->LastName;
 		if(isset($input->Email)) 		$user->Email 			= $input->Email;
 		if(isset($input->Password)) 	$user->Password 		= $input->Password;
-		if(isset($input->CellNumber)) 	$user->CellNumber 		= $input->CellNumber;
 		if(isset($input->ZipCode)) 		$user->ZipCode 			= $input->ZipCode;
 		if(isset($input->Country)) 		$user->Country 			= $input->Country;
-		if(isset($input->PassCode)) 	$user->PassCode 		= $input->PassCode;
-		$userListResult  = R::getAll("select Photo from users where id = ".$requestedById);
-		if(isset($input->Photo) && $input->Photo !=''){
-			$image_base64 	= $input->Photo;
-			$decode_img 	= base64_decode($image_base64);
-			$typecheck 		= getImageMimeType($decode_img);
-			if($typecheck != ''){
-				$img = imagecreatefromstring($decode_img);
-				if($img != false)
-				{
-					$imageName = $userId . '_' . time() . '.png';
-					$imageOriginalPath 		= UPLOAD_USER_PATH_REL.$imageName;
-					$imageThumbPath 		= UPLOAD_USER_THUMB_PATH_REL.$imageName;
-				
-					imagepng($img, $imageOriginalPath);
-					
-					$phMagick = new phMagick($imageOriginalPath);
-					$phMagick->setDestination($imageThumbPath)->resize(100,100);
-					
-					$userImage = $userListResult[0]['Photo'];	
-					if(!SERVER){
-						if($userImage != ''){
-							/*$imageOriginalPath 		= UPLOAD_USER_PATH_REL.$userImage;
-							$imageThumbPath 		= UPLOAD_USER_THUMB_PATH_REL.$userImage;
-							if(file_exists($imageThumbPath))
-								unlink($imageThumbPath);
-							if(file_exists($imageOriginalPath))
-								unlink($imageOriginalPath);*/
-						}
-					}
-					
-					if(SERVER){
-						deleteImages(1,$userImage);
-						deleteImages(2,$userImage);
-						
-						uploadImageToS3($imageThumbPath,2,$imageName);
-						uploadImageToS3($imageOriginalPath,1,$imageName);
-						
-						unlink($imageThumbPath);
-						unlink($imageOriginalPath);
-					}
-					$user->Photo = $imageName;
-				}
-		   }
-		   else{
-				/**
-				* Error in photo creation
-				*/
-				throw new ApiException("Please check the user's properties (Photo)" ,ErrorCodeType::ProblemInImage);
-		   }
+		if(isset($input->PinCode)) 		$user->PinCode	 		= $input->PinCode;
+		if(isset($input->FBId)) 		$user->FBId	 			= $input->FBId;
+		if(isset($input->GooglePlusId ))$user->GooglePlusId 	= $input->GooglePlusId ;
+		if(isset($input->Platform)) 	$user->Platform 		= $input->Platform;
+		if(isset($input->Location)) 	$user->Location 		= $input->Location;
+		if(isset($input->CellNumber)) 	$user->CellNumber 		= $input->CellNumber;
+		if(isset($input->Photo) && $input->Photo !=''){			
+			$imageName 				= 	$userId . '_' . time() . '.png';
+			$user->Photo 			= 	$imageName;
 		}
-		//echo "<pre>"; echo print_r($user); echo "</pre>";
+		$userListResult  = R::getAll("select Photo from users where id ='".$userId."' and Status=1");
+		if(isset($input->Photo) && $input->Photo !=''){
+			
+			$image_base64 = $input->Photo;
+			$decode_img = base64_decode($image_base64);
+			$typecheck = getImageMimeType($decode_img);
+				if($typecheck != ''){
+					$img = imagecreatefromstring($decode_img);
+					if($img != false)
+				    {
+				    	$imageName = $userId . '_' . time() . '.png';
+						$imageOriginalPath 		= UPLOAD_USER_PATH_REL.$imageName;
+						$imageThumbPath 		= UPLOAD_USER_THUMB_PATH_REL.$imageName;
+					
+						imagepng($img, $imageOriginalPath);
+						
+						$phMagick = new phMagick($imageOriginalPath);
+						$phMagick->setDestination($imageThumbPath)->resize(100,100);
+						
+						$userImage = $userListResult[0]['Photo'];	
+						if(!SERVER){
+							if($userImage != ''){
+								$imageOriginalPath 		= UPLOAD_USER_PATH_REL.$userImage;
+								$imageThumbPath 		= UPLOAD_USER_THUMB_PATH_REL.$userImage;
+								if(file_exists($imageThumbPath))
+									unlink($imageThumbPath);
+								if(file_exists($imageOriginalPath))
+									unlink($imageOriginalPath);
+							}
+						}
+						
+						if(SERVER){
+							deleteImages(1,$userImage);
+							deleteImages(2,$userImage);
+							
+							uploadImageToS3($imageOriginalPath,1,$imageName);
+							uploadImageToS3($imageThumbPath,2,$imageName);
+							
+							unlink($imageThumbPath);
+							unlink($imageOriginalPath);
+						}
+						$user->Photo = $imageName;
+				    }
+			   }
+			   else{
+			   		/**
+			        * Error in photo creation
+					*/
+					throw new ApiException("Please check the user's properties (Photo)" ,ErrorCodeType::ProblemInImage);
+			   }
+		}
 		$user->modify($userId,1);
+		
+		/*$userListResult  = R::getAll("select Photo from users where id ='".$userId."' and Status=1");
+		if($userListResult) {
+			if(isset($input->Photo) && $input->Photo !=''){			
+				$imageOriginalPath 		= 	UPLOAD_USER_PATH_REL.$imageName;
+				$imageThumbPath 		= 	UPLOAD_USER_THUMB_PATH_REL.$imageName;
+				copy($input->Photo,$imageOriginalPath);
+				
+				$phMagick = new phMagick($imageOriginalPath);
+				$phMagick->setDestination($imageThumbPath)->resize(100,100);
+				
+				if(SERVER){
+					uploadImageToS3($imageOriginalPath,1,$imageName);
+					uploadImageToS3($imageThumbPath,2,$imageName);
+					unlink($imageOriginalPath);
+					unlink($imageThumbPath);
+				}
+			}
+		}*/
         /**
          * New user creation was made success
          */
@@ -896,7 +945,7 @@ $app->get('/',tuplitApi::checkToken(),function () use ($app) {
 		
 		// Create a json response object
         $response = new tuplitApiResponse();
-			
+		
 		/**
          * Get a users table instance
          */
@@ -1008,23 +1057,29 @@ $app->get('/:userId/orders',tuplitApi::checkToken(),function ($userId) use ($app
  */
 $app->get('/transactions',tuplitApi::checkToken(), function () use ($app) {
     try {
-		$req 			= 	$app->request();		
+		$req 			= 	$app->request();
+		$Type			=	'';
+		if($req->params('UserId') != '') 
+			$userId		= $req->params('UserId');
+		else
 		$userId 		= 	tuplitApi::$resourceServer->getOwnerId();
 		// Create a json response object
         $response 		= 	new tuplitApiResponse();
-		
+				
 		/**
          * Get a orders table instance
          */
         $orders 	= 	R::dispense('orders');
-		if($req->params('Start') !='')		$orders->Start 		=  $req->params('Start');
-		if($req->params('Limit') !='')		$orders->Limit 		=  $req->params('Limit');
+		if($req->params('Start') !='')		$orders->Start 		=  	$req->params('Start');
+		if($req->params('Limit') !='')		$orders->Limit 		=  	$req->params('Limit');
 
-		$transactionList						=  $orders->getUserOrderDetails($userId);
+		$transactionList						=  $orders->getUserOrderDetails($userId,1);
 		if($transactionList){
 	        $response->setStatus(HttpStatusCode::Created);
-	        $response->meta->dataPropertyName 	= 'TransactionList';		
-			$response->returnedObject 			= $transactionList['OrderDetails'];	
+	        $response->meta->dataPropertyName 		= 'TransactionList';		
+	        $response->meta->totalCount 			= $transactionList['Total'];		
+	        $response->meta->listedCount 			= $transactionList['Listed'];		
+			$response->returnedObject 				= $transactionList['OrderDetails'];	
 			echo $response;
 		}
 		else{
@@ -1176,7 +1231,7 @@ $app->put('/settings',tuplitApi::checkToken(), function () use ($app) {
 
 /**
  * POST Transfer Amount
- * POST /v1/transfer
+ * POST /v1/users
  */
 $app->POST('/transfer',tuplitApi::checkToken(), function () use ($app) {
 
@@ -1264,6 +1319,12 @@ $app->post('/connect',tuplitApi::checkToken(),function () use ($app) {
 	        $response->meta->dataPropertyName 	= 'MangoPay Account';		
 			$response->addNotification('MangoPay account has been created successfully');
        		echo $response;
+		}
+		else {
+			/** 
+			* throw error when the failed to register
+			*/
+			throw new ApiException("Error in registering with mangopay." ,  ErrorCodeType::ErrorInPaymentRegistration);
 		}
 		
     

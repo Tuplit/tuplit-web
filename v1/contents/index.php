@@ -51,12 +51,11 @@ $app->get('/', function () use ($app) {
         $response 	   = new tuplitApiResponse();
         $response->setStatus(HttpStatusCode::Ok);
         $response->meta->dataPropertyName = 'staticContent';
-		$cms = new General();
+		$cms = R::dispense('general');
 		
 		$pages['cms'] 				= $cms->getStaticPages();
 		$pages['HomeSlider'] 		= $cms->getSliderImages(1);
 		$pages['TutorialSlider'] 	= $cms->getSliderImages(2);
-		
 		/**
          * Get Discount Tier array
          */
@@ -65,7 +64,6 @@ $app->get('/', function () use ($app) {
 		if(isset($discountTierArray) && is_array($discountTierArray) && count($discountTierArray) > 0 ){
 			$pages['DiscountTier'] 	= $discountTierArray;
 		}
-		
 	    $response->returnedObject 	= $pages;
         $response->addNotification('Static content has been retrieved successfully');
         echo $response;
@@ -103,7 +101,7 @@ $app->get('/webpagecontent/:url', function ($url) use ($app) {
         $response->setStatus(HttpStatusCode::Ok);
         $response->meta->dataPropertyName = 'webPageContent';
 		
-		$webcontent		= new General();
+		$webcontent		= R::dispense('general');
 		$pageContent 	= $webcontent->getWebPageContent($url);
 		
 		/**

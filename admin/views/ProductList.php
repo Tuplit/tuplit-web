@@ -6,8 +6,8 @@ require_once('controllers/ProductController.php');
 $ProductObj   	=   new ProductController();
 require_once('controllers/ManagementController.php');
 $ManagementObj 	=   new ManagementController();
-$condition = '';
-$show = 0;
+$condition 		= 	'';
+$show 			= 	0;
 
 if(isset($_GET['cs']) && $_GET['cs']=='1') {
 	destroyPagingControlsVariables();
@@ -19,15 +19,15 @@ if(isset($_GET['cs']) && $_GET['cs']=='1') {
 }
 
 if(isset($_GET['mer_id']) && !empty($_GET['mer_id'])) {
-	$condition .= ' and m.id='.$_GET['mer_id'];
-	$show = 1;
-	$mer_id = $_GET['mer_id'];
+	$condition 	.= 	' and pc.Status =1 and m.id='.$_GET['mer_id'];
+	$show 		= 	1;
+	$mer_id 	= 	$_GET['mer_id'];
 }
 
 if(isset($_POST['Search']) && $_POST['Search'] != ''){
 	destroyPagingControlsVariables();
-	$_POST          = unEscapeSpecialCharacters($_POST);
-    $_POST          = escapeSpecialCharacters($_POST);
+	$_POST      = unEscapeSpecialCharacters($_POST);
+    $_POST      = escapeSpecialCharacters($_POST);
 	if(isset($_POST['itemname']))
 		$_SESSION['item_sess_name'] 			= $_POST['itemname'];
 	if(isset($_POST['cost']))
@@ -40,19 +40,19 @@ if(isset($_POST['Search']) && $_POST['Search'] != ''){
 		$_SESSION['item_sess_product_category']	= $_POST['ProductCategory'];
 }
 if(isset($_GET['editId']) && $_GET['editId']!=''){
-	$update_condition 		= " id = ".$_GET['editId'];
-	$update_string 	= " Status = ".$_GET['status'];
-	$updateResult  	= $ProductObj->updateProductDetails($update_string,$update_condition);
+	$update_condition 		= 	" id = ".$_GET['editId'];
+	$update_string 			= 	" Status = ".$_GET['status'];
+	$updateResult  			= 	$ProductObj->updateProductDetails($update_string,$update_condition);
 	header("location:ProductList?msg=4");
 }
 setPagingControlValues('id',ADMIN_PER_PAGE_LIMIT);
-$fields    = " p.*,m.CompanyName,m.Icon,pc.CategoryName,m.DiscountTier as Discount ";
-$condition .= " and p.Status in (1,2)";
-$productListResult  = $ProductObj->getProductList($fields,$condition);
-$tot_rec 		 = $ProductObj->getTotalRecordCount();
+$fields    				= 	" p.*,m.CompanyName,m.Icon,pc.CategoryName,m.DiscountTier as Discount ";
+$condition 				.= 	" and p.Status in (1,2)";
+$productListResult  	= 	$ProductObj->getProductList($fields,$condition);
+$tot_rec 		 		= 	$ProductObj->getTotalRecordCount();
 if($tot_rec!=0 && !is_array($productListResult)) {
-	$_SESSION['curpage'] = 1;
-	$productListResult  = $ProductObj->getProductList($fields,$condition);
+	$_SESSION['curpage']= 	1;
+	$productListResult  = 	$ProductObj->getProductList($fields,$condition);
 }
 if(isset($_GET['msg']) && $_GET['msg'] == 1){
 	$msg 		= 	"Product added successfully";
@@ -120,7 +120,7 @@ $CategoryListResult  = $ManagementObj->selectProductCategoryDetails($fields,$con
 								<?php } } ?>		
 							</select>
 						</div>
-						<div class="form-group col-sm-4 col-md-4">
+						<div class="form-group col-sm-5 col-md-4">
 							<label class="notification">Discount Applied</label>
 							<div class="radio ">
 							<label class="col-xs-3 no-padding"><input type="Radio" id="DiscountApplied" value="1" name="DiscountApplied" <?php if(isset($_SESSION['item_sess_product_discount']) && $_SESSION['item_sess_product_discount'] == '1') echo 'checked';?> > &nbsp;&nbsp;Yes</label>
@@ -137,12 +137,14 @@ $CategoryListResult  = $ManagementObj->selectProductCategoryDetails($fields,$con
 			</div>
 		</div>
 		<div class="row paging">
-			<div class="col-xs-12 col-sm-2">
-				<?php if(isset($productListResult) && is_array($productListResult) && count($productListResult) > 0){ ?>
+			<div class="col-xs-12 col-sm-3">
+				<?php if(isset($productListResult) && is_array($productListResult) && count($productListResult) > 0){ 
+						//echo "<pre>"; echo print_r($productListResult); echo "</pre>";
+				?>
 				<div class="dataTables_info">No. of Product(s)&nbsp:&nbsp;<strong><?php echo $tot_rec; ?></strong> </div>
 				<?php } ?>
 			</div>
-			<div class="col-xs-12 col-sm-10">
+			<div class="col-xs-12 col-sm-9">
 				<div class="dataTables_paginate paging_bootstrap row">
 				<?php if(is_array($productListResult) && count($productListResult) > 0 ) {
 					if($show == 0)
@@ -214,11 +216,21 @@ $CategoryListResult  = $ManagementObj->selectProductCategoryDetails($fields,$con
 													<?php echo "<b>".ucfirst($value->ItemName)."</b>";  ?>
 												</span><br>   
 											<?php }?>
-											<?php if(isset($value->CategoryName) && $value->CategoryName != ''){ ?>
+											<?php $cat_name 		= 	'';
+												if(isset($value->CategoryName) && !empty($value->CategoryName))
+													$cat_name		=	ucfirst($value->CategoryName);
+												if($value->CategoryName == '') {
+													if($value->ItemType == 2)
+														$cat_name	=	'Deals';
+													else if($value->ItemType == 3)
+														$cat_name	=	'Specials';
+												}										
+												if(!empty($cat_name)) {
+											?>
 												<span title="Category Name" data-toggle="tooltip">
-													<?php echo "<b>".ucfirst($value->CategoryName)."</b>";  ?>
+													<?php echo "<b>".$cat_name."</b>";  ?>
 												</span><br>   
-											<?php }?>
+											<?php } ?>
 										</div>																
 										<div class="row-actions col-xs-12">			
 																														
@@ -311,7 +323,7 @@ $CategoryListResult  = $ManagementObj->selectProductCategoryDetails($fields,$con
 					</form>
 					
 					<?php } else { ?>	
-						<div class="alert alert-danger alert-dismissable col-xs-5 "><i class="fa fa-warning"></i>&nbsp;&nbsp;<?php if($show == 0) echo "No Products found"; else echo "No Products found for this merchant"; ?></div> 
+						<div class="alert alert-danger alert-dismissable col-sm-5 col-lg-3 col-xs-11 "><i class="fa fa-warning"></i>&nbsp;&nbsp;<?php if($show == 0) echo "No Products found"; else echo "No Products found for this merchant"; ?></div> 
 					<?php } ?>	
                </div>
            </div>

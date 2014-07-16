@@ -59,7 +59,7 @@ if(isset($_POST['submit']) && $_POST['submit'] != ''){
 		  		mkdir (UPLOAD_MERCHANT_IMAGE_PATH_REL, 0777);
 			}
 			//copy($tempImagePath,$imagePath);
-			imagethumb_addbg($tempImagePath, $imagePath,'','',640,240);
+			imagethumb_addbg($tempImagePath, $imagePath,'','',640,260);
 			/*$phMagick = new phMagick($tempImagePath);
 			$phMagick->setDestination($imagePath)->resize(640,240);*/
 			
@@ -189,12 +189,12 @@ if(isset($_GET['editId']) && $_GET['editId'] != '' ){
 					</div>
 					<div class="form-group col-sm-6 clear">
 						<label>Image</label>
-						<div class="col-sm-6 no-padding"> 
+						<div class="col-sm-7 no-padding"> 
 							<input type="file"  name="merchant_photo" id="merchant_photo" onclick="" onchange="return ajaxAdminFileUploadProcess('merchant_photo');"  /> 
-							<p class="help-block no-margin">(Minimum dimension 640x240)</p>
+							<p class="help-block no-margin">(Minimum dimension 640x260)</p>
 							<span class="error" for="empty_com_photo" generated="true" style="display: none">Image is required</span>
 						</div>	
-						<div class="col-sm-6 no-padding"> 
+						<div class="col-sm-5 no-padding"> 
 					      <div id="merchant_photo_img">
 						  	<?php 
 								$cimage_path ='';
@@ -247,9 +247,9 @@ if(isset($_GET['editId']) && $_GET['editId'] != '' ){
 						</div>
 					</div>
 					<div class="form-group col-sm-6 clear">
-						<div class="col-sm-6  no-padding">
+						<div class="col-xs-6 col-sm-6 col-md-5 no-padding">
 							<label>Price Scheme</label>
-							<div class="form-group col-md-12 col-lg-6 no-padding ">
+							<div class="form-group col-md-12 col-lg-12 no-padding ">
 							<select class="form-control" id="DiscountTier" name="DiscountTier" onclick="selectPrice(this.value);">
 								<option value="" >Select
 								<?php if(isset($discountTierArray) && is_array($discountTierArray) && count($discountTierArray) > 0) {
@@ -270,7 +270,7 @@ if(isset($_GET['editId']) && $_GET['editId'] != '' ){
 								else
 									$ProductIds = array();
 						?>
-							<div class="form-group col-sm-7 col-lg-1 text-center">OR</div>
+							<div class="form-group col-sm-8 col-lg-1 text-center LH30">OR</div>
 							<div class="form-group col-sm-6  no-padding">
 								<label class="col-md-12 no-padding">Select the product list or menu to be discounted (30% and the whole menu)</label>
 								<div class="col-md-12 no-padding"> 

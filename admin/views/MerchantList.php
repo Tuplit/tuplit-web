@@ -5,7 +5,7 @@ commonHead();
 require_once('controllers/AdminController.php');
 $adminLoginObj   =   new AdminController();
 require_once('controllers/MerchantController.php');
-$MerchantObj   =   new MerchantController();
+$MerchantObj   	=   new MerchantController();
 require_once('controllers/ManagementController.php');
 $managementObj   =   new ManagementController();
 
@@ -270,6 +270,7 @@ if($tot_rec!=0 && !is_array($merchantListResult)) {
 										<i class="fa fa-fw fa-user"></i> <?php if(isset($value->FirstName) && $value->FirstName != ''){ echo ucfirst($value->FirstName).' '; } ?>
 										<?php if(isset($value->LastName) && $value->LastName != ''){ echo ucfirst($value->LastName); } ?><br>
 										<?php if(isset($value->Email) && $value->Email != '' ){ ?> <i class="fa fa-fw fa-envelope"></i> <?php echo $value->Email;}?><br>								
+										<?php if(isset($value->MangoPayUniqueId) && $value->MangoPayUniqueId != '' ){ echo "<b>MangoPay Id</b> : ".$value->MangoPayUniqueId; }?><br>								
 									</div>								
 									<div class="row-actions col-xs-12">																						
 										<a href="MerchantManage?editId=<?php if(isset($value->id) && $value->id != '') echo $value->id; ?>" data-toggle="tooltip" data-original-title="Edit" class="edit"><i class="fa fa-edit "></i></a>		

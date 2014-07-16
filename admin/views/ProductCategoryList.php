@@ -144,7 +144,7 @@ if(!isset($_GET['show']))
 								<option value="2" <?php  if(isset($_SESSION['tuplit_sess_product_category_status']) && $_SESSION['tuplit_sess_product_category_status'] != '' && $_SESSION['tuplit_sess_product_category_status'] == '2') echo 'Selected';  ?>>Inactive</option>
 							</select>
 						</div>
-						<div class="col-sm-5 col-xs-12 col-md-4 form-group">
+						<div class="col-sm-5 col-xs-12 col-md-6 form-group">
 							<label>Created Date</label>
 							<div class="col-xs-6 no-padding"> <input type="text"  maxlength="10" class="form-control  fleft" name="SearchDate" id="SearchDate" title="Select Date" value="<?php if(isset($_SESSION['tuplit_sess_product_category_registerdate']) && $_SESSION['tuplit_sess_product_category_registerdate'] != '') echo date('m/d/Y',strtotime($_SESSION['tuplit_sess_product_category_registerdate'])); else echo '';?>" ></div>
 							<div class="col-xs-6">(mm/dd/yyyy)</div>
@@ -181,8 +181,8 @@ if(!isset($_GET['show']))
 		<?php } ?>
 		<div class="row">
 			<div class="col-md-12">
-		     <div class="nav-tabs-custom">
-                  <ul class="nav nav-tabs">
+		     <div class="">
+                  <ul class="">
                       <!--<li <?php if(isset($_SESSION['tuplit_sess_search_type']) && $_SESSION['tuplit_sess_search_type'] == 1) { ?> class="active" <?php } ?>><a href="ProductCategoryList?show=1&cs=1" title="Admin Created" >Admin Created</a></li>-->
                      <!-- <li <?php if(isset($_SESSION['tuplit_sess_search_type']) && $_SESSION['tuplit_sess_search_type'] == 2) { ?> class="active" <?php } ?>><a href="ProductCategoryList?show=2&cs=1"  title="Merchant Created" >Merchant Created</a></li>-->
                   </ul>
@@ -196,7 +196,7 @@ if(!isset($_GET['show']))
 		                               <tr>
 											<th align="center" width="2%" style="text-align:center">#</th>												
 											<th width="%">Category Details</th>
-											<th>&nbsp;</th>
+											<th width="">&nbsp;</th>
 											<?php if(count($CategoryListResult) > 1) { ?>
 												<th align="center" width="2%" style="text-align:center">#</th>												
 												<th width="%">Category Details</th>
@@ -257,7 +257,7 @@ if(!isset($_GET['show']))
 															
 												</div>
 											</td>
-											<td width="30%">&nbsp;</td>
+											<td width="25%">&nbsp;</td>
 											</tr>
 										<?php  } else if( $i%2 != 0)   {?>
 											<tr id="test_id_<?php echo $value->id;?>">
@@ -293,7 +293,7 @@ if(!isset($_GET['show']))
 															
 												</div>
 											</td>
-											<td width="30%">&nbsp;</td>
+											<td width="25%">&nbsp;</td>
 										<?php } ?>
 									<?php } //end for ?>	
 		                           </table>

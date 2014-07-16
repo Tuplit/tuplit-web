@@ -135,15 +135,31 @@ if(isset($_POST['submit']) && $_POST['submit'] != ''){
 	if($Email_exists != '1' && $FbId_exists != '1' && $GooglePlusId_exists != '1'  && $UserName_exists != '1' && $PinCode_exists != '1' && $CellNumber_exists != '1'){
 		if($_POST['submit'] == 'Save'){		
 			if(isset($_POST['user_id']) && $_POST['user_id'] != ''){
+				$latlong = $lat = $lng = '';
+				
+				if(!empty($Location)){					
+					$latlong = getLatLngFromAddress($Location) ;
+					if($latlong != ''){
+						$latlngArray = explode('###',$latlong);
+						if(isset($latlngArray) && is_array($latlngArray) && count($latlngArray) > 0){
+							if(isset($latlngArray[0]))
+								$lat = $latlngArray[0];
+							if(isset($latlngArray[1]))
+								$lng = $latlngArray[1];
+						}
+					}					
+				}
+				
 				//UserName 				= '".$UserName."',
 				$fields    = "FirstName            	= '".$FirstName."',
-							  LastName            	= '".$LastName."',
-							  
+							  LastName            	= '".$LastName."',							  
 							  Email 				= '".$Email."',
 							  FBId					= '".$FbId."',
 							  GooglePlusId			= '".$GooglePlusId."',
 							  IpAddress 			= '".$IpAddress."',
 							  Location 				= '".$Location."', 
+							  Latitude 				= '".$lat."', 
+							  Longitude				= '".$lng."', 
 							  Country 				= '".$Country."', 
 							  ZipCode 				= '".$ZipCode."', 
 							  PinCode 				= '".$PinCode."', 

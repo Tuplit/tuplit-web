@@ -99,11 +99,11 @@ commonHead();
 																	/*echo '</br><b>Total Price</b> : $'.($pro_val["ProductsCost"]*$pro_val["ProductsQuantity"]); */
 																	if($discountedAmount > 0)
 																	{
-																		echo '</br>Discount Price : $'.($pro_val["ProductsCost"] - $pro_val["DiscountPrice"]); 
-																		echo '</br><strong>Amount</strong> : $'.($pro_val["DiscountPrice"]); 
+																		echo '</br>Discount Price : '.price_fomat($pro_val["ProductsCost"] - $pro_val["DiscountPrice"]); 
+																		echo '</br><strong>Amount</strong> : '.price_fomat($pro_val["DiscountPrice"]); 
 																	}
 																	else
-																		echo '</br><strong>Amount</strong> : $'.($pro_val["ProductsCost"]); 
+																		echo '</br><strong>Amount</strong> : '.price_fomat($pro_val["ProductsCost"]); 
 																?>
 															</div>						
 														</td>
@@ -112,13 +112,13 @@ commonHead();
 																<?php if(isset($pro_val["ProductsQuantity"]) && $pro_val["ProductsQuantity"] > 0){ echo $pro_val["ProductsQuantity"]; } ?>
 															</div>						
 														</td>
-														<td align="center"><?php echo ' $'.number_format($pro_val['TotalPrice'],2,'.',','); ?></td>
+														<td><div class="col-xs-8 no-padding text-right"><?php echo price_fomat($pro_val['TotalPrice']); ?></div></td>
 													</tr>
 											<?php } } 
 												?>
 												<tr>
 												 	<td colspan="5"><div class="col-xs-8 no-padding"><strong>Total</strong> </div></td>
-													<td><div class="col-xs-8 no-padding text-right"><strong><?php echo ' $'.number_format($OrderList['TotalPrice'],2,'.',','); ?></strong></div></td>
+													<td><div class="col-xs-8 no-padding text-right"><strong><?php echo price_fomat($OrderList['TotalPrice']); ?></strong></div></td>
 												</tr>
 										</div>
 										

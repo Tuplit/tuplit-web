@@ -71,8 +71,10 @@ function commonHead() {
 		elseif(isset($page ) && $page == 'CustomerList')
 		$PAGE_TITLE			=	'- Customer List';
 		
-		elseif(isset($page ) && $page == 'TransactionAnalytics')
+		elseif(isset($page ) && $page == 'TransactionAnalytics') {
 		$PAGE_TITLE			=	'- Transaction Analytics';
+		$font_class		=	'logo-xs';
+		}
 		
 		elseif(isset($page ) && $page == 'Dashboard') {
 		$PAGE_TITLE			=	'- Dashboard';
@@ -93,7 +95,7 @@ function commonHead() {
 		}
 		elseif(isset($page ) && $page == 'Myaccount') {
 			$active_class	=	'active';
-			$PAGE_TITLE		=	'- MyAccount';
+			$PAGE_TITLE		=	'- Settings';
 		}
 		else $PAGE_TITLE	=	'';
 		
@@ -109,7 +111,7 @@ function commonHead() {
 			<div class="navbar-right">
 				<ul class="nav navbar-nav">
 				   <?php if($showback == 0) { ?><li><a href="Dashboard" class="" title="Back to main menu"><i class="fa fa-chevron-left"></i><span>&nbsp;&nbsp;Back to main menu</span></a></li><?php } ?>
-				   <li class="user user-menu"><a href="Myaccount" title="My Account" class="<?php echo $active_class;?>" ><i class="fa fa-user"></i><span>&nbsp;&nbsp;My Account</span></a></li>
+				   <li class="user user-menu"><a href="Myaccount" title="My Account" class="<?php echo $active_class;?>" ><i class="fa fa-user"></i><span>&nbsp;&nbsp;Settings</span></a></li>
 				   <li><a href="Logout" class="logout" title="Log out"><i class="fa fa-power-off"></i><span>&nbsp;&nbsp;Log out</span></a></li>
 				</ul>
 			</div>
@@ -129,14 +131,14 @@ function commonHead() {
 				} 
 				if(isset($newOrderList) && !empty($newOrderList) && count($newOrderList)) {
 				foreach($newOrderList as $key=>$value) { ?>
-					<div  class="col-md-12  bg">
+					<div  class="col-md-12 bg">
 						<div class="col-md-6 col-xs-12 m-center no-padding">
 							<div class="col-xs-7 col-sm-8 tspace_order">New Order
 								 <?php 
 								 if($value['OrderDoneBy'] == 2) echo  ' to '; else echo ' from ';
 								 echo $value['FirstName'].' '.$value['LastName']; ?>
 							 </div>
-							<div class="col-xs-2 text-right tspace_order">$<?php echo $value['TotalPrice']; ?></div>
+							<div class="col-xs-2 text-right tspace_order"><?php echo price_fomat($value['TotalPrice']); ?></div>
 							
 							<?php //if ($_SERVER['HTTP_HOST'] == '172.21.4.104'){ ?>
 									<div class="col-xs-3 col-sm-2"><a href="Orders"><input type="button" name="order" id="order" value="Open" class="btn col-xs-12"></a></div>
@@ -166,7 +168,7 @@ function commonHead() {
 	<script src="<?php echo MERCHANT_SCRIPT_PATH; ?>fancybox/jquery.fancybox.js" type="text/javascript"></script>
 	<script src="<?php echo MERCHANT_SCRIPT_PATH; ?>jquery-ui.js" type="text/javascript"></script>
 	<script src="<?php echo MERCHANT_SCRIPT_PATH; ?>jquery.switch.min.js" type="text/javascript"></script>
-	<!-- <script src="<?php echo MERCHANT_SCRIPT_PATH; ?>jquery.iphone-switch.js" type="text/javascript"></script> -->
+	<script src="<?php echo MERCHANT_SCRIPT_PATH; ?>h5utils.js" type="text/javascript"></script> 
 	<!-- <script src="<?php echo MERCHANT_SCRIPT_PATH; ?>highcharts.src.js" type="text/javascript"></script> -->
 	
 	<script type="text/javascript">
@@ -218,19 +220,30 @@ function AnalyticsTab() {
 		else if(isset($page ) && $page == 'TransactionAnalytics') {
 			$t_class		=	'btn-success';
 		}
+		else if(isset($page ) && $page == 'ProductAnalytics') {
+			$p_class		=	'btn-success';
+		}
+		else if(isset($page ) && $page == 'TransactionList') {
+			$l_class		=	'btn-success';
+		}
 		else
-			$class = '';?>
+			$c_class = $p_class = $t_class = $l_class = '';?>
 		<div class="row">
-			<div class="col-xs-12 col-sm-8 no-padding">
+			<div class="col-xs-12 col-sm-8">
 				<div class="btn-inline space_top">
-				<a href="CustomerList?cs=1" title="Customer List" class="col-xs-12 btn  <?php if(isset($c_class) && $c_class != '') echo $c_class; else  echo 'btn-default';?>">Customer List</a>
+				<a href="CustomerList?cs=1" title="Customer List" class="col-xs-12 btn  <?php if(isset($c_class) && $c_class != '') echo $c_class; else  echo 'btn-default';?>">Customer Analytics</a>
+				</div>
+				<?php if(!SERVER){ ?>
+				<div class="btn-inline">
+				<a href="ProductAnalytics?cs=1" title="Product Analytics" class="col-xs-12 btn <?php if(isset($p_class) && $p_class != '') echo $p_class; else  echo 'btn-default'; ?>">Product Analytics</a>
 				</div>
 				<div class="btn-inline">
 				<a href="TransactionAnalytics?cs=1" title="Transaction Analytics" class="col-xs-12 btn <?php if(isset($t_class) && $t_class != '') echo $t_class; else  echo 'btn-default'; ?>">Transaction Analytics</a>
 				</div>
 				<div class="btn-inline">
-				<a href="#" title="Product Analytics" class="col-xs-12 btn btn-default">Product Analytics</a>
+					<a href="TransactionList?cs=1" title="Transaction List" class="col-xs-12 btn <?php if(isset($l_class) && $l_class != '') echo $l_class; else  echo 'btn-default'; ?>">Transaction List</a>
 				</div>
+				<?php } ?>
 			</div>
 		</div>
 <?php } ?>

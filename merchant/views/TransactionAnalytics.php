@@ -35,8 +35,8 @@ commonHead();
 			</div>
 		</section>
 		
-		<section class="content no-padding">
-		<div class="col-lg-10 box-center no-padding">	
+		<section class="row content no-padding no-margin">
+		<div class="col-lg-10 box-center">	
 			<section class="content-header">
                 <h1 class="no-top-margin">Transaction List</h1>
             </section>
@@ -44,25 +44,24 @@ commonHead();
 				<div class="product_list">
 					<div class="dashboard_filter order_filter">
 						<form name="dashboard_list_search" id="dashboard_list_search" action="orders" method="POST" >
-							<div class="order_date dashboard_date">
+							<div class="order_date dashboard_date float">
 								<div>
-									<ul>
-										<li  class="sel"><a href="javascript:void(0);" title="Day Time" dashboard_date="timeofday" class="filter_dashboard_date">Day Time</a></li>
+									<ul class="list">
+										<li class="sel"><a href="javascript:void(0);" title="Day Time" dashboard_date="timeofday" class="filter_dashboard_date">Day Time</a></li>
 										<li><a href="javascript:void(0);" title="Today" dashboard_date="day" class="filter_dashboard_date">Today</a></li>
 										<li><a href="javascript:void(0);" title="Last 7 days" dashboard_date="7days" class="filter_dashboard_date">Last 7 days</a></li>
 										<li><a href="javascript:void(0);" title="Month" dashboard_date="month" class="filter_dashboard_date">This Month</a></li>
 										<li><a href="javascript:void(0);" title="Year" dashboard_date="year" class="filter_dashboard_date">This Year</a></li>
 										<input type="hidden" name="filter_dashboard_date" id="filter_dashboard_date" value="timeofday" />
 										<input type="hidden" name="date_flag" id="date_flag" value="<?php echo $date_flag; ?>">
-										<li>
+										<li class="float">
 											<span class="calender">
-													<span class="fleft">From</span>
+													<span class="fleft float">From</span>
 													<span id="date1"><?php echo $dis_st_date; ?></span>&nbsp;<input type="Hidden" name="st_date" id="st_date" value="<?php echo $st_date; ?>"/>
 													<span>&nbsp;to&nbsp;</span>
 													<span id="date2"><?php echo $dis_end_date; ?></span>&nbsp;<input type="Hidden" name="end_date" id="end_date" value="<?php echo $end_date; ?>"/>										
 												</span>
 										</li>
-										
 									</ul>
 								</div>
 							</div>
@@ -73,14 +72,7 @@ commonHead();
 					<div class="main_graph"><div class="graph"></div></div>
 				</div>
 		 	</div>
-			<div class="box box-success">
-              <div class="box-header">
-                  <h3 class="box-title">Bar Chart</h3>
-              </div>			  
-		   	  <div class="box-body chart-responsive">
-                  <div class="chart" id="bar-chart1" style="height: 300px;"></div>
-              </div>
-           </div>
+			
 		</section>
 	<?php  footerLogin(); ?>
 	<?php commonFooter(); ?>

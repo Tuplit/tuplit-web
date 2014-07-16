@@ -17,10 +17,10 @@ else{
 	$curlMerchantResponse 	= 	curlRequest($url, 'GET', null, $_SESSION['merchantInfo']['AccessToken']);	
 	if(isset($curlMerchantResponse) && is_array($curlMerchantResponse) && $curlMerchantResponse['meta']['code'] == 201 && $curlMerchantResponse['merchant']['MerchantId'] != '' ) 
 	 {
-		$merchantInfo	=	$_SESSION['merchantDetailsInfo']   =	$curlMerchantResponse['merchant'];
+		$merchantInfo		=	$_SESSION['merchantDetailsInfo']   =	$curlMerchantResponse['merchant'];
 	}
 }
-if(isset($_GET['cs']) && $_GET['cs'] == 1){
+if((isset($_GET['cs']) && $_GET['cs'] == 1) || (isset($_GET['all']) && $_GET['all'] == 1)){
 	destroyPagingControlsVariables();
 	unset($_SESSION['tuplit_sess_order_user_name']);
 	unset($_SESSION['tuplit_sess_TransactionId']);
@@ -28,8 +28,14 @@ if(isset($_GET['cs']) && $_GET['cs'] == 1){
 	unset($_SESSION['tuplit_sess_OrderStatus']);
 	unset($_SESSION['tuplit_sess_from_date']);
 	unset($_SESSION['tuplit_sess_to_date']);
-}else {
-
+	unset($_SESSION['tuplit_sess_all']);
+	if(isset($_GET['cs']) && $_GET['cs'] == 1) {
+		$_SESSION['tuplit_sess_from_date'] 	= 	date('m/d/Y');
+		$_SESSION['tuplit_sess_to_date'] 	=	date('m/d/Y');
+	}
+	if(isset($_GET['all']) && $_GET['all'] == 1) {
+		$_SESSION['tuplit_sess_all'] 		= 	1;		
+	}
 }
 
 
@@ -103,14 +109,19 @@ top_header(); ?>
 <body class="skin-blue fixed">
 	<section>
 		<div class="col-lg-10 box-center">	
-			<section class="content-header">
+			<!--<section class="content-header">
 				<h1>Order History</h1>
-			</section>
-				<div class="product_list">
+				<a href="OrderHistory?all=1" name="View All Orders" alt="View All Orders" title="View All Orders">View All Orders</a>
+			</section>-->
+				<section class="content-header" style="margin-top: 20px;">					
+	                <h1 class="col-sm-9 col-lg-10 no-padding no-margin text-left">Order History</h1>
+					<a href="OrderHistory?all=1" class="col-sm-3  col-lg-2  btn btn-success margin-bottom" title="View All Orders">View All Orders</a>
+				</section>
+				<div class="no-padding col-xs-12 text-left">
 					<form name="search_Orders" action="OrderHistory?cs=1" method="post">
 					<div class="box box-primary">
 							<div class="col-sm-4 col-lg-3 form-group">
-								<label>User Name</label>
+								<label>Customer Name</label>
 								<input type="text" class="form-control" name="UserName" id="UserName"  value="<?php  if(isset($UserName) && !empty($UserName)) echo $UserName;  ?>" >
 							</div>
 							<div class="col-sm-4 col-lg-3 form-group">
@@ -134,11 +145,11 @@ top_header(); ?>
 							</div>
 							<div class="col-sm-4 col-lg-3 form-group">
 								<label>From Date</label>
-								<input  type="text" id = "from_date" class="form-control datepicker" autocomplete="off" title="Select Date" name="from_date" value="<?php if(isset($_SESSION['tuplit_sess_from_date'])) echo $_SESSION['tuplit_sess_from_date']; else echo $today; ?>" onchange="return emptyDates(this);">
+								<input  type="text" id = "from_date" class="form-control datepicker" autocomplete="off" title="Select Date" name="from_date" value="<?php if(isset($_SESSION['tuplit_sess_from_date'])) echo $_SESSION['tuplit_sess_from_date']; else if((isset($_SESSION['tuplit_sess_all']) && $_SESSION['tuplit_sess_all'] == 1)) echo ""; else echo $today; ?>" onchange="return emptyDates(this);">
 							</div>
 							<div class="col-sm-4 col-lg-3 form-group">
 								<label>To Date</label>
-								<input type="text" id = "to_date" class="form-control datepicker" autocomplete="off"  title="Select Date" name="to_date" value="<?php if(isset($_SESSION['tuplit_sess_to_date'])) echo $_SESSION['tuplit_sess_to_date']; else echo $today; ?>" onchange="return emptyDates(this);">
+								<input type="text" id = "to_date" class="form-control datepicker" autocomplete="off"  title="Select Date" name="to_date" value="<?php if(isset($_SESSION['tuplit_sess_to_date'])) echo $_SESSION['tuplit_sess_to_date']; else  if((isset($_SESSION['tuplit_sess_all']) && $_SESSION['tuplit_sess_all'] == 1)) echo ""; else echo $today; ?>" onchange="return emptyDates(this);">
 							</div>
 						<div class="box-footer col-sm-12" align="center">
 							<input type="submit" class="btn btn-success" name="Search" id="Search" value="Search">
@@ -167,7 +178,7 @@ top_header(); ?>
 						<table class="table table-hover">
 							   <tr>
 									<th align="center" width="3%" class="text-center"> #</th>									
-									<th width="20%" class="text-left" colspan="2">User Details</th>
+									<th width="20%" class="text-left" colspan="2">Customer Details</th>
 									<th width="26%" class="text-left">Transaction Id</th>
 									<th width="5%" class="text-left">Order DoneBy</th>
 									<th width="5%" class="text-center">Total Items</th>
@@ -190,8 +201,8 @@ top_header(); ?>
 										</a>
 									<?php } else {?> <img  width="36" height="36" align="top" class="img_border" src="<?php echo MERCHANT_IMAGE_PATH.'no_user.jpeg';?>" > <?php  } ?>
 								</td>
-								<td width="14%" align="left"><?php if(isset($name) && $name != ''){ ?><a href="UserDetail?viewId=<?php echo base64_encode($value["PUserId"]);?>&cs=1" class="userWindow" > <?php echo $name; ?></a><?php }else echo '-';?></td>
-								<td width="24%" class="white-space" align="left"><?php if(isset($value["TransactionId"]) && $value["TransactionId"] != ''){ echo $value["TransactionId"]; }else echo '-';?></td>
+								<td width="14%" align="left"><?php if(isset($name) && $name != ''){ ?><a href="UserDetail?viewId=<?php echo base64_encode($value["PUserId"]);?>&cs=1" class="userWindow white-space" > <?php echo $name; ?></a><?php }else echo '-';?></td>
+								<td width="10%" class="white-space" align="left"><?php if(isset($value["TransactionId"]) && $value["TransactionId"] != ''){ echo $value["TransactionId"]; }else echo '-';?></td>
 								<td align="left"><?php if(isset($value["OrderDoneBy"]) && $value["OrderDoneBy"] != ''){ if($value["OrderDoneBy"] == 1) echo "User"; if($value["OrderDoneBy"] == 2) echo "Merchant";}else echo '-';?></td>
 								<td align="center"><?php if(isset($value["TotalItems"]) && $value["TotalItems"] != ''){ echo $value["TotalItems"]; }else echo '-';?></td>
 								<td align="right"><?php if(isset($value["TotalPrice"]) && $value["TotalPrice"] != ''){ echo '$'.number_format($value["TotalPrice"],2,'.',','); }else echo '-';?></td>
@@ -208,7 +219,7 @@ top_header(); ?>
 							<!-- End product List -->						 
 							<?php } else { ?>
 								<div class="row clear">		
-									<div align="center" class="alert alert-danger alert-dismissable col-lg-4 col-sm-5 col-xs-10"><i class="fa fa-warning"></i><?php echo 'No orders found';?>	</div>							
+									<div align="center" class="alert alert-danger alert-dismissable col-lg-4 col-sm-5 col-xs-10"><i class="fa fa-warning"></i> <?php echo 'No orders found';?>	</div>							
 								</div>							
 							<?php } ?>						
 						</div><!-- /.box-body -->
@@ -219,7 +230,8 @@ top_header(); ?>
 	<?php if(isset($orderList) && !empty($orderList)) { 
 		foreach($orderList as $key=>$value){
 	 ?>
-	<div class="col-sm-12 no-padding" id="<?php echo $value["TransactionId"]; ?>" style="display:none;">	
+	<div class=" popup_width" id="<?php echo $value["TransactionId"]; ?>" style="display:none;">	
+	<div class="class="col-sm-12 no-padding ">
 		<section class="content-header">
 			<h1 class="no-margin space_bottom">Product List</h1>
 		</section>
@@ -234,7 +246,7 @@ top_header(); ?>
 					<table class="table table-hover">
 						   <tr>
 								<th align="center" width="3%" style="text-align:center">#</th>									
-								<th width="24%" colspan="2">Item Details</th>
+								<th width="85%">Item Details</th>
 								<th width="5%" class="text-center">Quantity</th>
 								<th width="5%" class="text-right">Price</th>
 								<th width="5%" class="text-right">Discounted Price</th>
@@ -246,14 +258,18 @@ top_header(); ?>
 							?>
 							<tr>
 								<td align="center"><?php echo $key;?></td>												
-								<td align="right" width="9%">
+								<td>
+								<div class="col-xs-3 col-sm-4 col-md-3 no-padding">
 								<?php if(isset($value1["Photo"]) && $value1["Photo"] != ''){ ?>
 									<!--<a <?php if(isset($value1["Photo"]) ) { ?>href="<?php echo  PRODUCT_IMAGE_PATH.$value1["Photo"];?>" class="fancybox" <?php } ?> > -->
 										<img  width="36" height="36" align="top" class="img_border" src="<?php echo  PRODUCT_IMAGE_PATH.$value1["Photo"];?>" >
 									<!--</a>-->
 								<?php } else { ?> <img  width="36" height="36" align="top" class="img_border" src="<?php echo MERCHANT_IMAGE_PATH.'no_photo_burger.jpg';?>" > <?php  } ?>
+								</div>
+								<div class="col-xs-9 col-sm-8 col-md-9">
+									<?php echo $value1["ItemName"]; ?>
+								</div>
 								</td>
-								<td align="left"><?php echo $value1["ItemName"]; ?></td>
 								<td align='center'><?php echo $value1["ProductsQuantity"]; ?></td>
 								<td align="right"><?php echo '$'.number_format($value1["ProductsCost"],2,'.',','); ?></td>
 								<td align="right"><?php echo '$'.number_format($value1["DiscountPrice"],2,'.',','); ?></td>
@@ -270,6 +286,7 @@ top_header(); ?>
 				</div><!-- /.box-body -->
 			</div>					
 		</div>	
+		</div>
 	 </div>				
 							
 	<?php } } footerLogin(); ?>
@@ -277,12 +294,13 @@ top_header(); ?>
 <script type="text/javascript">
 $(document).ready(function() {
 	$(".productWindow").fancybox({
-			width: '800',
+			width: '200',
 			scrolling: 'auto',			
-			//fitToView: true,
 			title: null,
-			
-			
+			maxWidth: '100%', 
+			fitToView: true,
+			scrolling: 'none'
+						
 	});
 	$(".fancybox").fancybox();
 	$(".userWindow").fancybox({

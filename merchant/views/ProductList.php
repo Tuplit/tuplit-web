@@ -2,7 +2,8 @@
 require_once('includes/CommonIncludes.php');
 merchant_login_check();
 
-$dealsArray	=	array();
+$dealsArray			=	array();
+$totalPro			=	0;
 if(isset($_GET['Ajax']) && $_GET['Ajax'] == 1) {
 	if(isset($_POST['CatID']) && !empty($_POST['CatID']) && isset($_POST['idsarray']) && !empty($_POST['idsarray'])) {
 		$ProductIds		=	explode(",",$_POST['idsarray']);
@@ -57,16 +58,23 @@ if(isset($productList) && !empty($productList)) {
 		}		
 	}
 	
-	foreach($productList[0] as $data) {
-		if($data['ItemType']	==	2) 
-			$dealsArray[]	=	$data;
-		if($data['ItemType']	==	3) 
-			$specialArray[]	=	$data;
+	if(isset($productList[0]) && count($productList[0]) > 0) {
+		
+		foreach($productList[0] as $data) {
+			if($data['ItemType']	==	2) 
+				$dealsArray[]	=	$data;
+			if($data['ItemType']	==	3) 
+				$specialArray[]	=	$data;
+		}
+		unset($productList[0]);
 	}
-	unset($productList[0]);
+	//echo "<pre>"; echo print_r($specialArray); echo "</pre>";
+	//echo "<pre>"; echo print_r($productList); echo "</pre>";
+	foreach($productList as $key=>$value) {
+		$totalPro		=	$totalPro + count($value);
+	}	
 }
 commonHead();
-//$merchantInfo['MangoPayUniqueId'] = "dsfsd";	
 ?>
 
 <body class="skin-blue fixed drag_box" onload="fieldfocus('ItemName');">
@@ -75,7 +83,7 @@ commonHead();
 		<div class="product_list">
 		<div class="col-lg-12 box-center">	
 			<?php if(empty($merchantInfo['MangoPayUniqueId'])){?>
-				<div align="center" class="alert alert-danger alert-dismissable  col-lg-5 col-sm-7  col-md-5 col-xs-12"><i class="fa fa-warning"></i>&nbsp;&nbsp;You are not yet connected with Mango Pay Account</div>
+				<div align="center" class="alert alert-danger alert-dismissable  col-lg-5 col-sm-7  col-md-5 col-xs-12"><i class="fa fa-warning"></i>&nbsp;&nbsp;Please connect with MangoPay in My Account to add products.</div>
 			<?php } else if(isset($hide) && $hide == 1) { ?> <br/><br/><br/>
 				<div align="center" class="alert alert-danger alert-dismissable  col-lg-5 col-sm-7  col-md-5 col-xs-12"><i class="fa fa-warning"></i>&nbsp;&nbsp;Cannot add products until Price Scheme is selected in Settings</div>
 			<?php } else { ?>
@@ -121,8 +129,41 @@ commonHead();
 					</div><!-- /row -->
 					<div class="col-xs-12 no-padding"><hr></div> <!-- sep line -->
 					
-					<?php if(isset($productList) && !empty($productList)) {	 ?>				
-					<?php foreach($productList as $key=>$value) {  ?>																		
+					<div  class="col-xs-8 no-padding">
+						<h4><strong>Specials</strong>&nbsp;&nbsp;This Category can't be renamed</h4>
+					</div>				
+					<div class="col-xs-4 text-right pad"><a href="Product?show=0&add=specials" <?php if($totalPro != 0) echo 'class="specialsnewWindow"'; else echo 'onclick="return noProducts();"'; ?>><i class="fa fa-plus"></i> Add Item</a></div>
+					<div class="row col-xs-12 clear" id="draggablePanelList_special">										
+						<?php 
+							if(isset($specialArray) && count($specialArray) > 0) {
+								$specialArray = subval_sort($specialArray,'Ordering');
+								foreach($specialArray as $key1=>$value1 ) {								
+									if($value1["ProductId"]!= ''){ ?>	
+										<div class="col-xs-11  col-md-3 col-sm-4 col-lg-2 <?php if($value1['Status'] == 2) echo "inactive";?> paneldragging" id="<?php echo $value1["ProductId"];?>">
+											<div id="<?php echo $value1["ProductId"];?>" class="small-box panel-heading">
+												<a href="<?php echo $value1['Photo'];?>" class="Product_fancybox" title="<?php echo ucfirst($value1['ItemName']);?>">
+													<img height="100" width="100" src="<?php echo $value1['Photo']; ?>" alt=""><br/>
+												</a>
+												<a class="edit specialsnewWindow" href="Product?show=0&edit=<?php echo $value1['ProductId']; ?>&add=specials"><i class="fa fa-pencil fa-lg"></i></a>
+												<div class="product_price">
+												<span class="title_product" style="" title="<?php echo ucfirst($value1['ItemName']); ?>"><?php echo displayText(ucfirst($value1['ItemName']),10);?></span>
+												<?php 
+													if($value1['OriginalPrice'] != '0.00') {
+														echo "<div class='cal pull-right'><strong>$".floatval($value1['Price'])."</strong></div>";  
+														echo "<div class='cal actual_price pull-right' style='color:gray;'>$".floatval($value1['OriginalPrice'])."</div> "; 
+													} else {
+														echo "<div class='cal actual_price pull-right' style='color:gray;'>$".floatval($value1['Price'])."</div> "; 
+													}
+												?>
+												</div>
+											</div>
+										</div> 
+						<?php }  }  }?>										
+					</div><!-- /row -->
+					<div class="col-xs-12 no-padding"><hr></div> <!-- sep line -->
+					
+					<?php if(isset($productList) && !empty($productList)) {	 
+							foreach($productList as $key=>$value) {  ?>																		
 							<div  class="col-xs-8 no-padding">
 								<h4><strong><?php echo ucfirst($value[0]['CategoryName']); ?></strong>
 									&nbsp;&nbsp;<a class="cateWindow" href="Category?show=0&edit=<?php echo $value[0]['fkCategoryId']; ?>&categoryName=<?php echo base64_encode($value[0]['CategoryName']); ?>&delStatus=<?php echo $value[0]['ProductId']; ?>"><i class="fa fa-edit"></i></a> 
@@ -135,29 +176,28 @@ commonHead();
 									$value = subval_sort($value,'Ordering');
 									foreach($value as $key1=>$value1 ) { 
 										if($value1["ProductId"]!= ''){ ?>	
-									<div class="col-xs-11  col-md-3 col-sm-4 col-lg-2 <?php if($value1['Status'] == 2) echo "inactive";?> paneldragging" id="<?php echo $value1["ProductId"];?>">
-										<div id="<?php echo $value1["ProductId"];?>" class="small-box panel-heading">
-											<a href="<?php echo $value1['Photo'];?>" class="Product_fancybox" title="<?php echo ucfirst($value1['ItemName']);?>">
-												<img height="100" width="100" src="<?php echo $value1['Photo']; ?>" alt=""><br/>
-											</a>
-											<a class="edit newWindow" href="Product?show=0&edit=<?php echo $value1['ProductId']; ?>&add=<?php if($value1['fkCategoryId'] == 1) echo "deals"; ?>"><i class="fa fa-pencil fa-lg"></i></a>
-											<div class="product_price">
-											<span class="title_product" style="" title="<?php echo ucfirst($value1['ItemName']); ?>"><?php echo displayText(ucfirst($value1['ItemName']),10);?></span>
-											<?php 											
-												if($value1['DiscountPrice'] > 0)
-													echo "<div class='cal pull-right'><strong>$".floatval($value1['DiscountPrice'])."</strong></div>";  
-												echo "<div class='cal actual_price pull-right' style='color:gray;'>$".$value1['Price']."</div> "; 
-											?>
-											</div>
-										</div>
-									</div> 
+											<div class="col-xs-11  col-md-3 col-sm-4 col-lg-2 <?php if($value1['Status'] == 2) echo "inactive";?> paneldragging" id="<?php echo $value1["ProductId"];?>">
+												<div id="<?php echo $value1["ProductId"];?>" class="small-box panel-heading">
+													<a href="<?php echo $value1['Photo'];?>" class="Product_fancybox" title="<?php echo ucfirst($value1['ItemName']);?>">
+														<img height="100" width="100" src="<?php echo $value1['Photo']; ?>" alt=""><br/>
+													</a>
+													<a class="edit newWindow" href="Product?show=0&edit=<?php echo $value1['ProductId']; ?>&add=<?php if($value1['fkCategoryId'] == 1) echo "deals"; ?>"><i class="fa fa-pencil fa-lg"></i></a>
+													<div class="product_price">
+													<span class="title_product" style="" title="<?php echo ucfirst($value1['ItemName']); ?>"><?php echo displayText(ucfirst($value1['ItemName']),10);?></span>
+													<?php 											
+														if($value1['DiscountPrice'] > 0)
+															echo "<div class='cal pull-right'><strong>$".floatval($value1['DiscountPrice'])."</strong></div>";  
+														echo "<div class='cal actual_price pull-right' style='color:gray;'>$".$value1['Price']."</div> "; 
+													?>
+													</div>
+												</div>
+											</div> 
 								<?php }  } ?>										
 							</div><!-- /row -->
 							<div class="col-xs-12 no-padding"><hr></div> <!-- sep line -->
 					<?php  }  ?>
 						<!-- End product List -->						 
 					<?php } else { ?>
-						<!--<div class="col-xs-4 text-right pad"><a href="Product?show=0" class="newWindow"><i class="fa fa-plus"></i> Add Item</a></div>-->
 						<div class="row clear">		
 							 <div align="center" class="alert alert-danger alert-dismissable col-lg-4 col-sm-5 col-xs-10"><i class="fa fa-warning"></i>  No items found. Please add items</div>							
 						</div>							
@@ -177,6 +217,19 @@ commonHead();
 					scrolling	: 'none',			
 					type		: 'iframe',
 					width		: '380',
+					position	:'fixed',
+					maxWidth	: '100%',  // for respossive width set					
+					fitToView	: false, 
+					afterClose 	: function() {
+										location.reload();
+										return;
+										 //$.fancybox.resize();
+									}
+			});
+			$(".specialsnewWindow").fancybox({
+					scrolling	: 'true',			
+					type		: 'iframe',
+					width		: '450',
 					position	:'fixed',
 					maxWidth	: '100%',  // for respossive width set					
 					fitToView	: false, 
@@ -230,7 +283,7 @@ commonHead();
 					}
 				});
 			});
-		<?php } } } ?>
+		<?php } } ?>
 		jQuery(function($) {	
 				var panelList_deals = $('#draggablePanelList_deals');			
 				panelList_deals.sortable({
@@ -249,7 +302,7 @@ commonHead();
 						$.ajax({
 							type: "POST",
 							url: "./ProductList?Ajax=1",
-							data: 'idsarray='+idsarray+'&CatID='+deals,			
+							data: 'idsarray='+idsarray+'&CatID=0',			
 							success: function (result){
 								
 							}			
@@ -257,6 +310,7 @@ commonHead();
 					}
 				});
 			});
+		<?php } ?>
 	</script>
 	 <script>
 /*$(function() {

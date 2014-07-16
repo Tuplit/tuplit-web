@@ -39,7 +39,7 @@ if(isset($_POST['password_change_submit']) && $_POST['password_change_submit'] =
 commonHead();
 ?>
 <body class="skin-blue fixed" onload="fieldfocus('user_name');">
-		<section class="content-header col-xs-12">
+		<section class="content-header col-xs-12 text-left">
 			<h1>Change Password</h1>
 		</section>
 		

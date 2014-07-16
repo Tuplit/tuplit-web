@@ -22,7 +22,7 @@
 	}
 
 ?>
-<div class="row">
+<div class="row table-responsive no-margin">
 	<?php if(isset($order_array) && !empty($order_array)) { ?>
 	<table class="table table-hover" >
                          <tr>
@@ -53,6 +53,16 @@
 	</div>							
 <?php } ?>						
 </div>
+<?php if(isset($error_div) && $error_div==0 && !empty($order_array)) {?>
+ <div class="box box-success">
+	 <div class="box-header">
+	     <h3 class="box-title">Bar Chart</h3>
+	 </div>			  
+	<div class="box-body chart-responsive">
+	     <div class="chart" id="bar-chart1" style="height: 300px;"></div>
+	 </div>
+</div> 
+<?php } ?>				
 <script type="text/javascript">
 $('.chart').html('');
 <?php if(isset($error_div) && $error_div==0 && !empty($order_array)) {?>
@@ -89,9 +99,6 @@ $(document).ready(function() {
           });
   });
 
-<?php } else { ?>
-$('.chart').attr('style','height:400px');
-$('.chart').html('<img align="absmiddle" src="'+actionPath+'webresources/images/no_datas.png" width="">');
 <?php } ?>
 </script>
 <?php

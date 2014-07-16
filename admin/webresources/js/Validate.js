@@ -60,11 +60,19 @@ $("#change_password_form").validate({
 //--------------General Settings---------------start
 $("#general_settings_form").validate({
 	rules:{			
-		email       :	{ required:true,email:true }
+		email       :	{ required:true,email:true },
+		fees       :	{  fees_amount:true }
 	},
 	messages:{
-		email       :	{ required:'Email address is required',email:'Please enter a valid email address.'}
+		email       :	{ required:'Email address is required',email:'Please enter a valid email address.'},
+		fees       :	{ fees_amount:'MangoPay fees is required'}
 	}
+});
+$.validator.addMethod("fees_amount", function(value, element) {
+	 if($('#fees').val() > 0)  
+   		 return true;
+	 else
+	  	return false
 });
 //--------------Change Password----------------End
 //--------------CMS---------------start

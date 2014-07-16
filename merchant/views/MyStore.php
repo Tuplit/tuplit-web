@@ -2,21 +2,22 @@
 require_once('includes/CommonIncludes.php');
 merchant_login_check();
 $merchantCategory = array();
-if(isset($_SESSION['merchantDetailsInfo']) && is_array($_SESSION['merchantDetailsInfo'])){
-	$merchantInfo  				=	$_SESSION['merchantDetailsInfo'];
-	$newCategory				=	$_SESSION['merchantDetailsInfo']['Category'];
+global $days_array;
+$merchantId					= 	$_SESSION['merchantInfo']['MerchantId'];
+$url						=	WEB_SERVICE.'v1/merchants/'.$merchantId."?From=0";
+$curlMerchantResponse 		= 	curlRequest($url, 'GET', null, $_SESSION['merchantInfo']['AccessToken']);
+if(isset($curlMerchantResponse) && is_array($curlMerchantResponse) && $curlMerchantResponse['meta']['code'] == 201 && $curlMerchantResponse['merchant']['MerchantId'] != '' ) 
+ {
+	$merchantInfo  			= 	$_SESSION['merchantDetailsInfo']   =	$curlMerchantResponse['merchant'];
+	$newCategory			=	$merchantInfo['Category'];
 }
-else{
-	$merchantId					= 	$_SESSION['merchantInfo']['MerchantId'];
-	$url						=	WEB_SERVICE.'v1/merchants/'.$merchantId;
-	$curlMerchantResponse 		= 	curlRequest($url, 'GET', null, $_SESSION['merchantInfo']['AccessToken']);
-	if(isset($curlMerchantResponse) && is_array($curlMerchantResponse) && $curlMerchantResponse['meta']['code'] == 201 && $curlMerchantResponse['merchant']['MerchantId'] != '' ) 
-	 {
-		$merchantInfo  			= $_SESSION['merchantDetailsInfo']   =	$curlMerchantResponse['merchant'];
-		$newCategory			=	$merchantInfo['Category'];
-	}
+if(isset($merchantInfo['PriceRange']) && $merchantInfo['PriceRange'] != ''){
+  $prizeArray		=	explode(',',$merchantInfo['PriceRange']);
+  if(isset( $prizeArray[0] ) &&  $prizeArray[0] !='')
+  	$min_val		=	$prizeArray[0];
+  if(isset( $prizeArray[1] ) &&  $prizeArray[1] !='')
+  	$max_val		=	$prizeArray[1];
 }
-
 $url							=	WEB_SERVICE.'v1/categories/';
 $curlCategoryResponse 			= 	curlRequest($url, 'GET', null, $_SESSION['merchantInfo']['AccessToken']);
 if(isset($curlCategoryResponse) && is_array($curlCategoryResponse) && $curlCategoryResponse['meta']['code'] == 201 && is_array($curlCategoryResponse['categoryDetails']) ) {
@@ -30,10 +31,161 @@ if(isset($curlCategoryResponse) && is_array($curlCategoryResponse) && $curlCateg
 } else {
 		$errorMessage			= 	"Bad Request";
 }
-$merchantInfo['OpeningHours']	=	formOpeningHours($merchantInfo['OpeningHours']);
 if(isset($merchantInfo['Category']) && !empty($merchantInfo['Category'])) {
 	$merchantCategory			= 	explode(',',$merchantInfo['Category']);
 }
+
+//echo "<pre>"; echo print_r($ProductsArray); echo "</pre>";
+if(isset($_POST['mystore_submit']) && $_POST['mystore_submit'] == 'SAVE CHANGES'){
+	if(isset($_POST['ShopName']))
+		$merchantInfo['CompanyName']		=	$_POST['ShopName'];
+	if(isset($_POST['Email']))
+		$merchantInfo['Email']				=	$_POST['Email'];
+	if(isset($_POST['Street']))
+		$merchantInfo['Address']			=	$_POST['Street'];
+	if(isset($_POST['Phone']))
+		$merchantInfo['PhoneNumber']		=	$_POST['Phone'];
+	if(isset($_POST['Website']))
+		$merchantInfo['WebsiteUrl']			=	$_POST['Website'];
+	if(isset($_POST['MoreInfo']))
+		$merchantInfo['Description']		=	$_POST['MoreInfo'];
+	if(isset($_POST['ShopDescription']))
+		$merchantInfo['ShortDescription']	=	$_POST['ShopDescription'];
+	if(isset($_POST['categorySelected']))
+		$newCategory						=	$_POST['categorySelected'];
+	if(isset($_POST['City']))
+		$merchantInfo['City']				=	$_POST['City'];
+	if(isset($_POST['ZipCode']))
+		$merchantInfo['PostCode']			=	$_POST['ZipCode'];
+	if(isset($_POST['State']))
+		$merchantInfo['State']				=	$_POST['State'];
+	if(isset($_POST['Country']))
+		$merchantInfo['Country']			=	$_POST['Country'];
+	if(isset($_POST['Facebook']))
+		$merchantInfo['FBId']			=	$_POST['Facebook'];
+	if(isset($_POST['Twitter']))
+		$merchantInfo['TwitterId']			=	$_POST['Twitter'];
+	if(isset($_POST['DiscountTier']))
+		$merchantInfo['DiscountTier']		=	$discountTierArray[$_POST['DiscountTier']].'%';
+	
+	//Opening Hours
+	$openTiming = array();	
+	if(isset($_POST['samehours']) && $_POST['samehours'] == 'on'){
+		$openTiming[0]['id'] 				= $_POST['id_0'];
+		$openTiming[0]['OpeningDay'] 		= 0;
+		$openTiming[0]['DateCreated'] 		= $merchantInfo['OpeningHours'][0]['DateCreated'];
+		$openTiming[0]['fkMerchantId'] 		= $merchantInfo['OpeningHours'][0]['fkMerchantId'];
+		$openTiming[0]['Start'] 			= $_POST['from1_0'];
+		$openTiming[0]['End'] 				= $_POST['to1_0'];
+		$openTiming[0]['DateType'] 			= '1';
+		for($t=1;$t<=6;$t++) {
+			$openTiming[$t]['id'] 			= $_POST['id_'.$t];
+			$openTiming[$t]['OpeningDay'] 	= $t;
+			$openTiming[$t]['DateCreated'] 	= $merchantInfo['OpeningHours'][$t]['DateCreated'];
+			$openTiming[$t]['fkMerchantId'] = $merchantInfo['OpeningHours'][$t]['fkMerchantId'];
+			$openTiming[$t]['id'] 			= $_POST['id_'.$t];
+			$openTiming[$t]['Start'] 		= $_POST['from1_'.$t];
+			$openTiming[$t]['End'] 			= $_POST['to1_'.$t];
+			$openTiming[$t]['DateType'] 	= '0';
+		}
+	}
+	else {
+		for($t=0;$t<=6;$t++) {
+			$openTiming[$t]['id'] 			= $_POST['id_'.$t];
+			$openTiming[$t]['OpeningDay'] 	= $t;
+			$openTiming[$t]['DateCreated'] 	= $merchantInfo['OpeningHours'][$t]['DateCreated'];
+			$openTiming[$t]['fkMerchantId'] = $merchantInfo['OpeningHours'][$t]['fkMerchantId'];
+			$openTiming[$t]['Start'] 		= $_POST['from1_'.$t];
+			$openTiming[$t]['End'] 			= $_POST['to1_'.$t];
+			$openTiming[$t]['DateType'] 	= '0';
+		}
+	}
+	$merchantInfo['OpeningHours']	=	$openTiming;	
+	if(isset($_POST['min_price']) && $_POST['min_price'] != '')
+		$min_val		=	$_POST['min_price'];
+	if(isset($_POST['max_price']) && $_POST['max_price'] != '')
+		$max_val		=	$_POST['max_price'];
+	if($min_val != '' && $max_val != '')
+		$prizeRange		=	$min_val.','.$max_val;
+	$iconPath	= $imagePath	='';
+	if (isset($_POST['icon_photo_upload']) && !empty($_POST['icon_photo_upload'])) {
+		$iconPath		=	TEMP_IMAGE_PATH_REL.$_POST['icon_photo_upload'];
+		if(isset($merchantInfo['Icon']) && $merchantInfo['Icon'] != ''){
+			if(!SERVER){
+				if(file_exists(MERCHANT_ICONS_IMAGE_PATH_REL.$merchantInfo['Icon']))
+					unlink(MERCHANT_ICONS_IMAGE_PATH_REL .$merchantInfo['Icon']);
+			}
+			else{
+				if(image_exists(6,$merchantInfo['Icon'])) 
+					deleteImages(6,$merchantInfo['Icon']);
+			}
+		}
+		$merchantInfo['Icon']	=	TEMP_IMAGE_PATH.$_POST['icon_photo_upload'];
+	}
+	if (isset($_POST['merchant_photo_upload']) && !empty($_POST['merchant_photo_upload'])) {
+		$imagePath		=	TEMP_IMAGE_PATH_REL.$_POST['merchant_photo_upload'];
+		if(isset($merchantInfo['Image']) && $merchantInfo['Image'] != ''){
+			if(!SERVER){
+				if(file_exists(MERCHANT_COVER_IMAGE_PATH_REL.$merchantInfo['Image']))
+					unlink(MERCHANT_COVER_IMAGE_PATH_REL . $merchantInfo['Image']);
+			}
+			else{
+				if(image_exists(7,$merchantInfo['Image'])) {
+					deleteImages(7,$merchantInfo['Image']);
+				}
+			}
+		}
+		$merchantInfo['Image']	=	TEMP_IMAGE_PATH.$_POST['merchant_photo_upload'];
+	}
+	$merchantInfo['OpeningHours']	=	$openTiming;	
+	$data	=	array(
+					'CompanyName' 		=> $_POST['ShopName'],
+					'Email' 			=> $_POST['Email'],
+					'Address' 			=> $_POST['Street'],
+					'PhoneNumber' 		=> $_POST['Phone'],
+					'WebsiteUrl' 		=> $_POST['Website'],
+					'ShopDescription' 	=> $_POST['ShopDescription'],
+					'Description' 		=> $_POST['MoreInfo'],
+					'OpeningHours' 		=> $openTiming,
+					'IconPhoto' 		=> $iconPath,
+					'MerchantPhoto' 	=> $imagePath,
+					'IconExist'			=> $_POST['old_icon_photo'],
+					'MerchantExist'		=> $_POST['old_merchant_photo'],
+					'PriceRange' 		=> $prizeRange,
+					'Categories' 		=> $_POST['categorySelected'],
+					'DiscountTier' 		=> $_POST['DiscountTier'],
+					'City'				=> $_POST['City'],
+					'State'				=> $_POST['State'],
+					'ZipCode'			=> $_POST['ZipCode'],
+					'Country'			=> $_POST['Country'],
+					'FBId'				=> $_POST['Facebook'],
+					'TwitterId'			=> $_POST['Twitter']
+				);
+	$url			=	WEB_SERVICE.'v1/merchants/';
+	$method			=	'PUT';
+	$curlResponse	=	curlRequest($url,$method,json_encode($data), $_SESSION['merchantInfo']['AccessToken']);
+	//echo "<pre>"; print_r($curlResponse ); echo "</pre>";die();
+	if(isset($curlResponse) && is_array($curlResponse) && $curlResponse['meta']['code'] == 201) {
+		$merchantId					= 	$_SESSION['merchantInfo']['MerchantId'];
+		$url						=	WEB_SERVICE.'v1/merchants/'.$merchantId;
+		$curlMerchantResponse 		= 	curlRequest($url, 'GET', null, $_SESSION['merchantInfo']['AccessToken']);
+		if(isset($curlMerchantResponse) && is_array($curlMerchantResponse) && $curlMerchantResponse['meta']['code'] == 201 && $curlMerchantResponse['merchant']['MerchantId'] != '' ) 
+		 {
+			$merchantInfo  						= 	$curlMerchantResponse['merchant'];
+			$_SESSION['merchantDetailsInfo']	=	$merchantInfo;
+			$newCategory						=	$merchantInfo['Category'];
+		}
+	
+		$successMessage	=	$curlResponse['notifications'][0];
+	} else if(isset($curlResponse['meta']['errorMessage']) && $curlResponse['meta']['errorMessage'] != '') {
+		$errorMessage		=	$curlResponse['meta']['errorMessage'];
+	} else {
+		$errorMessage		= 	"Bad Request";
+	}
+}
+
+$merchantInfo['OpeningHours']	=	formOpeningHours($merchantInfo['OpeningHours']);
+
 commonHead();
 ?>
 
@@ -60,7 +212,6 @@ commonHead();
 							<p class="help-block col-sm-12 no-padding">Name is visible on your card in mobile app</p>
 							</div>
 							<div class="col-sm-4 col-md-4 no-padding"><input type="text" name="ShopName" class="form-control valid"  id="ShopName" value="<?php if(isset($merchantInfo['CompanyName']) && !empty($merchantInfo['CompanyName'])) echo $merchantInfo['CompanyName'];?>"></div>
-							
 						</div>
 						<div class="form-group col-sm-12 col-md-12">
 							<label class="col-sm-12 col-md-12 control-label no-padding border-right"><span>Shop Description</span><em></em></label>
@@ -89,7 +240,7 @@ commonHead();
 								<span id="cat_id_<?php echo $val['CategoryId']; ?>" <?php if(in_array($val['CategoryId'],$merchantCategory )){ ?> class="cat_box" <?php } else {?> style="display:none;" class="cat_box" <?php } ?>>
 									<img width="30" src="<?php echo $val['CategoryIcon']; ?>"/>
 									<span class="cname"><?php echo ucfirst($val['CategoryName']);?></span>
-									<a class="delete" title="Remove" href="javascript:void(0)" onclick="removeCategory(<?php echo $val['CategoryId']; ?>)">
+									<a class="delete" title="Remove" href="javascript:void(0)" onclick="removeCategory(<?php echo $val['CategoryId']; ?>,'<?php echo $val['CategoryIcon']; ?>')">
 										<i class="fa fa-trash-o "></i>
 									</a>
 								</span>
@@ -99,11 +250,84 @@ commonHead();
 						<div class="form-group col-sm-12 col-md-12 clear">
 							<label class="col-sm-8 control-label no-padding">Price Range</label>
 							<span class="col-sm-4 control-label no-padding">
-								<select name="PriceRange" id="PriceRange" class="form-control">
-									<option value="">Select</option>								
-								</select>
+								<div class="col-xs-5 col-md-5 no-padding">
+									<div class="col-xs-2 col-md-2 no-padding LH30">$</div>
+									<div class="col-xs-9 col-md-10 no-padding"><input type="Text" onchange="price_val(this.value);" maxlength="7" name="min_price" value="<?php echo $min_val;?>" id="min_price" onkeypress="return isNumberKey_price(event);" class="form-control"></div>
+								</div>
+								<div class="col-xs-1 col-md-2 no-padding LH30" align="center"><strong>to</strong></div>
+								<div class="col-xs-5 col-md-5 no-padding">
+									<div class="col-xs-2 col-md-2 no-padding LH30">$</div>
+									<div class="col-xs-9 col-md-10 no-padding"><input type="Text" onchange="price_val(this.value);" maxlength="7" name="max_price" value="<?php echo $max_val;?>" id="max_price" onkeypress="return isNumberKey_price(event);" class="form-control"></div>
+								</div>
+								<input  type="hidden" id="priceValidation" name="priceValidation" value="">
 							</span>
-						</div>						    
+						</div>
+						<div class="form-group col-sm-12 col-sm-12">
+							<label class="col-sm-8 control-label no-padding">Discount Scheme</label>
+							<div class="col-sm-4 control-label no-padding">
+								<select class="form-control" id="DiscountTier" name="DiscountTier" onclick="selectPrice(this.value,'<?php if(isset($ProductsArray) && count($ProductsArray) > 0) echo "1"; else echo "0"; ?>');">
+									<option value="" >Select
+									<?php if(isset($discountTierArray) && is_array($discountTierArray) && count($discountTierArray) > 0) {
+											foreach($discountTierArray as $key=>$value){
+									 ?>
+									<option value="<?php echo $key; ?>" <?php if(isset($merchantInfo['DiscountTier']) &&  $merchantInfo['DiscountTier'] == $value.'%' ) echo 'selected';?>><?php echo $value.'%'; ?>
+									<?php } } ?>
+								</select>
+							</div>
+						</div>
+						<div class="form-group col-sm-12 col-md-12">
+							<div class="col-sm-8 col-md-8 control-label no-padding">
+								<label class="control-label" >Icon</label>
+								<p class="help-block col-sm-12 no-padding">(dimension 100x100)</p>
+							</div>
+							<div class="col-sm-4 col-md-4 no-padding">
+								<input type="file"  name="icon_photo" id="icon_photo" onchange="return ajaxAdminFileUploadProcess('icon_photo');"  /> 
+								<span class="error" for="empty_merchant_photo" generated="true" style="display: none">Icon is required</span>
+								<div class="col-xs-4 no-padding text-center" >
+							      <div id="icon_photo_img" class="text-left">
+									 <?php 
+									 if(!empty($merchantInfo['Icon'])) { 
+										 $image_path = $merchantInfo['Icon'];
+									 ?>
+									 <a href="<?php echo $image_path;?>" class="icon_fancybox" title="">
+									  <img class="img_border" src="<?php echo $image_path;?>" width="75" height="75" alt="Image"/>
+									  </a>
+								 	<?php } ?>
+								  </div>								
+									<input type="Hidden" name="old_icon_photo" id="old_icon_photo" value="<?php if(!empty($merchantInfo['Icon'])) { echo $merchantInfo['Icon']; }?>" />
+									<?php  if(isset($_POST['icon_photo_upload']) && $_POST['icon_photo_upload'] != ''){  ?><input type="Hidden" name="icon_photo_upload" id="icon_photo_upload" value="<?php  echo $_POST['icon_photo_upload'];  ?>"><?php  }  ?>
+											<input type="Hidden" name="empty_icon_photo" id="empty_icon_photo" value="<?php  if(isset($image_path) && $image_path != '') { echo $image_path; }  ?>" />
+											<input type="Hidden" name="name_icon_photo" id="name_icon_photo" value="<?php  if(isset($image_path) && $image_path != '') { echo $image_path; }  ?>" />				
+								</div>
+							</div>	
+						</div>
+						<div class="form-group col-sm-12 col-md-12">
+							<div class="col-sm-8 col-md-8 control-label no-padding">
+								<label class="control-label" >Logo</label>
+								<p class="help-block col-sm-12 no-padding">(dimension 640x260)</p>
+							</div>
+							<div class="col-sm-4 col-md-4 no-padding">
+								<input type="file"  name="merchant_photo" id="merchant_photo" onclick="" onchange="return ajaxAdminFileUploadProcess('merchant_photo');"   /> 
+								<span class="error" for="empty_merchant_photo" generated="true" style="display: none">Image is required</span>
+								<div class="col-xs-10 no-padding"> 
+									  <div id="merchant_photo_img" class="text-left">
+										 <?php 
+										 if(!empty($merchantInfo['Image'])) { 
+										 	$cimage_path = $merchantInfo['Image'];
+											?>
+										  <a href="<?php echo $cimage_path;?>" class="image_fancybox" title="">
+										  <img class="img_border" src="<?php echo $cimage_path;?>" width="200" height="100" alt="Image"/>
+										  </a>
+										<?php } ?>
+									  </div>
+									<input type="Hidden" name="old_merchant_photo" id="old_merchant_photo" value="<?php if(!empty($merchantInfo['Image'])) { echo $merchantInfo['Image']; } ?>" />
+									<?php  if(isset($_POST['merchant_photo_upload']) && $_POST['merchant_photo_upload'] != ''){  ?>
+									<input type="Hidden" name="merchant_photo_upload" id="icon_photo_upload" value="<?php  echo $_POST['merchant_photo_upload'];  ?>"><?php  }  ?>
+									<input type="Hidden" name="empty_merchant_photo" id="empty_merchant_photo" value="<?php  if(isset($cimage_path) && $cimage_path != '') { echo $cimage_path; }  ?>" />
+									<input type="Hidden" name="name_merchant_photo" id="name_merchant_photo" value="<?php  if(isset($cimage_path) && $cimage_path != '') { echo $cimage_path; }  ?>" />				
+								</div>
+							</div>	
+						</div>
 						<div class="form-group col-sm-12">
 							<label class="col-sm-12 control-label no-padding border-right"><span>Slideshow Pictures</span><em></em></label>
 							<p class="help-block no-padding">Upload upto 10 pictures(resolution is 1000*350 pixels, bigger images will scaled down automatically)</p>
@@ -171,7 +395,7 @@ commonHead();
 												<!-- <img style="vertical-align:top" class="" src="<?php SITE_PATH;?>webresources/images/banner1.jpg" width="330" height="160" alt=""> -->
 											</div>
 											
-											<div class="drag_pos">
+											<div class="drag_pos" id="holder">
 												Drag & drop an image or
 												<span>
 												choose a file to upload
@@ -202,9 +426,9 @@ commonHead();
 						
 							<div class="col-sm-9 col-md-10 no-padding">
 								<div class="show-grid form-group col-sm-7 no-padding">
-									<div class="form-group col-sm-12 no-padding"><input type="text"  id="Street" name="Street" value="<?php if(isset($merchantInfo['Street']) && !empty($merchantInfo['Street'])) echo $merchantInfo['Street'];?>" placeholder="Street" class="form-control"></div>
+									<div class="form-group col-sm-12 no-padding"><input type="text"  id="Street" name="Street" value="<?php if(isset($merchantInfo['Address']) && !empty($merchantInfo['Address'])) echo $merchantInfo['Address'];?>" placeholder="Street Address" class="form-control"></div>
 									<div class="form-group col-sm-7 no-padding"><input type="text"  id="City" name="City" value="<?php if(isset($merchantInfo['City']) && !empty($merchantInfo['City'])) echo $merchantInfo['City'];?>" placeholder="City" class="form-control"></div>
-									<div class="form-group col-sm-5 no-padding-right"><input type="text"  id="ZipCode" name="ZipCode" value="<?php if(isset($merchantInfo['ZipCode']) && !empty($merchantInfo['ZipCode'])) echo $merchantInfo['ZipCode'];?>" placeholder="ZIP code" class="form-control"></div>
+									<div class="form-group col-sm-5 no-padding-right"><input type="text"  id="ZipCode" name="ZipCode" value="<?php if(isset($merchantInfo['PostCode']) && !empty($merchantInfo['PostCode'])) echo $merchantInfo['PostCode'];?>" placeholder="ZIP" class="form-control"></div>
 									<div class="form-group col-sm-12 no-padding"><input type="text"  id="State" name="State" value="<?php if(isset($merchantInfo['State']) && !empty($merchantInfo['State'])) echo $merchantInfo['State'];?>" placeholder="State" class="form-control"></div>	
 									<div class="form-group col-sm-12 no-padding"><input type="text"  id="Country" name="Country" value="<?php if(isset($merchantInfo['Country']) && !empty($merchantInfo['Country'])) echo $merchantInfo['Country'];?>" placeholder="Country" class="form-control"></div>	
 								</div>
@@ -213,8 +437,10 @@ commonHead();
 									<div class="form-group col-sm-12 no-padding"><input type="text"  id="Email" name="Email" value="<?php if(isset($merchantInfo['Email']) && !empty($merchantInfo['Email'])) echo $merchantInfo['Email'];?>" placeholder="Email" class="form-control"></div>	
 									<div class="form-group col-sm-12 no-padding"><input type="text"  id="Website" name="Website" value="<?php if(isset($merchantInfo['WebsiteUrl']) && !empty($merchantInfo['WebsiteUrl'])) echo $merchantInfo['WebsiteUrl'];?>" placeholder="Website" class="form-control"></div>
 								</div>
-								<div class="form-group col-sm-7 no-padding"><input type="text"  id="Facebook" name="Facebook" value="<?php if(isset($merchantInfo['Facebook']) && !empty($merchantInfo['Facebook'])) echo $merchantInfo['Facebook'];?>" placeholder="Facebook" class="form-control"></div>	
-								<div class="form-group col-sm-7 no-padding"><input type="text"  id="Twiter" name="Twiter" value="<?php if(isset($merchantInfo['Twiter']) && !empty($merchantInfo['Twiter'])) echo $merchantInfo['Twiter'];?>" placeholder="Twiter" class="form-control"></div>													
+								<div class="form-group col-sm-7 no-padding"><input type="text"  id="Facebook" name="Facebook" value="<?php if(isset($merchantInfo['FBId']) && !empty($merchantInfo['FBId'])) echo $merchantInfo['FBId'];?>" placeholder="Facebook" class="form-control"></div>	
+								<div class="form-group col-sm-7 no-padding"><input type="text"  id="Twitter" name="Twitter" value="<?php if(isset($merchantInfo['TwitterId']) && !empty($merchantInfo['TwitterId'])) echo $merchantInfo['TwitterId'];?>" placeholder="Twitter" class="form-control"></div>													
+								<!-- <div class="form-group col-sm-7 no-padding"><input type="text"  id="TimeCheck24" name="TimeCheck24" value="" placeholder="HH:MM:SS" class="form-control"></div>													
+								<div class="form-group col-sm-7 no-padding"><input type="text"  id="TimeCheck" name="TimeCheck" value="" placeholder="HH:MM AM/PM" class="form-control"></div>		 -->											
 							</div>
 						</div>
 						<div class="form-group col-sm-12 col-md-12">
@@ -229,8 +455,8 @@ commonHead();
 										<input type="checkbox" name="samehours" id="samehours"  onclick="return hideAllDays();" <?php if(isset($merchantInfo['OpeningHours'][0]['DateType']) && $merchantInfo['OpeningHours'][0]['DateType'] == '1') echo "checked"; ?>>&nbsp;Same for all days 
 										<input type="hidden" id="showdays" name="showdays" value="<?php if(isset($merchantInfo['OpeningHours'][0]['DateType']) && $merchantInfo['OpeningHours'][0]['DateType'] == '1') echo 'checked'; ?>"/>
 									</div>
-									<div class="col-sm-4 col-xs-6 no-padding LH30">From :</div>
-									<div class="col-sm-4 col-xs-6 no-padding LH30">To :</div>
+									<div class="col-xs-6 col-sm-4 col-xs-6 no-padding LH30">From :</div>
+									<div class="col-xs-5 col-sm-4 col-xs-6 no-padding LH30">To :</div>
 									
 								<?php } ?>
 								<div class="col-sm-4  col-lg-3 col-xs-12  no-padding LH30"><strong><span class="<?php if($key == 0) echo "rowshow";?>"><?php if(isset($merchantInfo['OpeningHours'][0]['DateType']) && $merchantInfo['OpeningHours'][0]['DateType'] == '1' && $key == 0) echo "Monday to Sunday"; else echo $val.""; ?></span></strong></div>
@@ -299,3 +525,19 @@ commonHead();
 		<?php footerLogin(); ?>
 	<?php commonFooter(); ?>
 </html>
+<script type="text/javascript">
+function price_val(val){
+	$("#priceValidation").val(val);
+}
+  //document.ready
+showCategory('<?php if(isset($newCategory) && $newCategory>0) echo $newCategory;?>');
+$(document).ready(function() {
+	$('.icon_fancybox').fancybox();	
+	$('.image_fancybox').fancybox();
+	if($("#min_price").val() > 0)
+		price_val($("#min_price").val());
+	else
+		price_val($("#max_price").val());
+
+});
+</script>

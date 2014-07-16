@@ -94,6 +94,7 @@ if(isset($curlCustomerResponse) && is_array($curlCustomerResponse) && $curlCusto
 } 
 commonHead();
 
+//echo "==>".__line__."<====<pre>";print_r($customerList);echo "</pre>=====";
 ?>
 
 <body class="skin-blue fixed">
@@ -155,25 +156,23 @@ commonHead();
 	
 		<?php } else {?>
 		<?php  top_header(); ?>
-		
-				
-	
-			
-		
-		<section class="no-top-padding">
-		<div class="col-lg-10" style="margin:auto;float:none;" >	
+		<section class="content no-padding">
+		<div class="col-lg-10 box-center">	
 				<?php  AnalyticsTab(); ?>
 		<div class="row">
-		<div class="no-padding btn-top">
-		<div class="btn-inline space_top pull-right no-margin">
+		<div class="btn-top left-padding">
+		<div class="col-sm-3 btn-inline space_top pull-right no-margin">
 			<?php if(isset($customerList) && !empty($customerList)) { ?>
 				<a href="CustomerList?Show=1" class="newWindow col-xs-12 btn btn-success"><i class="fa fa-users"></i> View top 5 customers</a>
 			<?php } ?>
 		</div>
 		</div>
 		</div>
+		</section>
+		<section class="content no-top-padding">
+		<div class="col-lg-10" style="margin:auto;float:none;" >	
 			<section class="row content-header">
-                <h1 class="no-top-margin pull-left">Customer Transactions</h1>
+                <h1 class="no-top-margin pull-left">Customer Analytics</h1>
             </section>
 				<div class="row">
 				<div class="product_list">
@@ -210,7 +209,7 @@ commonHead();
 							</div>
 						</div> -->
 						<div class="box-footer col-sm-12" align="center">
-							<input type="submit" class="btn btn-success" name="Search" id="Search" value="Search">
+							<input type="submit" class="btn btn-success" name="Search" id="Search" value="Search" title="Search">
 						</div>					
 					</div>
 					</form>
@@ -256,7 +255,7 @@ commonHead();
 								<td align="center"><?php echo (($_SESSION['curpage'] - 1) * ($_SESSION['perpage']))+$key+1;?></td>												
 								<td>
 									<div class="col-xs-10 col-md-11 no-padding"> 										
-										<a href="UserDetail?viewId=<?php echo base64_encode($value["userId"]);?>&cs=1" class="userWindow" title="View Customer Details" ><?php if(isset($value["UserName"]) && $value["UserName"] != ''){ echo ucfirst($value["UserName"]); } ?></a>								
+										<a href="UserDetail?viewId=<?php echo base64_encode($value["userId"]);?>&cs=1" class="userWindow white-space" title="View Customer Details" ><?php if(isset($value["UserName"]) && $value["UserName"] != ''){ echo ucfirst($value["UserName"]); } ?></a>								
 									</div>
 								</td>
 								<td nowrap><?php if(isset($value["FirstVisit"]) && $value["FirstVisit"] != '0000-00-00 00:00:00'){ echo date('m/d/Y',strtotime($value["FirstVisit"])); }else echo '-';?></td>

@@ -98,8 +98,6 @@ define('USER_THUMB_IMAGE_PATH_REL', ABS_PATH_UPLOAD.'users/thumbnail/');
 define('CATEGORY_IMAGE_PATH',SITE_PATH_UPLOAD.'category/');	
 define('CATEGORY_IMAGE_PATH_REL', ABS_PATH_UPLOAD.'category/');
 
-define('CATEGORY_THUMB_IMAGE_PATH', SITE_PATH_UPLOAD.'category/thumbnail/');	
-define('CATEGORY_THUMB_IMAGE_PATH_REL', ABS_PATH_UPLOAD.'category/thumbnail/');
 
 define('SLIDER_IMAGE_PATH',SITE_PATH_UPLOAD.'sliderImages/');	
 define('SLIDER_IMAGE_PATH_REL', ABS_PATH_UPLOAD.'sliderImages/');
@@ -142,6 +140,9 @@ for($min=1;$min<=12;$min++) {
 	}		
 }
 
+global $userLoadMore;
+$userLoadMore	=	12;
+
 global $admin_minute_array;
 for($min=0;$min<60;$min++) {
 	$temp	=	(string)$min;
@@ -172,14 +173,12 @@ $platformArray = array('0'=>'Web','1'=>'ios','2'=>'Android');
 global $applicationARN;
 if($_SERVER['HTTP_HOST'] == '172.21.4.104') {
 	$applicationARN	=	array(
-							'ios' 		=> 	'arn:aws:sns:us-west-2:365095979756:app/APNS_SANDBOX/tuplit_Sandbox',
-							'android'	=>	'arn:aws:sns:us-west-2:365095979756:app/GCM/tuplit-Android'
+							'ios' 		=> 	'arn:aws:sns:us-west-2:105887880235:app/APNS_SANDBOX/Tuplit_Development',
 						);
 }
 else{
 	$applicationARN	=	array(
-							'ios' 		=> 	'arn:aws:sns:us-west-2:365095979756:app/APNS/tuplit',
-							'android'	=>	'arn:aws:sns:us-west-2:365095979756:app/GCM/tuplit-Android'
+							'ios' 		=> 	'arn:aws:sns:us-west-2:105887880235:app/APNS/Tuplit_Production',
 						);
 }
 
@@ -203,5 +202,17 @@ $month_name 		= array("1"		=>	"January",
 							"11"	=>	"November",
 							"12"	=>	"December",
 						);
-
+global $mangoPayError;
+$mangoPayError   = array('02625'=>'Invalid card number',
+						 '02626'=>'Invalid date. Use mmdd format',
+						 '02627'=>'Invalid CVV number',
+						 '02624'=>'Invalid expiration date',
+						 '02628'=>'Transaction refused');
+						 
+global $cardTypeArray;
+$cardTypeArray		=	array('CB'=>ADMIN_SITE_PATH.'/webresources/cards/cb.png',
+						  'VISA'=>ADMIN_SITE_PATH.'/webresources/cards/visa.png',
+						  'MASTERCARD'=>ADMIN_SITE_PATH.'/webresources/cards/mastercard.png',
+						  'AMEX'=>ADMIN_SITE_PATH.'/webresources/cards/amex.png',
+						  'CB_VISA_MASTERCARD'=>ADMIN_SITE_PATH.'/webresources/cards/mastercard.png');
 ?>

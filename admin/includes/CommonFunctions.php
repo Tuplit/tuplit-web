@@ -172,7 +172,10 @@ function sendMail($mailContentArray,$type)
 				$mailData 			=	str_replace('{ORDERID}',  $mailContentArray['orderId'], $mailData);
 				$productData		=	'';
 				foreach($mailContentArray['CartDetails'] as $val) {
-					$productData	.=	'<tr><td align="left" style="color:#010101;font-size:20px;font-family:Calibri;"><b>&nbsp;&nbsp;'.$val['ItemName'].'</b></td> <td align="right" style="color:#010101;font-size:20px;font-family:Calibri;"><b>$'.number_format((float)($val['DiscountPrice'] * $val['ProductsQuantity']), 2, '.', '').'&nbsp;&nbsp;</b></td></tr>';
+				//echo "<pre>"; print_r($val);die();
+					$productData	.=	'<tr>
+											<td align="left" style="color:#010101;font-size:20px;font-family:Calibri;"><span style="color:#6b5f5f;font-size:12px;font-family:Calibri;">'.$val['ProductsQuantity'].'x</span>&nbsp;&nbsp;<b>&nbsp;&nbsp;'.$val['ItemName'].'</b></td> 
+											<td align="right" style="color:#010101;font-size:20px;font-family:Calibri;"><b>$'.number_format((float)($val['DiscountPrice'] * $val['ProductsQuantity']), 2, '.', '').'&nbsp;&nbsp;</b></td></tr>';
 				}
 				$mailData 			=	str_replace('{PRODUCTSLIST}',  $productData, $mailData);
 				$mailData 			=	str_replace('{CONTENT}',  $mailContentArray['content'], $mailData);
@@ -1594,10 +1597,14 @@ function getLatLngFromAddress($address) {
 	$address = str_replace(" ", "+", $address);
 	$json = file_get_contents("http://maps.google.com/maps/api/geocode/json?address=$address&sensor=false");//&region=$region	
 	$json = json_decode($json);
-	$lat = $json->{'results'}[0]->{'geometry'}->{'location'}->{'lat'};
-	$long = $json->{'results'}[0]->{'geometry'}->{'location'}->{'lng'};
-	if(isset($lat) && $lat !='' && isset($long) && $long !='') {
-		return $lat.'###'.$long;
+	if(!empty( $json->{'results'}))  {
+		$lat = $json->{'results'}[0]->{'geometry'}->{'location'}->{'lat'};
+		$long = $json->{'results'}[0]->{'geometry'}->{'location'}->{'lng'};
+		if(isset($lat) && $lat !='' && isset($long) && $long !='') {
+			return $lat.'###'.$long;
+		} else {
+			return 0;
+		}
 	} else {
 		return 0;
 	}
@@ -1992,7 +1999,6 @@ function miles2kms($miles) {
 } 
 
 function msort($array, $key, $sort_flags = SORT_ASC) {
-	echo "******************";
     if (is_array($array) && count($array) > 0) {
         if (!empty($key)) {
             $mapping = array();

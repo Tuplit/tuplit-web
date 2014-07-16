@@ -78,7 +78,7 @@ commonHead();
 
 <body class="skin-blue fixed">
 			<section class="row content-header no-margin">
-                <h1 class="no-margin space_bottom">Order List</h1>
+                <h1 class="no-margin space_bottom">Order History</h1>
             </section>
 			<div class="row no-margin">
 				<div class="product_list">

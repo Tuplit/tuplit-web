@@ -47,7 +47,7 @@ $app->get('/', function () use ($app) {
 		/**
 		* Retrieving category list array
 		*/
-		$categories 		= 	new Categories();
+		$categories 		= 	R::dispense('categories');
 	 	$categoryDetails 	=  $categories->getCategoryDetails();
 		if($categoryDetails){
 			$response 	   	= 	new tuplitApiResponse();
@@ -96,7 +96,7 @@ $app->get('/products',tuplitApi::checkToken(), function () use ($app) {
 		/**
 		* Retrieving product category list array
 		*/
-		$categories 		= 	new Categories();
+		$categories 		= 	R::dispense('categories');
 	 	$categoryDetails 	=  	$categories->getProdctCategoryList($merchantId);
 		if($categoryDetails){
 			$response 	   	= 	new tuplitApiResponse();
@@ -247,7 +247,7 @@ $app->get('/productcategories/:categoryId',tuplitApi::checkToken(), function ($c
 		/**
 		* Retrieving product category list array
 		*/
-		$categories 		= 	new Categories();
+		$categories 		= 	R::dispense('categories');
 	 	$categoryDetails 	=  	$categories->getSingleProdctCategory($merchantId,$categoryId);
 		if($categoryDetails){
 			$response 	   	= 	new tuplitApiResponse();

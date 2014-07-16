@@ -234,7 +234,6 @@ class Comments extends RedBean_SimpleModel implements ModelBaseInterface {
 		$total 			= 	$totalRec[0]['count'];
 		if(is_array($commentresult) && count($commentresult) > 0){
 			foreach($commentresult as $key=>$value){
-				
 				if($value['MerchantIcon'] !='')
 					$value['MerchantIcon'] 	= 	MERCHANT_ICONS_IMAGE_PATH.$value['MerchantIcon'];
 				else
@@ -322,11 +321,14 @@ class Comments extends RedBean_SimpleModel implements ModelBaseInterface {
 		$this->validateMerchant();
 		$commentSql 	= " SELECT c.fkUsersId as UsersId,c.CommentsText,c.CommentDate,c.Platform,u.FirstName,u.LastName,u.Photo  from comments c 
 							LEFT JOIN users u ON c.fkUsersId = u.id 
-							where c.Status = 1 and c.fkMerchantsId=".$merchantId." order by c.CommentDate desc limit ".$start." ,".$limit;
+							where c.Status = 1 and u.Status = 1 and  c.fkMerchantsId=".$merchantId." order by c.CommentDate desc limit ".$start." ,".$limit;
 		$comments 		= R::getAll($commentSql);
 		if($comments){
 			foreach($comments as $key => $value){
-				$comments[$key]['Photo'] 			= USER_IMAGE_PATH.$value['Photo'];
+				if($comments[$key]['Photo']  !='')
+					$comments[$key]['Photo']  	= 	USER_THUMB_IMAGE_PATH.$value['Photo'];
+				else
+					$comments[$key]['Photo']  = '';
 				$comments[$key]['CommentsText'] 	= getCommentTextEmoji($bean->Platform,$value['CommentsText'],$value['Platform']);
 			}			
 		}

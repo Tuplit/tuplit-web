@@ -77,7 +77,7 @@ commonHead();
 			  <div class="row">
 			  
 			  <div class="col-lg-8 box-center" >
-				<?php if ($_SERVER['HTTP_HOST'] == '172.21.4.104') $Analyticshref = 'CustomerList?cs=1'; else $Analyticshref = "#"; ?>
+				<?php $Analyticshref = 'CustomerList?cs=1'; ?>
                	<div class="col-md-3 col-sm-6 col-xs-12" style="cursor:pointer" <?php if(!empty($Analyticshref)) echo 'onclick="location.href=\''.$Analyticshref.'\'"'; ?>  title="Analytics">
                    <!-- small box -->
                    <div class="small-box bg-teal">

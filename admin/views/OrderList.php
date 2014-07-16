@@ -182,17 +182,17 @@ if(isset($OverallOrderList) && is_array($OverallOrderList) && count($OverallOrde
 	?>
 	<!-- Content Header (Page header) -->
 	<section class="content-header no-padding">
-		<div class="col-xs-7">
+		<div class="col-xs-8 col-sm-7">
 			<h1><i class="fa fa-list"></i> Order List</h1>
 		</div>
 		
 		<?php if($show == 1) { ?>
-		<div class="col-xs-5">
+		<div class="col-xs-4 col-sm-5">
 			<h3><?php echo $merchantimage." ".$merchantname ;?></h3>
 		</div>
 		<?php } else if($show == 2) { ?>
 		
-		<div class="col-xs-5">
+		<div class="col-xs-4 col-sm-5">
 			<h3><?php echo $userimage." ".$username ;?></h3>
 		</div>
 		<?php } ?>
@@ -248,31 +248,31 @@ if(isset($OverallOrderList) && is_array($OverallOrderList) && count($OverallOrde
 			<div class="col-xs-12">	
 			<div class="box box-solid bg-green col-xs-12">
 				<div class="col-sm-6 col-xs-12 no-padding ">	
-					<div class="col-sm-8 col-lg-5 col-xs-8 no-padding">	
+					<div class="col-sm-8 col-lg-8 col-xs-8 no-padding">	
 						<h3>Total No. of Orders</h3>
 					</div>	
-					<div class="col-sm-4 col-lg-4 col-xs-4">	
+					<div class="col-sm-4 col-lg-3 col-xs-4">	
 						<h3>:&nbsp;&nbsp;<?php echo $noof_orders ;?></h3>
 					</div>
 					
-					<div class="col-sm-8 col-lg-5 col-xs-8 no-padding">	
+					<div class="col-sm-8 col-lg-8 col-xs-8 no-padding">	
 						<h3>Total No. of New Orders</h3>
 					</div>	
-					<div class="col-sm-4 col-lg-4 col-xs-4">	
+					<div class="col-sm-4 col-lg-3 col-xs-4">	
 						<h3>:&nbsp;&nbsp;<?php echo $new_count; ?></h3>
 					</div>
 					
-					<div class="col-sm-8 col-lg-5 col-xs-8 no-padding">	
+					<div class="col-sm-8 col-lg-8 col-xs-8 no-padding">	
 						<h3>Total No. of Orders Accepted</h3>
 					</div>	
-					<div class="col-sm-4 col-lg-4 col-xs-4">	
+					<div class="col-sm-4 col-lg-3 col-xs-4">	
 						<h3>:&nbsp;&nbsp;<?php echo $accepted_count; ?></h3>
 					</div>
 				
-					<div class="col-sm-8 col-lg-5 col-xs-8 no-padding">	
+					<div class="col-sm-8 col-lg-8 col-xs-8 no-padding">	
 						<h3>Total No. of Orders Rejected</h3>
 					</div>	
-					<div class="col-sm-4 col-lg-4 col-xs-4">	
+					<div class="col-sm-4 col-lg-3 col-xs-4">	
 						<h3>:&nbsp;&nbsp;<?php echo $rejected_count; ?></h3>
 					</div>
 					
@@ -283,7 +283,7 @@ if(isset($OverallOrderList) && is_array($OverallOrderList) && count($OverallOrde
 						<div class="col-sm-8 col-lg-9 col-xs-8 no-padding">		
 							<h3>Total No. of Orders Placed By Merchants</h3>
 						</div>	
-						<div class="col-sm-4 col-lg-2 col-xs-4 no-padding">	
+						<div class="col-sm-4 col-lg-2 col-xs-4">	
 							<h3>:&nbsp;&nbsp;<?php echo count($mechants_array); ?></h3>
 						</div>
 						<?php } ?>
@@ -292,7 +292,7 @@ if(isset($OverallOrderList) && is_array($OverallOrderList) && count($OverallOrde
 						<div class="col-sm-8 col-lg-9 col-xs-8 no-padding">		
 							<h3>Total No. of Orders Placed By Users</h3>
 						</div>	
-						<div class="col-sm-4 col-lg-2 col-xs-4 no-padding">	
+						<div class="col-sm-4 col-lg-2 col-xs-4 ">	
 							<h3>:&nbsp;&nbsp;<?php echo count($user_array); ?></h3>
 						</div>
 						<?php }?>
@@ -300,8 +300,8 @@ if(isset($OverallOrderList) && is_array($OverallOrderList) && count($OverallOrde
 						<div class="col-sm-8 col-lg-9 col-xs-8 no-padding">		
 							<h3>Total Price of Accepted Orders</h3>
 						</div>
-						<div class="col-sm-4 col-lg-3 col-xs-4 no-padding">	
-								<h3>:&nbsp;&nbsp;<?php echo price_fomat($acceptedprice)."<span class='help-block' style='color:#fff;'>&nbsp;&nbsp;&nbsp;(Approved Orders)</span>"; ?></h3>
+						<div class="col-sm-4 col-lg-3 col-xs-4 ">	
+								<h3>:&nbsp;&nbsp;<?php echo price_fomat($acceptedprice)."<span class='help-block' style='color:#fff;white-space:nowrap;'>&nbsp;&nbsp;&nbsp;(Approved Orders)</span>"; ?></h3>
 						</div>	
 				</div>
 			</div>			
@@ -313,12 +313,12 @@ if(isset($OverallOrderList) && is_array($OverallOrderList) && count($OverallOrde
 	
 	
 		<div class="row paging">
-			<div class="col-xs-12 col-sm-2">
+			<div class="col-xs-12 col-sm-3">
 				<?php if(isset($OrderListResult) && is_array($OrderListResult) && count($OrderListResult) > 0){ ?>
 				<div class="dataTables_info">No. of Order(s)&nbsp:&nbsp;<strong><?php echo $tot_rec; ?></strong> </div>
 				<?php } ?>
 			</div>
-			<div class="col-xs-12 col-sm-10">
+			<div class="col-xs-12 col-sm-9">
 				<div class="dataTables_paginate paging_bootstrap row">
 				<?php if(is_array($OrderListResult) && count($OrderListResult) > 0 ) {
 					if($show == 0)
@@ -349,7 +349,7 @@ if(isset($OverallOrderList) && is_array($OverallOrderList) && count($OverallOrde
                                <tr>
                                   	<!--<th align="center" width="1%" style="text-align:center"><input onclick="checkAllDelete('OrderList');" type="Checkbox" name="checkAll"/></th>-->
 									<th align="center" width="3%" style="text-align:center">#</th>									
-			<?php if($show != 2) {?><th width="25%">UserDetails</th><?}?>
+			<?php if($show != 2) {?><th width="24%">UserDetails</th><?}?>
 									<th width="28%">Transaction ID</th>
 									<th width="7%">Price</th>
 									<th width="10%">Order Date</th>
@@ -386,13 +386,13 @@ if(isset($OverallOrderList) && is_array($OverallOrderList) && count($OverallOrde
 							<?php if($show != 2) {?>
 						   <td>
 								<?php if(isset($image_path) && $image_path != ''){ ?>
-									<div class=" col-sm-4  col-lg-2  no-padding">
+									<div class=" col-sm-4  col-lg-3  no-padding">
 										<a <?php if(isset($image_path) && basename($image_path) != "no_user.jpeg") { ?>href="<?php echo $original_path; ?>" class="fancybox" title="<?php echo  ucfirst($value->UserName);?>" <?php } ?> > 
 											<img id="<?php echo $value->id ;?>"  width="36" height="36" align="top" class="img_border" src="<?php echo $image_path;?>" >
 										</a>
 									</div>
 								<?php } ?>
-									<div class="col-xs-9  col-sm-8 col-lg-10 no-padding"> 								
+									<div class="col-xs-9  col-sm-8 col-lg-9 no-padding" nowrap> 								
 										<?php if(isset($value->UserName) && $value->UserName != ''){ echo ucfirst($value->UserName); } ?>								
 									
 										
@@ -402,13 +402,15 @@ if(isset($OverallOrderList) && is_array($OverallOrderList) && count($OverallOrde
 										<a href="<?php echo SITE_PATH.'/admin/OrderProductList?cart_id='.base64_encode($value->fkCartId).'&cs=1'; ?>" class="view newWindow" data-toggle="tooltip" data-original-title="Purchased products"><i class="fa fa-shopping-cart"></i></a>		
 									</div>
 								<?php }?>
+								
+								
 								</td><?php }?>
 								<td><?php if(isset($value->TransactionId) && $value->TransactionId != ''){ echo $value->TransactionId; }else echo '-';?></td>
-								<td><?php if(isset($value->TotalPrice) && $value->TotalPrice != ''){ echo price_fomat($value->TotalPrice); }else echo '-';?></td>
+								<td nowrap><?php if(isset($value->TotalPrice) && $value->TotalPrice != ''){ echo price_fomat($value->TotalPrice); }else echo '-';?></td>
 								<td nowrap><?php if(isset($value->OrderDate) && $value->OrderDate != '0000-00-00 00:00:00'){ echo date('m/d/Y',strtotime($value->OrderDate)); }else echo '-';?></td>
 								<td><?php if(isset($value->OrderStatus) && $value->OrderStatus != ''){ echo $order_status_array[$value->OrderStatus];}?></td>
 								<?php if($show != 1) {?>
-								<td>
+								<td nowrap>
 									<?
 										$icon_image_path = '';
 										$merchant_image = $value->Icon;

@@ -18,8 +18,10 @@ require_once '../../lib/Helpers/PasswordHelper.php';    // password helper
 require_once '../../lib/tuplitApiResponse.php';       	// response
 require_once '../../lib/tuplitApiResponseMeta.php';   	// response meta
 require_once '../../lib/ModelBaseInterface.php';        // base interface class for RedBean models
-require_once '../../lib/Model_Users.php';            	// Model: Users
-require_once '../../lib/Model_Merchants.php';            	// Model: Merchants
+require_once '../../models/Users.php';            		// Model: Users
+require_once '../../models/Merchants.php';            	// Model: Merchants
+require_once "../../admin/includes/CommonFunctions.php";
+
 use Helpers\ResponseHelper as ResponseHelper;
 /**
  * Initialize application
@@ -33,7 +35,7 @@ $app = new \Slim\Slim();
  * Check the Facebook and linkedIn Id callback function
  */
 $checkLoginCallBack = function($email,$password,$facebookId,$googlePlusId,$deviceToken,$token,$userdata,$platform) {
-    return Model_Users::checkLogin($email,$password,$facebookId,$googlePlusId,$deviceToken,$token,$userdata,$platform);
+    return Users::checkLogin($email,$password,$facebookId,$googlePlusId,$deviceToken,$token,$userdata,$platform);
 };
 
 
@@ -41,7 +43,7 @@ $checkLoginCallBack = function($email,$password,$facebookId,$googlePlusId,$devic
  * check merchant account
  */
 $checkMerchantLoginCallBack =  function($email,$password) {
-    return Model_Merchants::checkLogin($email,$password);
+    return Merchants::checkLogin($email,$password);
 };
 
 /**
@@ -59,7 +61,7 @@ $checkMerchantLoginCallBack =  function($email,$password) {
  */
 $app->post('/token', function () use ($app, $checkLoginCallBack) {
 	try {
-
+		
         $req = $app->request();
 		$res = $app->response();
 		$res['Content-Type'] = 'application/json';
@@ -99,12 +101,10 @@ $app->post('/token', function () use ($app, $checkLoginCallBack) {
 
 
 $app->post('/token/merchants/', function () use ($app, $checkMerchantLoginCallBack) {
-	try {
-
+	try {		
         $req = $app->request();
 		$res = $app->response();
 		$res['Content-Type'] = 'application/json';
-
         // grab the authorization server from the api
         $authServer = tuplitApi::$authServer;
 		

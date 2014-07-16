@@ -22,32 +22,32 @@ if(isset($_GET['viewId']) && $_GET['viewId'] != '' ){
 			<div class="col-md-12 view-page"> 
 				<div class="box box-primary"> 
 					<div class="form-group col-sm-6 row">
-						<label class="col-sm-5  col-xs-5 col-lg-3  " >Item Name</label>
+						<label class="col-sm-5  col-xs-5 col-lg-4  " >Item Name</label>
 						<div  class="col-sm-7  col-xs-7">
 						<?php if(!empty($productListResult[0]->ItemName)) { echo ucfirst($productListResult[0]->ItemName); } else { echo "-"; } ?></div>
 					</div>	
 					<div class="form-group col-sm-6 row">
-						<label class="col-sm-5  col-xs-5 col-lg-3 " >Product Category</label>
+						<label class="col-sm-5  col-xs-5 col-lg-4 " style="white-space:nowrap;">Product Category</label>
 						<div  class="col-sm-7  col-xs-7">
 						<?php if(!empty($productListResult[0]->CategoryName)) { echo ucfirst($productListResult[0]->CategoryName); } else { echo "-"; } ?></div>
 					</div>
 					<!-- <div class="form-group col-sm-6 row">									
-						<label class="col-sm-5  col-xs-5 col-lg-3 " >Item Description</label>
+						<label class="col-sm-5  col-xs-5 col-lg-4 " style="white-space:nowrap;">Item Description</label>
 						<div  class="col-sm-7  col-xs-7">										
 						<?php //if(!empty($productListResult[0]->ItemDescription)) { echo $productListResult[0]->ItemDescription; } else { echo "-"; } ?></div>									
 					</div> -->
 					<div class="form-group col-sm-6 row">									
-						<label class="col-sm-5  col-xs-5 col-lg-3 " >Discount Applied</label>
+						<label class="col-sm-5  col-xs-5 col-lg-4 " style="white-space:nowrap;">Discount Applied</label>
 						<div  class="col-sm-7  col-xs-7">										
 						<?php if($productListResult[0]->DiscountApplied == '1') { echo 'Yes'; } else { echo 'No'; } ?></div>									
 					</div>
 					<div class="form-group col-sm-6 row">
-						<label class="col-sm-5  col-xs-5 col-lg-3 " >Price</label>
+						<label class="col-sm-5  col-xs-5 col-lg-4 " >Price</label>
 						<div  class="col-sm-7  col-xs-7"><?php if(!empty($productListResult[0]->Price)) { echo price_fomat($productListResult[0]->Price); } else { echo "-"; } ?></div>	
 					</div>	        
 					<?php if($productListResult[0]->DiscountApplied == '1') {?>
 					<div class="form-group col-sm-6 row">
-						<label class="col-sm-5  col-xs-5 col-lg-3 " >Discount Tier</label>
+						<label class="col-sm-5  col-xs-5 col-lg-4 " style="white-space:nowrap;">Discount Tier</label>
 						<div  class="col-sm-7  col-xs-7"><?php if(isset($productListResult[0]->Discount)){?><span title="Price"><?php echo $discountTierArray[$productListResult[0]->Discount]."%"; ?></span><?php  } ?>								</div>	
 					</div>
 						
@@ -58,7 +58,7 @@ if(isset($_GET['viewId']) && $_GET['viewId'] != '' ){
 							$dis_cost = 0;
 					?>
 					<div class="form-group col-sm-6 row">
-						<label class="col-sm-5  col-xs-5 col-lg-3 " >Discounted Price</label>
+						<label class="col-sm-5  col-xs-5 col-lg-4 " style="white-space:nowrap;">Discounted Price</label>
 						<div  class="col-sm-7  col-xs-7">
 						<?php echo price_fomat($dis_cost);?>
 						</div>
@@ -67,13 +67,13 @@ if(isset($_GET['viewId']) && $_GET['viewId'] != '' ){
 					
 				
 					<!-- <div class="form-group col-sm-6 row">
-						<label class="col-sm-5  col-xs-5 col-lg-3 " >Item Type</label>
+						<label class="col-sm-5  col-xs-5 col-lg-4 " >Item Type</label>
 						<div  class="col-sm-7  col-xs-7">
 						<?php //if(isset($productListResult[0]->ItemType) && $productListResult[0]->ItemType != ''){?><span title="Type"><?php //echo $item_type_array[$productListResult[0]->ItemType]; ?></span><br><?php  //} ?>
 						</div>
 					</div>	 -->
 					<!-- <div class="form-group col-sm-6 row">
-						<label class="col-sm-5  col-xs-5 col-lg-3 " >Quantity</label>
+						<label class="col-sm-5  col-xs-5 col-lg-4 " >Quantity</label>
 						<div  class="col-sm-7  col-xs-7">
 						<?php //if(!empty($productListResult[0]->Quantity)) { echo $productListResult[0]->Quantity; } else { echo "-"; } ?></div>						
 					</div>	 -->
@@ -106,7 +106,7 @@ if(isset($_GET['viewId']) && $_GET['viewId'] != '' ){
 						}
 					?>
 					<div class="form-group col-sm-6 row">
-						<label class="col-sm-5  col-xs-5 col-lg-3 " >Image</label>
+						<label class="col-sm-5  col-xs-5 col-lg-4 " >Image</label>
 						<div  class="col-sm-7  col-xs-7">
 							<?php if(!empty($productListResult[0]->Photo)) { ?>
 								<a href="<?php echo $image_path; ?>" class="fancybox" title="<?php echo $productListResult[0]->ItemName; ?>">
@@ -118,7 +118,7 @@ if(isset($_GET['viewId']) && $_GET['viewId'] != '' ){
 						</div>
 					</div>	
 					<div class="form-group col-sm-6 row">
-						<label class="col-sm-5  col-xs-5 col-lg-3 " >Merchant Details</label>
+						<label class="col-sm-5  col-xs-5 col-lg-4 " style="white-space:nowrap;">Merchant Details</label>
 						<div  class="col-sm-7  col-xs-7">
 							<?php if(!empty($productListResult[0]->Icon)) { ?>
 								
@@ -136,7 +136,7 @@ if(isset($_GET['viewId']) && $_GET['viewId'] != '' ){
 						</div>
 					</div>	
 					<div class="form-group col-sm-6 row">
-						<label class="col-sm-5  col-xs-5 col-lg-3 " >Status</label>
+						<label class="col-sm-5  col-xs-5 col-lg-4 " >Status</label>
 						<div  class="col-sm-7  col-xs-7">
 						<?php if($productListResult[0]->Status == 1) { echo 'Active'; } else { echo "Inactive"; } ?></div>
 					</div>

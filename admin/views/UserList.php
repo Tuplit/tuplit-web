@@ -112,19 +112,19 @@ if($tot_rec!=0 && !is_array($userListResult)) {
 }
 
 if(isset($_GET['msg']) && $_GET['msg'] == 1){
-	$msg 		= 	"User added successfully";
+	$msg 		= 	"Customer added successfully";
 	$display	=	"block";
 	$class 		= 	"alert-success";
 	$class_icon = "fa-check";
 }
 else if(isset($_GET['msg']) && $_GET['msg'] == 2){
-	$msg 		= 	"User updated successfully";
+	$msg 		= 	"Customer updated successfully";
 	$display	=	"block";
 	$class 		= 	"alert-success";
 	$class_icon = "fa-check";
 }
 else if(isset($_GET['msg']) && $_GET['msg'] == 3){
-	$msg 		= 	"User deleted successfully";
+	$msg 		= 	"Customer deleted successfully";
 	$display	=	"block";
 	$class 		= 	"alert-success";
 	$class_icon = "fa-check";
@@ -147,9 +147,9 @@ else if(isset($_GET['msg']) && $_GET['msg'] == 5){
 	<!-- Content Header (Page header) -->
 	<section class="content-header no-padding">
 		<div class="col-xs-6">
-			<h1><i class="fa fa-list"></i> User List</h1>
+			<h1><i class="fa fa-list"></i>Customer List</h1>
 		</div>
-		<div class="col-xs-6"><h3><a href="UserManage" title="Add User"><i class="fa fa-plus-circle"></i> Add User</a></h3></div>
+		<div class="col-xs-6"><h3><a href="UserManage" title="Add Customer"><i class="fa fa-plus-circle"></i> Add Customer</a></h3></div>
 	</section>
 	<!-- Main content -->
 	<section class="content">
@@ -221,7 +221,7 @@ else if(isset($_GET['msg']) && $_GET['msg'] == 5){
 		<div class="row paging">
 			<div class="col-xs-12 col-sm-2">
 				<?php if(isset($userListResult) && is_array($userListResult) && count($userListResult) > 0){ ?>
-				<div class="dataTables_info">No. of User(s)&nbsp:&nbsp;<strong><?php echo $tot_rec; ?></strong> </div>
+				<div class="dataTables_info">No. of Customer(s)&nbsp:&nbsp;<strong><?php echo $tot_rec; ?></strong> </div>
 				<?php } ?>
 			</div>
 			<div class="col-xs-12 col-sm-10">
@@ -249,7 +249,7 @@ else if(isset($_GET['msg']) && $_GET['msg'] == 5){
                                <tr>
                                   	<th align="center" width="1%" class="text-center"><input onclick="checkAllDelete('UserListForm');" type="Checkbox" name="checkAll"/></th>
 									<th align="center" width="2%" class="text-center">#</th>												
-									<th width="25%">User Details<?php //echo SortColumn('UserName','Username'); ?></th>
+									<th width="25%">Customer Details<?php //echo SortColumn('UserName','Username'); ?></th>
 									<th width="10%">Social Media Ids</th>
 									<th width="12%">Location Details</th>
 									<th width="3%">Platform</th>
@@ -293,7 +293,6 @@ else if(isset($_GET['msg']) && $_GET['msg'] == 5){
 										<?php if(isset($value->LastName) && $value->LastName != ''){ echo ucfirst($value->LastName); } ?><br>
 										<i class="fa fa-fw fa-envelope"></i> <?php if(isset($value->Email) && $value->Email != '' ){ echo $value->Email;} ?><br>
 										<?php if(isset($value->CellNumber) && $value->CellNumber != ''){?><i class="fa fa-fw fa-phone"></i>  <?php echo $value->CellNumber; } ?>
-										<?php if(isset($value->CurrentBalance) && $value->CurrentBalance != '') echo "<div>CurrentBalance : ".$value->CurrentBalance."</div>"; ?>
 									</div>
 									<div style="float:left;display:inline-block;" class="row-actions col-xs-12">
 										<?php if($value->Status == 1) { ?><a class="active_icon" onclick="javascript:return confirm('Are you sure want to change the status?')" href="UserList?status=2&editId=<?php if(isset($value->id) && $value->id != '') echo $value->id;?>" title="Click to Inactive"><i class="fa fa-user "></i></a><?php } else { ?><a class="inactive_icon" onclick="javascript:return confirm('Are you sure you want to change the status?')" title="Click to Active" href="UserList?status=1&editId=<?php if(isset($value->id) && $value->id != '') echo $value->id;?>"><i class="fa fa-user "></i></a><?php } ?>
@@ -358,7 +357,7 @@ else if(isset($_GET['msg']) && $_GET['msg'] == 5){
 					</form>
 					
 					<?php } else { ?>	
-						<div class="alert alert-danger alert-dismissable col-xs-4 "><i class="fa fa-warning"></i> No User found</div> 
+						<div class="alert alert-danger alert-dismissable col-xs-4 "><i class="fa fa-warning"></i> No Customer found</div> 
 					<?php } ?>	
                </div>
            </div>

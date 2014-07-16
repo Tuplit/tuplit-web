@@ -47,7 +47,7 @@ class LogModel extends Model
 					LEFT JOIN {$this->userTable} as u on (u.id = ses.owner_id) 
 					LEFT JOIN {$this->oauthClientsTable} as ac on(ac.id=ses.client_id) 
 					WHERE 1 ".$where." ORDER BY ".$sorting_clause.$limit_clause;*/
-		//echo "============>".$sql;
+		//echo "<br>============>".$sql;
 		$result = 	$this->sqlQueryArray($sql);
 		if (count($result) == 0) return false;
 		return $result;
@@ -57,7 +57,8 @@ class LogModel extends Model
 						LEFT JOIN {$this->oauthSessionTable} as ses on ( ses.id = atk.session_id ) 
 						LEFT JOIN {$this->userTable} as u on (u.id = ses.owner_id) 
 						LEFT JOIN {$this->oauthClientsTable} as ac on(ac.id=ses.client_id)
-						WHERE atk.access_token IN(".$logUserTokens.") ";		
+						WHERE atk.access_token IN(".$logUserTokens.") ";
+		//echo "<br>============>".$sql;
 		$result = 	$this->sqlQueryArray($sql);
 		if (count($result) == 0) return false;
 		return $result;
@@ -66,7 +67,8 @@ class LogModel extends Model
 		$sql	 =	"select ".$field." from {$this->userTable} as u 
 					LEFT JOIN {$this->oauthSessionTable} as ses on ( u.id = ses.owner_id ) 
 					LEFT JOIN {$this->oauthSessionAccessTokensTable} as atk  ON(ses.id=atk.session_id)
-					where ".$condition;					
+					where ".$condition;	
+		//echo "<br>============>".$sql;
 		$result = 	$this->sqlQueryArray($sql);
 			if($result) return $result;
 			else false;
