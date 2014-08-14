@@ -39,7 +39,7 @@ $app = new \Slim\Slim();
 
 /**
 * invite friends
-*GET/v1/invites/invites
+*POST/v1/invites/invites
 */
 $app->post('/',tuplitApi::checkToken(),function () use ($app) {	
     try {
@@ -53,8 +53,8 @@ $app->post('/',tuplitApi::checkToken(),function () use ($app) {
 		*/
         $invites 			= R::dispense('friends');
 		$invites->UserId	= $requestedById;		
-		if($req->params('FbId'))
-			$invites->FbId			= $req->params('FbId');
+		if($req->params('FBId'))
+			$invites->FbId			= $req->params('FBId');
 		if($req->params('CellNumber'))
 			$invites->CellNumber	= $req->params('CellNumber');
 		 $inviteId 					= $invites->inviteFriend();

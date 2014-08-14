@@ -45,7 +45,7 @@ $merchantId		= 	$_SESSION['merchantInfo']['MerchantId'];
 $url			=	WEB_SERVICE.'v1/products/';
 $curlMerchantResponse  = 	curlRequest($url, 'GET', null, $_SESSION['merchantInfo']['AccessToken']);
 if(isset($curlMerchantResponse) && is_array($curlMerchantResponse) && $curlMerchantResponse['meta']['code'] == 201) {
-	$ProductsArray   =	$curlMerchantResponse['ProductList'];		
+	$ProductsArray   =	$curlMerchantResponse['ProductList'];	
 }
 //echo "<pre>"; echo print_r($ProductsArray); echo "</pre>";
 if(isset($_POST['merchant_account_submit']) && $_POST['merchant_account_submit'] == 'SAVE'){
@@ -201,9 +201,9 @@ if(isset($_POST['merchant_account_submit']) && $_POST['merchant_account_submit']
 			$merchantInfo  						= 	$curlMerchantResponse['merchant'];
 			$_SESSION['merchantDetailsInfo']	=	$merchantInfo;
 			$newCategory						=	$merchantInfo['Category'];
-		}
-	
+		}	
 		$successMessage	=	$curlResponse['notifications'][0];
+		header("location:Myaccount");
 	} else if(isset($curlResponse['meta']['errorMessage']) && $curlResponse['meta']['errorMessage'] != '') {
 		$errorMessage		=	$curlResponse['meta']['errorMessage'];
 	} else {
@@ -513,7 +513,13 @@ commonHead();
 							</select>
 							</div>
 						</div>
-						<?php if(isset($ProductsArray) && is_array($ProductsArray) && count($ProductsArray) > 0) {?>
+						<?php if(isset($ProductsArray) && is_array($ProductsArray) && count($ProductsArray) > 0) { 		$totalPro	=	0;				
+								foreach($ProductsArray as $key=>$value) {
+									if($value[0]['ProductId'] != '')
+										$totalPro		=	$totalPro + count($value);
+								}
+								if($totalPro > 0) {
+						?>
 							<div class="form-group col-md-12 text-center">OR</div>
 							<div class="form-group col-xs-12 ">
 								<label class="col-md-7 no-padding">Select the product list or menu to be discounted (30% and the whole menu)</label>
@@ -524,16 +530,21 @@ commonHead();
 											   if(isset($merchantInfo['DiscountProductId']) && $merchantInfo['DiscountProductId'] != ''){
 											   	 	$productListArray = explode(',',$merchantInfo['DiscountProductId']);
 												}
-														foreach($ProductsArray as $key=>$value){
-															foreach($value as $s_key=>$s_value){
-															
+												foreach($ProductsArray as $key=>$value){
+													foreach($value as $s_key=>$s_value){
+														$pro_list_array[]	=	$s_value;
+													}
+												}
+												$pro_list_array = subval_sort($pro_list_array,'ItemName');												
+												foreach($pro_list_array as $s_key=>$s_value) {
+													if(!empty($s_value['ProductId']) && !empty($s_value['ItemName'])) {
 										 ?>										
 										<option value="<?php echo $s_value['ProductId']; ?>" <?php if(isset($productListArray) &&  in_array($s_value['ProductId'],$productListArray)) { echo 'selected'; } else if($merchantInfo['DiscountProductId'] == 'all') echo 'selected';?> ><?php echo $s_value['ItemName']; ?></option>
-										<?php }  } ?>
+										<?php } } ?>
 									</select>
 								</div>
 							</div>
-						<?php } ?>
+						<?php } } ?>
 					</div>
 				</div>
 				

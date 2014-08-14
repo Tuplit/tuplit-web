@@ -8,7 +8,6 @@ $condition	=	'';
 if(isset($_GET['cs']) && $_GET['cs']=='1') {
 	destroyPagingControlsVariables();	
 }
-
 if(isset($_GET['delId']) && !empty($_GET['delId'])) {
 	$contentObj->deleteContent($_GET['delId']);
 	header("location:ContentList?msg=3");
@@ -50,10 +49,10 @@ if($tot_rec!=0 && !is_array($contentList)) {
 	<?php top_header(); ?>
 	<!-- Content Header (Page header) -->
 	<section class="content-header no-padding">
-		<div class="col-xs-6">
+		<div class="col-xs-7">
 			<h1><i class="fa fa-list"></i> Content List</h1>
 		</div>
-		<div class="col-xs-6"><h3><a href="ContentManage" title="Add Content"><i class="fa fa-plus-circle"></i> Add Content</a></h3></div>
+		<div class="col-sm-5 col-xs-12"><h3><a href="ContentManage" title="Add Content"><i class="fa fa-plus-circle"></i> Add Content</a></h3></div>
 	</section>	
 	 <!-- Main content -->
 	<section class="content">

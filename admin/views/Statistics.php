@@ -139,7 +139,7 @@ if(isset($OrderDonebyList) && is_array($OrderDonebyList) && count($OrderDonebyLi
 }
 
 // Top 5 Users
-$fields = "o.*,sum(`TotalPrice`) as OrderdPrice,count(o.id) as TotalCount,concat(u.FirstName , ' ',u.LastName) as UserName,u.Photo";
+$fields = "o.*,sum(`TotalPrice`) as OrderdPrice,count(o.id) as TotalCount,u.FirstName,u.LastName,u.Photo";
 $condition = " Group BY fkUsersId order by OrderdPrice desc limit 5 ";
 $topuserlist = $StatisticsObj->getTopUsersList($fields,$condition);
 // Top 5 Merchants
@@ -256,7 +256,7 @@ $topmerchantlist = $StatisticsObj->getTopMerchantsList($fields,$condition);
 											<?php }?>
 											<?php if(isset($merchantvalue->CompanyName) && $merchantvalue->CompanyName != ''){ ?>
 											<span title="Company Name">
-												<?php echo "<b>".$merchantvalue->CompanyName."</b>";  ?>
+												<?php echo "<b>".ucfirst($merchantvalue->CompanyName)."</b>";  ?>
 											</span><br>   
 											<?php }?>
 										
@@ -314,7 +314,7 @@ $topmerchantlist = $StatisticsObj->getTopMerchantsList($fields,$condition);
 												<img id="<?php echo $uservalue->id ;?>"  width="36" height="36" align="top" class="img_border" src="<?php echo $image_path;?>" >	
 										<?php } ?>
 										<span>					
-											<?php if(isset($uservalue->UserName) && $uservalue->UserName != ''){ echo ucfirst($uservalue->UserName); } ?>								
+											<?php echo ucfirst($uservalue->FirstName).' '.ucfirst($uservalue->LastName) ; ?>								
 										</span>	
 									</td>
 									<td><?php echo price_fomat($uservalue->OrderdPrice) ;?></td>

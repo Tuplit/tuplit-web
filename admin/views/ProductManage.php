@@ -252,7 +252,7 @@ else {
 						<div class="row">
 						    <div class="col-sm-8 col-md-6"> 
 								<input type="file"  name="product_photo" id="product_photo" title="User Photo" onclick="" onchange="return ajaxAdminFileUploadProcess('product_photo');"  /> 
-								<p class="help-block">(Minimum dimension 100x100)</p>
+								<p class="help-block"> The best resolution is 300X300 pixels.</p>
 								<span class="error" for="empty_product_photo" generated="true" style="display: none">User Image is required</span>
 							</div>
 						    <div class="col-sm-4 ">

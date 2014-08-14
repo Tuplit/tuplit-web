@@ -20,6 +20,8 @@ if(isset($_SESSION['ErrorMessages']) && $_SESSION['ErrorMessages'] !=''){
 $error 						= 	'';
 $show						=	0;
 if(isset($_POST['mangopay_submit']) && $_POST['mangopay_submit'] == 'SUBMIT'){
+	$address	=	$_POST['Address'];
+	$address1	=	str_replace('/n/r','',$address);
 	$data	=	array(					
 					'CompanyName' 		=> $_POST['CompanyName'],
 					'Email' 			=> $_POST['Email'],
@@ -32,7 +34,7 @@ if(isset($_POST['mangopay_submit']) && $_POST['mangopay_submit'] == 'SUBMIT'){
 				);
 	$url					=	WEB_SERVICE.'v1/merchants/connect';
 	$method					=	'POST';
-	$curlResponse			=	curlRequest($url,$method,$data, $_SESSION['merchantInfo']['AccessToken']);
+	$curlResponse			=	curlRequest($url,$method,$data,$_SESSION['merchantInfo']['AccessToken']);
 	if(isset($curlResponse) && is_array($curlResponse) && $curlResponse['meta']['code'] == 201 ) {
 		$responseMessage 	= 	$curlResponse['notifications'][0];
 		$msg_class 			= 	"alert alert-success alert-col-xs-4";
@@ -81,7 +83,8 @@ commonHead();
 					</div>
 					<div class="form-group  col-xs-12 no-padding">
 						<label>Address</label>
-						<textarea class="form-control" id="Address" name="Address" cols="5"><?php if(isset($merchantInfo['Address']) && !empty($merchantInfo['Address'])) echo $merchantInfo['Address'];?></textarea>
+						<!--<textarea class="form-control" id="Address" name="Address" cols="5"><?php //if(isset($merchantInfo['Address']) && !empty($merchantInfo['Address'])) echo $merchantInfo['Address'];?></textarea>-->
+						<input class="form-control" type="text" name="Address"  id="Address" value="<?php if(isset($merchantInfo['Address']) && !empty($merchantInfo['Address'])) echo $merchantInfo['Address'];?>" required="">
 					</div>
 					<div class="row">
 						<div class="form-group col-xs-6 ">
@@ -108,7 +111,8 @@ commonHead();
 						</div>
 					</div>
 				</div>
-				<div class="footer col-xs-12 no-padding text-center">                                                               
+				<div class="footer col-xs-12 no-padding text-center"> 
+					<input type="hidden" name="MerchantId" id="MerchantId" value="<?php if(isset($merchantInfo['id']) && !empty($merchantInfo['id'])) echo $merchantInfo['id'];?>"/>
 					<input type="submit" name="mangopay_submit" id="mangopay_submit" title="SUBMIT" value="SUBMIT" class="btn btn-success col-xs-12">
 				</div>
 			</form>

@@ -115,7 +115,7 @@ $app->post('/', function () use ($app) {
 	    /**
          * Create the account
          */
-	   $userId 				= 	$user->create();
+		$userId 			= 	$user->create();
 		/**
          * Saving user Photo
          */
@@ -264,12 +264,13 @@ $app->get('/checkResetPassword/:userId', function ($userId) use ($app) {
  * Merchants Favorites List
  *GET/v1/users/favorites
  */
-$app->get('/favorites/',tuplitApi::checkToken(),function () use ($app) {	
+$app->get('/favorites',tuplitApi::checkToken(),function () use ($app) {	
     try {
 		// Create a http request		
         $req 				= 	$app->request();			
 		$requestedById 		= 	tuplitApi::$resourceServer->getOwnerId();		
 		$start 				= 	0;
+
 		// Create a json response object
         $response 			= 	new tuplitApiResponse();
 			
@@ -278,16 +279,15 @@ $app->get('/favorites/',tuplitApi::checkToken(),function () use ($app) {
          */
         $favorite 			= 	R::dispense('favorites');
 		$favorite->UsersId	= 	$requestedById;		
-		if($req->params('Latitude'))
-			$favorite->Latitude		= 	$req->params('Latitude');
-		if($req->params('Longitude'))
-			$favorite->Longitude	= 	$req->params('Longitude');
+		if($req->params('Latitude'))	$favorite->Latitude		= 	$req->params('Latitude');
+		if($req->params('Longitude'))	$favorite->Longitude	= 	$req->params('Longitude');
+		if($req->params('Search'))		$favorite->Search		= 	$req->params('Search');
+		
 		if($req->params('Start'))
 			$favorite->Start		= 	$req->params('Start');
 		else
 			$favorite->Start		= 	$start;
-		if($req->params('Search'))
-			$favorite->Name			= 	$req->params('Search');
+		
 		/**	
 		*	Getting Favorites List
 		*/
@@ -698,7 +698,7 @@ $app->put('/',tuplitApi::checkToken(), function () use ($app) {
  * Check Friends
  * POST /v1/users/checkfriends
  */
-$app->Post('/checkfriends',tuplitApi::checkToken(), function () use ($app) {
+$app->post('/checkfriends',tuplitApi::checkToken(), function () use ($app) {
 
     try {
 		// Create a http request
@@ -708,7 +708,7 @@ $app->Post('/checkfriends',tuplitApi::checkToken(), function () use ($app) {
     	$input = json_decode($body); 
 		$requestedById = tuplitApi::$resourceServer->getOwnerId();
 		// Create a json response object
-       	$response = new tuplitApiResponse();
+        $response = new tuplitApiResponse();
 		/**
          * Get a friends table instance
          */
@@ -730,11 +730,18 @@ $app->Post('/checkfriends',tuplitApi::checkToken(), function () use ($app) {
          * Send mail to registered user
          */
 		 if($friendsDetails){
+
 			$response->setStatus(HttpStatusCode::Created);
         	$response->meta->dataPropertyName = 'user';
 			$response->returnedObject = $friendsDetails;
 			$response->addNotification('Invite friends details verified successfully');
 			echo $response;
+		}
+		else{
+			/*
+			* Check friends not available
+			*/
+            throw new ApiException("Users you requested already in friends/invited status", ErrorCodeType::NoResultFound);
 		}
     }
     catch (ApiException $e){
@@ -759,34 +766,33 @@ $app->Post('/checkfriends',tuplitApi::checkToken(), function () use ($app) {
  * user friends List
  * GET/v1/users/friends
  */
-$app->get('/friends/',tuplitApi::checkToken(),function () use ($app) {	
+$app->get('/friends',tuplitApi::checkToken(),function () use ($app) {	
     try {
 		// Create a http request		
-        $req = $app->request();	
+        $req 				= 	$app->request();	
 		
-		$requestedById = tuplitApi::$resourceServer->getOwnerId();		
-		$start = 0;
-		$limit	= 20;
+		$requestedById 		= 	tuplitApi::$resourceServer->getOwnerId();		
+		$start 				= 	0;
+
 		// Create a json response object
-        $response = new tuplitApiResponse();
+        $response 			= 	new tuplitApiResponse();
 			
 		/**
          * Get a friends table instance
          */
-        $friends = R::dispense('friends');
-		$friends->UserId		= $requestedById;		
-		if($req->params('Start'))
-			$friends->Start	= $req->params('Start');
-		else
-			$friends->Start	= $start;
-			
-		if($req->params('Limit'))
-			$friends->Limit	= $req->params('Limit');
-		else
-			$friends->Limit	= $limit;
-		$friendsList	= $friends->usersFriendsList();
+        $friends 				= 	R::dispense('friends');
+		$friends->UserId		= 	$requestedById;	
+		if($req->params('Search') != '')		
+			$friends->Search	= 	$req->params('Search');
 		
-		if($friendsList){
+		if($req->params('Start'))
+			$friends->Start		= 	$req->params('Start');
+		else
+			$friends->Start		= 	$start;
+			
+		$friendsList			= 	$friends->usersFriendsList();
+		
+		if($friendsList && $friendsList['listedCount'] != 0){
      		$response->setStatus(HttpStatusCode::Created);
       		$response->meta->dataPropertyName 	= 	'userFriendsList';
 			$response->meta->totalCount  		= 	$friendsList['totalCount'];
@@ -795,7 +801,7 @@ $app->get('/friends/',tuplitApi::checkToken(),function () use ($app) {
 			echo $response;
 		}
 		else{
-			// Error occured while reseting password
+			// No friends found for this user
 			throw new ApiException("No friends found for this user." ,  ErrorCodeType::UserFriendsListError);
 		}
     }
@@ -1073,7 +1079,7 @@ $app->get('/transactions',tuplitApi::checkToken(), function () use ($app) {
 		if($req->params('Start') !='')		$orders->Start 		=  	$req->params('Start');
 		if($req->params('Limit') !='')		$orders->Limit 		=  	$req->params('Limit');
 
-		$transactionList						=  $orders->getUserOrderDetails($userId,1);
+		$transactionList							=  $orders->getUserOrderDetails($userId,1);
 		if($transactionList){
 	        $response->setStatus(HttpStatusCode::Created);
 	        $response->meta->dataPropertyName 		= 'TransactionList';		
@@ -1328,6 +1334,53 @@ $app->post('/connect',tuplitApi::checkToken(),function () use ($app) {
 		}
 		
     
+    }
+    catch (ApiException $e){
+        // If occurs any error message then goes here
+        tuplitApi::showError(
+            $e,
+            $e->getHttpStatusCode(),
+            $e->getErrors()
+        );
+    }
+    catch (\Slim\Exception\Stop $e){
+        // If occurs any error message for slim framework then goes here
+    }
+    catch (Exception $e) {
+        // If occurs any error message then goes here
+        tuplitApi::showError($e);
+    }
+});
+/**
+ * PUT Location update
+ * PUT /v1/users
+ */
+$app->put('/currentLocation',tuplitApi::checkToken(), function () use ($app) {
+
+    try {
+	
+		 // Create a http request
+        $req 				= 	$app->request();
+		$userId 			= 	tuplitApi::$resourceServer->getOwnerId();
+		$body 				= 	$req->getBody();
+    	$input 				= 	json_decode($body); 
+		
+		//create a user table instance
+		
+        $users 				= 	R::dispense('users');
+		$users->UserId	 	= 	$userId;
+		if(isset($input->Latitude)) 
+		$users->Latitude 	= 	$input->Latitude;
+		if(isset($input->Longitude))
+		$users->Longitude 	= 	$input->Longitude;
+	    $locationUpdate		= 	$users->locationUpdate();		
+		 if($locationUpdate){
+			$response 			= 	new tuplitApiResponse();
+			$response->setStatus(HttpStatusCode::Created);
+			$response->meta->dataPropertyName = 'CurrentLocation';		
+			$response->addNotification('Location updated successfully');
+			echo $response;	
+		 }
     }
     catch (ApiException $e){
         // If occurs any error message then goes here

@@ -101,7 +101,7 @@ if(isset($_GET['editId']) && $_GET['editId']!=''){
 	$userListResult  = $userObj->updateUserDetails($update_string,$condition);
 	header("location:UserList?msg=4");
 }
-setPagingControlValues('id',ADMIN_PER_PAGE_LIMIT);
+setPagingControlValues('u.id',ADMIN_PER_PAGE_LIMIT);
 $fields    = " u.* ";
 $condition = " and u.Status in (1,2)";
 $userListResult  = $userObj->getUserList($fields,$condition);
@@ -146,10 +146,10 @@ else if(isset($_GET['msg']) && $_GET['msg'] == 5){
 	<?php top_header(); ?>
 	<!-- Content Header (Page header) -->
 	<section class="content-header no-padding">
-		<div class="col-xs-6">
-			<h1><i class="fa fa-list"></i>Customer List</h1>
+		<div class="col-xs-7">
+			<h1><i class="fa fa-list"></i> Customer List</h1>
 		</div>
-		<div class="col-xs-6"><h3><a href="UserManage" title="Add Customer"><i class="fa fa-plus-circle"></i> Add Customer</a></h3></div>
+		<div class="col-sm-5 col-xs-12"><h3><a href="UserManage" title="Add Customer"><i class="fa fa-plus-circle"></i> Add Customer</a></h3></div>
 	</section>
 	<!-- Main content -->
 	<section class="content">
@@ -197,7 +197,7 @@ else if(isset($_GET['msg']) && $_GET['msg'] == 5){
 					<div class="col-xs-12 ">
 						<h3 class="box-title no-padding" data-toggle="collapse" href="#advSearchBlock"   title="Advanced Search Options" style="cursor:pointer"><i class="fa fa-plus"></i> Advanced Search Options</h3>							
 					</div>
-					<div id="advSearchBlock" class="col-xs-12 no-padding panel-collapse collapse style="<?php if((isset($_SESSION['tuplit_sess_spent']) && !empty($_SESSION['tuplit_sess_spent']))|| (isset($_SESSION['tuplit_sess_spent7']) && !empty($_SESSION['tuplit_sess_spent7'])) || (isset($_SESSION['tuplit_sess_order'])) && !empty($_SESSION['tuplit_sess_order'])) echo "in"; else echo " "; ?>"">
+					<div id="advSearchBlock" class="col-xs-12 no-padding panel-collapse collapse" style="<?php if((isset($_SESSION['tuplit_sess_spent']) && !empty($_SESSION['tuplit_sess_spent']))|| (isset($_SESSION['tuplit_sess_spent7']) && !empty($_SESSION['tuplit_sess_spent7'])) || (isset($_SESSION['tuplit_sess_order'])) && !empty($_SESSION['tuplit_sess_order'])) echo "display:block"; else echo " "; ?>"">
 						<div class="col-sm-4  form-group">
 							<label>Total spent</label>
 							<input type="text" class="form-control" name="TotalSpent" id="TotalSpent" onkeypress="return isNumberKey(event);" value="<?php  if(isset($_SESSION['tuplit_sess_spent']) && $_SESSION['tuplit_sess_spent'] != '') echo unEscapeSpecialCharacters($_SESSION['tuplit_sess_spent']);  ?>" >
@@ -249,8 +249,8 @@ else if(isset($_GET['msg']) && $_GET['msg'] == 5){
                                <tr>
                                   	<th align="center" width="1%" class="text-center"><input onclick="checkAllDelete('UserListForm');" type="Checkbox" name="checkAll"/></th>
 									<th align="center" width="2%" class="text-center">#</th>												
-									<th width="25%">Customer Details<?php //echo SortColumn('UserName','Username'); ?></th>
-									<th width="10%">Social Media Ids</th>
+									<th width="20%">Customer Details<?php //echo SortColumn('UserName','Username'); ?></th>
+									<th width="15%">Social Media Ids</th>
 									<th width="12%">Location Details</th>
 									<th width="3%">Platform</th>
 									<th width="3%"><?php echo SortColumn('DateCreated','Registered Date'); ?></th>
@@ -303,7 +303,7 @@ else if(isset($_GET['msg']) && $_GET['msg'] == 5){
 											
 										<a href="<?php if(isset($value->id) && $value->id != '') echo SITE_PATH.'/admin/OrderList?user_id='.$value->id.'&cs=1'; else echo "#"; ?>"  class="view newWindow" data-toggle="tooltip" data-original-title="order list"><i class="fa fa-shopping-cart"></i></a>
 										<a href="<?php if(isset($value->id) && $value->id != '') echo SITE_PATH.'/admin/CommentList?user_id='.$value->id.'&cs=1'; else echo "#"; ?>"  class="view newWindow" data-toggle="tooltip" data-original-title="comment list"><i class="fa fa-comments"></i></a>
-										
+										<a href="UserBalance?walletId=<?php if(isset($value->WalletId) && $value->WalletId != '') echo $value->WalletId; ?>" title="Balance"  class="view newWindow"><i class="fa fa-money"></i></a>
 											
 										<a onclick="javascript:return confirm('Are you sure to delete?')" href="UserList?delId=<?php if(isset($value->id) && $value->id != '') echo $value->id;?>" title="Delete" class="delete"><i class="fa fa-trash-o "></i></a>
 									</div>
@@ -345,10 +345,10 @@ else if(isset($_GET['msg']) && $_GET['msg'] == 5){
 							<button type="submit" onclick="return deleteAll('Users');" class="btn btn-danger" name="Delete" id="Delete" value="Delete" title="Delete" alt="Delete"><i class="fa fa-trash-o"></i>&nbsp;Delete</button>
 						</div>
 						<div class="btn-inline">
-							<a href="javascript:void(0);" onclick="return pushNotificationCheck(this);"  class="btn btn-success pnclass"  name="sendPush" id="sendPush" value="sendPush" title="Send Push Notification" alt="Send Push Notification">Send Push Notification </a>
+							<a href="javascript:void(0);" onclick="return pushNotificationCheck(this);"  class="btn btn-success pnclass"  name="sendPush" id="sendPush" value="sendPush">Send Push Notification </a>
 						</div>
 						<div class="btn-inline">
-							<a href="SendPushNotification?cs=1" onclick=""  class="notification_popup btn btn-success"  name="sendPushAll" id="sendPushAll" value="sendPushAll" title="Send Push Notification To All" alt="Send Push Notification">Send Push Notification To All</a>
+							<a href="SendPushNotification?cs=1" onclick=""  class="notification_popup btn btn-success"  name="sendPushAll" id="sendPushAll" value="sendPushAll">Send Push Notification To All</a>
 						</div>
 						</div>
 						<?php } ?>

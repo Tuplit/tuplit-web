@@ -38,7 +38,7 @@ commonHead();
 		<section class="row content no-padding no-margin">
 		<div class="col-lg-10 box-center">	
 			<section class="content-header">
-                <h1 class="no-top-margin">Transaction List</h1>
+                <h1 class="no-top-margin">Transaction Analytics</h1>
             </section>
 			<div class="box box-success">
 				<div class="product_list">
@@ -69,7 +69,7 @@ commonHead();
 							<input type="hidden" id="cur_month_end_date" name="cur_month_end_date" value="<?php echo $end_date; ?>" />
 						</form>
 					</div>
-					<div class="main_graph"><div class="graph"></div></div>
+					<div class="main_graph  col-xs-12"><div class="graph"></div></div>
 				</div>
 		 	</div>
 			

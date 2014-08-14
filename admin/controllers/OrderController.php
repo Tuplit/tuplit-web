@@ -57,5 +57,40 @@ class OrderController extends Controller
 		if ($this->OrderModelObj)
 			return $this->OrderModelObj->getOverallOrderList($fields,$condition);
 	}
+	function getTransactionList($field,$condition)
+	{
+		if (!isset($this->OrderModelObj))
+			$this->loadModel('OrderModel', 'OrderModelObj');
+		if ($this->OrderModelObj)
+			return $this->OrderModelObj->getTransactionList($field,$condition);
+	}
+	function getProductTransactions($field,$condition,$sort_condition)
+	{
+		if (!isset($this->OrderModelObj))
+			$this->loadModel('OrderModel', 'OrderModelObj');
+		if ($this->OrderModelObj)
+			return $this->OrderModelObj->getProductTransactions($field,$condition,$sort_condition);
+	}
+	function getCategoryTransactions($field,$condition,$sort_condition)
+	{
+		if (!isset($this->OrderModelObj))
+			$this->loadModel('OrderModel', 'OrderModelObj');
+		if ($this->OrderModelObj)
+			return $this->OrderModelObj->getCategoryTransactions($field,$condition,$sort_condition);
+	}
+	function getPieChart($field,$condition)
+	{
+		if (!isset($this->OrderModelObj))
+			$this->loadModel('OrderModel', 'OrderModelObj');
+		if ($this->OrderModelObj)
+			return $this->OrderModelObj->getPieChart($field,$condition);
+	}
+	function getUserTransactions($fields,$conditions)
+	{
+		if (!isset($this->OrderModelObj))
+			$this->loadModel('OrderModel', 'OrderModelObj');
+		if ($this->OrderModelObj)
+			return $this->OrderModelObj->getUserTransactions($fields,$conditions);
+	}
 }
 ?>

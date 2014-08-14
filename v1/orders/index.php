@@ -15,7 +15,7 @@ require_once('../../config.php');
 /**
  * Load models
  */
-require_once '../../lib/ModelBaseInterface.php';            // base interface class for RedBean models
+require_once '../../lib/ModelBaseInterface.php';      // base interface class for RedBean models
 require_once '../../models/Orders.php';              // order  model
 
 require_once "../../admin/includes/CommonFunctions.php";
@@ -101,7 +101,7 @@ $app->post('/', tuplitApi::checkToken(),function () use ($app) {
 		//getting user details
 		$userDetails 				=   R::findOne('users', 'id=?', [$userId]);
 		$order->userDetails			= 	$userDetails;
-		
+		//echo "<pre>"; echo print_r($userDetails); echo "</pre>";
 		/**
          * Place the new order
          */
@@ -109,10 +109,11 @@ $app->post('/', tuplitApi::checkToken(),function () use ($app) {
 		
 		if($result['orderId']) { 
 					
-			$merchantDetails 							=   R::findOne('merchants', 'id=?', [$MerchantId]);			
+			$merchantDetails 							=   R::findOne('merchants', 'id=?', [$MerchantId]);	
+			//echo "<pre>"; echo print_r($merchantDetails); echo "</pre>";
 			$adminDetails 								=   R::findOne('admins', 'id=?', ['1']);
-			
-			if($merchantDetails && $userDetails && $adminDetails) {
+			//echo "<pre>"; echo print_r($adminDetails); echo "</pre>";
+			if($merchantDetails && $userDetails && $adminDetails) {				
 				$merchantName							=	$merchantDetails->CompanyName;
 				$merchantAddress						=	$merchantDetails->Address;
 				$merchantMailId							=	$merchantDetails->Email;
@@ -146,31 +147,34 @@ $app->post('/', tuplitApi::checkToken(),function () use ($app) {
 					$mailContentArray['address']		=	$merchantAddress;
 					
 					sendMail($mailContentArray,8); //Send mail from merchant to user
-				
-					$mailContentArray['content']		= 	"Here is the order details you have done to user ".$userName.".";
-					$mailContentArray['toemail']		= 	$mailContentArray['from'];
-					$mailContentArray['from']			=	$adminMailId;
-					$mailContentArray['toemail']		=	$merchantMailId;
-					$mailContentArray['name']			=	$merchantName;
-					$mailContentArray['name1']			=	$userName;
-					$mailContentArray['address']		=	$useraddress;
-					$mailContentArray['byname']			=	'Tuplit Team';
 					
-					sendMail($mailContentArray,8); //Send mail merchant to merchant
-					
+					if($merchantDetails->OrderMail == 1) {
+						$mailContentArray['content']		= 	"Here is the order details you have done to user ".$userName.".";
+						$mailContentArray['toemail']		= 	$mailContentArray['from'];
+						$mailContentArray['from']			=	$adminMailId;
+						$mailContentArray['toemail']		=	$merchantMailId;
+						$mailContentArray['name']			=	$merchantName;
+						$mailContentArray['name1']			=	$userName;
+						$mailContentArray['address']		=	$useraddress;
+						$mailContentArray['byname']			=	'Tuplit Team';
+						
+						sendMail($mailContentArray,8); //Send mail merchant to merchant
+					}					
 				} else if($type == 1) {
-					$mailContentArray['subject']		= 	"New order place by user";
-					$mailContentArray['content']		= 	"Here are the details of order done by ".$userName." for you.";
-					$mailContentArray['from']			=	$adminMailId;
-					$mailContentArray['toemail']		=	$merchantMailId;
-					$mailContentArray['name']			=	$merchantName;
-					$mailContentArray['name1']			=	$userName;
-					$mailContentArray['address']		=	$useraddress;
-					$mailContentArray['byname']			=	'Tuplit Team';
-					sendMail($mailContentArray,8); //Send mail user to merchant
-					
+					if($merchantDetails->OrderMail == 1) {
+						$mailContentArray['subject']		= 	"New order place by user";
+						$mailContentArray['content']		= 	"Here are the details of order done by ".$userName." for you.";
+						$mailContentArray['from']			=	$adminMailId;
+						$mailContentArray['toemail']		=	$merchantMailId;
+						$mailContentArray['name']			=	$merchantName;
+						$mailContentArray['name1']			=	$userName;
+						$mailContentArray['address']		=	$useraddress;
+						$mailContentArray['byname']			=	'Tuplit Team';
+						sendMail($mailContentArray,8); //Send mail user to merchant
+					}
 					$mailContentArray['content']		= 	"Here are the details of your latest order.";
-					$mailContentArray['toemail']		= 	$mailContentArray['from'];
+					//$mailContentArray['toemail']		= 	$mailContentArray['from'];
+					$mailContentArray['toemail']		= 	$userMailId;
 					$mailContentArray['from']			=	$adminMailId;
 					$mailContentArray['toemail']		=	$userMailId;
 					$mailContentArray['name']			=	$userName;
@@ -210,55 +214,6 @@ $app->post('/', tuplitApi::checkToken(),function () use ($app) {
         tuplitApi::showError($e);
     }
 });
-
-
-
-/**
- * get new order list
- * GET /v1/orders/{MERCHANT ID}/newordersCount
- 
-$app->get('/:merchantId/newordersCount', tuplitApi::checkToken(), function ($merchantId) use ($app) {
-
-    try {
-		  /**
-         * Retreiving new order count
-         
-		 $request 			= $app->request();
-		 $requestedById 	= tuplitApi::$resourceServer->getOwnerId();
-		 $orders 			= R::dispense('orders');		
-		 $newOrderDetails	= $orders->getNewOrderDetails($merchantId);    
-		 if($newOrderDetails){
-			$response 	   = new tuplitApiResponse();
-	        $response->setStatus(HttpStatusCode::Created);
-	        $response->meta->dataPropertyName = 'newOrderDetails';
-			$response->returnedObject = $newOrderDetails;
-			echo $response;
-		}
-		else{
-			 /**
-	         * throwing error when static data
-	         
-			  throw new ApiException("No results Found", ErrorCodeType::NoResultFound);
-		}
-		
-    }
-    catch (ApiException $e){
-        // If occurs any error message then goes here
-        tuplitApi::showError(
-            $e,
-            $e->getHttpStatusCode(),
-            $e->getErrors()
-        );
-    }
-    catch (\Slim\Exception\Stop $e){
-        // If occurs any error message for slim framework then goes here
-    }
-    catch (Exception $e) {
-        // If occurs any error message then goes here
-        tuplitApi::showError($e);
-    }
-
-});*/
 
 /**
  * get new order list
@@ -346,6 +301,8 @@ $app->get('/:OrderId', tuplitApi::checkToken(), function ($OrderId) use ($app) {
 		 $request 							= 	$app->request();
 		 $requestedById 					= 	tuplitApi::$resourceServer->getOwnerId();
 		 $orders	 						=	R::dispense('orders');
+		 if($request->params('Type'))
+		 	$orders->Type    				= 	$request->params('Type');
 		 $OrderDetails						= 	$orders->getOrderDetails($OrderId);    
 		 if($OrderDetails){
 			$response 	   					= 	new tuplitApiResponse();
@@ -491,14 +448,17 @@ $app->put('/', tuplitApi::checkToken(), function () use ($app) {
 		/**
          * update the orders details
          */
-		$orders->modify();
+		$details	=	$orders->modify();
+		
 		 /**
 		 * product update was made success
 		 */
 		$response = new tuplitApiResponse();
 		$response->setStatus(HttpStatusCode::Created);
-		$response->meta->dataPropertyName = 'OrderStatus';
+		$response->meta->dataPropertyName = 'OrderStatus';		
 		$response->addNotification($msg);
+		if($details)
+			$response->meta->paymentDetails	= 	$details;
 		echo $response;		 
     }
     catch (ApiException $e){
@@ -534,8 +494,8 @@ $app->post('/payment',tuplitApi::checkToken(), function () use ($app) {
 		$orders->Amount 			= 	$req->params('Amount');
 		$orders->Currency 			= 	$req->params('Currency');
 	    $paymentId	 				= 	$orders->doPayment();		
-		if( $paymentId->Id != ''){
-			$response 			= 	new tuplitApiResponse();
+		if( isset($paymentId->Id)  && $paymentId->Id != ''){
+			$response 				= 	new tuplitApiResponse();
 			$response->setStatus(HttpStatusCode::Created);
 			$response->meta->dataPropertyName = 'Payment';		
 			if ($paymentId->Status == 'SUCCEEDED')
@@ -565,6 +525,135 @@ $app->post('/payment',tuplitApi::checkToken(), function () use ($app) {
     }
 });
 
+/**
+ * Refunding the order amount 
+ * GET /v1/orders/refund/{ORDER ID}
+ */
+$app->get('/refund/:OrderId', tuplitApi::checkToken(), function ($OrderId) use ($app) {
+
+    try {
+		// Create a http request
+        $request					= 	$app->request();
+		
+		//validate refund user type
+		$userType 					= 	tuplitApi::$resourceServer->getOwnerType();
+		if($userType == 'user')	{	
+			 /**
+	         * throwing error when user tries to refund
+	         */
+			  throw new ApiException("You are not allowed to refund", ErrorCodeType::InvalidRefundUser);
+		}
+		
+		//get merchant id 
+		$requestedById 							= 	tuplitApi::$resourceServer->getOwnerId();
+		
+		
+		//order table dispense
+		$orders	 								=	R::dispense('orders');
+		$orders->OrderId						=	$OrderId;
+		$orders->MerchantId						=	$requestedById;
+		
+		$type	=	'';     //Type = 1 is for refunding order from manage
+		if($request->params('Type') !='') {
+			$orders->Type 	= 	$request->params('Type');
+			$type			=	$request->params('Type');
+		}
+		if($request->params('msg') !='')
+			$orders->msg 	= 	$request->params('msg');
+		if($request->params('ProductId') !='')
+			$orders->ProductId 	= 	$request->params('ProductId');
+		
+		$refundDetails							= 	$orders->getRefundDetails($type);    
+		if($refundDetails){
+			if(isset($refundDetails->ResultCode) && $refundDetails->ResultCode == '001401') {
+				 /**
+				 * throwing error when error in refund
+				 */
+				  throw new ApiException($refundDetails->ResultMessage, ErrorCodeType::AlreadyRefunded);
+			} else {
+			$response 	   						= 	new tuplitApiResponse();
+	        $response->setStatus(HttpStatusCode::Created);
+	        $response->meta->dataPropertyName 	= 	'OrderRefund';
+			$response->returnedObject 			= 	$refundDetails;
+			$response->addNotification($refundDetails->ResultMessage);
+			echo $response;
+			}
+		}
+		else{
+			 /**
+	         * throwing error when error in refund
+	         */
+			  throw new ApiException("No refund data's found", ErrorCodeType::NoResultFound);
+		}
+		
+    }
+    catch (ApiException $e){
+        // If occurs any error message then goes here
+        tuplitApi::showError(
+            $e,
+            $e->getHttpStatusCode(),
+            $e->getErrors()
+        );
+    }
+    catch (\Slim\Exception\Stop $e){
+        // If occurs any error message for slim framework then goes here
+    }
+    catch (Exception $e) {
+        // If occurs any error message then goes here
+        tuplitApi::showError($e);
+    }
+});
+
+/**
+ * Refunding the order amount 
+ * GET /v1/orders/refund/{ORDER ID}
+ */
+$app->get('/balance/', tuplitApi::checkToken(), function () use ($app) {
+
+    try {
+		// Create a http request
+        $request					= 	$app->request();
+			
+		if($request->params('WalletId') !='') {
+			$WalletId 	= 	$request->params('WalletId');
+		}
+	
+		//order table dispense
+		$orders	 								=	R::dispense('orders');
+		$orders->WalletId						=	$WalletId;
+		$balanceDetails							= 	$orders->getWalletBalance();    
+		if($balanceDetails){			
+			$response 	   						= 	new tuplitApiResponse();
+	        $response->setStatus(HttpStatusCode::Created);
+	        $response->meta->dataPropertyName 	= 	'balanceDetails';
+			$response->returnedObject 			= 	$balanceDetails;
+			$response->addNotification('success');
+			echo $response;			
+		}
+		else{
+			 /**
+	         * throwing error when error in refund
+	         */
+			  throw new ApiException("No refund data's found", ErrorCodeType::NoResultFound);
+		}
+		
+    }
+    catch (ApiException $e){
+        // If occurs any error message then goes here
+        tuplitApi::showError(
+            $e,
+            $e->getHttpStatusCode(),
+            $e->getErrors()
+        );
+    }
+    catch (\Slim\Exception\Stop $e){
+        // If occurs any error message for slim framework then goes here
+    }
+    catch (Exception $e) {
+        // If occurs any error message then goes here
+        tuplitApi::showError($e);
+    }
+});
 
 /**
  * Start the Slim Application

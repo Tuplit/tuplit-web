@@ -1,7 +1,4 @@
 <?php 
-error_reporting(E_ALL);
-require_once('includes/commonincludes.php');
-merchant_login_check();
 $dataArray = array();
 $error_div = 0;
 $cur_month = date('m');
@@ -28,7 +25,6 @@ if(isset($curlTransactionResponse) && is_array($curlTransactionResponse) && $cur
 } else {
 		$errorMessage	= 	"Bad Request";
 } 
-
 if($date_type=='month') {
 	if(isset($order_array) && is_array($order_array) && count($order_array)>0) {
 		$orderStringArray = getStringForDay($order_array);

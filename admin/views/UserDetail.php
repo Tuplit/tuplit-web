@@ -9,15 +9,13 @@ unset($_SESSION['orderby']);
 unset($_SESSION['ordertype']);
 if(isset($_GET['viewId']) && $_GET['viewId'] != '' ){
 	$condition       = " id = ".$_GET['viewId']." and Status in (1,2) LIMIT 1 ";	
-	//$field			= " user.UserName,user.Name,user.Email,user.FBId,user.TwitterId,user.Photo,user.CoverPhoto,user.Location,ct.ContactId,htp.fkHashTagId,ht.hashTagName,user.DateCreated,user.ActualPassword,user.EmailNotification ";
 	$field				=	' id,FirstName,LastName,Email,FBId,GooglePlusId,Photo,PinCode,Location,Country,ZipCode,DateCreated,PushNotification,Platform,SendCredit,
-							 RecieveCredit,BuySomething,CellNumber,MangoPayUniqueId,WalletId';
+							 RecieveCredit,BuySomething,CellNumber,MangoPayUniqueId,WalletId,DealsOffers,Sounds,Passcode,PaymentPreference,RememberMe';
 	$userDetailsResult  = $userObj->selectUserDetails($field,$condition);
 	if(isset($userDetailsResult) && is_array($userDetailsResult) && count($userDetailsResult) > 0){
 		$_GET['viewId']				= $userDetailsResult[0]->id;
 		$FirstName     				= $userDetailsResult[0]->FirstName;
 		$LastName     				= $userDetailsResult[0]->LastName;
-		//$UserName	  				= $userDetailsResult[0]->UserName;
 		$Email      				= $userDetailsResult[0]->Email;
 		$FbId       				= $userDetailsResult[0]->FBId;
 		$GooglePlusId  				= $userDetailsResult[0]->GooglePlusId;
@@ -26,7 +24,6 @@ if(isset($_GET['viewId']) && $_GET['viewId'] != '' ){
 		$PinCode  					= $userDetailsResult[0]->PinCode;
 		$ZipCode  					= $userDetailsResult[0]->ZipCode;
 		$dateCreated    			= $userDetailsResult[0]->DateCreated;
-		//$actualPassword 			= $userDetailsResult[0]->ActualPassword;
 		$PushNotification   		= $userDetailsResult[0]->PushNotification;
 		$SendCredit   				= $userDetailsResult[0]->SendCredit;
 		$RecieveCredit   			= $userDetailsResult[0]->RecieveCredit;
@@ -35,6 +32,11 @@ if(isset($_GET['viewId']) && $_GET['viewId'] != '' ){
 		$CellNumber					= $userDetailsResult[0]->CellNumber;
 		$MangoPayId					= $userDetailsResult[0]->MangoPayUniqueId;
 		$WalletId					= $userDetailsResult[0]->WalletId;
+		$DealsOffers   				= $userDetailsResult[0]->DealsOffers;
+		$Sounds   					= $userDetailsResult[0]->Sounds;
+		$Passcode   				= $userDetailsResult[0]->Passcode;
+		$PaymentPreference   		= $userDetailsResult[0]->PaymentPreference;
+		$RememberMe   				= $userDetailsResult[0]->RememberMe;
 		$image_path = ADMIN_IMAGE_PATH.'no_user.jpeg'; 
 		$original_image_path = '';
  		if(isset($userDetailsResult[0]->Photo) && $userDetailsResult[0]->Photo != ''){
@@ -56,11 +58,11 @@ if(isset($_GET['viewId']) && $_GET['viewId'] != '' ){
 }
 ?>
 <body class="skin-blue">
-	<?php top_header(); ?>
+	<?php if(!isset($_GET['show'])) top_header(); ?>
 	
 	<!-- Content Header (Page header) -->
 	<section class="content-header no-padding">
-		<div class="col-xs-12 col-sm-6"> 
+		<div <?php if(!isset($_GET['show'])) { ?> class="col-xs-12 col-sm-6" <?php } ?>> 
 			<h1><i class="fa fa-search"></i> View User</h1>
 		</div>
 	</section>
@@ -192,7 +194,7 @@ if(isset($_GET['viewId']) && $_GET['viewId'] != '' ){
 				</div>
 				
 				<div class="form-group col-xs-12 col-sm-6 row">
-					<label class="col-xs-7 col-sm-5"  class="notification">Recieve Credit</label>
+					<label class="col-xs-7 col-sm-5"  class="notification">Receive Credit</label>
 					<div  class="col-xs-4 col-sm-7">
 						<?php if(isset($RecieveCredit) && $RecieveCredit == '1') echo 'On'; else echo 'Off'; ?>
 					</div>
@@ -204,11 +206,52 @@ if(isset($_GET['viewId']) && $_GET['viewId'] != '' ){
 					</div>
 				
 				</div>	
+				<div class="form-group col-xs-12 col-sm-6 row">
+					<label class="col-xs-7 col-sm-5"  class="notification">Deals &amp; Offers</label>
+					<div  class="col-xs-4 col-sm-7">
+						<?php if(isset($DealsOffers) && $DealsOffers == '1') echo 'On'; else echo 'Off'; ?>
+					</div>
+				
+				</div>
+				<div class="form-group col-xs-12 col-sm-6 row">
+					<label class="col-xs-7 col-sm-5"  class="notification">Sounds</label>
+					<div  class="col-xs-4 col-sm-7">
+						<?php if(isset($Sounds) && $Sounds == '1') echo 'On'; else echo 'Off'; ?>
+					</div>
+				
+				</div>
+				<div class="form-group col-xs-12 col-sm-6 row">
+					<label class="col-xs-7 col-sm-5"  class="notification">Passcode</label>
+					<div  class="col-xs-4 col-sm-7">
+						<?php if(isset($Passcode) && $Passcode == '1') echo 'On'; else echo 'Off'; ?>
+					</div>
+				
+				</div>
+				<div class="form-group col-xs-12 col-sm-6 row">
+					<label class="col-xs-7 col-sm-5"  class="notification">Payment Preference</label>
+					<div  class="col-xs-4 col-sm-7">
+						<?php if(isset($PaymentPreference) && $PaymentPreference == '1') echo 'On'; else echo 'Off'; ?>
+					</div>
+				
+				</div>
+				<div class="form-group col-xs-12 col-sm-6 row">
+					<label class="col-xs-7 col-sm-5"  class="notification">Remember Me</label>
+					<div  class="col-xs-4 col-sm-7">
+						<?php if(isset($RememberMe) && $RememberMe == '1') echo 'On'; else echo 'Off'; ?>
+					</div>
+				
+				</div>
+			<?php	if(!isset($_GET['show'])){?>
 				<div class="box-footer col-xs-12" align="center">
-						<?php  $href_page = "UserList"; ?>	
+						<?php 
+						if(isset($_GET['bk']) && $_GET['bk'] == 1)
+							$href_page = "CustomerAnalytics";
+						else
+						 	$href_page = "UserList"; ?>	
 						<a href="UserManage?editId=<?php if(isset($_GET['viewId']) && $_GET['viewId'] != '') echo $_GET['viewId']; ?>" title="Edit" alt="Edit" class="btn btn-success">Edit</a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 						<a href="<?php if(isset($href_page) && $href_page != '' ) echo $href_page; else echo 'UserList';?>" class="btn btn-default" name="Back" id="Back" title="Back" alt="Back" >Back </a>
 				</div>
+				<?php } ?>
 			</div>		
 			</div>		
 		</div><!-- /.row -->

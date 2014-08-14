@@ -24,18 +24,14 @@ class LogModel extends Model
 			$where .= " AND date(l.start_time) >=  '".date('Y-m-d',strtotime($_SESSION['sess_logtrack_from_date']))."'";
 		else if(isset($_SESSION['sess_logtrack_to_date']) && $_SESSION['sess_logtrack_to_date'] != '')
 			$where .= " AND date(l.end_time) <=  '".date('Y-m-d',strtotime($_SESSION['sess_logtrack_to_date']))."'";
-		/*if(isset($_SESSION['sess_logtrack_process']) && $_SESSION['sess_logtrack_process'] != ''){
-			$where .= " AND l.status =  '".$_SESSION['sess_logtrack_process']."'  ";
-		}
-		 if(isset($_SESSION['sess_logtrack_searchUserName']) && $_SESSION['sess_logtrack_searchUserName'] != '')
-			$where .= " and ( u.FirstName LIKE '%".$_SESSION['sess_logtrack_searchUserName']."%' ||	u.LastName LIKE '%".$_SESSION['sess_logtrack_searchUserName']."%') ";
-			*/
+		
 		if(isset($_SESSION['sess_logtrack_searchIP']) && $_SESSION['sess_logtrack_searchIP'] != '')
 			$where .= " and l.ip_address LIKE '%".$_SESSION['sess_logtrack_searchIP']."%' ";
-
 		if(isset($_SESSION['sess_logtrack_urlString']) && $_SESSION['sess_logtrack_urlString'] != '')
 			$where .= " and l.url LIKE '%".$_SESSION['sess_logtrack_urlString']."%' ";
-		
+		if(isset($_SESSION['sess_logtrack_log_method']) && $_SESSION['sess_logtrack_log_method'] != ''){
+			$where .= " and l.method = '".$_SESSION['sess_logtrack_log_method']."' ";
+		}
 		$sql	=	"SELECT SQL_CALC_FOUND_ROWS l.id as logId,l.*
 					FROM {$this->logTable} as l 
 					WHERE 1 ".$where." ORDER BY ".$sorting_clause.$limit_clause;

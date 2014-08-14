@@ -46,7 +46,7 @@ commonHead();
 												<img height="75" width="75" src="<?php echo $OrderList['Photo']?>" alt=""/>
 										</div>					
 										<div class="col-xs-5 col-sm-2 col-md-2 col-lg-2 space_top">
-										<?php echo $OrderList['FirstName']."&nbsp;".$OrderList['LastName']; ?>	<br>
+										<?php echo ucfirst($OrderList['FirstName'])."&nbsp;".ucfirst($OrderList['LastName']); ?>	<br>
 										<span class="help-block no-margin"><?php echo $OrderList['UniqueId']; ?></span>
 										<span class="help-block no-margin"><?php echo $OrderList['Email']; ?></span>
 										<span class="help-block no-margin"><?php echo time_ago($OrderList['OrderDate']); ?></span>

@@ -3,83 +3,41 @@ require_once('includes/CommonIncludes.php');
 admin_login_check();
 global $admin_days_array;
 global $admin_time_array;
+global $BusinessTypeArray;
+global $HowyouHeared;
+global $country_currency_array;
 commonHead();
 require_once('controllers/MerchantController.php');
 $MerchantObj   	=   new MerchantController();
 require_once('controllers/ProductController.php');
 $ProductObj   	=   new ProductController();
+require_once('controllers/AdminController.php');
+$adminLoginObj   	=   new AdminController();
+require_once('controllers/LocationController.php');
+$locationObj   	=   new LocationController();
+require_once('controllers/CurrencyController.php');
+$currencyObj   	=   new CurrencyController();
 require_once("includes/phmagick.php");
 $date_now 		= date('Y-m-d H:i:s');
-$categories 	= $MerchantObj->getCategories();
+$cat_id_array = array();
+$image_path		=	$cimage_path = '';
 
-if(isset($_POST['submit']) && $_POST['submit'] != ''){
-	$_POST          =   unEscapeSpecialCharacters($_POST);
-   	$_POST          =   escapeSpecialCharacters($_POST);
-	
-	$iconName = $iconPath = $imageName = $imagePath = $icimg = $imimg = '';
-	$merchantListResult  = $MerchantObj->selectMerchantDetail($_POST['merchant_id']);
-	
-	//echo "<pre>"; echo print_r($_POST); echo "</pre>";//die();
-	
-	//from - name of from hour, to - name of to hour, set - validator name 
-	if(isset($merchantListResult) && is_array($merchantListResult) && count($merchantListResult) > 0){
-		if (isset($_POST['icon_photo_upload']) && !empty($_POST['icon_photo_upload'])) {
-			if(file_exists(MERCHANT_ICONS_IMAGE_PATH_REL.$merchantListResult[0]->Icon))
-				unlink(MERCHANT_ICONS_IMAGE_PATH_REL.$merchantListResult[0]->Icon);
-			$iconName 				= $_POST['merchant_id'] . '_' . strtotime($date_now) . '.png';
-		   	$tempIconPath 			= TEMP_USER_IMAGE_PATH_REL . $_POST['icon_photo_upload'];
-			$iconPath 				= UPLOAD_MERCHANT_ICONS_IMAGE_PATH_REL . $iconName;
-			$oldIconName			= $_POST['name_icon_photo'];
-			if ( !file_exists(UPLOAD_MERCHANT_ICONS_IMAGE_PATH_REL) ){
-		  		mkdir (UPLOAD_MERCHANT_ICONS_IMAGE_PATH_REL, 0777);
-			}
-			//copy($tempIconPath,$iconPath);
-			imagethumb_addbg($tempIconPath, $iconPath,'','',100,100);
-			/*$phMagick = new phMagick($tempIconPath);
-			$phMagick->setDestination($iconPath)->resize(100,100);*/
-			if (SERVER){
-				if($oldIconName!='') {
-					if(image_exists(6,$oldIconName)) {
-						deleteImages(6,$oldIconName);
-					}
-				}
-				uploadImageToS3($iconPath,6,$iconName);
-				unlink($iconPath);
-			}
-			unlink(TEMP_USER_IMAGE_PATH_REL.$_POST['icon_photo_upload']);
-		}
-		if (isset($_POST['merchant_photo_upload']) && !empty($_POST['merchant_photo_upload'])) {
-			if(file_exists(MERCHANT_IMAGE_PATH_REL.$merchantListResult[0]->Image))
-				unlink(MERCHANT_IMAGE_PATH_REL.$merchantListResult[0]->Image);
-			$imageName 				= $_POST['merchant_id'] . '_' . strtotime($date_now) . '.png';
-		   	$tempImagePath 			= TEMP_USER_IMAGE_PATH_REL . $_POST['merchant_photo_upload'];
-			$imagePath 				= UPLOAD_MERCHANT_IMAGE_PATH_REL . $imageName;
-			$oldImageName			= $_POST['name_merchant_photo'];
-			if ( !file_exists(UPLOAD_MERCHANT_IMAGE_PATH_REL) ){
-		  		mkdir (UPLOAD_MERCHANT_IMAGE_PATH_REL, 0777);
-			}
-			//copy($tempImagePath,$imagePath);
-			imagethumb_addbg($tempImagePath, $imagePath,'','',640,260);
-			/*$phMagick = new phMagick($tempImagePath);
-			$phMagick->setDestination($imagePath)->resize(640,240);*/
-			
-			if (SERVER){
-				if($oldImageName!='') {
-					if(image_exists(7,$oldImageName)) {
-						deleteImages(7,$oldImageName);
-					}
-				}
-				uploadImageToS3($imagePath,7,$imageName);
-				unlink($imagePath);
-			}
-		}
-		$MerchantObj->updateDetails($_POST,$iconName,$imageName);	
-		$MerchantObj->updateShoppingHours($_POST);
-	}
-	unset($_POST);
-	header("location:MerchantList?msg=2");
-	
-} 
+$categories 	= $MerchantObj->getCategories();
+$locCon			= ' Status	=	1 and fkCurrencyId != 0 order by Location asc';
+$tempLocations	 	= $locationObj->getLocationArray('*', $locCon);
+if($tempLocations) {
+	foreach($tempLocations as $val)
+		$locations[$val->id]	=	$val;
+	//echo "<pre>"; echo print_r($locations); echo "</pre>";
+}
+$curCon			= ' Status	=	1 order by Currency asc';
+$tempCurrencies	 	= $currencyObj->getCurrencyArray('*', $curCon);
+if($tempCurrencies) {
+	foreach($tempCurrencies as $val)
+		$currencies[$val->fkLocationId]	=	$val;
+	//echo "<pre>"; echo print_r($currencies); echo "</pre>";
+}
+
 if(isset($_GET['editId']) && $_GET['editId'] != '' ){
 	$merchantListResult  		= $MerchantObj->selectMerchantDetail($_GET['editId']);
 	$merchantOpeningHoursResult = $MerchantObj->selectOpeningHoursDetail($_GET['editId']);
@@ -95,13 +53,150 @@ if(isset($_GET['editId']) && $_GET['editId'] != '' ){
 	if(!empty($cat_id_values))
 		$cat_id_values = rtrim($cat_id_values,',');
 	if(isset($merchantListResult) && is_array($merchantListResult) && count($merchantListResult) > 0){
+		$FirstName 							= 	$merchantListResult[0]->FirstName;
+		$LastName 							= 	$merchantListResult[0]->LastName;
+		$Email 								= 	$merchantListResult[0]->Email;
+		$PhoneNumber 						= 	$merchantListResult[0]->PhoneNumber;
+		$BusinessName 						= 	$merchantListResult[0]->BusinessName;
+		$BusinessTypeval 					= 	$merchantListResult[0]->BusinessType;
+		$CompanyName 						= 	$merchantListResult[0]->CompanyName;
+		$CompanyNumber 						= 	$merchantListResult[0]->RegisterCompanyNumber;
+		$Address 							= 	$merchantListResult[0]->Address;
+		$Country 							= 	$merchantListResult[0]->Country;
+		$Postcode 							= 	$merchantListResult[0]->PostCode;
+		$Currency 							= 	$merchantListResult[0]->Currency;
+		$HowHeared 							= 	$merchantListResult[0]->HowHeared;
+		$WebsiteUrl							= 	$merchantListResult[0]->WebsiteUrl;
+		$Location							= 	$merchantListResult[0]->Location;
+		$ItemsSold							= 	$merchantListResult[0]->ItemsSold;
+		$Description						= 	$merchantListResult[0]->Description;
+		$ShortDescription					= 	$merchantListResult[0]->ShortDescription;
+		if(isset($merchantListResult[0]->Icon) && $merchantListResult[0]->Icon != ''){
+			$photo 				= 	$merchantListResult[0]->Icon;
+			$photo = $merchantListResult[0]->Icon;
+			if(SERVER){
+				if(image_exists(6,$photo))
+					$image_path = MERCHANT_ICONS_IMAGE_PATH.$photo;
+			}else{
+				if(file_exists(MERCHANT_ICONS_IMAGE_PATH_REL.$photo))
+					$image_path = MERCHANT_ICONS_IMAGE_PATH.$photo;
+			}
+		}
+		if(isset($merchantListResult[0]->Image) && $merchantListResult[0]->Image != ''){
+			$cmerchant_image 	= 	$merchantListResult[0]->Image;
+			if(SERVER){
+				if(image_exists(7,$cmerchant_image))
+					$cimage_path = MERCHANT_IMAGE_PATH.$cmerchant_image;
+			}else{
+				if(file_exists(MERCHANT_IMAGE_PATH_REL.$cmerchant_image))
+					$cimage_path = MERCHANT_IMAGE_PATH.$cmerchant_image;
+			}
+		}
+	}
+}
+if(isset($_POST['submit']) && $_POST['submit'] != ''){
+	$_POST          =   unEscapeSpecialCharacters($_POST);
+   	$_POST          =   escapeSpecialCharacters($_POST);
+	
+	if(isset($locations) && count($locations) > 0)
+		$_POST['Country'] =  $locations[$_POST['Country']]->Location;
+	if(isset($currencies) && count($currencies) > 0)
+		$_POST['Currency'] =  $currencies[$_POST['Currency']]->Code;
+	
+	$iconName = $iconPath = $imageName = $imagePath = $icimg = $imimg = '';
+	$_POST['ipaddress']     = 	ipAddress();
+	if($_POST['submit'] == 'Save'){	
+		//echo "<pre>"; echo print_r($_POST); echo "</pre>";die();
+		$merchantListResult  = $MerchantObj->selectMerchantDetail($_POST['merchant_id']);
+		//from - name of from hour, to - name of to hour, set - validator name 
+		if(isset($merchantListResult) && is_array($merchantListResult) && count($merchantListResult) > 0){
+			if (isset($_POST['icon_photo_upload']) && !empty($_POST['icon_photo_upload'])) {
+				if(file_exists(MERCHANT_ICONS_IMAGE_PATH_REL.$merchantListResult[0]->Icon))
+					unlink(MERCHANT_ICONS_IMAGE_PATH_REL.$merchantListResult[0]->Icon);
+				$iconName 				= $_POST['merchant_id'] . '_' . strtotime($date_now) . '.png';
+			   	$tempIconPath 			= TEMP_USER_IMAGE_PATH_REL . $_POST['icon_photo_upload'];
+				$iconPath 				= UPLOAD_MERCHANT_ICONS_IMAGE_PATH_REL . $iconName;
+				$oldIconName			= $_POST['name_icon_photo'];
+				if ( !file_exists(UPLOAD_MERCHANT_ICONS_IMAGE_PATH_REL) ){
+			  		mkdir (UPLOAD_MERCHANT_ICONS_IMAGE_PATH_REL, 0777);
+				}
+				//copy($tempIconPath,$iconPath);
+				imagethumb_addbg($tempIconPath, $iconPath,'','',100,100);
+				/*$phMagick = new phMagick($tempIconPath);
+				$phMagick->setDestination($iconPath)->resize(100,100);*/
+				if (SERVER){
+					if($oldIconName!='') {
+						if(image_exists(6,$oldIconName)) {
+							deleteImages(6,$oldIconName);
+						}
+					}
+					uploadImageToS3($iconPath,6,$iconName);
+					unlink($iconPath);
+				}
+				unlink(TEMP_USER_IMAGE_PATH_REL.$_POST['icon_photo_upload']);
+			}
+			if (isset($_POST['merchant_photo_upload']) && !empty($_POST['merchant_photo_upload'])) {
+				if(file_exists(MERCHANT_IMAGE_PATH_REL.$merchantListResult[0]->Image))
+					unlink(MERCHANT_IMAGE_PATH_REL.$merchantListResult[0]->Image);
+				$imageName 				= $_POST['merchant_id'] . '_' . strtotime($date_now) . '.png';
+			   	$tempImagePath 			= TEMP_USER_IMAGE_PATH_REL . $_POST['merchant_photo_upload'];
+				$imagePath 				= UPLOAD_MERCHANT_IMAGE_PATH_REL . $imageName;
+				$oldImageName			= $_POST['name_merchant_photo'];
+				if ( !file_exists(UPLOAD_MERCHANT_IMAGE_PATH_REL) ){
+			  		mkdir (UPLOAD_MERCHANT_IMAGE_PATH_REL, 0777);
+				}
+				//copy($tempImagePath,$imagePath);
+				imagethumb_addbg($tempImagePath, $imagePath,'','',640,260);
+				/*$phMagick = new phMagick($tempImagePath);
+				$phMagick->setDestination($imagePath)->resize(640,240);*/
+				
+				if (SERVER){
+					if($oldImageName!='') {
+						if(image_exists(7,$oldImageName)) {
+							deleteImages(7,$oldImageName);
+						}
+					}
+					uploadImageToS3($imagePath,7,$imageName);
+					unlink($imagePath);
+				}
+			}
+			$MerchantObj->updateDetails($_POST,$iconName,$imageName);	
+			$MerchantObj->updateShoppingHours($_POST);
+		}
+		unset($_POST);
+		header("location:MerchantList?msg=2");
+	}
+	else if($_POST['submit'] == 'Add'){	
+		if(isset($locations) && count($locations) > 0)
+			$_POST['Country'] =  $locations[$_POST['Country']]->Location;
+		if(isset($currencies) && count($currencies) > 0)
+			$_POST['Currency'] =  $currencies[$_POST['Currency']]->Code;
+		$merchantId	=	$MerchantObj->insertDetails($_POST);	
+		$fields = '*';
+		$condition = ' 1';
+		$login_result 					= $adminLoginObj->getAdminDetails($fields,$condition);
+		$mailContentArray['name'] 		= ucfirst($_POST['FirstName'].' '. $_POST['LastName']);
+		$mailContentArray['toemail'] 	= $_POST['Email'];
+		$mailContentArray['email'] 		= $_POST['Email'];
+		$mailContentArray['password'] 	= $_POST['Password'];
+		$mailContentArray['subject'] 	= 'Registration';
+		$mailContentArray['from'] 		= $login_result[0]->EmailAddress;
+		$mailContentArray['fileName']	= 'merchantregistration.html';
+		sendMail($mailContentArray,'5');
+		unset($_POST);
+		header("location:MerchantList?msg=1");
+	}
+	
+	
+} 
+
 ?>
 <body class="skin-blue" onload="return fieldfocus('FirstName');">
 	<?php top_header(); ?>
 	<section class="content-header no-padding">
 	<!-- Content Header (Page header) -->
 		<div class="col-xs-12"> 
-			<h1><i class="fa fa-edit"></i> Edit Merchant</h1>
+			<h1><i class="fa <?php if(isset($_GET['editId']) && $_GET['editId'] != '' ) echo "fa-edit "; else echo 'fa-plus-circle ';?>"></i> <?php if(isset($_GET['editId']) && $_GET['editId'] != '' ) echo "Edit "; else echo 'Add ';?>Merchant</h1>
 		</div>
 	</section>
 	
@@ -109,55 +204,136 @@ if(isset($_GET['editId']) && $_GET['editId'] != '' ){
 	<section class="content">
 		<div class="row">
 			<div class="col-md-12"> 
-			<form name="merchant_edit_form" id="merchant_edit_form" action="" method="post" onsubmit="">
+			<form name="<?php if(isset($_GET['editId']) && $_GET['editId'] != '' ) echo 'merchant_edit_form'; else echo 'merchant_add_form';?>" id="<?php if(isset($_GET['editId']) && $_GET['editId'] != '' ) echo 'merchant_edit_form'; else echo 'merchant_add_form';?>" action="" method="post" onsubmit="">
 			<div class="box box-primary"> 
 				<!-- left column -->
 					<input type="Hidden" name="merchant_id" id="merchant_id" value="<?php if(isset($_GET['editId']) && $_GET['editId'] != '' ) echo $_GET['editId'];?>">
 					<div class="form-group col-sm-6">
 						<label>First Name</label>
-						<input type="text" class="form-control" id="FirstName" name="FirstName" maxlength="100" value="<?php echo $merchantListResult[0]->FirstName;?>" >
+						<input type="text" class="form-control" id="FirstName" name="FirstName" maxlength="100" value="<?php if(isset($FirstName) && $FirstName != '') echo ucfirst($FirstName);  ?>" >
 					</div>
 					<div class="form-group col-sm-6 ">
 						<label>Last Name</label>
-						<input type="text" class="form-control" id="LastName" name="LastName" maxlength="20" value="<?php echo $merchantListResult[0]->LastName;?>" >
+						<input type="text" class="form-control" id="LastName" name="LastName" maxlength="20" value="<?php if(isset($LastName) && $LastName != '') echo ucfirst($LastName);  ?>" >
 					</div>					
 					<div class="form-group col-sm-6 clear">
 						<label>Email</label>
-						<input type="text" class="form-control" name="Email" id="Email" maxlength="100" value="<?php echo $merchantListResult[0]->Email;?>" >
+						<input type="text" class="form-control" name="Email" id="Email" maxlength="100" value="<?php if(isset($Email) && $Email != '') echo $Email;  ?>" >
 					</div>
-					<div class="form-group col-sm-6 ">
+					<div class="form-group col-sm-6">
+						<label>Mobile Number</label>
+						<div class="col-md-6 no-padding"> <input type="text" class="form-control" id="PhoneNumber" name="PhoneNumber" maxlength="15" onkeypress="return isNumberKey_Phone(event);" value="<?php if(isset($PhoneNumber) && $PhoneNumber != '') echo $PhoneNumber;  ?>" ></div>
+					</div>
+					<?php if(!isset($_GET['editId'])) { ?>
+						<div class="form-group col-sm-6 clear">
+							<label>Password</label>
+							<div class="col-md-6 no-padding"> <input type="Password" class="form-control" id="Password" name="Password"  value="<?php if(isset($Password) && $Password != '') echo $Password;  ?>" ></div>
+						</div>
+						<div class="form-group col-sm-6">
+							<label>Confirm Password</label>
+							<div class="col-md-6 no-padding"> <input type="Password" class="form-control" id="C_Password" name="C_Password"  value="<?php if(isset($C_Password) && $C_Password != '') echo $C_Password;  ?>" ></div>
+						</div>
+					<?php } ?>
+					<div class="form-group col-sm-6 clear">
+						<label>Business Name</label>
+						<div class="col-md-6 no-padding"> <input type="text" class="form-control" id="BusinessName" name="BusinessName" maxlength="50" value="<?php if(isset($BusinessName) && $BusinessName != '') echo $BusinessName;  ?>" ></div>
+					</div>
+					<div class="form-group col-sm-6">
+						<div class="col-xs-6 col-sm-6 col-md-5 no-padding">
+							<label>Business Type</label>
+							<div class="form-group col-md-12 col-lg-12 no-padding ">
+							<select class="form-control" id="BusinessType" name="BusinessType">
+								<option value="">Select</option>
+									<?php foreach($BusinessTypeArray as $busi_key=>$busi_type){ ?>
+								<option value="<?php echo $busi_key; ?>" <?php if(isset($BusinessTypeval) && $BusinessTypeval == $busi_key) echo "selected"; ?>><?php echo $busi_type; ?></option>
+							<?php } ?>
+						</select>
+							</select>
+							</div>
+						</div>
+					</div>
+					<div class="form-group col-sm-6 clear">
 						<label>Company Name</label>
-						<input type="text" class="form-control" id="CompanyName" name="CompanyName" maxlength="30" value="<?php echo $merchantListResult[0]->CompanyName;?>" >
-					</div>						
+						<div class="col-md-6 no-padding"> <input type="text" class="form-control" id="CompanyName" name="CompanyName" maxlength="30" value="<?php if(isset($CompanyName) && $CompanyName != '') echo $CompanyName;  ?>" ></div>
+					</div>
+					<div class="form-group col-sm-6">
+						<label>Company Number</label>
+						<div class="col-md-6 no-padding"> <input type="text" class="form-control" id="CompanyNumber" name="CompanyNumber" maxlength="15" onkeypress="return isNumberKey_Phone(event);" value="<?php if(isset($CompanyNumber) && $CompanyNumber != '') echo $CompanyNumber;  ?>" ></div>
+					</div>
 					<div class="form-group col-sm-6 clear">
-						<label>Phone Number</label>
-						<div class="col-md-6 no-padding"> <input type="text" class="form-control" id="PhoneNumber" name="PhoneNumber" maxlength="15" onkeypress="return isNumberKey_Phone(event);" value="<?php echo $merchantListResult[0]->PhoneNumber;?>" ></div>
+						<div class="col-xs-6 col-sm-6 col-md-5 no-padding">
+							<label>Country</label>
+						<!-- <input type="text" class="form-control" id="Country" name="Country" maxlength="50" value="<?php if(isset($Country) && $Country != '') echo $Country;  ?>" > -->					<div class="form-group col-md-12 col-lg-12 no-padding ">
+								<select class="form-control" id="Country" name="Country">
+									<option value="">Select</option>
+										<?php if(isset($locations) && count($locations) > 0) { foreach($locations as $val){	if(isset($_GET['editId']) && $_GET['editId'] != '' ) { ?>
+											<option value="<?php echo $val->id; ?>" <?php if(isset($Country) && $Country == $val->Location) echo "selected"; ?>><?php echo ucfirst($val->Location)." (".$val->Code.")"; ?></option>
+										<?php } else {?>
+											<option value="<?php echo $val->id; ?>" <?php if(isset($Country) && $Country == $val->id) echo "selected"; ?>><?php echo ucfirst($val->Location)." (".$val->Code.")"; ?></option>
+										<?php } }  }?>
+								</select>
+							</div>
+						</div>
+					</div>
+					<div class="form-group col-sm-6">
+						<label>Currency</label>
+						<div class="col-md-6 no-padding"> 
+							<select class="form-control" name="Currency1" id="Currency1" disabled/>
+								<option value="">Choose Currency</option>
+								<?php if(isset($currencies) && !empty($currencies) && count($currencies)>0) { foreach($currencies as $code){ if(isset($_GET['editId']) && $_GET['editId'] != '' ) {  ?>
+									<option  value="<?php echo $code->fkLocationId; ?>" <?php if(isset($Currency) && $Currency == $code->Code) echo "selected"; ?>><?php echo $code->Code; ?></option>
+								<?php } else {?>
+									<option  value="<?php echo $code->fkLocationId; ?>" <?php if(isset($Currency) && $Currency == $code->fkLocationId) echo "selected"; ?>><?php echo $code->Code; ?></option>
+								<?php } } }?>
+							</select>
+						<input type="hidden" class="form-control" id="Currency" name="Currency" readonly="readonly" value="<?php if(isset($Currency) && $Currency != '') echo $Currency;  ?>" ></div>
+					</div>
+					<div class="form-group col-sm-6 clear">
+						<label>Postcode</label>
+						<div class="col-md-6 no-padding"> <input type="text" class="form-control" id="Postcode" name="Postcode" maxlength="8" onkeypress="return isNumberKey_Phone(event);" value="<?php if(isset($Postcode) && $Postcode != '') echo $Postcode;  ?>" ></div>
 					</div>
 					<div class="form-group col-sm-6 ">
-						<label>Website Url</label>
-						<input type="text" class="form-control" id="WebsiteUrl" name="WebsiteUrl" maxlength="100" value="<?php echo $merchantListResult[0]->WebsiteUrl;?>" >
+						<label>Address</label>
+						<textarea class="form-control" id="Address" name="Address" cols="5"><?php if(isset($Address) && $Address != '') echo $Address;  ?></textarea>
 					</div>
+					
+					<?php if(!isset($_GET['editId'])) { ?>		
 					<div class="form-group col-sm-6 clear">
+						<label>How did you hear about us?</label>
+						<div class="form-group col-md-12 col-lg-12 no-padding ">
+							<select class="form-control" name="ReferedBy" id="ReferedBy" required />
+								<option value="">Select an option</option>
+								<?php foreach($HowyouHeared as $refer_key=>$referer){ ?>
+									<option value="<?php echo $refer_key; ?>" <?php if(isset($HowHeared) && $HowHeared == $refer_key) echo "selected"; ?>><?php echo $referer; ?></option>
+								<?php } ?>
+							</select>
+						</div>
+					</div>
+					<?php } ?>
+					<?php if(isset($_GET['editId'])) { ?>
+					<div class="form-group col-sm-6 clear">
+						<label>Website Url</label>
+						<div class="col-md-6 no-padding"><input type="text" class="form-control" id="WebsiteUrl" name="WebsiteUrl" maxlength="100" value="<?php if(isset($WebsiteUrl) && $WebsiteUrl != '') echo $WebsiteUrl;  ?>" ></div>
+					</div>
+					<div class="form-group col-sm-6 ">
 						<label>Location</label>
-						<div class="col-md-6 no-padding"><input type="text" class="form-control" id="Location" name="Location" maxlength="30" value="<?php echo $merchantListResult[0]->Location;?>" ></div>
+						<div class="col-md-6 no-padding"><input type="text" class="form-control" id="Location" name="Location" maxlength="30" value="<?php if(isset($Location) && $Location != '') echo $Location;  ?>" ></div>
 					</div>
 					<div class="form-group col-sm-6">
 						<label>Items Sold</label>
-						<div class="col-md-6 no-padding"><input type="text" class="form-control" id="ItemsSold" name="ItemsSold" maxlength="5" onkeypress="return isNumberKey_numbers(event);" value="<?php echo $merchantListResult[0]->ItemsSold;?>" ></div>
+						<div class="col-md-6 no-padding"><input type="text" class="form-control" id="ItemsSold" name="ItemsSold" maxlength="5" onkeypress="return isNumberKey_numbers(event);" value="<?php if(isset($ItemsSold) && $ItemsSold != '') echo $ItemsSold;  ?>" ></div>
 					</div>
 					<div class="form-group col-sm-6 clear">
-						<label>Address</label>
-						<textarea class="form-control" id="Address" name="Address" cols="5"><?php echo $merchantListResult[0]->Address;?></textarea>
+						<label>Short Description</label>
+						<textarea class="form-control" id="ShortDescription" name="ShortDescription" maxlength="250" cols="5"><?php if(isset($ShortDescription) && $ShortDescription != '') echo $ShortDescription;  ?></textarea>	
 					</div>
 					<div class="form-group col-sm-6">
-						<label>Short Description</label>
-						<textarea class="form-control" id="ShortDescription" name="ShortDescription" maxlength="250" cols="5"><?php echo $merchantListResult[0]->ShortDescription;?></textarea>	
-					</div>	
-					<div class="form-group col-sm-6 clear">
 						<label>Description</label>
-						<textarea class="form-control" id="Description" name="Description" cols="5"><?php echo $merchantListResult[0]->Description;?></textarea>
-					</div>						
-					<div class="form-group col-sm-6 ">
+						<textarea class="form-control" id="Description" name="Description" cols="5"><?php if(isset($Description) && $Description != '') echo $Description;  ?></textarea>
+					</div>		
+					<?php } ?>		
+					<?php if(isset($_GET['editId'])) { ?>		
+					 <div class="form-group col-sm-6 clear">
 						<label>Icon</label>
 							<div class="col-sm-8 no-padding"> 
 								<input type="file"  name="icon_photo" id="icon_photo" onchange="return ajaxAdminFileUploadProcess('icon_photo');"  /> 
@@ -166,28 +342,18 @@ if(isset($_GET['editId']) && $_GET['editId'] != '' ){
 							</div>
 							<div class="col-sm-3 no-padding" >
 						      <div id="icon_photo_img">
-								 <?php 
-								 	$image_path = '';
-								 	if(!empty($merchantListResult[0]->Icon)) { 
-										$photo = $merchantListResult[0]->Icon;
-										if(SERVER){
-											if(image_exists(6,$photo))
-												$image_path = MERCHANT_ICONS_IMAGE_PATH.$photo;
-										}else{
-											if(file_exists(MERCHANT_ICONS_IMAGE_PATH_REL.$photo))
-												$image_path = MERCHANT_ICONS_IMAGE_PATH.$photo;
-										}
-									?>
-								  <a href="<?php echo $image_path; ?>" class="fancybox" title="<?php echo ucfirst($merchantListResult[0]->CompanyName); ?>"><img class="img_border" src="<?php echo $image_path;?>" width="75" height="75" alt="Image"/></a>
-							 	<?php } ?>
+							 	 <?php if(isset($image_path) && $cimage_path != ''){?>
+								  <a href="<?php echo $image_path; ?>" class="fancybox" title="<?php echo ucfirst($CompanyName); ?>"><img class="img_border" src="<?php echo $image_path;?>" width="75" height="75" alt="Image"/></a>
+								<?php } ?>
 							  </div>								
-						  </div>	
-						  <input type="Hidden" name="old_icon_photo" id="old_icon_photo" value="<?php echo $merchantListResult[0]->Icon;?>" />			
-						  <?php  if(isset($_POST['icon_photo_upload']) && $_POST['icon_photo_upload'] != ''){  ?><input type="Hidden" name="icon_photo_upload" id="icon_photo_upload" value="<?php  echo $_POST['icon_photo_upload'];  ?>"><?php  }  ?>
-										<input type="Hidden" name="empty_icon_photo" id="empty_icon_photo" value="<?php  if(isset($image_path) && $image_path != '') { echo $image_path; }  ?>" />
-										<input type="Hidden" name="name_icon_photo" id="name_icon_photo" value="<?php  if(isset($image_path) && $image_path != '') { echo $image_path; }  ?>" />						
+						   </div>	
+						  <?php  if(isset($_POST['icon_photo_upload']) && $_POST['icon_photo_upload'] != ''){  ?>
+						  	<input type="Hidden" name="icon_photo_upload" id="icon_photo_upload" value="<?php  echo $_POST['icon_photo_upload'];  ?>">
+						  <?php  }  ?>
+							<input type="Hidden" name="empty_icon_photo" id="empty_icon_photo" value="<?php  if(isset($image_path) && $image_path != '') { echo $image_path; }  ?>" />
+							<input type="Hidden" name="name_icon_photo" id="name_icon_photo" value="<?php  if(isset($image_path) && $image_path != '') { echo $image_path; }  ?>" />						
 					</div>
-					<div class="form-group col-sm-6 clear">
+					<div class="form-group col-sm-6 ">
 						<label>Image</label>
 						<div class="col-sm-7 no-padding"> 
 							<input type="file"  name="merchant_photo" id="merchant_photo" onclick="" onchange="return ajaxAdminFileUploadProcess('merchant_photo');"  /> 
@@ -196,28 +362,18 @@ if(isset($_GET['editId']) && $_GET['editId'] != '' ){
 						</div>	
 						<div class="col-sm-5 no-padding"> 
 					      <div id="merchant_photo_img">
-						  	<?php 
-								$cimage_path ='';
-								if(!empty($merchantListResult[0]->Image)) { 
-									$cmerchant_image = $merchantListResult[0]->Image;
-									if(SERVER){
-										if(image_exists(7,$cmerchant_image))
-											$cimage_path = MERCHANT_IMAGE_PATH.$cmerchant_image;
-									}else{
-										if(file_exists(MERCHANT_IMAGE_PATH_REL.$cmerchant_image))
-											$cimage_path = MERCHANT_IMAGE_PATH.$cmerchant_image;
-									}
-								?>
-							  	<a href="<?php echo $cimage_path; ?>" class="fancybox" title="<?php echo ucfirst($merchantListResult[0]->CompanyName); ?>">	<img class="img_border" src="<?php echo $cimage_path;?>" width="200" height="100" alt="Image"/></a>
-						 	<?php } ?>
+						  		<?php if(isset($cimage_path) && $cimage_path != ''){?>
+							  	<a href="<?php echo $cimage_path; ?>" class="fancybox" title="<?php echo ucfirst($CompanyName); ?>"><img class="img_border" src="<?php echo $cimage_path;?>" width="200" height="100" alt="Image"/></a>
+								<?php } ?>
 						  </div>
 					  	</div>	
-						<input type="Hidden" name="old_merchant_photo" id="old_merchant_photo" value="<?php echo $merchantListResult[0]->Image;?>" />	
 						<?php  if(isset($_POST['merchant_photo_upload']) && $_POST['merchant_photo_upload'] != ''){  ?>
-							<input type="Hidden" name="merchant_photo_upload" id="icon_photo_upload" value="<?php  echo $_POST['merchant_photo_upload'];  ?>"><?php  }  ?>
+							<input type="Hidden" name="merchant_photo_upload" id="icon_photo_upload" value="<?php  echo $_POST['merchant_photo_upload'];  ?>">
+						<?php  }  ?>
 							<input type="Hidden" name="empty_merchant_photo" id="empty_merchant_photo" value="<?php  if(isset($cimage_path) && $cimage_path != '') { echo $cimage_path; }  ?>" />
 							<input type="Hidden" name="name_merchant_photo" id="name_merchant_photo" value="<?php  if(isset($cimage_path) && $cimage_path != '') { echo $cimage_path; }  ?>" />						
-					</div>	
+					</div>
+					
 					<div class="form-group col-sm-6 ">
 						<label>Category</label>
 						<div class="col-sm-6 col-lg-6 no-padding form-group">
@@ -227,6 +383,7 @@ if(isset($_GET['editId']) && $_GET['editId'] != '' ){
 								foreach($categories as $val) {
 									//if(!in_array($val->Id,$cat_id_array)) {
 							?>
+							
 							<option value="<?php echo $val->Id; ?>" style="background-image:url(<?php echo CATEGORY_IMAGE_PATH.$val->CategoryIcon; ?>);"><?php echo ucfirst($val->CategoryName);?></option>
 							<?php } } //} ?>
 						</select>
@@ -235,6 +392,7 @@ if(isset($_GET['editId']) && $_GET['editId'] != '' ){
 							<?php if(isset($categories) && !empty($categories)) {
 								foreach($categories as $val) {									
 							?>
+							
 								<span id="cat_id_<?php echo $val->Id; ?>" style="<?php if(in_array($val->Id,$cat_id_array)) echo "display:block;"; else echo "display:none;";?>"  class="cat_box">
 									<img width="30" height="30" src="<?php echo CATEGORY_IMAGE_PATH.$val->CategoryIcon; ?>"/>
 									<span class="cname"><?php echo ucfirst($val->CategoryName);?></i></span>
@@ -251,10 +409,11 @@ if(isset($_GET['editId']) && $_GET['editId'] != '' ){
 							<label>Price Scheme</label>
 							<div class="form-group col-md-12 col-lg-12 no-padding ">
 							<select class="form-control" id="DiscountTier" name="DiscountTier" onclick="selectPrice(this.value);">
-								<option value="" >Select
+								<option value="" >Select</option>
 								<?php if(isset($discountTierArray) && is_array($discountTierArray) && count($discountTierArray) > 0) {
 										foreach($discountTierArray as $key=>$value){
 								 ?>
+								 
 								<option value="<?php echo $key; ?>" <?php if(isset($merchantListResult[0]->DiscountTier) &&  $merchantListResult[0]->DiscountTier == $key ) echo 'selected';?>><?php echo $value.'%'; ?>
 								<?php } } ?>
 							</select>
@@ -270,6 +429,7 @@ if(isset($_GET['editId']) && $_GET['editId'] != '' ){
 								else
 									$ProductIds = array();
 						?>
+						
 							<div class="form-group col-sm-8 col-lg-1 text-center LH30">OR</div>
 							<div class="form-group col-sm-6  no-padding">
 								<label class="col-md-12 no-padding">Select the product list or menu to be discounted (30% and the whole menu)</label>
@@ -381,11 +541,16 @@ if(isset($_GET['editId']) && $_GET['editId'] != '' ){
 							</div>
 							<?php } } ?>
 					</div>	
+					<?php } ?>
 					
 					</div>
 					
 					<div class="box-footer col-sm-12 col-xs-12 " align="center">
-						<input type="submit" class="btn btn-success" name="submit" id="submit" value="Save" title="Save" alt="Save">&nbsp;&nbsp;&nbsp;&nbsp;
+						<?php if(isset($_GET['editId']) && $_GET['editId'] != ''){ ?>
+							<input type="submit" class="btn btn-success" name="submit" id="submit" value="Save" title="Save" alt="Save">&nbsp;&nbsp;&nbsp;&nbsp;
+						<?php } else { ?>
+							<input type="submit" class="btn btn-success" name="submit" id="submit" value="Add" title="Add" alt="Add">&nbsp;&nbsp;&nbsp;&nbsp;
+						<?php } ?>
 						<?php $href_page = "MerchantList"; 	?>		
 							<a href="<?php if(isset($href_page) && $href_page != '' ) echo $href_page; else echo 'MerchantList';?>" class="btn btn-default" name="Back" id="Back" title="Back" alt="Back" >Back </a>	
 						
@@ -396,8 +561,9 @@ if(isset($_GET['editId']) && $_GET['editId'] != '' ){
 		</div><!-- /.row -->
 	</section><!-- /.content -->	
 						  	
-<?php }
-}commonFooter(); ?>
+<?php //}
+//}
+commonFooter(); ?>
 </html>
 <script type="text/javascript">
 $(".fancybox").fancybox();
@@ -411,4 +577,10 @@ $(document).ready(function() {
 	else
 		price_val($("#max_price").val());
 });
+
+$( "#Country" ).change(function() {
+			value	=	$('#Country').val();
+			$("#Currency1").val(value);
+			$("#Currency").val(value);
+		});
 </script>

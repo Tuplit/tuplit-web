@@ -105,6 +105,9 @@ $app->get('/',tuplitApi::checkToken(), function () use ($app) {
 		if(isset($_GET['Search']) && !empty($_GET['Search'])) 
 			$Search	=  $_GET['Search'];	
 		
+		if(isset($_GET['Type']) && !empty($_GET['Type'])) 
+			$product->Type	=  $_GET['Type'];	
+		
 	 	$productList 	=  $product->getProductList($merchantId,$Search);
 		if($productList){
 			$response 	= new tuplitApiResponse();
@@ -331,7 +334,12 @@ $app->post('/',tuplitApi::checkToken(), function () use ($app) {
 		$response->setStatus(HttpStatusCode::Created);
 		$response->meta->dataPropertyName 			= 	'ProductId';			
 		$response->returnedObject 					= 	$ProductId;
-		$response->addNotification('Product Added successfully');
+		if($ItemType == 2)
+			$response->addNotification('Deal Item added successfully');
+		else if($ItemType == 3)
+			$response->addNotification('Special Item added successfully');
+		else
+			$response->addNotification('Item added successfully');
 		echo $response;
     }
     catch (ApiException $e){

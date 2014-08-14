@@ -5,7 +5,7 @@ merchant_login_check();
 $dealsArray			=	array();
 $totalPro			=	0;
 if(isset($_GET['Ajax']) && $_GET['Ajax'] == 1) {
-	if(isset($_POST['CatID']) && !empty($_POST['CatID']) && isset($_POST['idsarray']) && !empty($_POST['idsarray'])) {
+	if(isset($_POST['CatID']) && (!empty($_POST['CatID']) || $_POST['CatID'] == 0) && isset($_POST['idsarray']) && !empty($_POST['idsarray'])) {
 		$ProductIds		=	explode(",",$_POST['idsarray']);
 		$data			=	array(
 								'CatId'				=> $_POST['CatID'],
@@ -132,7 +132,7 @@ commonHead();
 						<h4><strong>Specials</strong>&nbsp;&nbsp;This Category can't be renamed</h4>
 					</div>				
 					<div class="col-xs-4 text-right pad"><a href="Product?show=0&add=specials" <?php if($totalPro != 0) echo 'class="specialsnewWindow"'; else echo 'onclick="return noProducts();"'; ?>><i class="fa fa-plus"></i> Add Item</a></div>
-					<div class="row col-xs-12 clear draggableList" id="dragList_special">										
+					<div class="row col-xs-12 clear draggableListspecial" id="dragList_special">										
 						<?php 
 							if(isset($specialArray) && count($specialArray) > 0) {
 								$specialArray = subval_sort($specialArray,'Ordering');
@@ -281,5 +281,28 @@ commonHead();
 				});
 		<?php } } ?>				
 		<?php } ?>
+		$("#dragList_special").sortable({
+			connectWith: ".draggableListspecial",
+			update: function() {idsarray	=	new Array();
+					i			=	0;
+					cat_id		=	'';
+					$('.paneldragging', "#dragList_special").each(function(index, elem) {
+						 var $listItem 	= $(elem),
+						 newIndex 		= $listItem.index();
+						 //console.log($listItem[0].id);
+						 idsarray[i]	=	$listItem[0].id;
+						i++;						 
+					});
+				
+					$.ajax({
+					type: "POST",
+					url: "./ProductListCrossTest?Ajax=1",
+					data: 'idsarray='+idsarray+'&CatID=0',			
+					success: function (result){
+						
+					}			
+				});
+			}
+		});
 	</script>	 
 </html>

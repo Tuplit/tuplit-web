@@ -62,6 +62,7 @@ class ServiceModel extends Model
 																			InputParam	  = '".$values['input_param']."',
 																			OutputParam	  = '".$values['output_param']."',
 																			Module		  = '".$_POST['module_name']."',
+																			Aspects		  = '".$_POST['aspects']."',
 																			Ordering	  = ".$result[0]->max_order.",
 																			Authorization = '".$_POST['authorization']."'" ;//Aspects		  = '".$_POST['aspects']."',
 		$this->result = $this->insertInto($sql);

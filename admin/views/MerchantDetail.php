@@ -12,8 +12,9 @@ if(isset($_GET['proview']) && $_GET['proview'] != ''){
 	$show = $_GET['proview'];
 }
 if(isset($_GET['viewId']) && $_GET['viewId'] != '' ){
-	$merchantListResult  = $MerchantObj->selectMerchantDetail($_GET['viewId']);
-	$merchantcategorylist  = $MerchantObj->selectMerchantCategory($_GET['viewId']);	
+	$merchantListResult  		= $MerchantObj->selectMerchantDetail($_GET['viewId']);
+	$merchantcategorylist  		= $MerchantObj->selectMerchantCategory($_GET['viewId']);	
+	$TotalItems  				= $MerchantObj->getProductsScold($_GET['viewId']);
 	$merchantOpeningHoursResult = $MerchantObj->selectOpeningHoursDetail($_GET['viewId']);
 	$cat_id_array = array(); $cat_id_values = '';
 	if(count($merchantcategorylist) > 0) {		
@@ -51,17 +52,52 @@ if(isset($_GET['viewId']) && $_GET['viewId'] != '' ){
 					<div class="form-group col-sm-6 row">
 						<label class=" col-sm-5   col-xs-5   col-md-4" >Email</label>
 						<div  class="col-sm-7 col-xs-7  col-md-8"><?php if(!empty($merchantListResult[0]->Email)) { echo $merchantListResult[0]->Email; } else { echo "-"; } ?></div>	
-					</div>									
+					</div>			
+					<div class="form-group col-sm-6 row">
+						<label class=" col-sm-5   col-xs-5   col-md-4" >Mobile Number</label>
+						<div  class="col-sm-7 col-xs-7  col-md-8">
+						<?php if(!empty($merchantListResult[0]->PhoneNumber)) { echo $merchantListResult[0]->PhoneNumber; } else { echo "-"; } ?></div>
+					</div>				
+					<div class="form-group col-sm-6 row">
+						<label class=" col-sm-5   col-xs-5   col-md-4" >Business Name</label>
+						<div  class="col-sm-7 col-xs-7  col-md-8">
+						<?php if(!empty($merchantListResult[0]->BusinessName)) { echo $merchantListResult[0]->BusinessName; } else { echo "-"; } ?></div>
+					</div>	
+					<div class="form-group col-sm-6 row">
+						<label class=" col-sm-5   col-xs-5   col-md-4" >Business Type</label>
+						<div  class="col-sm-7 col-xs-7  col-md-8">
+						<?php if(!empty($merchantListResult[0]->BusinessType)) { echo $BusinessTypeArray[$merchantListResult[0]->BusinessType]; } else { echo "-"; } ?></div>
+					</div>				
 					<div class="form-group col-sm-6 row">
 						<label class=" col-sm-5   col-xs-5   col-md-4" >Company Name</label>
 						<div  class="col-sm-7 col-xs-7  col-md-8">
 						<?php if(!empty($merchantListResult[0]->CompanyName)) { echo ucfirst($merchantListResult[0]->CompanyName); } else { echo "-"; } ?></div>
 					</div>
 					<div class="form-group col-sm-6 row">
-						<label class=" col-sm-5   col-xs-5   col-md-4" >Phone Number</label>
+						<label class=" col-sm-5   col-xs-5   col-md-4" >Company Number</label>
 						<div  class="col-sm-7 col-xs-7  col-md-8">
-						<?php if(!empty($merchantListResult[0]->PhoneNumber)) { echo $merchantListResult[0]->PhoneNumber; } else { echo "-"; } ?></div>
-					</div>	
+						<?php if(!empty($merchantListResult[0]->RegisterCompanyNumber)) { echo ucfirst($merchantListResult[0]->RegisterCompanyNumber); } else { echo "-"; } ?></div>
+					</div>
+					<div class="form-group col-sm-6 row">
+						<label class=" col-sm-5   col-xs-5   col-md-4" >Address</label>
+						<div  class="col-sm-7 col-xs-7  col-md-8">
+						<?php if(!empty($merchantListResult[0]->Address)) { echo $merchantListResult[0]->Address; } else { echo "-"; } ?></div>
+					</div>
+					<div class="form-group col-sm-6 row">
+						<label class=" col-sm-5   col-xs-5   col-md-4" >Country</label>
+						<div  class="col-sm-7 col-xs-7  col-md-8">
+						<?php if(!empty($merchantListResult[0]->Country)) { echo $merchantListResult[0]->Country; } else { echo "-"; } ?></div>
+					</div>
+					<div class="form-group col-sm-6 row">
+						<label class=" col-sm-5   col-xs-5   col-md-4" >Postcode</label>
+						<div  class="col-sm-7 col-xs-7  col-md-8">
+						<?php if(!empty($merchantListResult[0]->PostCode)) { echo $merchantListResult[0]->PostCode; } else { echo "-"; } ?></div>
+					</div>
+					<div class="form-group col-sm-6 row">
+						<label class=" col-sm-5   col-xs-5   col-md-4" >Currency</label>
+						<div  class="col-sm-7 col-xs-7  col-md-8">
+						<?php if(!empty($merchantListResult[0]->Currency)) { echo $merchantListResult[0]->Currency; } else { echo "-"; } ?></div>
+					</div>
 					<div class="form-group col-sm-6 row">
 						<label class=" col-sm-5   col-xs-5   col-md-4" >Website Url</label>
 						<div  class="col-sm-7 col-xs-7  col-md-8">
@@ -72,11 +108,7 @@ if(isset($_GET['viewId']) && $_GET['viewId'] != '' ){
 						<div  class="col-sm-7 col-xs-7  col-md-8">
 						<?php if(!empty($merchantListResult[0]->Location)) { echo ucfirst($merchantListResult[0]->Location); } else { echo "-"; } ?></div>
 					</div>										
-					<div class="form-group col-sm-6 row">
-						<label class=" col-sm-5   col-xs-5   col-md-4" >Address</label>
-						<div  class="col-sm-7 col-xs-7  col-md-8">
-						<?php if(!empty($merchantListResult[0]->Address)) { echo $merchantListResult[0]->Address; } else { echo "-"; } ?></div>
-					</div>
+					
 					<div class="form-group col-sm-6 row">
 						<label class=" col-sm-5   col-xs-5   col-md-4" >Short Description</label>
 						<div  class="col-sm-7 col-xs-7  col-md-8">
@@ -85,7 +117,7 @@ if(isset($_GET['viewId']) && $_GET['viewId'] != '' ){
 					<div class="form-group col-sm-6 row">
 						<label class=" col-sm-5   col-xs-5   col-md-4" >Description</label>
 						<div  class="col-sm-7 col-xs-7  col-md-8">
-						<?php if(!empty($merchantListResult[0]->Description)) { echo "<p align='justify'>".$merchantListResult[0]->Description."</p>"; } else { echo "-"; } ?></div>
+						<?php if(!empty($merchantListResult[0]->Description)) { echo "<p align='justify'>".nl2br($merchantListResult[0]->Description)."</p>"; } else { echo "-"; } ?></div>
 					</div>
 					<?php
 				  	    $image_path = '';
@@ -172,7 +204,7 @@ if(isset($_GET['viewId']) && $_GET['viewId'] != '' ){
 					<div class="form-group col-sm-6 row">
 						<label class=" col-sm-5   col-xs-5   col-md-4" >Items Sold</label>
 						<div  class="col-sm-7 col-xs-7  col-md-8">
-						<?php if($merchantListResult[0]->ItemsSold != 0) { echo $merchantListResult[0]->ItemsSold; } else { echo "-"; } ?></div>						
+						<?php if(is_array($TotalItems) && isset($TotalItems[0]->TotalItems) && $TotalItems[0]->TotalItems > 0) { echo $TotalItems[0]->TotalItems; } else { echo "-"; } ?></div>						
 					</div>
 					<div class="form-group col-sm-6 row">
 						<label class=" col-sm-5   col-xs-5   col-md-4" >Price Scheme</label>
@@ -187,6 +219,11 @@ if(isset($_GET['viewId']) && $_GET['viewId'] != '' ){
 							echo "$".$priceran[0]." - $".$priceran[1];
 							} else { echo "-"; } ?></div>						
 					</div>
+					<div class="form-group col-sm-6 row">
+						<label class=" col-sm-5   col-xs-5   col-md-4" >How Heared</label>
+						<div  class="col-sm-7 col-xs-7  col-md-8">
+						<?php if(!empty($merchantListResult[0]->HowHeared)) { echo $HowyouHeared[$merchantListResult[0]->HowHeared]; } else { echo "-"; } ?></div>
+					</div>		
 					<div class="form-group col-sm-6 row">
 						<label class=" col-sm-5   col-xs-5   col-md-4" >Status</label>
 						<div  class="col-sm-7 col-xs-7  col-md-8">

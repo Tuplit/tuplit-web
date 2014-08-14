@@ -83,4 +83,11 @@ class ErrorCodeType {
 	
 	const ErrorInCardRegistration = 2027;
 	const ErrorInPaymentRegistration = 2028;
+	const ErrorInCardDelete = 2029;
+	
+	const InvalidRefundUser = 2030;
+	
+	const AlreadyRefunded = 001401;
+	
+	const ProductDiscountMust = 2223;
 }

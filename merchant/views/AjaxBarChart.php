@@ -1,6 +1,7 @@
-<?php if(isset($_POST['action']) && $_POST['action']=='GET_CHART') { 
+<?php
+require_once('includes/CommonIncludes.php');
+if(isset($_POST['action']) && $_POST['action']=='GET_CHART') { 
 	require_once('AjaxChartFilter.php');
-	merchant_login_check();
 	$xarrays = $new_array = array();
 	$count = 0;	
 	/*if(isset($_POST['filter_dashboard_date']) && $_POST['filter_dashboard_date'] =='month') {
@@ -25,7 +26,7 @@
 <div class="row table-responsive no-margin">
 	<?php if(isset($order_array) && !empty($order_array)) { ?>
 	<table class="table table-hover" >
-                         <tr>
+         <tr>
 			<th style="text-align:center">Total Revenue</th>
 			<th style="text-align:center">Average Transaction</th>
 			<th style="text-align:center">Total No.of Transactions</th>
@@ -70,6 +71,7 @@ $(document).ready(function() {
 	var barchart2 = new Morris.Bar({
               element: 'bar-chart1',
               resize: true,
+			  xLabelMargin: 10,
               data: [
 			  <?php 
 			  $extra = '';
@@ -85,15 +87,16 @@ $(document).ready(function() {
  							else 
 								$extra =  ' (greater than 22)';
 						}
+						if(isset($value_arrays[$key]) && $value_arrays[$key] != ''){
 							?>
                   	{y: '<?php echo $val.$extra?>',a: <?php echo $value_arrays[$key];?>},
-					<?php } 
+					<?php } }
 				}?>
               ],
               barColors: ['#01B3A5'],
               xkey: 'y',
               ykeys: ['a'],
-              labels: ['Revenue'],
+              labels: ['Revenue($)'],
               hideHover: 'auto'
 			 
           });

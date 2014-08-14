@@ -1,5 +1,4 @@
 <?php
-//https://www.getpostman.com/collections/c7ebdcd43c758055d2af
 
 /**
 * Merchants endpoint
@@ -21,7 +20,7 @@ require_once '../../admin/includes/phmagick.php';
 require_once '../../lib/ModelBaseInterface.php';            // base interface class for RedBean models
 require_once '../../models/Merchants.php';                 	// merchant model
 require_once '../../models/Orders.php';                 	// orders model
-require_once '../../models/Categories.php';                 	// category model
+require_once '../../models/Categories.php';                 // category model
 require_once '../../models/Favorites.php';
 
 
@@ -203,7 +202,37 @@ $app->post('/signup', function () use ($app) {
 				R::store($opening);
 			}
 		}
-				
+		
+		/**
+		* After successful registration email was sent to registered merchant
+		*/
+		$adminDetails 						=   R::findOne('admins', 'id=?', ['1']);
+		$adminMail							=	$adminDetails->EmailAddress;
+		$mailContentArray['fileName']		=	'merchantregistration.html';
+		$mailContentArray['from']			=	$adminMail;
+		$mailContentArray['toemail']		= 	$req->params('Email');
+		$mailContentArray['subject']		= 	"Registration";
+		$mailContentArray['email']	    	=	$req->params('Email');
+		$mailContentArray['name']			=	ucfirst($req->params('FirstName').' '.$req->params('LastName'));
+		$mailContentArray['password']		=	$req->params('Password');
+		
+		sendMail($mailContentArray,5); 
+		
+		/**
+		* After successful registration email was sent to admin for approve registered merchant
+		*/
+		$adminDetails 							=   R::findOne('admins', 'id=?', ['1']);
+		$adminMail								=	$adminDetails->EmailAddress;
+		$mailAdminContentArray['fileName']		=	'adminmerchantregistration.html';
+		$mailAdminContentArray['from']			=	$adminMail;
+		$mailAdminContentArray['toemail']		= 	$adminMail;
+		$mailAdminContentArray['subject']		= 	"Merchant Approval";
+		$mailAdminContentArray['merchantName']	=	ucfirst($req->params('FirstName').' '.$req->params('LastName'));
+		$mailAdminContentArray['merchantEmail']	=	$req->params('Email');
+		$mailAdminContentArray['link']			=	'/admin/MerchantList?cs=1&status=0';
+		sendMail($mailAdminContentArray,6); 
+		
+		
 		/**
 		* New merchant creation was made success
 		*/
@@ -256,7 +285,6 @@ $app->put('/', tuplitApi::checkToken(), function () use ($app) {
 		*/
         $merchant 								= 	R::dispense('merchants');
 		$merchant->id		 					= 	$merchantId;
-		
 		if(isset($input->Address)) 				
 				$merchant->Address 				= 	$input->Address;
 		if(isset($input->Email)) 				
@@ -321,7 +349,7 @@ $app->put('/', tuplitApi::checkToken(), function () use ($app) {
 			$coverImagePath 	= 	UPLOAD_MERCHANT_IMAGE_PATH_REL.$coverImageName;
 			if ( !file_exists(UPLOAD_MERCHANT_IMAGE_PATH_REL) ){
 		  		mkdir (UPLOAD_MERCHANT_IMAGE_PATH_REL, 0777);
-			}				
+			}	
 			imagethumb_addbg($input->MerchantPhoto, $coverImagePath,'','',640,260);
 			if(SERVER) {
 				//newly added
@@ -332,7 +360,6 @@ $app->put('/', tuplitApi::checkToken(), function () use ($app) {
 				}
 				uploadImageToS3($coverImagePath,7,$coverImageName);
 				unlink($coverImagePath);
-				
 			}
 			$merchant->Image 	= 	$coverImageName;
 			$merchantExist 		=	$coverImageName;
@@ -342,8 +369,9 @@ $app->put('/', tuplitApi::checkToken(), function () use ($app) {
 		/**
 		* update the merchant account
 		*/
-	    $merchantId 			= 	$merchant->modify($merchantId,$iconExist,$merchantExist);
-			
+	    $merchantId1 			= 	$merchant->modify($merchantId,$iconExist,$merchantExist);
+		
+		
 		/***
 		* update the opening hours
 		*/
@@ -376,9 +404,50 @@ $app->put('/', tuplitApi::checkToken(), function () use ($app) {
 				}
 			}
 		}
-	    
+		
+		//storing slideshow pictures
+		if(isset($input->ImageCount)  && !empty($input->ImageCount) && isset($input->TotalImageExt)  && !empty($input->TotalImageExt) ) {
+			$ImageExt	=	explode(',',$input->TotalImageExt);
+			$uploadimg	=	explode(',',$input->ImageCount);
+			if(is_array($ImageExt) && count($ImageExt) > 0 && is_array($uploadimg) && count($uploadimg) > 0) {				
+				foreach($uploadimg as $key=>$upval) {
+					if(!empty($upval)) {
+						$mystoreImageName	=	$mystoreImagePath	=	$tempPath	=	'';
+						$tempPath			=	TEMP_PRODUCT_IMAGE_PATH_UPLOAD.$merchant->id.'_'.$upval.'_myStore.'.$ImageExt[$key];
+						$mystoreImageName 	= 	$upval.'_'.time().'.png';
+						$mystoreImagePath 	= 	UPLOAD_MERCHANT_IMAGE_PATH_REL.$merchant->id.'/'.$mystoreImageName;
+						if ( !file_exists(UPLOAD_MERCHANT_IMAGE_PATH_REL.$merchant->id.'/') ){
+							mkdir (UPLOAD_MERCHANT_IMAGE_PATH_REL.$merchant->id.'/', 0777);
+						}
+						imagethumb_addbg($tempPath, $mystoreImagePath,'','',1000,350);	
+						$merchantSlideshow 					= 	R::dispense('merchantslideshow');
+						$merchantSlideshow->fkMerchantId 	= 	$merchant->id;
+						$merchantSlideshow->SlideshowName 	= 	$mystoreImageName;
+						$merchantSlideshow->DateCreated 	= 	date('Y-m-d H:i:s');
+						R::store($merchantSlideshow);
+						unlink($tempPath);
+					}
+				}
+			}
+		}	
+
+		//deleting slideshow pictures
+		if(isset($input->DeleteIds)  && !empty($input->DeleteIds) && isset($input->DeleteImg)  && !empty($input->DeleteImg) ) {
+			$delmerchant				= 	R::dispense('merchants');
+			$delmerchant->merchantId	= 	$merchantId;
+			$delmerchant->DeleteIds		= 	$input->DeleteIds;
+			$delstatus 					=	$delmerchant->deleteSlideshow();
+			if($delstatus) {
+				$deleteimages			=	explode(',',$input->DeleteImg);
+				if(is_array($deleteimages) && count($deleteimages) > 0) {				
+					foreach($deleteimages as $delnam)
+						unlink(UPLOAD_MERCHANT_IMAGE_PATH_REL.$merchantId.'/'.$delnam);
+				}
+			}
+		}
+		
 		/**
-		* New merchant creation was made success
+		* merchant updated was made success
 		*/
         $response = new tuplitApiResponse();
         $response->setStatus(HttpStatusCode::Created);
@@ -405,7 +474,7 @@ $app->put('/', tuplitApi::checkToken(), function () use ($app) {
 
 /**
 * Forgot password
-* POST /v1/merchants/forgotpassword
+* get /v1/merchants/forgotpassword
 */
 $app->get('/forgetPassword', function () use ($app) {
 
@@ -416,30 +485,34 @@ $app->get('/forgetPassword', function () use ($app) {
         $merchant 			= 	R::dispense('merchants');
 		$merchant->Email 	= 	$req->params('Email');
 		$merchantDetails 	= 	$merchant->forgotPassword();
-		
 		/**
          * Send mail to merchant
          */
 		 if($merchantDetails){
-		 	$merchantDetails 				= 	$merchantDetails[0];
-			$adminDetails 					=   R::findOne('admins', 'id=?', ['1']);
-			$adminMail						=	$adminDetails->EmailAddress;
-			$mailContentArray['fileName']	=	'userForgotPasswordMail.html';
-			$mailContentArray['from']		=	$adminMail;
-			$mailContentArray['toemail']	= 	trim($merchantDetails['Email']);
-			$mailContentArray['subject']	= 	"Forgot Password";
-			$mailContentArray['name']		=	ucfirst($merchantDetails['FirstName'].' '.$merchantDetails['LastName']);
-			$mailContentArray['link']		=	'/ResetPassword.php?UID='.encode($merchantDetails['id']).'&Type=2';
-			sendMail($mailContentArray,4); //Send mail - Updated password Details     		
-			$content	=	array("status"	    =>	"Success",
-						  	 	  "message"  	=>	"An email has been sent to you with link to reset your password.");
-			$response->returnedObject = $content;
-			$response->setStatus(HttpStatusCode::Created);
-        	$response->meta->dataPropertyName = 'merchant';
-       		echo $response;
+		 		$merchantDetails 				= 	$merchantDetails[0];
+			if($merchantDetails['OrderMail'] == 1) {
+				$adminDetails 					=   R::findOne('admins', 'id=?', ['1']);
+				$adminMail						=	$adminDetails->EmailAddress;
+				$mailContentArray['fileName']	=	'userForgotPasswordMail.html';
+				$mailContentArray['from']		=	$adminMail;
+				$mailContentArray['toemail']	= 	trim($merchantDetails['Email']);
+				$mailContentArray['subject']	= 	"Forgot Password";
+				$mailContentArray['name']		=	ucfirst($merchantDetails['FirstName'].' '.$merchantDetails['LastName']);
+				$mailContentArray['link']		=	'/ResetPassword.php?UID='.encode($merchantDetails['id']).'&Type=2';
+				sendMail($mailContentArray,4); //Send mail - Updated password Details     		
+				$content	=	array("status"	    =>	"Success",
+									  "message"  	=>	"An email has been sent to you with link to reset your password.");
+				$response->returnedObject = $content;
+				$response->setStatus(HttpStatusCode::Created);
+				$response->meta->dataPropertyName = 'merchant';
+				echo $response;
+			} else {
+				// Error occurred 
+				throw new ApiException("Sorry! your order mail status is off." ,  ErrorCodeType::ErrorInUpdateForgetPassword);
+			}
 		}
 		else{
-			// Error occurred while resetting password
+			// Error occurred 
 			throw new ApiException("Sorry! You cannot use this link again" ,  ErrorCodeType::ErrorInUpdateForgetPassword);
 		}
     }
@@ -525,7 +598,7 @@ $app->get('/:merchantId',  function ($merchantId) use ($app) {
 		}
 		else {
 			/** 
-			* Some error has occurred while creating Favourites
+			* Merchant not found
 			*/
 			throw new ApiException("Merchant not found", ErrorCodeType::NoResultFound);
 		}
@@ -932,7 +1005,8 @@ $app->post('/connect',tuplitApi::checkToken(),function () use ($app) {
 		$mangopayDetails				=   $merchants->addMangoPayDetails($requestedById);
 		if($mangopayDetails){
 	        $response->setStatus(HttpStatusCode::Created);
-	        $response->meta->dataPropertyName 	= 'MangoPay Account';		
+	        $response->meta->dataPropertyName 	= 'MangoPay Account';	
+			//$response->returnedObject 			= $mangopayDetails;	
 			$response->addNotification('Mango Pay account has been created successfully');
        		echo $response;
 		}
@@ -963,6 +1037,7 @@ $app->post('/connect',tuplitApi::checkToken(),function () use ($app) {
 $app->get('/productAnalysis/',tuplitApi::checkToken(), function () use ($app) {
     try {
 		$userName = $visitCount = $totalSpend = $start =  $limit = '';
+		$productAnalysis	=	array();
 		$req 			= 	$app->request();		
 		$merchantId 	= 	tuplitApi::$resourceServer->getOwnerId();
 		// Create a json response object
@@ -986,7 +1061,7 @@ $app->get('/productAnalysis/',tuplitApi::checkToken(), function () use ($app) {
 		if($productAnalysis){
 	        $response->setStatus(HttpStatusCode::Created);
 	        $response->meta->dataPropertyName 	= 'ProductAnalytics';		
-			$response->returnedObject 			= $productAnalysis['result'];	
+			$response->returnedObject 			= $productAnalysis;	
 			echo $response;
 		}
 		else{
@@ -1032,6 +1107,7 @@ $app->get('/getTransactionList/',tuplitApi::checkToken(),function () use ($app) 
 		
 		if($req->params('Start') !='')		$merchant->Start 	=  $req->params('Start');
 		if($req->params('End') !='')		$merchant->End 		=  $req->params('End');
+		if($req->params('Status') !='')		$merchant->Status	=  $req->params('Status');
 		
 		$transactionDetails 		= 	$merchant->getPaymentsList();
 		if($transactionDetails){
@@ -1040,6 +1116,190 @@ $app->get('/getTransactionList/',tuplitApi::checkToken(),function () use ($app) 
 			$response->meta->dataPropertyName 	= 'TransactionsList';
 			$response->returnedObject 			= $transactionDetails;
 			echo $response;
+		}
+    }
+    catch (ApiException $e){
+        // If occurs any error message then goes here
+        tuplitApi::showError(
+            $e,
+            $e->getHttpStatusCode(),
+            $e->getErrors()
+        );
+    }
+    catch (\Slim\Exception\Stop $e){
+        // If occurs any error message for slim framework then goes here
+    }
+    catch (Exception $e) {
+        // If occurs any error message then goes here
+        tuplitApi::showError($e);
+    }
+
+});
+
+/**
+* Update merchant details
+* PUT /v1/merchants
+*/
+$app->put('/settings', tuplitApi::checkToken(), function () use ($app) {
+
+    try {
+
+        // Create a http request
+        $request 			= 	$app->request();
+		$iconExist 			= 	$merchantExist = '';
+    	$body 				= 	$request->getBody();
+    	$input 				= 	json_decode($body); 
+		$merchantId 		= 	tuplitApi::$resourceServer->getOwnerId();
+		//echo "<pre>"; echo print_r($input); echo "</pre>";
+		//die();
+		/**
+		* @var Merchants $merchant
+		*/
+        $merchant 									= 	R::dispense('merchants');
+		$merchant->id		 						= 	$merchantId;
+		
+		if(isset($input->FirstName)) 				
+				$merchant->FirstName 				= 	$input->FirstName;
+		if(isset($input->LastName)) 				
+				$merchant->LastName 				= 	$input->LastName;
+		if(isset($input->Email))			
+				$merchant->Email 					= 	$input->Email;
+		if(isset($input->PhoneNumber)) 			
+				$merchant->PhoneNumber 				= 	$input->PhoneNumber;
+		if(isset($input->BusinessName)) 			
+				$merchant->BusinessName 			= 	$input->BusinessName;
+		if(isset($input->BusinessType)) 	
+				$merchant->BusinessType 			= 	$input->BusinessType;
+		if(isset($input->Currency)) 			
+				$merchant->Currency 				= 	$input->Currency;
+		if(isset($input->Address)) 			
+				$merchant->Address 					= 	$input->Address;
+		if(isset($input->CompanyName)) 			
+				$merchant->CompanyName 				= 	$input->CompanyName;
+		if(isset($input->RegisterCompanyNumber)) 			
+				$merchant->RegisterCompanyNumber 	= 	$input->RegisterCompanyNumber;
+		if(isset($input->Country)) 			
+				$merchant->Country 					= 	$input->Country;
+		if(isset($input->PostCode)) 			
+				$merchant->PostCode 				= 	$input->PostCode;	
+		if(isset($input->DiscountTier)) 			
+				$merchant->DiscountTier 			= 	$input->DiscountTier;	
+		if(isset($input->DiscountProductId)) 			
+				$merchant->DiscountProductId 		= 	$input->DiscountProductId;	
+		if(isset($input->DiscountType)) 			
+				$merchant->DiscountType 			= 	$input->DiscountType;	
+			
+		/**
+		* update the merchant account
+		*/
+	    $merchantId 								= 	$merchant->modify1($merchantId);
+			
+		/**
+		* New merchant creation was made success
+		*/
+        $response = new tuplitApiResponse();
+        $response->setStatus(HttpStatusCode::Created);
+        $response->meta->dataPropertyName = 'merchant';
+        $response->addNotification('Merchant detail has been updated successfully');
+        echo $response;
+    }
+    catch (ApiException $e){
+        // If occurs any error message then goes here
+        tuplitApi::showError(
+            $e,
+            $e->getHttpStatusCode(),
+            $e->getErrors()
+        );
+    }
+    catch (\Slim\Exception\Stop $e){
+        // If occurs any error message for slim framework then goes here
+    }
+    catch (Exception $e) {
+        // If occurs any error message then goes here
+        tuplitApi::showError($e);
+    }
+});
+
+/**
+* Get discount product List 
+* POST /v1/merchants/discount/
+*/
+$app->get('/discount/',tuplitApi::checkToken(),function () use ($app) {
+
+    try {
+		// Create a http request
+        $req 						= 	$app->request();
+		$merchantId 				= 	tuplitApi::$resourceServer->getOwnerId();
+		
+		if($req->params('MerchantId') !='')		$merchantId 	=  $req->params('MerchantId');	
+		
+        $merchant 					= 	R::dispense('merchants');
+		$merchant->merchantId		=	$merchantId;
+		if($req->params('Type') !='')			$merchant->Type 	=  $req->params('Type');	
+		if($req->params('Discount') !='')		$merchant->Discount 	=  $req->params('Discount');	
+		$ProductCounts 				= 	$merchant->getProductCounts();
+		if($ProductCounts){
+			$response 				= 	new tuplitApiResponse();
+			$response->setStatus(HttpStatusCode::Created);
+			$response->meta->dataPropertyName 	= 'ProductCounts';
+			$response->returnedObject 			= $ProductCounts;
+			if(isset($ProductCounts['Discounted']) && $ProductCounts['Discounted']==1)
+				$response->addNotification('Merchant having 1/3 of products discounted');
+			else
+				$response->addNotification('Merchant not having 1/3 of products discounted');
+			echo $response;
+		} else {
+			 /**
+	         * throwing error when no Products found
+	         */
+			 throw new ApiException("No Products found", ErrorCodeType::NoResultFound);
+		}
+    }
+    catch (ApiException $e){
+        // If occurs any error message then goes here
+        tuplitApi::showError(
+            $e,
+            $e->getHttpStatusCode(),
+            $e->getErrors()
+        );
+    }
+    catch (\Slim\Exception\Stop $e){
+        // If occurs any error message for slim framework then goes here
+    }
+    catch (Exception $e) {
+        // If occurs any error message then goes here
+        tuplitApi::showError($e);
+    }
+
+});
+
+/**
+* Get slideshow images 
+* POST /v1/merchants/slideshows
+*/
+$app->get('/slideshows/',tuplitApi::checkToken(),function () use ($app) {
+
+    try {
+		// Create a http request
+        $req 						= 	$app->request();
+		$merchantId 				= 	tuplitApi::$resourceServer->getOwnerId();
+		
+		if($req->params('MerchantId') !='')		$merchantId 	=  $req->params('MerchantId');	
+        $merchant 					= 	R::dispense('merchants');		
+		$merchant->merchantId		=	$merchantId;
+		$slideshows 				= 	$merchant->getSlideshowDetails();
+		if($slideshows){
+			$response 				= 	new tuplitApiResponse();
+			$response->setStatus(HttpStatusCode::Created);
+			$response->meta->dataPropertyName 	= 'slideshows';
+			$response->returnedObject 			= $slideshows;
+			$response->addNotification('Merchant slideshow images retrieved successfully');
+			echo $response;
+		} else {
+			 /**
+	         * throwing error when no slideshow images found
+	         */
+			 throw new ApiException("No slideshow images found", ErrorCodeType::NoResultFound);
 		}
     }
     catch (ApiException $e){

@@ -19,21 +19,20 @@ if(isset($_GET['cs']) && $_GET['cs']=='1') {
 	unset($_SESSION['mer_sess_Category']);
 }
 
-$fields1   = " c.* ";
-$condition1 = " and c.Status in (1)";
-$CategoryListResult  = $managementObj->getCategoryList($fields1,$condition1);
+$fields1   = " * ";
+$condition1 = " Status in (1)";
+$CategoryListResult  = $managementObj->selectCategoryDetails($fields1,$condition1);
 
 if(isset($_GET['approveId']) && $_GET['approveId']!=''){
 	$approveId  = $_GET['approveId'];
-	$MerchantObj->approveMerchant($approveId);
+	$MerchantObj->approveMerchant($approveId,'1');
 	$fields = '*';
 	$condition = ' 1';
 	$login_result = $adminLoginObj->getAdminDetails($fields,$condition);
 	$merchantListResult  = $MerchantObj->selectMerchantDetail($approveId);
-	
 	if(isset($merchantListResult) && is_array($merchantListResult) && count($merchantListResult) > 0){
-		$mailContentArray['name'] 		= ucfirst($merchantListResult[0]->FirstName.' '. $merchantListResult[0]->LastName);
-		$mailContentArray['toEmail'] 	= $merchantListResult[0]->Email;
+		$mailContentArray['name'] 		= ucfirst($merchantListResult[0]->FirstName).' '. ucfirst($merchantListResult[0]->LastName);
+		$mailContentArray['toemail'] 	= $merchantListResult[0]->Email;
 		$mailContentArray['subject'] 	= 'Merchant Approval Mail';		
 		$mailContentArray['from'] 		= $login_result[0]->EmailAddress;
 		$mailContentArray['fileName']	= 'merchant.html';
@@ -44,6 +43,11 @@ if(isset($_GET['approveId']) && $_GET['approveId']!=''){
 }
 $result = $MerchantObj->getMerchantNotApproved();
 $merchantApproveTotal = $result[0]->total; 
+
+if(isset($_GET['editId']) && $_GET['editId']!=''){
+	$userListResult  = $MerchantObj->approveMerchant($_GET['editId'],$_GET['Status']);
+	header("location:MerchantList?msg=5");
+}
 
 if(isset($_POST['Search']) && $_POST['Search'] != ''){
 	destroyPagingControlsVariables();
@@ -99,7 +103,13 @@ if(isset($delete_id) && $delete_id != ''){
 	}	//die();
 	header("location:MerchantList?msg=3");
 }
-if(isset($_GET['msg']) && $_GET['msg'] == 2){
+if(isset($_GET['msg']) && $_GET['msg'] == 1){
+	$msg 		= 	"Merchant detail added successfully";
+	$display	=	"block";
+	$class 		= 	"alert-success";
+	$class_icon = 	"fa-check";
+}
+else if(isset($_GET['msg']) && $_GET['msg'] == 2){
 	$msg 		= 	"Merchant detail updated successfully";
 	$display	=	"block";
 	$class 		= 	"alert-success";
@@ -117,12 +127,18 @@ else if(isset($_GET['msg']) && $_GET['msg'] == 4){
 	$class 		= 	"alert-success";
 	$class_icon =   "fa-check";
 }
+else if(isset($_GET['msg']) && $_GET['msg'] == 5){
+	$msg 		= 	"Merchant Status changed successfully";
+	$display	=	"block";
+	$class 		= 	"alert-success";
+	$class_icon =   "fa-check";
+}
 setPagingControlValues('id',ADMIN_PER_PAGE_LIMIT);
 $fields    = " m.* ";
 if(isset($_GET['status'])  && $_GET['status'] == 0)
 	$condition = " and m.Status in (0)";
 else
-	$condition = " and m.Status in (0,1)";
+	$condition = " and m.Status in (0,1,2)";
 $merchantListResult  = $MerchantObj->getMerchantList($fields,$condition);
 $tot_rec 		 = $MerchantObj->getTotalRecordCount();
 
@@ -137,9 +153,10 @@ if($tot_rec!=0 && !is_array($merchantListResult)) {
 	<?php top_header(); ?>
 	<!-- Content Header (Page header) -->
 	<section class="content-header no-padding">
-		<div class="col-xs-8">
+		<div class="col-xs-7">
 			<h1><i class="fa fa-list"></i> Merchant List</h1>
 		</div>
+		<div class="col-sm-5 col-xs-12"><h3><a href="MerchantManage" title="Add Merchant"><i class="fa fa-plus-circle"></i> Add Merchant</a></h3></div>
 	</section>	
 	 <!-- Main content -->
 	<section class="content">
@@ -169,7 +186,8 @@ if($tot_rec!=0 && !is_array($merchantListResult)) {
 							<select name="Status" id="Status" class="form-control col-sm-4">
 								<option value="">Select</option>
 								<option value="0" <?php  if(isset($_SESSION['mer_sess_status']) && $_SESSION['mer_sess_status'] != '' && $_SESSION['mer_sess_status'] == '0') echo 'Selected';  ?> >Not Activated</option>
-								<option value="1" <?php  if(isset($_SESSION['mer_sess_status']) && $_SESSION['mer_sess_status'] != '' && $_SESSION['mer_sess_status'] == '1') echo 'Selected';  ?>>Activated</option>
+								<option value="1" <?php  if(isset($_SESSION['mer_sess_status']) && $_SESSION['mer_sess_status'] != '' && $_SESSION['mer_sess_status'] == '1') echo 'Selected';  ?>>Active</option>
+								<option value="2" <?php  if(isset($_SESSION['mer_sess_status']) && $_SESSION['mer_sess_status'] != '' && $_SESSION['mer_sess_status'] == '2') echo 'Selected';  ?>>Inactive</option>
 							</select>
 						</div>
 						<div class="col-sm-4 form-group">
@@ -231,6 +249,7 @@ if($tot_rec!=0 && !is_array($merchantListResult)) {
 								</tr>
                               <?php
 							  	foreach($merchantListResult as $key=>$value){
+									//echo "<pre>"; echo print_r($value); echo "</pre>";die();
 								    $image_path = '';
 									$photo = $value->Icon;
 									$image_path = ADMIN_IMAGE_PATH.'no_user.jpeg';
@@ -249,14 +268,10 @@ if($tot_rec!=0 && !is_array($merchantListResult)) {
 								<td align="center" nowrap><?php echo (($_SESSION['curpage'] - 1) * ($_SESSION['perpage']))+$key+1;?></td>												
 								<td>
 									<div class="col-xs-11 col-md-5 col-lg-3 no-padding">
-									<?php if(isset($image_path) && $image_path != ''){ ?>
-									<?php if($value->Status == 0) { ?>
-									
-										<a data-toggle="tooltip" title="Approve" onclick="javascript:return confirm('Are you sure to approve this merchant?')" href="MerchantList?approveId=<?php if(isset($value->id) && $value->id != '') echo $value->id;?>"><i class="fa fa-thumbs-up text-olive fa-2x icon-shadow"></i></a>
-									
-									
-									<?php } ?>
-									
+										<?php if(isset($image_path) && $image_path != ''){ ?>
+										<?php if($value->Status == 0) { ?>									
+											<a data-toggle="tooltip" title="Approve" onclick="javascript:return confirm('Are you sure to approve this merchant?')" href="MerchantList?approveId=<?php if(isset($value->id) && $value->id != '') echo $value->id;?>"><i class="fa fa-thumbs-up text-olive fa-2x icon-shadow"></i></a>
+										<?php } ?>
 										<?php if(!empty($value->Icon)) { ?>
 										<a href="<?php echo $image_path; ?>" class="fancybox" title="<?php echo ucfirst($value->CompanyName);?>">
 											<img id="<?php echo $value->id ;?>"  width="36" height="36" align="top" class="img_border" src="<?php echo $image_path;?>" >
@@ -272,14 +287,30 @@ if($tot_rec!=0 && !is_array($merchantListResult)) {
 										<?php if(isset($value->Email) && $value->Email != '' ){ ?> <i class="fa fa-fw fa-envelope"></i> <?php echo $value->Email;}?><br>								
 										<?php if(isset($value->MangoPayUniqueId) && $value->MangoPayUniqueId != '' ){ echo "<b>MangoPay Id</b> : ".$value->MangoPayUniqueId; }?><br>								
 									</div>								
-									<div class="row-actions col-xs-12">																						
+									<div class="row-actions col-xs-12">	
+										<?php 
+											if(isset($value->Status) && !empty($value->Status)) {
+												$st_class	=	$st_status	=	$st_title	= '';
+												if($value->Status == 1) {
+													$st_class	=	'active_icon';
+													$st_status	=	'2';
+													$st_title	=	'Click to Inactive';
+												} else if($value->Status != 0) {
+													$st_class	=	'inactive_icon';
+													$st_status	=	'1';
+													$st_title	=	'Click to Active';
+												}
+												if(!empty($st_class) && !empty($st_status) && !empty($st_title)) {
+										?>
+										<a class="<?php echo $st_class; ?>" onclick="javascript:return confirm('Are you sure you want to change the status?')" title="<?php echo $st_title; ?>" href="MerchantList?Status=<?php echo $st_status;?>&editId=<?php echo $value->id; ?>"><i class="fa fa-user "></i></a>
+										<?php 	} }	?>
 										<a href="MerchantManage?editId=<?php if(isset($value->id) && $value->id != '') echo $value->id; ?>" data-toggle="tooltip" data-original-title="Edit" class="edit"><i class="fa fa-edit "></i></a>		
 										<a href="MerchantDetail?viewId=<?php if(isset($value->id) && $value->id != '') echo $value->id; ?>" data-toggle="tooltip" data-original-title="View" class="view"><i class="fa fa-search "></i></a>		
 										<a href="<?php echo SITE_PATH.'/admin/ProductList?mer_id='.$value->id.'&cs=1'; ?>" class="view newWindow" data-toggle="tooltip" data-original-title="Product in action"><i class="fa fa fa-tags"></i></a>	
 										<a href="<?php echo SITE_PATH.'/admin/OrderList?mer_id='.$value->id.'&cs=1'; ?>"  class="view newWindow" data-toggle="tooltip" data-original-title="order list"><i class="fa fa fa-shopping-cart"></i></a>
-										<?php if(!empty($value->commentId)) { ?>
+										<?php //if(!empty($value->commentId)) { ?>
 										<a href="<?php if(isset($value->id) && $value->id != '') echo SITE_PATH.'/admin/CommentList?mer_id='.$value->id.'&cs=1'; else echo "#"; ?>"  class="view newWindow" data-toggle="tooltip" data-original-title="comment list"><i class="fa fa-comments"></i></a>
-										<?php } ?>										
+										<?php //} ?>										
 										<a onclick="javascript:return confirm('Are you sure to delete?')" href="MerchantList?delId=<?php if(isset($value->id) && $value->id != '') echo $value->id;?>" data-toggle="tooltip" data-original-title="Delete" class="delete"><i class="fa fa-trash-o "></i></a>
 									</div>
 								</td>

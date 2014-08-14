@@ -117,164 +117,121 @@ if(isset($_POST['Add']) || isset($_POST['Save'])){
 	}
 }
 ?>
-<body onload="return fieldfocus('process');" class="skin-blue">
-	<table cellpadding="0" cellspacing="0" border="0" width="100%" align="center">
-		<tr>
-			<td align="center">
-				<table cellpadding="0" cellspacing="0" border="0" width="95%" align="center">					
-					<tr><td colspan="2" class="headermenu"><?php top_header(); ?></td></tr>
-				    <tr>
-						<td colspan="2">
-						 	 <div id="content_3" class="content">
-						  		 <table align="center" cellpadding="0" cellspacing="0" border="0" class="form_page list" width="100%">
-									<tr><td><h2><?php echo $type; ?></h2></td></td></tr>
-									<tr><td height="20"></td></tr>
-									<?php if(isset($error) && $error!='') {?>
-									<tr>
-										<td align="center">
-											<div class="error_msg w50"><span><?php if(isset($error) && $error != '') echo $error;  ?></span></div>
-										</td>
-									</tr>
-									<tr><td height="20"></td></tr>
-									<?php } ?>
-									<tr>
-										<td align="center" width="100%">
-											 <form name="add_service_form" id="add_service_form" action="" method="post" >
-											<input type="Hidden" name="service_id" id="service_id" value="<?php if(isset($_GET['editId']) && $_GET['editId'] != '' ) echo $_GET['editId'];?>">
-											<table align="center" cellpadding="0" cellspacing="0" border="0"  width="75%">
-												
-												<tr>
-													<td width="10%" align="left"  valign="top"><label>Purpose</label></td>
-													<td width="3%" align="center" valign="top">:</td>
-													<td align="left" valign="top" height="60">
-														<input type="text" tabindex="1" maxlength="250" value="<?php if(isset($process) && $process != '') echo $process;  ?>" id="process" name="process" class="input" style="width:370px;">
-														<!-- <span for="process" generated="true" class="error" style="display:none;"></span> -->
-													</td>
-												</tr>									
-												<!-- <tr><td height="20"></td></tr> -->
-												<tr>
-													<td  align="left"  valign="top" ><label>Endpoint</label></td>
-													<td  align="center" valign="top">:</td>
-													<td align="left" valign="top" height="60">
-														<input type="text" tabindex="2" maxlength="100" value="<?php if(isset($servicePath) && $servicePath != '') echo $servicePath;  ?>" id="service_path" name="service_path" class="input" style="width:370px;">
-														<!-- <span for="service_path" generated="true" class="error" style="display:none;"></span> -->
-													</td>
-												</tr>
-												<tr>
-													
-													<td align="left"  valign="top"><label>Module Name</label></td>
-													<td  align="center" valign="top">:</td>
-													<td align="left"  valign="top" >
-														<input type="text" tabindex="3" value="<?php if(isset($moduleName) && $moduleName != '') echo $moduleName;  ?>" id="module_name" name="module_name" class="input" style="width:370px;">
-													</td>
-												</tr>
-												<tr><td height="20"></td></tr>
-												<tr>
-													
-													<td align="left"  valign="top"><label>Aspects</label></td>
-													<td  align="center" valign="top">:</td>
-													<td align="left"  valign="top" >
-														<input type="text" tabindex="3" value="<?php if(isset($aspects) && $aspects != '') echo $aspects;  ?>" id="aspects" name="aspects" class="input" style="width:370px;">
-													</td>
-												</tr>
-												<tr><td height="20"></td></tr>
-												<tr>
-													
-													<td align="left"  valign="top"><label>Authorization</label></td>
-													<td  align="center" valign="top">:</td>
-													<td align="left"  valign="top" >
-														<input type="Radio" tabindex="4" name="authorization" id="authorization" value="1" <?php if(isset($authorization) && $authorization == '1' ) echo 'checked'; ?> >&nbsp;<label>Yes</label>&nbsp;&nbsp;<input type="Radio" tabindex="5"  name="authorization" id="authorization" value="0" <?php if(isset($authorization) && $authorization == '0' ) echo 'checked'; ?> >&nbsp;<label>No</label>&nbsp;&nbsp;
-													</td>
-												</tr>
-												<tr><td height="20"></td></tr>
-												<tr>
-													<td  align="left"  valign="top"><label>Method</label></td>
-													<td  align="center" valign="top">:</td>
-													<td align="left" valign="top" height="50">
-														<!-- <input type="text" value="<?php if(isset($method) && $method != '' ) echo $method; ?>" id="method" name="method" class="input"> -->
-														<select id="method" name="method" class="input" style="width:370px;" tabindex="6">
-															<option value="">Select Method</option>
-															<?php foreach($methodArray as $value) { ?>
-																<option value="<?php echo $value; ?>"<?php if(isset($method) && $method ==$value) { ?>selected<?php } ?>><?php echo $value; ?></option>
-															<?php } ?>
-														</select>
-														<!-- <span for="method" generated="true" class="error" style="display:none;"></span> -->
-													</td>
-												</tr>									
-												<tr class="inputParamDefault">
-													<td align="left" valign="top"><label>Input Param</label></td>
-													<td align="center" valign="top">:</td>
-													<td align="left"  valign="top" height="225">
-														<textarea rows="10" cols="45" tabindex="7" id="input_param" name="input_param"><?php if(isset($inputParam) && $inputParam != '' ) echo $inputParam; ?></textarea>
-														<!-- <span for="input_param" generated="true" class="error" style="display:none;"></span> -->
-														<div>(Separate param with new line)</div>
-													</td>
-												</tr>
-												<tr class="inputParamMultiple">
-													<td align="left" valign="top" style="padding-top:7px"><label>Input Param</label></td>
-													<td align="center" valign="top" style="padding-top:7px">:</td>
-													<td align="left" valign="top">
-														<table cellpadding="0" cellspacing="7" id="inputParam" border="0" width="100%" align="center">
-															<tr align="center">
-																<th width="23%" style="color:#494949;" align="left">Field Name</th>
-																<th width="23%" style="color:#494949;" align="left">Data</th>
-																<th width="10%" style="color:#494949;" align="left">Required</th>
-																<th width="36%" style="color:#494949;" align="left">Description</th>
-																<th width="4%"></th>
-																<th width="4%"></th>
-															</tr>
-															<?php for($index = 0;$index < $rowCount;$index++) {?>
-															<tr align="center" class="clone" clone="<?php echo $index;?>">
-																<td valign="top" align="left"><input type="text" name="field_name[]" class="input" tabindex="8" maxlength="100" value="<?php if(isset($fieldNameArr) && is_array($fieldNameArr)) echo htmlspecialchars($fieldNameArr[$index]);?>" style="width:160px"></td>
-																<td valign="top" align="left"><input type="text"  name="sample_data[]" class="input" tabindex="9" maxlength="100" value="<?php if(isset($sampleDataArr) && is_array($sampleDataArr)) echo htmlspecialchars($sampleDataArr[$index]);?>" style="width:160px"></td>
-																<td valign="top" align="left">
-																	<select name="required[]" tabindex="10">
-																		<option value="0" <?php if(isset($requiredArr) && is_array($requiredArr) && $requiredArr[$index] == 0) echo "selected";?>>No</option>
-																		<option value="1"<?php if(isset($requiredArr) && is_array($requiredArr) && $requiredArr[$index] == 1) echo "selected";?>>Yes</option>
-																	</select>
-																</td>
-																<td valign="top" align="left"><textarea rows="2" cols="32" tabindex="11" name="explanation[]"><?php if(isset($explanationArr) && is_array($explanationArr)) echo htmlspecialchars($explanationArr[$index]);?></textarea></td>
-																<td align="left"><a href="javascript:void(0)" onclick="addRow(this)"><img src="webresources/images/add.png" width="15" height="15" alt=""></a></td>
-																<td align="left"><a href="javascript:void(0)" onclick="delRow(this)"><img src="webresources/images/remove.png" width="15" height="15" alt=""></a></td>
-															</tr>
-															<?php }?>
-														</table>
-													</td>	
-												</tr>																			
-												<tr>
-													<td align="left"  valign="top"><label>Output Param</label></td>
-													<td align="center" valign="top">:</td>
-													<td align="left" width=""  valign="top" height="215">
-														<textarea rows="10" cols="45" tabindex="12" id="output_param" name="output_param"><?php if(isset($outputParam) && $outputParam != '' ) echo $outputParam;  ?></textarea>
-														<!-- <span for="output_param" generated="true" class="error" style="display:none;"></span> -->
-													</td>
-												</tr>																				
-												<tr>										
-													<td colspan="2">&nbsp;</td>
-													<td align="left">
-														<?php if(isset($_GET['editId']) && $_GET['editId'] != '' ){ ?>
-														<input type="submit" value="Save" id="Save" name="Save" class="submit" title="Save" alt="Save" tabindex="13">
-														<?php } else { ?>
-														<input type="submit" value="Add" id="Add" name="Add" class="submit" title="Add" alt="Add" tabindex="14">
-														<?php } ?>
-														<a href="ServiceList" class="submit" name="Back" id="Back" value="Back" title="Back" title="Back" tabindex="11">Back </a>
-													</td>
-												</tr> 
-												
-											</table>
-											 </form>	
-										</td>
-									</tr>
-								  
-								</table>
-						  	</div>
-						</td>
-					</tr>
-					<tr><td height="15"></td></tr>
-				</table>
-			</td>
-		</tr>
-	</table>
-</body>
+<body class="skin-blue" onload="return fieldfocus('process');">
+	<?php top_header(); ?>
+	<!-- Content Header (Page header) -->
+	<section class="content-header no-padding">
+		<div class="col-xs-12"> 
+			<h1><i class="fa <?php if(isset($_GET['editId']) && $_GET['editId'] != '' ) echo "fa-edit "; else echo 'fa-plus-circle ';?>"></i> <?php if(isset($_GET['editId']) && $_GET['editId'] != '' ) echo "Edit "; else echo 'Add ';?>Service</h1>
+		</div>
+	</section>
+	<!-- Main content -->
+	<section class="content">
+		<div class="row">
+			<form name="add_service_form" id="add_service_form" action="" method="post" >
+				<div class="col-md-12"> 
+					<div class="box box-primary"> 
+						<div class="col-md-12 no-padding">
+							<?php if(isset($error) && $error!='') {?> <div class="alert <?php echo $class;  ?> alert-dismissable col-lg-4  col-sm-5  col-xs-11 text-center"><i class="fa <?php echo $class_icon ;  ?>"></i>  <?php echo $error;  ?></div> <?php } ?>
+							<input type="Hidden" name="service_id" id="service_id" value="<?php if(isset($_GET['editId']) && $_GET['editId'] != '' ) echo $_GET['editId'];?>">
+						</div>
+						<div class="form-group col-sm-6">
+							<label>Purpose</label>
+							<input type="text" tabindex="1" maxlength="250" value="<?php if(isset($process) && $process != '') echo $process;  ?>" id="process" name="process" class="form-control" >
+						</div>
+						<div class="form-group col-sm-6">
+							<label>Endpoint</label>
+							<input type="text" tabindex="2" maxlength="100" value="<?php if(isset($servicePath) && $servicePath != '') echo $servicePath;  ?>" id="service_path" name="service_path" class="form-control" >
+						</div>
+						<div class="form-group col-sm-6 clear">
+							<label>Module Name</label>
+							<input type="text" tabindex="3" maxlength="100" value="<?php if(isset($moduleName) && $moduleName != '') echo $moduleName;  ?>" id="module_name" name="module_name" class="form-control" >
+						</div>
+						<div class="form-group col-sm-6">
+							<label>Aspects</label>
+							<input type="text" tabindex="4" maxlength="100" value="<?php if(isset($aspects) && $aspects != '') echo $aspects;  ?>" id="aspects" name="aspects" class="form-control" >
+						</div>
+						<div class="form-group col-sm-6 col-xs-12 clear">
+							<label class="notification col-xs-6   no-padding">Authorization</label>
+							<div class=" col-xs-6 no-padding clear">
+								<label class="col-xs-5 no-padding"><input type="Radio" value="1"  class=""  id="authorization"  name="authorization" <?php if(isset($authorization) && $authorization == '1' ) echo 'checked'; ?> > &nbsp;&nbsp;Yes</label>&nbsp;&nbsp;&nbsp;&nbsp;
+								<label class="col-xs-5 no-padding"><input type="Radio" value="0" id="authorization" name="authorization" <?php if(isset($authorization) && $authorization == '0') echo 'checked';?> > &nbsp;&nbsp;No</label>
+							</div>
+						</div>
+						
+						<div class="form-group col-sm-6">
+							<div class="col-xs-6 col-sm-6 col-md-5 no-padding">
+								<label>Method</label>
+								<div class="form-group col-md-12 col-lg-12 no-padding no-margin">
+									<select class="form-control" id="method" name="method">
+										<option value="">Select Method</option>
+										<?php foreach($methodArray as $value) { ?>
+										<option value="<?php echo $value; ?>"<?php if(isset($method) && $method ==$value) { ?>selected<?php } ?>><?php echo $value; ?></option>
+										<?php } ?>
+									</select>
+								</div>
+							</div>
+						</div>
+						<div class="form-group   col-md-6 col-sm-12 clear" id="inputParamDefault">
+							<label>Input Param</label>
+							<textarea rows="10" cols="45" tabindex="7" class="form-control" id="input_param" name="input_param"><?php if(isset($inputParam) && $inputParam != '' ) echo $inputParam; ?></textarea>
+							<p class="help-block">(Separate param with new line)</p>
+						</div>
+						<div class="form-group col-sm-12 clear" id="inputParamMultiple">
+							<label>Input Param</label>
+							<table cellpadding="0" cellspacing="7" id="inputParam" border="0" width="100%" align="center" class="table table-bordered no-margin">
+								<tr align="center">
+									<td width="23%" align="left"><strong>Field Name</strong></td>
+									<td width="23%"  align="left"><strong>Data</strong></td>
+									<td width="10%" align="left"><strong>Required</strong></td>
+									<td width="36%"  align="left"><strong>Description</strong></td>
+									<td width="4%"></td>
+									<td width="4%"></td>
+								</tr>
+								<?php for($index = 0;$index < $rowCount;$index++) {?>
+								<tr align="center" class="clone" clone="<?php echo $index;?>">
+									<td valign="top" align="left"><input type="text" name="field_name[]" class="form-control" tabindex="8" maxlength="100" value="<?php if(isset($fieldNameArr) && is_array($fieldNameArr)) echo htmlspecialchars($fieldNameArr[$index]);?>" ></td>
+									<td valign="top" align="left"><input type="text"  name="sample_data[]" class="form-control" tabindex="9" maxlength="100" value="<?php if(isset($sampleDataArr) && is_array($sampleDataArr)) echo htmlspecialchars($sampleDataArr[$index]);?>" ></td>
+									<td valign="top" align="left">
+										<select name="required[]" tabindex="10"  class="form-control">
+											<option value="0" <?php if(isset($requiredArr) && is_array($requiredArr) && $requiredArr[$index] == 0) echo "selected";?>>No</option>
+											<option value="1"<?php if(isset($requiredArr) && is_array($requiredArr) && $requiredArr[$index] == 1) echo "selected";?>>Yes</option>
+										</select>
+									</td>
+									<td valign="top" align="left"><textarea rows="2" cols="32" tabindex="11" class="form-control" name="explanation[]"><?php if(isset($explanationArr) && is_array($explanationArr)) echo htmlspecialchars($explanationArr[$index]);?></textarea></td>
+									<td class="text-center"><a href="javascript:void(0)" onclick="addRowWeb(this)"><i class="fa fa-plus-circle fa-lg"></i></a></td>
+									<td class="text-center"><a href="javascript:void(0)" onclick="delRowWeb(this)"><i class="fa fa-minus-circle fa-lg text-red"></i></a></td>
+								</tr>
+								<?php }?>
+							</table>
+						</div>
+						<div class="form-group  col-md-6 col-sm-12 clear">
+							<label>Output Param</label>
+							<textarea rows="10" cols="45" tabindex="12" id="output_param" class="form-control" name="output_param"><?php if(isset($outputParam) && $outputParam != '' ) echo $outputParam;  ?></textarea>
+						</div>
+						<div class="box-footer  col-xs-12" align="center">
+							<?php if(isset($_GET['editId']) && $_GET['editId'] != '' ){ ?>
+							<input type="submit" value="Save" id="Save" name="Save" class="btn btn-success" title="Save" alt="Save" tabindex="13">
+							<?php } else { ?>
+							<input type="submit" value="Add" id="Add" name="Add" class="btn btn-success" title="Add" alt="Add" tabindex="14">
+							<?php } ?>
+							&nbsp;&nbsp;&nbsp;&nbsp;<a href="ServiceList" class="btn btn-default" name="Back" id="Back" title="Back" alt="Back" >Back</a>	
+						</div>						
+				</div><!-- /.box -->
+			</div><!-- /.col -->
+			</form>	
+		</div><!-- /.row -->
+	</section><!-- /.content -->	
 <?php commonFooter(); ?>
 </html>
+<script type="text/javascript">
+	$(document).ready(function() {
+		var tabindex = $("#method").attr("tabindex");
+		settabindex(+tabindex+1);
+		showHideInputParam();
+		//For Method Change Event
+		$("#method").change(function() {
+			showHideInputParam();
+		});
+	});
+</script>

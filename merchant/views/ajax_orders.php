@@ -31,35 +31,40 @@ if(isset($_GET['orders']) && !empty($_GET['orders'])) {
 							$ordersClass	=	'two_item';
 						else if($value['TotalItems'] >= 3)
 							$ordersClass	=	'more_item';
-						$name = $value['FirstName'].' '.$value['FirstName'];
+						$name = ucfirst($value['FirstName']).' '.ucfirst($value['LastName']);
 			?>
 				<div class="col-md-3 col-sm-4 col-lg-2 col-xs-12">
-					<div class="small-box">									
-						<div class="col-xs-5 no-padding">
-							<a href="<?php echo $value['Photo']?>" class="fancybox" title="<?php echo $value['FirstName']."&nbsp;".$value['LastName']; ?>">
-								<img height="75" width="75" src="<?php echo $value['ThumbPhoto']?>" alt=""/>
-							</a>							
+					<div class="small-box ">		
+						<div class="col-xs-3 no-padding">	
+							<a href="<?php echo $value['Photo']?>" class="fancybox" title="<?php echo ucfirst($value['FirstName'])."&nbsp;".ucfirst($value['LastName']); ?>">
+								<img height="50" width="50" src="<?php echo $value['ThumbPhoto']?>" alt=""/>
+							</a>		
+							<?php if(!SERVER){ ?>
+								<!-- <a class="newWindow" href="PrintOrder?cs=1&printId=<?php echo  $value['OrderId']; ?>" title="print"><i class="fa fa-print"></i></a> -->
+								<a class="newWindow" title="View Products" href="OrderProductDetail?cs=1&orderId=<?php echo  $value['OrderId']; ?>"><i class="fa fa-search fa-lg" style=" font-size: 0.99em;vertical-align: 3%;" ></i></a>
+							<?php } ?>					
 						</div>					
-						<div class="col-xs-7">
-							<span data-toggle="tooltip" title="<?php echo $name; ?>"><?php echo displayText($name,7); ?></span>
+						<div class="col-xs-9">
+							<span data-toggle="tooltip" title="<?php echo $name; ?>"><?php echo displayText($name,17); ?></span>
+							<span class="help-block no-margin"><?php echo $value['Email']?></span>
 							<span class="help-block no-margin"><?php echo $value['UserId']?></span>
-							<span class="help-block no-margin"><?php echo time_ago($value['OrderDate']); ?></span>
-							<a class="newWindow" href="PrintOrder?cs=1&printId=<?php echo  $value['OrderId']; ?>" ><i class="fa fa-print"></i></a>
+							<span class="help-block no-margin"> <?php	echo time_ago($value['OrderDate']); ?> </span>
+							
 						</div>
 						<div class="col-xs-12 no-padding list_height <?php echo $ordersClass; ?>">
-							<div class="help-block text-center col-xs-12 no-padding "><?php echo $value['Email']?></div>
+							<!-- <div class="help-block text-center col-xs-12 no-padding "><?php echo $value['Email']?></div> -->
 							<?php if(!empty($value['Products'])) {											
 									foreach($value['Products'] as $key1=>$pro_val) {
 									if($key1 < 2) { ?>
 									
-									<div class="col-xs-8 no-padding"><?php echo  $pro_val['ItemName']?> </div>
-									<div class="col-xs-4 no-padding text-right"><?php echo ' $'.number_format($pro_val['TotalPrice'],2,'.',','); ?></div>
+									<div class="col-xs-8 no-padding" style="width: 56.667%;"><?php echo  $pro_val['ItemName']?> </div>
+									<div class="col-xs-4 no-padding text-right"><?php echo $pro_val['ProductsQuantity'].'&nbsp;&nbsp;&nbsp;'.price_fomat($pro_val['TotalPrice']); ?></div>
 										
 									<?php } else {  ?> 
 									
 									<div class="col-xs-12 no-padding otherItemsNew<?php echo $key;?>" style="display:none;">
-										<div class="col-xs-8 no-padding"><?php echo $pro_val['ItemName']; ?></div>
-										<div class="col-xs-4 no-padding text-right"><?php echo ' $'.number_format($pro_val['TotalPrice'],2,'.',','); ?></div>
+										<div class="col-xs-8 no-padding" style="width: 56.667%;"><?php echo  $pro_val['ItemName']?> </div>
+										<div class="col-xs-4 no-padding text-right"><?php echo $pro_val['ProductsQuantity'].'&nbsp;&nbsp;&nbsp;'.price_fomat($pro_val['TotalPrice']); ?></div>
 									</div>
 							<?php } } ?>
 								<div class="text-center col-xs-12 no-padding " <?php if(count($value['Products']) <= 2) {  ?>style="visibility:hidden;"<?php } ?>><a style="cursor:pointer" id="linkNew<?php echo $key; ?>" onclick="return showAllItems('New<?php echo $key; ?>');">Show all items</a></div>

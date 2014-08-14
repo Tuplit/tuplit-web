@@ -1,7 +1,4 @@
 <?php 
-error_reporting(E_ALL);
-require_once('includes/commonincludes.php');
-merchant_login_check();
 $dataArray = array();
 $error_div = 0;
 $cur_month = date('m');
@@ -32,17 +29,26 @@ if(isset($_POST['sort_field']) && $_POST['sort_field']!='') {
 
 $url					=	WEB_SERVICE.'v1/merchants/productAnalysis/?Start=0&Limit=0&Type='.$trans_type.'&DataType='.$date_type.'&StartDate='.$curr_date.'&EndDate='.$last_date.'&Sort='.$sort_type.'&Field='.$sort_field.'';
 $curlProductResponse 	= 	curlRequest($url, 'GET', null, $_SESSION['merchantInfo']['AccessToken']);
-//echo "<pre>"; print_r($curlProductResponse ); echo "</pre>";die();
 if(isset($curlProductResponse) && is_array($curlProductResponse) && $curlProductResponse['meta']['code'] == 201 && is_array($curlProductResponse['ProductAnalytics']) ) {
-	if(isset($curlProductResponse['ProductAnalytics'])){
-		$product_array	 = $curlProductResponse['ProductAnalytics'];	
+	if(isset($curlProductResponse['ProductAnalytics']['result'])){
+		$product_array	 	= $curlProductResponse['ProductAnalytics']['result'];	
 	}
 } else if(isset($curlProductResponse['meta']['errorMessage']) && $curlProductResponse['meta']['errorMessage'] != '') {
 		$errorMessage	=	$curlProductResponse['meta']['errorMessage'];
 } else {
 		$errorMessage	= 	"Bad Request";
 } 
-
+$chart_url					=	WEB_SERVICE.'v1/merchants/productAnalysis/?Start=0&Limit=0&DataType='.$date_type.'&StartDate='.$curr_date.'&EndDate='.$last_date.'';
+$curlChartResponse 			= 	curlRequest($chart_url, 'GET', null, $_SESSION['merchantInfo']['AccessToken']);
+if(isset($curlChartResponse) && is_array($curlChartResponse) && $curlChartResponse['meta']['code'] == 201 && is_array($curlChartResponse['ProductAnalytics']) ) {
+	if(isset($curlChartResponse['ProductAnalytics']['pieChart'])){
+		$pie_chart_array	= $curlChartResponse['ProductAnalytics']['pieChart'];	
+	}
+} else if(isset($curlChartResponse['meta']['errorMessage']) && $curlChartResponse['meta']['errorMessage'] != '') {
+		$errorMessage	=	$curlChartResponse['meta']['errorMessage'];
+} else {
+		$errorMessage	= 	"Bad Request";
+} 
 if($date_type != '') {
 	if(isset($product_array) && is_array($product_array) && count($product_array)>0) {
 		$orderStringArray = getStringForDayProduct($product_array);

@@ -12,6 +12,9 @@ $MerchantObj   =   new MerchantController();
 $condition = $companyname = $user_id =  $mer_id = $cond = '';
 $show = 0;
 $username = $merchantname  = $userimage = $merchantimage = '';
+
+$orderedMerchants	=	$MerchantObj->merchantOrders();
+//echo "<pre>"; echo print_r($orderedMerchants); echo "</pre>";
 if(isset($_GET['cs']) && $_GET['cs']=='1') {
 	destroyPagingControlsVariables();
 	unset($_SESSION['tuplit_sess_order_user_name']);
@@ -28,7 +31,7 @@ if(isset($_GET['mer_id']) && !empty($_GET['mer_id'])) {
 	$merchantwhere = ' id ='.$_GET['mer_id'];	
 	$merchantdetailarray = $MerchantObj->selectMerchantDetails("CompanyName,Icon",$merchantwhere);
 if(isset($merchantdetailarray) && is_array($merchantdetailarray) && count($merchantdetailarray) > 0){
-	$merchantname = $merchantdetailarray[0]->CompanyName;
+	$merchantname = ucfirst($merchantdetailarray[0]->CompanyName);
 	$icon_image_path = '';
 	$merchant_image = $merchantdetailarray[0]->Icon;
 	$icon_image_path = ADMIN_IMAGE_PATH.'no_user.jpeg';
@@ -54,7 +57,7 @@ if(isset($_GET['user_id']) && !empty($_GET['user_id'])) {
 	$condition .= ' and u.id='.$_GET['user_id'];
 	$cond  = ' and fkUsersId ='.$_GET['user_id'];
 	$userwhere = ' id ='.$_GET['user_id'];
-	$userfind = "concat(FirstName , ' ',LastName) as UserName,Photo ";
+	$userfind = "FirstName,LastName,Photo ";
 	$userdetailarray = $UserObj->selectUserDetails($userfind,$userwhere);
 	if(isset($userdetailarray) && is_array($userdetailarray) && count($userdetailarray) > 0){
 		$image_path = '';
@@ -76,7 +79,7 @@ if(isset($_GET['user_id']) && !empty($_GET['user_id'])) {
 					$image_path = USER_THUMB_IMAGE_PATH.$user_image;
 			}
 		}
-		$username = $userdetailarray[0]->UserName;
+		$username = ucfirst($userdetailarray[0]->FirstName).' '.ucfirst($userdetailarray[0]->LastName);
 		if(isset($image_path) && $image_path != ''){
 			$userimage =  "<img  width='50' height='50'  class='img_border' src='".$image_path."' >";		
 			}	
@@ -107,7 +110,7 @@ if(isset($_GET['editId']) && $_GET['editId']!=''){
 	header("location:OrderList?msg=4");
 }
 setPagingControlValues('id',ADMIN_PER_PAGE_LIMIT);
-$fields    = " o.*,m.CompanyName,m.Icon,concat(u.FirstName , ' ',u.LastName) as UserName,u.Photo ";
+$fields    = " o.*,m.CompanyName,m.Icon,u.FirstName,u.LastName,u.Photo ";
 $condition .= " and o.Status in (1,2)";
 $OrderListResult  = $OrderObj->getOrderList($fields,$condition);
 $tot_rec 		 = $OrderObj->getTotalRecordCount();
@@ -199,51 +202,7 @@ if(isset($OverallOrderList) && is_array($OverallOrderList) && count($OverallOrde
 	</section>	
 	 <!-- Main content -->
 	<section class="content">
-		<div class="row">
-			<div class="col-xs-12">
-				<form name="search_merchant" action="OrderList<?php if($show == 1) echo "?mer_id=".$mer_id."&cs=1"; else if($show == 2) echo "?user_id=".$user_id."&cs=1";?>" method="post">
-				<div class="box box-primary">
-					<div class="box-body no-padding" >	
-						<?php if($show != 2) {?>			
-						<div class="col-sm-4 form-group">
-							<label>User Name</label>
-							<input type="text" class="form-control" name="UserName" id="UserName"  value="<?php  if(isset($_SESSION['tuplit_sess_order_user_name']) && $_SESSION['tuplit_sess_order_user_name'] != '') echo unEscapeSpecialCharacters($_SESSION['tuplit_sess_order_user_name']);  ?>" >
-						</div>
-						<?php }?>
-						<?php if($show != 1) {?>
-						<div class="col-sm-4 form-group">
-							<label>Merchant Name</label>
-							<input type="text" class="form-control" id="merchantname" name="merchantname"  value="<?php if(isset($_SESSION['tuplit_sess_order_company_name']) && $_SESSION['tuplit_sess_order_company_name'] != '') echo unEscapeSpecialCharacters($_SESSION['tuplit_sess_order_company_name']); ?>" >
-						</div>
-						<?php }?>
-						<div class="col-sm-4 col-lg-2 form-group">
-							<label>Price</label>
-							<input type="text" class="form-control" id="price" name="price"  value="<?php if(isset($_SESSION['tuplit_sess_order_price']) && $_SESSION['tuplit_sess_order_price'] != '') echo unEscapeSpecialCharacters($_SESSION['tuplit_sess_order_price']);  ?>" >
-						</div>	
-						<div class="col-sm-4 col-lg-2 form-group">
-							<label>Transaction ID</label>
-							<input type="text" class="form-control" id="trans_id" name="trans_id"  value="<?php if(isset($_SESSION['tuplit_sess_trans_id']) && $_SESSION['tuplit_sess_trans_id'] != '') echo unEscapeSpecialCharacters($_SESSION['tuplit_sess_trans_id']);  ?>" >
-						</div>	
-						<div class="col-sm-4 col-lg-2 form-group">
-							<label>Order Status</label>
-							<select name="order_status" id="order_status" class="form-control col-sm-4">
-								<option value="">Select</option>
-								<?php if(isset($order_status_array) && is_array($order_status_array) && count($order_status_array) > 0 ) { 
-										foreach($order_status_array as $orderkey=>$ordervalue) { ?>
-								<option value="<?php echo $orderkey;?>" <?php if(isset($_SESSION['tuplit_sess_order_status']) && $_SESSION['tuplit_sess_order_status'] == $orderkey && $_SESSION['tuplit_sess_order_status'] != '') echo 'selected';?> ><?php echo $ordervalue; ?></option>
-								<?php } } ?>
-							</select>
-						</div>
-					</div>
-					<div class="box-footer col-sm-12" align="center">
-						<input type="submit" class="btn btn-success" name="Search" id="Search" value="Search">
-					</div>					
-				</div>
-				</form>
-			</div>
-		</div>
-	
-	<?php if(isset($OverallOrderList) && is_array($OverallOrderList) && count($OverallOrderList) > 0){?>
+		<?php if(isset($OverallOrderList) && is_array($OverallOrderList) && count($OverallOrderList) > 0){?>
 		<div class="row">	
 			<div class="col-xs-12">	
 			<div class="box box-solid bg-green col-xs-12">
@@ -308,8 +267,57 @@ if(isset($OverallOrderList) && is_array($OverallOrderList) && count($OverallOrde
 			</div>	
 		</div>
 	<?php }?>
-		
-
+	
+		<div class="row">
+			<div class="col-xs-12">
+				<form name="search_merchant" action="OrderList<?php if($show == 1) echo "?mer_id=".$mer_id."&cs=1"; else if($show == 2) echo "?user_id=".$user_id."&cs=1";?>" method="post">
+				<div class="box box-primary">
+					<div class="box-body no-padding" >	
+						<?php if($show != 2) {?>			
+						<div class="col-sm-4 form-group">
+							<label>User Name</label>
+							<input type="text" class="form-control" name="UserName" id="UserName"  value="<?php  if(isset($_SESSION['tuplit_sess_order_user_name']) && $_SESSION['tuplit_sess_order_user_name'] != '') echo unEscapeSpecialCharacters($_SESSION['tuplit_sess_order_user_name']);  ?>" >
+						</div>
+						<?php }?>
+						<?php if($show != 1) { ?>
+						<div class="col-sm-4 form-group">
+							<label>Merchant Name</label>
+							<!--<input type="text" class="form-control" id="merchantname" name="merchantname"  value="<?php if(isset($_SESSION['tuplit_sess_order_company_name']) && $_SESSION['tuplit_sess_order_company_name'] != '') echo unEscapeSpecialCharacters($_SESSION['tuplit_sess_order_company_name']); ?>" >-->
+							<select name="merchantname" id="merchantname" class="form-control col-sm-4">
+								<option value="">Select</option>
+								<?php if(isset($orderedMerchants) && is_array($orderedMerchants) && count($orderedMerchants) > 0 ) { 
+										foreach($orderedMerchants as $ordervalue) { ?>
+								<option value="<?php echo $ordervalue->CompanyName;?>" <?php if(isset($_SESSION['tuplit_sess_order_company_name']) && $_SESSION['tuplit_sess_order_company_name'] == $ordervalue->CompanyName && $_SESSION['tuplit_sess_order_company_name'] != '') echo 'selected';?> ><?php echo $ordervalue->CompanyName; ?></option>
+								<?php } } ?>
+							</select>
+						</div>
+						<?php }?>
+						<div class="col-sm-4 <?php if($show == 1 ) {?>col-sm-2 <?}?>  col-lg-2 form-group"> <!--  if($show == 1)  for popup only -->
+							<label>Price</label>
+							<input type="text" class="form-control" id="price" name="price"  value="<?php if(isset($_SESSION['tuplit_sess_order_price']) && $_SESSION['tuplit_sess_order_price'] != '') echo unEscapeSpecialCharacters($_SESSION['tuplit_sess_order_price']);  ?>" >
+						</div>	
+						<div class="col-sm-4  <?php if($show == 1 ) {?>col-sm-3<? }?> col-lg-2 form-group"> <!--  if($show == 1)  for popup only -->
+							<label>Transaction ID</label>
+							<input type="text" class="form-control" id="trans_id" name="trans_id"  value="<?php if(isset($_SESSION['tuplit_sess_trans_id']) && $_SESSION['tuplit_sess_trans_id'] != '') echo unEscapeSpecialCharacters($_SESSION['tuplit_sess_trans_id']);  ?>" >
+						</div>	
+						<div class="col-sm-4  <?php if($show == 1 ) {?>col-sm-2 <? }?>  col-lg-2 form-group"> <!--  if($show == 1)  for popup only -->
+							<label>Order Status</label>
+							<select name="order_status" id="order_status" class="form-control col-sm-4">
+								<option value="">Select</option>
+								<?php if(isset($order_status_array) && is_array($order_status_array) && count($order_status_array) > 0 ) { 
+										foreach($order_status_array as $orderkey=>$ordervalue) { ?>
+								<option value="<?php echo $orderkey;?>" <?php if(isset($_SESSION['tuplit_sess_order_status']) && $_SESSION['tuplit_sess_order_status'] == $orderkey && $_SESSION['tuplit_sess_order_status'] != '') echo 'selected';?> ><?php echo $ordervalue; ?></option>
+								<?php } } ?>
+							</select>
+						</div>
+					</div>
+					<div class="box-footer col-sm-12" align="center">
+						<input type="submit" class="btn btn-success" name="Search" id="Search" value="Search">
+					</div>					
+				</div>
+				</form>
+			</div>
+		</div>
 	
 	
 		<div class="row paging">
@@ -343,7 +351,7 @@ if(isset($OverallOrderList) && is_array($OverallOrderList) && count($OverallOrde
                <div class="col-xs-12">
 			   	<?php if(isset($OrderListResult) && is_array($OrderListResult) && count($OrderListResult) > 0 ) { ?>
 				<form action="OrderList" class="l_form" name="OrderList" id="OrderList"  method="post">
-                   <div class="box">
+                   <div class="box <?php if($show == 1) {?> height-control <?}?>"> <!--  if($show == 1)  for popup only -->
                        <div class="box-body table-responsive no-padding">
                            <table class="table table-hover">
                                <tr>
@@ -387,13 +395,13 @@ if(isset($OverallOrderList) && is_array($OverallOrderList) && count($OverallOrde
 						   <td>
 								<?php if(isset($image_path) && $image_path != ''){ ?>
 									<div class=" col-sm-4  col-lg-3  no-padding">
-										<a <?php if(isset($image_path) && basename($image_path) != "no_user.jpeg") { ?>href="<?php echo $original_path; ?>" class="fancybox" title="<?php echo  ucfirst($value->UserName);?>" <?php } ?> > 
+										<a <?php if(isset($image_path) && basename($image_path) != "no_user.jpeg") { ?>href="<?php echo $original_path; ?>" class="fancybox" title="<?php echo  ucfirst($value->FirstName).' '.ucfirst($value->LastName);?>" <?php } ?> > 
 											<img id="<?php echo $value->id ;?>"  width="36" height="36" align="top" class="img_border" src="<?php echo $image_path;?>" >
 										</a>
 									</div>
 								<?php } ?>
 									<div class="col-xs-9  col-sm-8 col-lg-9 no-padding" nowrap> 								
-										<?php if(isset($value->UserName) && $value->UserName != ''){ echo ucfirst($value->UserName); } ?>								
+										<?php echo  ucfirst($value->FirstName).' '.ucfirst($value->LastName);?>								
 									
 										
 									</div>

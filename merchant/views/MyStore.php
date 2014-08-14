@@ -1,6 +1,17 @@
 <?php
 require_once('includes/CommonIncludes.php');
 merchant_login_check();
+
+if(isset($_GET['ajax']) && $_GET['ajax'] == 1) {
+	$img = $_POST['img'];
+	$img = str_replace('data:image/png;base64,', '', $img);
+	$img = str_replace(' ', '+', $img);
+	$data = base64_decode($img);
+	$file = TEMP_IMAGE_PATH_REL . $_POST['id'] . 'mystore.png';
+	$success = file_put_contents($file, $data);
+	print $success ? $file : 'Unable to save the file.';
+}
+
 $merchantCategory = array();
 global $days_array;
 $merchantId					= 	$_SESSION['merchantInfo']['MerchantId'];
@@ -252,12 +263,12 @@ commonHead();
 							<span class="col-sm-4 control-label no-padding">
 								<div class="col-xs-5 col-md-5 no-padding">
 									<div class="col-xs-2 col-md-2 no-padding LH30">$</div>
-									<div class="col-xs-9 col-md-10 no-padding"><input type="Text" onchange="price_val(this.value);" maxlength="7" name="min_price" value="<?php echo $min_val;?>" id="min_price" onkeypress="return isNumberKey_price(event);" class="form-control"></div>
+									<div class="col-xs-9 col-md-10 no-padding"><input type="Text" onchange="price_val(this.value);" maxlength="7" name="min_price" value="<?php if(isset($min_val)) echo $min_val;?>" id="min_price" onkeypress="return isNumberKey_price(event);" class="form-control"></div>
 								</div>
 								<div class="col-xs-1 col-md-2 no-padding LH30" align="center"><strong>to</strong></div>
 								<div class="col-xs-5 col-md-5 no-padding">
 									<div class="col-xs-2 col-md-2 no-padding LH30">$</div>
-									<div class="col-xs-9 col-md-10 no-padding"><input type="Text" onchange="price_val(this.value);" maxlength="7" name="max_price" value="<?php echo $max_val;?>" id="max_price" onkeypress="return isNumberKey_price(event);" class="form-control"></div>
+									<div class="col-xs-9 col-md-10 no-padding"><input type="Text" onchange="price_val(this.value);" maxlength="7" name="max_price" value="<?php if(isset($min_val)) echo $max_val;?>" id="max_price" onkeypress="return isNumberKey_price(event);" class="form-control"></div>
 								</div>
 								<input  type="hidden" id="priceValidation" name="priceValidation" value="">
 							</span>
@@ -265,6 +276,7 @@ commonHead();
 						<div class="form-group col-sm-12 col-sm-12">
 							<label class="col-sm-8 control-label no-padding">Discount Scheme</label>
 							<div class="col-sm-4 control-label no-padding">
+								<div class=" col-sm-5 no-padding">
 								<select class="form-control" id="DiscountTier" name="DiscountTier" onclick="selectPrice(this.value,'<?php if(isset($ProductsArray) && count($ProductsArray) > 0) echo "1"; else echo "0"; ?>');">
 									<option value="" >Select
 									<?php if(isset($discountTierArray) && is_array($discountTierArray) && count($discountTierArray) > 0) {
@@ -273,6 +285,7 @@ commonHead();
 									<option value="<?php echo $key; ?>" <?php if(isset($merchantInfo['DiscountTier']) &&  $merchantInfo['DiscountTier'] == $value.'%' ) echo 'selected';?>><?php echo $value.'%'; ?>
 									<?php } } ?>
 								</select>
+								</div>
 							</div>
 						</div>
 						<div class="form-group col-sm-12 col-md-12">
@@ -281,10 +294,12 @@ commonHead();
 								<p class="help-block col-sm-12 no-padding">(dimension 100x100)</p>
 							</div>
 							<div class="col-sm-4 col-md-4 no-padding">
-								<input type="file"  name="icon_photo" id="icon_photo" onchange="return ajaxAdminFileUploadProcess('icon_photo');"  /> 
+								<div class="col-xs-12 no-padding"><input type="file"  name="icon_photo" id="icon_photo" onchange="return ajaxAdminFileUploadProcess('icon_photo');"  /><br>
 								<span class="error" for="empty_merchant_photo" generated="true" style="display: none">Icon is required</span>
-								<div class="col-xs-4 no-padding text-center" >
-							      <div id="icon_photo_img" class="text-left">
+								 </div>
+								
+								<div class="col-xs-12 no-padding text-left" >
+							      <div id="icon_photo_img" class="">
 									 <?php 
 									 if(!empty($merchantInfo['Icon'])) { 
 										 $image_path = $merchantInfo['Icon'];
@@ -307,9 +322,11 @@ commonHead();
 								<p class="help-block col-sm-12 no-padding">(dimension 640x260)</p>
 							</div>
 							<div class="col-sm-4 col-md-4 no-padding">
-								<input type="file"  name="merchant_photo" id="merchant_photo" onclick="" onchange="return ajaxAdminFileUploadProcess('merchant_photo');"   /> 
+								<div class="col-xs-12 no-padding"><input type="file"  name="merchant_photo" id="merchant_photo" onclick="" onchange="return ajaxAdminFileUploadProcess('merchant_photo');"   /><br>
 								<span class="error" for="empty_merchant_photo" generated="true" style="display: none">Image is required</span>
-								<div class="col-xs-10 no-padding"> 
+								</div>
+								
+								<div class="col-xs-12 no-padding"> 
 									  <div id="merchant_photo_img" class="text-left">
 										 <?php 
 										 if(!empty($merchantInfo['Image'])) { 
@@ -333,86 +350,38 @@ commonHead();
 							<p class="help-block no-padding">Upload upto 10 pictures(resolution is 1000*350 pixels, bigger images will scaled down automatically)</p>
 
 
-							<div class="row">
-								<div class="col-sm-6 col-xs-12 form-group">
-										<div class="col-xs-1 no-padding">1.</div>
-										<div class="col-xs-11 no-padding" align="center">
-											<div  class="photo_gray_bg">
-												<img style="vertical-align:top" class="resize" src="<?php SITE_PATH;?>webresources/images/no_photo_my_store.png" width="330" height="160" alt="">
-												<!-- upload image place it here -->
-												<!-- <img style="vertical-align:top" class="" src="<?php SITE_PATH;?>webresources/images/banner1.jpg" width="330" height="160" alt=""> -->
-											</div>
-										</div>
-										<div class="col-xs-12">&nbsp;</div>
-										
-										<div class="col-xs-2 col-md-1 clear">&nbsp;</div>
-										<div class="col-xs-10 col-md-11" align="center">
-											<input type="button" name="" id="" value="Delete" title="Delete" class="box-center btn btn-danger  col-xs-10">
-										</div>
-								</div>
-								
-								<div class="col-sm-6 col-xs-12 form-group">
-										<div class="col-xs-1 no-padding">2.</div>
-										<div class="col-xs-11 no-padding" align="center">
-											<div  class="photo_gray_bg">
-											<img style="vertical-align:top" class="resize" src="<?php SITE_PATH;?>webresources/images/no_photo_my_store.png" width="330" height="160" alt="">
-											</div>
-										</div>
-										<div class="col-xs-12">&nbsp;</div>
-										
-										<div class="col-xs-2 col-md-1 clear">&nbsp;</div>
-										<div class="col-xs-10 col-md-11" align="center">
-											<input type="button" name="" id="" value="Delete" title="Delete" class="box-center btn btn-danger  col-xs-10">
-										</div>
-								</div>
-							</div>
-							
-							<div class="row">
-								<div class="col-sm-6 col-xs-12 form-group">
-										<div class="col-xs-1 no-padding">3.</div>
-										<div class="col-xs-11 no-padding" align="center">
-											<div  class="photo_gray_bg">
-												<img style="vertical-align:top" class="resize" src="<?php SITE_PATH;?>webresources/images/no_photo_my_store.png" width="330" height="160" alt="">
-												<!-- upload image place it here -->
-												<!-- <img style="vertical-align:top" class="" src="<?php SITE_PATH;?>webresources/images/banner1.jpg" width="330" height="160" alt=""> -->
-											</div>
-										</div>
-										<div class="col-xs-12">&nbsp;</div>
-										
-										<div class="col-xs-2 col-md-1 clear">&nbsp;</div>
-										<div class="col-xs-10 col-md-11" align="center">
-											<input type="button" name="" id="" value="Delete" title="Delete" class="box-center btn btn-danger  col-xs-10">
-										</div>
-								</div>
-								
-								<div class="col-sm-6 col-xs-12 form-group">
-										<div class="col-xs-1 no-padding">4.</div>
-										<div class="col-xs-11 no-padding" align="center">
-											<div  class="photo_gray_bg_light">
-												<img style="vertical-align:top" class="resize" src="<?php SITE_PATH;?>webresources/images/no_photo_my_store.png" width="330" height="160" alt="">
-												
-												<!-- upload image place it here -->
-												<!-- <img style="vertical-align:top" class="" src="<?php SITE_PATH;?>webresources/images/banner1.jpg" width="330" height="160" alt=""> -->
-											</div>
+							<div class="row">	
+								<div class="col-sm-6 col-xs-12 form-group" id='temp0'>
+									<div class="col-xs-1 no-padding" id="imgcount">1.</div>
+									<div class="col-xs-11 no-padding" align="center" id="drop-files" ondragover="return false">
+										<div  class="photo_gray_bg_light" >
+											<img style="vertical-align:top" class="resize" id="imgdrag" src="<?php SITE_PATH;?>webresources/images/no_photo_my_store.png" width="330" height="160" alt="">
 											
-											<div class="drag_pos" id="holder">
-												Drag & drop an image or
-												<span>
-												choose a file to upload
-												<input type="file">
-												</span>
-											</div>
-											
+											<!-- upload image place it here -->
+											<!-- <img style="vertical-align:top" class="" src="<?php SITE_PATH;?>webresources/images/banner1.jpg" width="330" height="160" alt=""> -->
 										</div>
-										<div class="col-xs-12">&nbsp;</div>
 										
-										<div class="col-xs-2 col-md-1 clear">&nbsp;</div>
-										<div class="col-xs-10 col-md-11" align="center">
-											<input type="button" name="" id="" value="Upload" title="Upload" class="box-center btn btn-success  col-xs-10">
+										<div class="drag_pos" id="holder">
+											Drag & drop an image or
+											<span>
+											choose a file to upload
+											<input type="file" name="myStore" id="myStore" onchange="return ajaxAdminFileUploadProcess('myStore');" >
+											</span>
 										</div>
-								</div>
-							</div>
-							
+										
+									</div>
+									<div class="col-xs-12">&nbsp;</div>
+									
+									<div class="col-xs-2 col-md-1 clear">&nbsp;</div>
+									<div class="col-xs-10 col-md-11" align="center">
+										<!--<input type="button" name="Upload" id="Upload" value="Upload" title="Upload" class="box-center btn btn-success  col-xs-10">-->
+									</div>
+								</div>								
+							</div>							
+							<input type='hidden' id="totalImage" name="totalImage" value="0" />
+							<input type='hidden' id="uploadImage" name="uploadImage" value="" />
+							<input type='hidden' id="dragImage" name="dragImage" value="" />
+							<input type='hidden' id="dragImageValues" name="dragImageValues" value="" />
 						</div>
 						<div class="form-group col-sm-12 col-md-12">
 							<label class="col-sm-12 control-label no-padding border-right"><span>More Info</span><em></em></label>
@@ -425,20 +394,20 @@ commonHead();
 							<div class="form-group col-sm-3 col-md-2 no-padding"><input type="button" title="Use my location" value="Use my location" class="btn bg-olive btn-md " /></div>
 						
 							<div class="col-sm-9 col-md-10 no-padding">
-								<div class="show-grid form-group col-sm-7 no-padding">
+								<div class="show-grid form-group col-sm-9 no-padding">
 									<div class="form-group col-sm-12 no-padding"><input type="text"  id="Street" name="Street" value="<?php if(isset($merchantInfo['Address']) && !empty($merchantInfo['Address'])) echo $merchantInfo['Address'];?>" placeholder="Street Address" class="form-control"></div>
 									<div class="form-group col-sm-7 no-padding"><input type="text"  id="City" name="City" value="<?php if(isset($merchantInfo['City']) && !empty($merchantInfo['City'])) echo $merchantInfo['City'];?>" placeholder="City" class="form-control"></div>
 									<div class="form-group col-sm-5 no-padding-right"><input type="text"  id="ZipCode" name="ZipCode" value="<?php if(isset($merchantInfo['PostCode']) && !empty($merchantInfo['PostCode'])) echo $merchantInfo['PostCode'];?>" placeholder="ZIP" class="form-control"></div>
 									<div class="form-group col-sm-12 no-padding"><input type="text"  id="State" name="State" value="<?php if(isset($merchantInfo['State']) && !empty($merchantInfo['State'])) echo $merchantInfo['State'];?>" placeholder="State" class="form-control"></div>	
 									<div class="form-group col-sm-12 no-padding"><input type="text"  id="Country" name="Country" value="<?php if(isset($merchantInfo['Country']) && !empty($merchantInfo['Country'])) echo $merchantInfo['Country'];?>" placeholder="Country" class="form-control"></div>	
 								</div>
-								<div class="show-grid form-group col-sm-7 no-padding">
+								<div class="show-grid form-group col-sm-9 no-padding">
 									<div class="form-group col-sm-12 no-padding"><input type="text"  id="Phone" name="Phone" value="<?php if(isset($merchantInfo['PhoneNumber']) && !empty($merchantInfo['PhoneNumber'])) echo $merchantInfo['PhoneNumber'];?>" placeholder="Phone" class="form-control"></div>	
 									<div class="form-group col-sm-12 no-padding"><input type="text"  id="Email" name="Email" value="<?php if(isset($merchantInfo['Email']) && !empty($merchantInfo['Email'])) echo $merchantInfo['Email'];?>" placeholder="Email" class="form-control"></div>	
 									<div class="form-group col-sm-12 no-padding"><input type="text"  id="Website" name="Website" value="<?php if(isset($merchantInfo['WebsiteUrl']) && !empty($merchantInfo['WebsiteUrl'])) echo $merchantInfo['WebsiteUrl'];?>" placeholder="Website" class="form-control"></div>
 								</div>
-								<div class="form-group col-sm-7 no-padding"><input type="text"  id="Facebook" name="Facebook" value="<?php if(isset($merchantInfo['FBId']) && !empty($merchantInfo['FBId'])) echo $merchantInfo['FBId'];?>" placeholder="Facebook" class="form-control"></div>	
-								<div class="form-group col-sm-7 no-padding"><input type="text"  id="Twitter" name="Twitter" value="<?php if(isset($merchantInfo['TwitterId']) && !empty($merchantInfo['TwitterId'])) echo $merchantInfo['TwitterId'];?>" placeholder="Twitter" class="form-control"></div>													
+								<div class="form-group col-sm-9 no-padding"><input type="text"  id="Facebook" name="Facebook" value="<?php if(isset($merchantInfo['FBId']) && !empty($merchantInfo['FBId'])) echo $merchantInfo['FBId'];?>" placeholder="Facebook" class="form-control"></div>	
+								<div class="form-group col-sm-9 no-padding"><input type="text"  id="Twitter" name="Twitter" value="<?php if(isset($merchantInfo['TwitterId']) && !empty($merchantInfo['TwitterId'])) echo $merchantInfo['TwitterId'];?>" placeholder="Twitter" class="form-control"></div>													
 								<!-- <div class="form-group col-sm-7 no-padding"><input type="text"  id="TimeCheck24" name="TimeCheck24" value="" placeholder="HH:MM:SS" class="form-control"></div>													
 								<div class="form-group col-sm-7 no-padding"><input type="text"  id="TimeCheck" name="TimeCheck" value="" placeholder="HH:MM AM/PM" class="form-control"></div>		 -->											
 							</div>
@@ -532,6 +501,7 @@ function price_val(val){
   //document.ready
 showCategory('<?php if(isset($newCategory) && $newCategory>0) echo $newCategory;?>');
 $(document).ready(function() {
+
 	$('.icon_fancybox').fancybox();	
 	$('.image_fancybox').fancybox();
 	if($("#min_price").val() > 0)
@@ -539,5 +509,88 @@ $(document).ready(function() {
 	else
 		price_val($("#max_price").val());
 
+
+	// Makes sure the dataTransfer information is sent when we
+	// Drop the item in the drop box.
+	jQuery.event.props.push('dataTransfer');
+	
+	// Get all of the data URIs and put them in an array
+	var dataArray = [];
+	
+	// Bind the drop event to the drop zone.
+	$('#drop-files').bind('drop', function(e) {
+		if(dataArray.length < 10) {
+			var files = e.dataTransfer.files;
+			// For each file
+			$.each(files, function(index, file) {
+				// Some error messaging
+				if (!files[index].type.match('image.*')) {
+					alert('Hey! Images only');
+					return false;
+				}
+				
+				// Start a new instance of FileReader
+				var fileReader = new FileReader();
+				// When the file reader loads initiate a function
+				fileReader.onload = (function(file) {				
+										return function(e) { 					
+											// Push the data URI into an array
+											dataArray.push({name : file.name, value : this.result});
+											index =	dataArray.length - 1;
+											
+											orgtotalImage	=	parseInt($('#totalImage').val());
+											totalImage	=	orgtotalImage + 1;
+											$('#totalImage').val(totalImage);
+											imgcount	=	totalImage + 1;
+											
+											dragimg	=	$('#dragImage').val()
+											if(dragimg != '') 
+												$('#dragImage').val(dragimg+','+totalImage)
+											else
+												$('#dragImage').val(totalImage)
+												
+											dragImageValues	=	$('#dragImageValues').val()
+											if(dragImageValues != '') 
+												$('#dragImageValues').val(dragImageValues+'######'+this.result)
+											else
+												$('#dragImageValues').val(this.result)
+											
+											imgcontent	=	'<div class="col-sm-6 col-xs-12 form-group" id="temp'+totalImage+'"><div class="col-xs-1 no-padding">'+totalImage+'.</div><div class="col-xs-11 no-padding" align="center">';
+											imgcontent	+=	'<div  class="photo_gray_bg"><img style="vertical-align:top" class="resize" src="'+this.result+'" height="160" alt=""></div></div>';
+											if(totalImage == 10) {
+												imgcontent	+=	'<div class="col-xs-12">&nbsp;</div><div class="col-xs-2 col-md-1 clear">&nbsp;</div>';
+												imgcontent	+=	'<div class="col-xs-10 col-md-11" align="center"><!--<input type="button" name="Upload1" id="Upload1" value="Upload" title="Upload" class="box-center btn btn-success  col-xs-10">--></div></div>';
+												$(imgcontent).insertBefore('#temp0');
+												$('#temp0').remove();
+											} else {
+												$(imgcontent).insertBefore('#temp0');	
+												imgcontent	+=	'<div class="col-xs-12">&nbsp;</div><div class="col-xs-2 col-md-1 clear">&nbsp;</div></div>';
+												$('#imgcount').html(imgcount+'.');
+												$('#imgdrag').attr('src','<?php SITE_PATH;?>webresources/images/no_photo_my_store.png');
+											}
+										}; 				
+									})(files[index]);				
+				// For data URI purposes
+				fileReader.readAsDataURL(file);
+			});	
+		} else {
+			alert('You can upload only 10 pictures')
+		}
+		return false;
+	});	
+	
+	$('#mystore_submit').click(function() {	
+		var dragimg	=	$('#dragImage').val();
+		var res 	= 	dragimg.split(",");
+		alert(res.length)
+		$.each(dataArray, function(index, file) {			
+			$.post('models/upload.php?img='+res[index], dataArray[index], function(data) {				
+			});	
+			var tt	=	index + 1;
+			alert(index+'###'+tt)
+		});
+		return false;
+	});
 });
+
 </script>

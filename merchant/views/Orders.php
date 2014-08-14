@@ -22,8 +22,6 @@ if(isset($_GET['Reject']) || isset($_GET['Approve'])) {
 	}
 	$url				=	WEB_SERVICE.'v1/orders/';
 	$method				=	'PUT';
-	//echo $url;
-	//echo json_encode($data);die();
 	$curlResponse		=	curlRequest($url,$method,json_encode($data),$_SESSION['merchantInfo']['AccessToken']);
 	if(isset($curlResponse) && is_array($curlResponse) && $curlResponse['meta']['code'] == 201) {
 		$_SESSION['successMessage'] = $curlResponse['notifications'][0];		
@@ -117,7 +115,7 @@ commonHead();
 		<?php top_header(); ?>		
 		<section class="content top-spacing" align="center">
 		<?php if(empty($merchantInfo['MangoPayUniqueId'])){?>
-				<div align="center" class="alert alert-danger alert-dismissable  col-lg-5 col-sm-7  col-md-5 col-xs-12"><i class="fa fa-warning"></i>&nbsp;&nbsp;Please connect with MangoPay in My Account to view orders.</div>
+				<div align="center" class="alert alert-danger alert-dismissable  col-lg-5 col-sm-7  col-md-5 col-xs-12"><i class="fa fa-warning"></i>&nbsp;&nbsp;Please connect with MangoPay in Settings to view orders.</div>
 		<?php }else{
 			 if(isset($msg) && $msg != '') { ?>
 			<div align="center" class="alert <?php  echo $class;  ?> alert-dismissable col-xs-10 col-sm-5 col-lg-3"><i class="fa <?php  echo $class_icon;  ?>"></i>  <?php echo $msg; ?></div>
@@ -143,6 +141,7 @@ commonHead();
 						<!-- Start New Orders List -->						
 							<?php if(isset($newOrderList) && !empty($newOrderList)) {									
 									foreach($newOrderList as $key=>$value) {
+										//echo "<pre>"; echo print_r($value); echo "</pre>"; die();
 										$ordersClass	=	'';
 										if($value['TotalItems'] == 1)
 											$ordersClass	=	'one_item';
@@ -150,48 +149,50 @@ commonHead();
 											$ordersClass	=	'two_item';
 										else if($value['TotalItems'] >= 3)
 											$ordersClass	=	'more_item';
-										$name = $value['FirstName'].' '.$value['FirstName'];
+										$name = ucfirst($value['FirstName']).' '.ucfirst($value['LastName']);
 							?>
 							<div class="col-md-3 col-sm-4 col-lg-2 col-xs-12">
 									<div class="small-box">									
-										<div class="col-xs-5 no-padding">
-											<a href="<?php echo $value['Photo']?>" class="fancybox" title="<?php echo $value['FirstName']."&nbsp;".$value['LastName']; ?>">
-												<img height="75" width="75" src="<?php echo $value['ThumbPhoto']?>" alt=""/>
-											</a>											
+										<div class="col-xs-3 no-padding">
+											<a href="<?php echo $value['Photo']?>" class="fancybox" title="<?php echo $name; ?>">
+												<img height="50" width="50" src="<?php echo $value['ThumbPhoto']?>" alt=""/>
+											</a>		
+											<?php if(!SERVER){ ?>
+											<!--<a class="newWindow" href="PrintOrder?cs=1&printId=<?php echo  $value['OrderId']; ?>" title="Print"><i class="fa fa-print"></i></a>&nbsp;&nbsp;-->
+											<a class="newWindow" title="View Products" href="OrderProductDetail?cs=1&orderId=<?php echo  $value['OrderId']; ?>"><i class="fa fa-search fa-lg" style=" font-size: 0.99em;vertical-align: 3%;" ></i></a>
+											<?php } ?>									
 										</div>					
-										<div class="col-xs-7">
-											<span class="text-small" data-toggle="tooltip" title="<?php echo $name; ?>" data-original-title="<?php echo $name; ?>"><?php echo displayText($name,7); ?></span>
+										<div class="col-xs-9">
+											<span class="text-small" data-toggle="tooltip" title="<?php echo $name; ?>" data-original-title="<?php echo $name; ?>"><?php echo displayText($name,17); ?></span>
+											<span class="help-block no-margin"><?php echo $value['Email']?></span>
 											<span class="help-block no-margin"><?php echo $value['UserId']?></span>
 											<span class="help-block no-margin"><?php echo time_ago($value['OrderDate']); ?></span>
-											<?php if(!SERVER){ ?>
-											<a class="newWindow" href="PrintOrder?cs=1&printId=<?php echo  $value['OrderId']; ?>" title="print"><i class="fa fa-print"></i></a>
-											<a class="newWindow" title="View Products" href="OrderProductDetail?cs=1&orderId=<?php echo  $value['OrderId']; ?>"><i class="fa fa-search fa-lg" style=" font-size: 0.99em;vertical-align: 3%;" ></i></a>
-											<?php } ?>
+											
 										</div>
 										
 										<div class="col-xs-12 no-padding list_height clear <?php echo $ordersClass; ?>">
-											<div class="help-block text-center col-xs-12 no-padding "><?php echo $value['Email']?></div>
 											<?php if(!empty($value['Products'])) {											
 													foreach($value['Products'] as $key1=>$pro_val) {
-													if($key1 < 2) { ?>
-													
-													<div class="col-xs-8 no-padding"><?php echo  $pro_val['ItemName']?> </div>
-													<div class="col-xs-4 no-padding text-right"><?php echo ' $'.number_format($pro_val['TotalPrice'],2,'.',','); ?></div>
-														
-													<?php } else {  ?> 
-													
-													<div class="col-xs-12 no-padding otherItemsNew<?php echo $key;?>" style="display:none;">
-														<div class="col-xs-8 no-padding"><?php echo $pro_val['ItemName']; ?></div>
-														<div class="col-xs-4 no-padding text-right"><?php echo ' $'.number_format($pro_val['TotalPrice'],2,'.',','); ?></div>
-													</div>
-											<?php } } ?>
+														if($pro_val['Refund'] != 2) {
+															if($key1 < 2) { ?>
+															
+															<div class="col-xs-7 no-padding"><?php echo  $pro_val['ItemName']?> </div>
+															<div class="col-xs-5 no-padding text-right"><?php echo $pro_val['ProductsQuantity'].'&nbsp;&nbsp;&nbsp;'.price_fomat($pro_val['TotalPrice']); ?></div>
+																
+															<?php } else {  ?> 
+															
+															<div class="col-xs-12 no-padding otherItemsNew<?php echo $key;?>" style="display:none;">
+																<div class="col-xs-7 no-padding"><?php echo  $pro_val['ItemName']?> </div>
+																<div class="col-xs-5 no-padding text-right"><?php echo $pro_val['ProductsQuantity'].'&nbsp;&nbsp;&nbsp;'.price_fomat($pro_val['TotalPrice']); ?></div>
+															</div>
+											<?php } }  }?>
 												<div class="text-center col-xs-12 no-padding " <?php if(count($value['Products']) <= 2) {  ?>style="visibility:hidden;"<?php } ?>><a style="cursor:pointer" id="linkNew<?php echo $key; ?>" onclick="return showAllItems('New<?php echo $key; ?>');">Show all items</a></div>
 											<?php }  ?>
 										</div>
 										
 										<div class="col-xs-12 no-padding"><hr></div>											
 										<div class="col-xs-8 no-padding"><strong>Total</strong> </div>
-										<div class="col-xs-4 no-padding text-right"><strong><?php echo ' $'.number_format($value['TotalPrice'],2,'.',','); ?></strong></div>		
+										<div class="col-xs-4 no-padding text-right"><strong><?php echo price_fomat($value['TotalPrice']); ?></strong></div>		
 																
 										<!-- <div class="col-md-12 no-padding"><hr></div> -->
 										<div class="col-xs-12" style="padding-top:7px;"></div>
@@ -232,37 +233,38 @@ commonHead();
 										$ordersClass	=	'two_item';
 									else if($value['TotalItems'] >= 3)
 										$ordersClass	=	'more_item';
-									$name = $value['FirstName'].' '.$value['FirstName'];
+									$name = ucfirst($value['FirstName']).' '.ucfirst($value['LastName']);
 						?>
 						<div class="col-md-3 col-sm-4 col-lg-2 col-xs-12">
 							<div class="small-box ">		
-								<div class="col-xs-5 no-padding">					
-									<a href="<?php echo $value['Photo']?>" class="fancybox" title="<?php echo $value['FirstName']."&nbsp;".$value['LastName']; ?>">
-										<img height="75" width="75" src="<?php echo $value['ThumbPhoto']?>" alt=""/>
+								<div class="col-xs-3 no-padding">					
+									<a href="<?php echo $value['Photo']?>" class="fancybox" title="<?php echo $name; ?>">
+										<img height="50" width="50" src="<?php echo $value['ThumbPhoto']?>" alt=""/>
 									</a>
-								</div>		
-								<div class="col-xs-7">									
-									<span data-toggle="tooltip" title="<?php echo $name; ?>"><?php echo displayText($name,7); ?></span>
-									<span class="help-block no-margin"><?php echo $value['UserId']?></span>
-									<span class="help-block no-margin"> <?php	echo time_ago($value['OrderDate']); ?> </span>
 									<?php if(!SERVER){ ?>
-										<a class="newWindow" href="PrintOrder?cs=1&printId=<?php echo  $value['OrderId']; ?>" title="print"><i class="fa fa-print"></i></a>
+										<a class="newWindow" href="PrintOrder?cs=1&printId=<?php echo  $value['OrderId']; ?>" title="Print"><i class="fa fa-print"></i></a>&nbsp;&nbsp;
 										<a class="newWindow" title="View Products" href="OrderProductDetail?cs=1&orderId=<?php echo  $value['OrderId']; ?>"><i class="fa fa-search fa-lg" style=" font-size: 0.99em;vertical-align: 3%;" ></i></a>
 									<?php } ?>
+								</div>		
+								<div class="col-xs-9">									
+									<span data-toggle="tooltip" title="<?php echo $name; ?>"><?php echo displayText($name,17); ?></span>
+									<span class="help-block no-margin"><?php echo $value['Email']?></span>
+									<span class="help-block no-margin"><?php echo $value['UserId']?></span>
+									<span class="help-block no-margin"> <?php	echo time_ago($value['OrderDate']); ?> </span>
+									
 									<!--<a class="newWindow" href="PrintOrder?cs=1&printId=<?php echo  $value['OrderId']; ?>" ><i class="fa fa-print"></i></a> -->
 								</div>
 								<div class="col-xs-12 no-padding list_height <?php echo $ordersClass; ?>">
-									<div class="help-block text-center col-xs-12 no-padding "><?php echo $value['Email']?></div>
 									<?php if(!empty($value['Products'])) {											
 											foreach($value['Products'] as $key1=>$pro_val) {
 												if($key1 < 2) { ?>
-												<div class="col-xs-8 no-padding"><?php echo  $pro_val['ItemName']?> </div>
-												<div class="col-xs-4 no-padding text-right"><?php echo ' $'.number_format($pro_val['TotalPrice'],2,'.',','); ?></div>
+												<div class="col-xs-7 no-padding"><?php echo  $pro_val['ItemName']?> </div>
+												<div class="col-xs-5 no-padding text-right"><?php echo $pro_val['ProductsQuantity'].'&nbsp;&nbsp;&nbsp;'.price_fomat($pro_val['TotalPrice']); ?></div>
 												<?php } else {  ?> 
 												
 												<div class="col-xs-12 no-padding otherItemsToday<?php echo $key;?>" style="display:none;">
-													<div class="col-xs-8 no-padding"><?php echo $pro_val['ItemName']; ?></div>
-													<div class="col-xs-4 no-padding text-right"><?php echo ' $'.number_format($pro_val['TotalPrice'],2,'.',','); ?></div>
+													<div class="col-xs-7 no-padding"><?php echo  $pro_val['ItemName']?> </div>
+													<div class="col-xs-5 no-padding text-right"><?php echo $pro_val['ProductsQuantity'].'&nbsp;&nbsp;&nbsp;'.price_fomat($pro_val['TotalPrice']); ?></div>
 												</div>
 												
 									<?php } } 
@@ -273,7 +275,7 @@ commonHead();
 								<div class="col-xs-12 no-padding"><hr></div>	
 										
 								<div class="col-xs-8 no-padding"><strong>Total</strong> </div>			
-								<div class="col-xs-4 no-padding text-right"><strong><?php echo ' $'.number_format($value['TotalPrice'],2,'.',','); ?></strong></div>
+								<div class="col-xs-4 no-padding text-right"><strong><?php echo price_fomat($value['TotalPrice']); ?></strong></div>
 								<div class="col-xs-12 no-padding"><hr></div>	
 								<div class="col-xs-8 no-padding text-right">
 									<?php 
@@ -300,9 +302,9 @@ commonHead();
 				scrolling: 'auto',			
 				type: 'iframe',
 				width: '800',
-				maxWidth: '100%',
-				
-				fitToView: false,
+				maxWidth: '100%',	
+					title: null,			
+				fitToView: false
 			});	
 			$(".productWindow").fancybox({
 					width: '800',

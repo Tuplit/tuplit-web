@@ -188,15 +188,16 @@ top_header(); ?>
 									<th width="3%" class="text-center">Action</th>
 								</tr>
 							  <?php
-								foreach($orderList as $key=>$value){									
+								foreach($orderList as $key=>$value){
+									//echo "<pre>"; echo print_r($orderList); echo "</pre>";die();
 									$count += 1;
-									$name	=	$value["FirstName"].' '.$value["LastName"];
+									$name	=	ucfirst($value["FirstName"]).' '.ucfirst($value["LastName"]);
 								?>
 							<tr>
 								<td align="center"><?php echo (($_SESSION['curpage'] - 1) * ($_SESSION['perpage']))+$key+1;?></td>
 								<td width="4%" align="left">
 									<?php if(isset($value["Photo"]) && $value["Photo"] != ''){ ?>
-										<a <?php if(isset($value["Photo"]) ) { ?>href="<?php echo $value["Photo"]; ?>" class="fancybox" title="<?php echo  ucfirst($name);?>" <?php } ?> > 
+										<a <?php if(isset($value["Photo"]) ) { ?>href="<?php echo $value["Photo"]; ?>" class="fancybox" title="<?php echo  $name;?>" <?php } ?> > 
 											<img  width="36" height="36" align="top" class="img_border" src="<?php echo  $value["ThumbPhoto"];?>" >
 										</a>
 									<?php } else {?> <img  width="36" height="36" align="top" class="img_border" src="<?php echo MERCHANT_IMAGE_PATH.'no_user.jpeg';?>" > <?php  } ?>
@@ -205,12 +206,12 @@ top_header(); ?>
 								<td width="10%" class="white-space" align="left"><?php if(isset($value["TransactionId"]) && $value["TransactionId"] != ''){ echo $value["TransactionId"]; }else echo '-';?></td>
 								<td align="left"><?php if(isset($value["OrderDoneBy"]) && $value["OrderDoneBy"] != ''){ if($value["OrderDoneBy"] == 1) echo "User"; if($value["OrderDoneBy"] == 2) echo "Merchant";}else echo '-';?></td>
 								<td align="center"><?php if(isset($value["TotalItems"]) && $value["TotalItems"] != ''){ echo $value["TotalItems"]; }else echo '-';?></td>
-								<td align="right"><?php if(isset($value["TotalPrice"]) && $value["TotalPrice"] != ''){ echo '$'.number_format($value["TotalPrice"],2,'.',','); }else echo '-';?></td>
+								<td align="right"><?php if(isset($value["TotalPrice"]) && $value["TotalPrice"] != ''){ echo price_fomat($value["TotalPrice"]); }else echo '-';?></td>
 								<td align="center"><?php if(isset($value["OrderDate"]) && $value["OrderDate"] != '0000-00-00 00:00:00'){ echo date('m/d/Y',strtotime($value["OrderDate"])); }else echo '-';?></td>
 								<td align="left"><?php if(isset($value["OrderStatus"]) && $value["OrderStatus"] != ''){ echo $order_status_array[$value["OrderStatus"]];}?></td>
 								<td align="center">
 									<?php if(isset($value['Products']) && count($value['Products'])>0) {	 ?>
-									<a href="#<?php echo $value["TransactionId"]; ?>" class="productWindow" title="View Products"><i class="fa fa-search fa-lg"></i></a>
+									<a href="#<?php echo $value["CartId"]; ?>" class="productWindow" title="View Products"><i class="fa fa-search fa-lg"></i></a>
 									<?php } ?>
 								</td>
 							</tr>							
@@ -230,14 +231,14 @@ top_header(); ?>
 	<?php if(isset($orderList) && !empty($orderList)) { 
 		foreach($orderList as $key=>$value){
 	 ?>
-	<div class=" popup_width" id="<?php echo $value["TransactionId"]; ?>" style="display:none;">	
-	<div class="class="col-sm-12 no-padding ">
+	<div class=" popup_width" id="<?php echo $value["CartId"]; ?>" style="display:none;">	
+	<div class="col-sm-12 no-padding ">
 		<section class="content-header">
 			<h1 class="no-margin space_bottom">Product List</h1>
 		</section>
 		<div class="row no-margin space_bottom">
 			<span class="totl_txt">Total Product(s) : <b><?php echo count($value['Products']); ?></b></span>										
-			<span class="totl_txt pull-right">Total Amount : <b><?php echo $value['TotalPrice']; ?></b></span>										
+			<span class="totl_txt pull-right">Total Amount : <b><?php echo price_fomat($value["TotalPrice"]); ?></b></span>										
 		</div>
 		<div class="product_list">
 			<div class="box box-primary no-padding no-margin">
@@ -271,9 +272,9 @@ top_header(); ?>
 								</div>
 								</td>
 								<td align='center'><?php echo $value1["ProductsQuantity"]; ?></td>
-								<td align="right"><?php echo '$'.number_format($value1["ProductsCost"],2,'.',','); ?></td>
-								<td align="right"><?php echo '$'.number_format($value1["DiscountPrice"],2,'.',','); ?></td>
-								<td align="right"><?php echo '$'.number_format($value1["TotalPrice"],2,'.',','); ?></td>
+								<td align="right"><?php echo price_fomat($value1["ProductsCost"]); ?></td>
+								<td align="right"><?php echo price_fomat($value1["DiscountPrice"]); ?></td>
+								<td align="right"><?php echo price_fomat($value1["TotalPrice"]); ?></td>
 							</tr>
 						<?php } ?>	
 					   </table>
@@ -328,7 +329,8 @@ $(".datepicker").datepicker({
 	hideIfNoPrevNext:	true,
 	showWeek		:	true,
 	yearRange		:	"c-30:c",
-	closeText		:   "Close"
+	closeText		:   "Close",
+	maxDate			: new Date()
    });
  function emptyDates(arg) { 
 	var id = arg.getAttribute('name');		

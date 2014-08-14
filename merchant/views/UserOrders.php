@@ -19,9 +19,8 @@ else{
 }
 if(isset($_GET['cs']) && $_GET['cs'] == 1){
 	destroyPagingControlsVariables();
-	$_SESSION['tuplit_sess_order_user_name'] = '';
-	$_SESSION['tuplit_sess_order_visit']	=	'';
-	$_SESSION['tuplit_sess_order_total_spend']	=	'';
+	$_SESSION['tuplit_sess_order_from_date'] = '';
+	$_SESSION['tuplit_sess_order_to_date']	=	'';
 }
 $UserName = $VisitCount = $TotalSpend = '';
 $load_more = $cur_page = $per_page = 0;

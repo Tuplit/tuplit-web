@@ -3,7 +3,7 @@ class UserModel extends Model
 {
    function getUserList($fields,$condition)
 	{
-		$limit_clause='';
+		$limit_clause	=	$join	=	$joincon	=	$lcondition	=	'';
 		$sorting_clause = ' u.id desc';
 		if(!empty($_SESSION['ordertype']))
 			$sorting_clause = $_SESSION['orderby'] . ' ' . $_SESSION['ordertype'];
@@ -23,20 +23,49 @@ class UserModel extends Model
 			$condition .= " and u.Country LIKE '%".$_SESSION['tuplit_sess_country']."%' ";
 		if(isset($_SESSION['tuplit_sess_location']) && $_SESSION['tuplit_sess_location'] != '')
 			$condition .= " and u.Location LIKE '%".$_SESSION['tuplit_sess_location']."%' ";
-			
-		/*if(isset($_SESSION['tuplit_sess_spent']) && $_SESSION['tuplit_sess_spent'] != '')
-			$condition .= " and u.Location LIKE '%".$_SESSION['tuplit_sess_spent']."%' ";
-		if(isset($_SESSION['tuplit_sess_spent7']) && $_SESSION['tuplit_sess_spent7'] != '')
-			$condition .= " and u.Location LIKE '%".$_SESSION['tuplit_sess_spent7']."%' ";*/
-		if(isset($_SESSION['tuplit_sess_order']) && $_SESSION['tuplit_sess_order'] != '')
-			$condition .= " and u.Oders >='".$_SESSION['tuplit_sess_order']."'";
-			
+		
+		if(isset($_SESSION['tuplit_sess_spent7']) && $_SESSION['tuplit_sess_spent7'] != '') {
+			$fields	.=	' , sum(o.TotalPrice) as TotalOrderAmount ';
+			if(empty($join))
+				$join	.=	' left join orders o on (u.id = o.fkUsersId) ';
+			if(empty($joincon))
+				$joincon.= 	" HAVING sum(o.TotalPrice) >= '".$_SESSION['tuplit_sess_spent7']."'";
+			else
+				$joincon.= 	" and sum(o.TotalPrice) >= '".$_SESSION['tuplit_sess_spent7']."'";
+			if(empty($lcondition))
+				$lcondition	.=	" and o.OrderStatus = 1 and o.TransactionId !='' and date(o.OrderDate) >= '2014-07-31'";
+		}
+		
+		if(isset($_SESSION['tuplit_sess_spent']) && $_SESSION['tuplit_sess_spent'] != '') {
+			$fields	.=	' , sum(o.TotalPrice) as TotalOrderAmount ';
+			if(empty($join))
+				$join	.=	' left join orders o on (u.id = o.fkUsersId) ';			
+			if(empty($joincon))
+				$joincon.= 	" HAVING sum(o.TotalPrice) >= '".$_SESSION['tuplit_sess_spent']."'";
+			else
+				$joincon.= 	" and sum(o.TotalPrice) >= '".$_SESSION['tuplit_sess_spent']."'";
+			if(empty($lcondition))
+				$lcondition	.=	" and o.OrderStatus = 1 and o.TransactionId !='' ";
+		}
+		
+		if(isset($_SESSION['tuplit_sess_order']) && $_SESSION['tuplit_sess_order'] != '') {
+			$fields	.=	', count(o.id) as TotalOrders ';
+			if(empty($join))
+				$join	.=	' left join orders o on (u.id = o.fkUsersId) ';			
+			if(empty($joincon))
+				$joincon.= 	" HAVING count(o.id) ='".$_SESSION['tuplit_sess_order']."'";
+			else
+				$joincon.= 	" and count(o.id) ='".$_SESSION['tuplit_sess_order']."'";
+			if(empty($lcondition))
+				$lcondition	.=	' and o.OrderStatus = 1 ';
+		}			
 			
 		if(isset($_SESSION['tuplit_sess_user_registerdate']) && $_SESSION['tuplit_sess_user_registerdate'] != '')
 			$condition .= " and date(u.DateCreated) = '".$_SESSION['tuplit_sess_user_registerdate']."'";	
-		$sql = "select SQL_CALC_FOUND_ROWS ".$fields." from {$this->userTable} as u	
-				WHERE 1".$condition." group by u.id ORDER BY ".$sorting_clause." ".$limit_clause;
-		//echo "<br/>======".$sql;
+		$sql = "select SQL_CALC_FOUND_ROWS ".$fields." from {$this->userTable} as u	".$join."
+				WHERE 1".$condition." ".$lcondition." group by u.id ".$joincon." ORDER BY ".$sorting_clause." ".$limit_clause;
+				
+				
 		$result	=	$this->sqlQueryArray($sql);
 		if(count($result) == 0) return false;
 		else return $result;
@@ -161,8 +190,9 @@ class UserModel extends Model
 			$condition .= " and u.Country LIKE '%".$_SESSION['tuplit_sess_country']."%' ";
 		if(isset($_SESSION['tuplit_sess_location']) && $_SESSION['tuplit_sess_location'] != '')
 			$condition .= " and u.Location LIKE '%".$_SESSION['tuplit_sess_location']."%' ";
-		$sql = "select ".$fields." from {$this->userTable} 
-				WHERE 1 ".$condition." ORDER BY ".$sorting_clause." ";	
+		
+		$sql = "select ".$fields." from {$this->userTable} as u
+				WHERE 1 ".$condition." ORDER BY ".$sorting_clause." ";
 		$result	=	$this->sqlQueryArray($sql);
 		if(count($result) == 0) return false;
 		else return $result;

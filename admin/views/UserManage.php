@@ -1,59 +1,64 @@
 <?php 
 require_once('includes/CommonIncludes.php');
+require_once('includes/mangopay/functions.php');
 //require_once('includes/php_image_magician.php');
 admin_login_check();
 commonHead();
 require_once('controllers/UserController.php');
-$userObj   =   new UserController();
+$userObj   			=   new UserController();
 require_once('controllers/AdminController.php');
-$adminLoginObj   =   new AdminController();
+$adminLoginObj   	=   new AdminController();
+require_once('controllers/LocationController.php');
+$locationObj   			=   new LocationController();
 require_once("includes/phmagick.php");
 $FirstName = $LastName = $UserName = $Email = $FbId = $GooglePlusId = $UserImage = $ImagePath  = $IpAddress = $class = $class_icon  = $msg = $ExistCondition = $error_msg = $location   = '';
-$field_focus = 'UserName';
-$display      = 'none';
-$Email_exists = 0;
-$FbId_exists  = 0;
-$GooglePlusId_exists = $PinCode_exists = $CellNumber_exists = 0;
-$UserName_exists  = 0;
-$photoUpdateString	= '';
+$field_focus 		= 	'UserName';
+$display      		= 	'none';
+$GooglePlusId_exists = $PinCode_exists = $CellNumber_exists = $Email_exists = $FbId_exists = $UserName_exists = 0;
+$photoUpdateString	= 	'';
 unset($_SESSION['orderby']);
 unset($_SESSION['ordertype']);
+$field				=	'Location,Code';
+$condition			=	' Status = 1 order by Location asc';
+$LocationList		=	$locationObj->getLocationArray($field,$condition);
 if(isset($_GET['editId']) && $_GET['editId'] != '' ){
-	$condition       	= " id = ".$_GET['editId']." and Status in (1,2)";
-	//$field				=	' FirstName,LastName,UserName,Email,FBId,GooglePlusId,Photo,Country,DateCreated,PushNotification,Platform,PinCode,ZipCode,SendCredit,RecieveCredit,BuySomething,CellNumber ';
-	$field				=	' FirstName,LastName,Email,FBId,GooglePlusId,Photo,Location,Country,DateCreated,PushNotification,Platform,PinCode,ZipCode,SendCredit,RecieveCredit,BuySomething,CellNumber ';
-	$userDetailsResult  = $userObj->selectUserDetails($field,$condition);
+	$condition       		= 	" id = ".$_GET['editId']." and Status in (1,2)";
+	$field					=	' FirstName,LastName,Email,FBId,GooglePlusId,Photo,Location,Country,DateCreated,PushNotification,Platform,PinCode,ZipCode,SendCredit,RecieveCredit,BuySomething,CellNumber,DealsOffers,Sounds,Passcode,PaymentPreference,RememberMe';
+	$userDetailsResult  	= 	$userObj->selectUserDetails($field,$condition);
 	if(isset($userDetailsResult) && is_array($userDetailsResult) && count($userDetailsResult) > 0){
-		$FirstName 			= $userDetailsResult[0]->FirstName;
-		$LastName 			= $userDetailsResult[0]->LastName;
-		//$UserName   		= $userDetailsResult[0]->UserName;
-		//$Password   		= $userDetailsResult[0]->ActualPassword;
-		$Email      		= $userDetailsResult[0]->Email;
-		$FbId       		= $userDetailsResult[0]->FBId;
-		$GooglePlusId  		= $userDetailsResult[0]->GooglePlusId;
-		$Location	   		= $userDetailsResult[0]->Location;
-		$Country	   		= $userDetailsResult[0]->Country;
-		$ZipCode	   		= $userDetailsResult[0]->ZipCode;
-		$CellNumber	   		= $userDetailsResult[0]->CellNumber;
-		$PinCode	   		= $userDetailsResult[0]->PinCode;
-		$PushNotification  	= $userDetailsResult[0]->PushNotification;	
-		$SendCredit		  	= $userDetailsResult[0]->SendCredit;	
-		$RecieveCredit  	= $userDetailsResult[0]->RecieveCredit;	
-		$BuySomething	  	= $userDetailsResult[0]->BuySomething;	
+		$FirstName 			= 	$userDetailsResult[0]->FirstName;
+		$LastName 			= 	$userDetailsResult[0]->LastName;
+		$Email      		= 	$userDetailsResult[0]->Email;
+		$FbId       		= 	$userDetailsResult[0]->FBId;
+		$GooglePlusId  		= 	$userDetailsResult[0]->GooglePlusId;
+		$Location	   		= 	$userDetailsResult[0]->Location;
+		$Country	   		= 	$userDetailsResult[0]->Country;
+		$ZipCode	   		= 	$userDetailsResult[0]->ZipCode;
+		$CellNumber	   		= 	$userDetailsResult[0]->CellNumber;
+		$PinCode	   		= 	$userDetailsResult[0]->PinCode;
+		$PushNotification  	= 	$userDetailsResult[0]->PushNotification;	
+		$SendCredit		  	= 	$userDetailsResult[0]->SendCredit;	
+		$RecieveCredit  	= 	$userDetailsResult[0]->RecieveCredit;	
+		$BuySomething	  	= 	$userDetailsResult[0]->BuySomething;	
+		$DealsOffers   		= 	$userDetailsResult[0]->DealsOffers;
+		$Sounds   			= 	$userDetailsResult[0]->Sounds;
+		$Passcode   		= 	$userDetailsResult[0]->Passcode;
+		$PaymentPreference  = 	$userDetailsResult[0]->PaymentPreference;
+		$RememberMe   		= 	$userDetailsResult[0]->RememberMe;
 		if(isset($userDetailsResult[0]->Photo) && $userDetailsResult[0]->Photo != ''){
-			$UserImageName = $userDetailsResult[0]->Photo;
-			$OriginalImagePath = $UserImagePath = '';
+			$UserImageName 		= 	$userDetailsResult[0]->Photo;
+			$OriginalImagePath 	= 	$UserImagePath = '';
 			if(SERVER){
 				if(image_exists(1,$UserImageName))
-					$OriginalImagePath = USER_IMAGE_PATH.$UserImageName;
+					$OriginalImagePath 	= 	USER_IMAGE_PATH.$UserImageName;
 				if(image_exists(2,$UserImageName))
-					$UserImagePath = USER_THUMB_IMAGE_PATH.$UserImageName;
+					$UserImagePath 		= 	USER_THUMB_IMAGE_PATH.$UserImageName;
 			}
 			else{
 				if(file_exists(USER_IMAGE_PATH_REL.$UserImageName))
-					$OriginalImagePath = USER_IMAGE_PATH.$UserImageName;
+					$OriginalImagePath 	= 	USER_IMAGE_PATH.$UserImageName;
 				if(file_exists(USER_THUMB_IMAGE_PATH_REL.$UserImageName)){
-					$UserImagePath = USER_THUMB_IMAGE_PATH.$UserImageName;
+					$UserImagePath 		= 	USER_THUMB_IMAGE_PATH.$UserImageName;
 				}
 			}
 		}
@@ -62,77 +67,87 @@ if(isset($_GET['editId']) && $_GET['editId'] != '' ){
 if(isset($_POST['submit']) && $_POST['submit'] != ''){
 	$_POST          =   unEscapeSpecialCharacters($_POST);
    	$_POST          =   escapeSpecialCharacters($_POST);
-	$IpAddress     =   ipAddress();
+	$IpAddress     	=   ipAddress();
 	if(isset($_POST['FirstName']) )
-		$FirstName 			= $_POST['FirstName'];
+		$FirstName 			= 	$_POST['FirstName'];
 	if(isset($_POST['LastName']) )
-		$LastName 			= $_POST['LastName'];
+		$LastName 			= 	$_POST['LastName'];
 /*	if(isset($_POST['UserName']))
 		$UserName  			= $_POST['UserName'];
 */
 	if(isset($_POST['Email']))
-		$Email      		= $_POST['Email'];
+		$Email      		= 	$_POST['Email'];
 	if(isset($_POST['Location']) )
-		$Location     		= $_POST['Location'];
+		$Location     		= 	$_POST['Location'];
 	if(isset($_POST['Country']) )
-		$Country     		= $_POST['Country'];	
+		$Country     		= 	$_POST['Country'];	
 	if(isset($_POST['FbId']))
-		$FbId       		= $_POST['FbId'];
+		$FbId       		= 	$_POST['FbId'];
 	if(isset($_POST['GooglePlusId']))
-		$GooglePlusId   	= $_POST['GooglePlusId'];
+		$GooglePlusId   	= 	$_POST['GooglePlusId'];
 	if(isset($_POST['PinCode']))
-		$PinCode   			= $_POST['PinCode'];
+		$PinCode   			= 	$_POST['PinCode'];
 	if(isset($_POST['ZipCode']))
-		$ZipCode   			= $_POST['ZipCode'];
+		$ZipCode   			= 	$_POST['ZipCode'];
 	if(isset($_POST['PushNotification']))
-		$PushNotification   = $_POST['PushNotification'];
+		$PushNotification   = 	$_POST['PushNotification'];
 	if(isset($_POST['SendCredit']))
-		$SendCredit   		= $_POST['SendCredit'];
+		$SendCredit   		= 	$_POST['SendCredit'];
 	if(isset($_POST['RecieveCredit']))
-		$RecieveCredit   	= $_POST['RecieveCredit'];
+		$RecieveCredit   	= 	$_POST['RecieveCredit'];
 	if(isset($_POST['BuySomething']))
-		$BuySomething   	= $_POST['BuySomething'];
+		$BuySomething   	= 	$_POST['BuySomething'];
 	if(isset($_POST['CellNumber']))
-		$CellNumber   		= $_POST['CellNumber'];
+		$CellNumber   		= 	$_POST['CellNumber'];
+	if(isset($_POST['DealsOffers']))
+		$DealsOffers   		= 	$_POST['DealsOffers'];
+	if(isset($_POST['Sounds']))
+		$Sounds   			= 	$_POST['Sounds'];
+	if(isset($_POST['Passcode']))
+		$Passcode	   		= 	$_POST['Passcode'];
+	if(isset($_POST['PaymentPreference']))
+		$PaymentPreference	= 	$_POST['PaymentPreference'];
+	if(isset($_POST['RememberMe']))
+		$RememberMe   		= 	$_POST['RememberMe'];
 	if (isset($_POST['user_photo_upload']) && !empty($_POST['user_photo_upload'])) {
-		$UserImageName = $_POST['user_photo_upload'];
-		$UserImagePath = TEMP_USER_IMAGE_PATH.$UserImageName;
+		$UserImageName 		= 	$_POST['user_photo_upload'];
+		$UserImagePath 		= 	TEMP_USER_IMAGE_PATH.$UserImageName;
 	}
 /*	if($UserName != '' )
 		$ExistCondition .= " (UserName = '".$UserName."' ";
 */
 	if($Email != '')
-		$ExistCondition .= "  (Email = '".$Email."' ";
+		$ExistCondition 	.= 	"  (Email = '".$Email."' ";
 	if($FbId != '')
-		$ExistCondition  .= " or FbId = '".$FbId."' ";	
+		$ExistCondition  	.= 	" or FbId = '".$FbId."' ";	
 	if($GooglePlusId != '')
-		$ExistCondition  .= " or GooglePlusId = '".$GooglePlusId."' ";
+		$ExistCondition  	.= 	" or GooglePlusId = '".$GooglePlusId."' ";
 	if($PinCode != '')
-		$ExistCondition  .= " or PinCode = '".$PinCode."' ";
+		$ExistCondition  	.= 	" or PinCode = '".$PinCode."' ";
 	if($CellNumber != '')
-		$ExistCondition  .= " or CellNumber = '".$CellNumber."' ";
+		$ExistCondition  	.= 	" or CellNumber = '".$CellNumber."' ";
 	if($_POST['submit'] == 'Save')
-		$id_exists = ") and id != '".$_POST['user_id']."' and Status in (1,2) ";
+		$id_exists 			= 	") and id != '".$_POST['user_id']."' and Status in (1,2) ";
 	else
-		$id_exists = " ) and Status in (1,2) ";
-	$field = " * ";	
-	$ExistCondition .= $id_exists;
-	$alreadyExist   = $userObj->selectUserDetails($field,$ExistCondition);	
+		$id_exists 			= 	" ) and Status in (1,2) ";
+	$field 					= 	" * ";	
+	$ExistCondition 		.= 	$id_exists;
+	$alreadyExist   		= 	$userObj->selectUserDetails($field,$ExistCondition);	
 	if(isset($alreadyExist) && is_array($alreadyExist) && count($alreadyExist) > 0){
 		if(($alreadyExist[0]->Email == $Email) && ($Email != ''))
-			$Email_exists = 1;
+			$Email_exists 	= 	1;
 		else if($alreadyExist[0]->FBId == $FbId && ($FbId != ''))
-			$FbId_exists = 1;
+			$FbId_exists 	= 	1;
 		else if($alreadyExist[0]->GooglePlusId  == $GooglePlusId && ($GooglePlusId != ''))
-			$GooglePlusId_exists = 1;
-		else if($alreadyExist[0]->PinCode  == $PinCode && ($PinCode != ''))
-			$PinCode_exists = 1;
+			$GooglePlusId_exists 	= 	1;
+		/*else if($alreadyExist[0]->PinCode  == $PinCode && ($PinCode != ''))
+			$PinCode_exists 		= 	1;*/
 		else if($alreadyExist[0]->CellNumber  == $CellNumber && ($CellNumber != ''))
-			$CellNumber_exists = 1;
-		else
-			$UserName_exists = 1;
-	}		
-	if($Email_exists != '1' && $FbId_exists != '1' && $GooglePlusId_exists != '1'  && $UserName_exists != '1' && $PinCode_exists != '1' && $CellNumber_exists != '1'){
+			$CellNumber_exists 		= 	1;
+		/*else
+			$UserName_exists 		= 	1;*/
+	}	
+	if($Email_exists != '1' && $FbId_exists != '1' && $GooglePlusId_exists != '1'  && $UserName_exists != '1' && $CellNumber_exists != '1'){
 		if($_POST['submit'] == 'Save'){		
 			if(isset($_POST['user_id']) && $_POST['user_id'] != ''){
 				$latlong = $lat = $lng = '';
@@ -168,6 +183,11 @@ if(isset($_POST['submit']) && $_POST['submit'] != ''){
 							  SendCredit 			= '".$SendCredit."', 
 							  RecieveCredit 		= '".$RecieveCredit."', 
 							  BuySomething 			= '".$BuySomething."', 
+							  DealsOffers 			= '".$DealsOffers."', 
+							  Sounds 				= '".$Sounds."', 
+							  Passcode 				= '".$Passcode."', 
+							  PaymentPreference 	= '".$PaymentPreference."', 
+							  RememberMe 			= '".$RememberMe."', 
 							  DateModified			= '".date('Y-m-d H:i:s')."'";
 				$condition = ' id = '.$_POST['user_id'];
 				$userObj->updateUserDetails($fields,$condition);			
@@ -188,7 +208,31 @@ if(isset($_POST['submit']) && $_POST['submit'] != ''){
 		}
 		if($_POST['submit'] == 'Add'){
 			$_POST['ipaddress']     = $IpAddress;
+			if(empty($_POST['Location']))
+				$_POST['Location']  = 'US';			
+			if(empty($_POST['Country']))
+				$_POST['Country']  	= 'US';						
 			$insert_id   		    = $userObj->insertUserDetails($_POST);	
+
+			//Mangopay account
+			$MangopayDetails['FirstName']			=	$_POST['FirstName'];
+			$MangopayDetails['LastName']			=	$_POST['LastName'];
+			$MangopayDetails['Email']				=	$_POST['Email'];
+			$MangopayDetails['Address']				=	$_POST['Location'];
+			$MangopayDetails['Birthday']			=	'1991-01-01';
+			$MangopayDetails['Nationality']			=	'US';
+			$MangopayDetails['CountryOfResidence']	=	'US';
+			$MangopayDetails['Occupation']			=	'';
+			$MangopayDetails['IncomeRange']			=	'';
+			$Mangopay								=	userRegister($MangopayDetails);
+			if( isset($Mangopay->Id) && $Mangopay->Id != ''){
+				$uniqueId					=	$Mangopay->Id;
+				$walletId					=	createWallet($uniqueId,'USD');			
+				$upwall		=	" MangoPayResponse='".serialize($Mangopay)."', MangoPayUniqueId='".$uniqueId."', WalletId='".$walletId."' ";
+				$upwallcon	=	" id ='".$insert_id."'";
+				$userObj->updateUserDetails($upwall,$upwallcon);
+			}
+			
 			//$actualPassword         = $_POST['Password'];
 			$password				= sha1($_POST['Password'].ENCRYPTSALT);
 			$numeric                = '1234567890';
@@ -271,11 +315,11 @@ if(isset($_POST['submit']) && $_POST['submit'] != ''){
 			$error_msg   = "Username already exists";
 			$field_focus = 'UserName';
 		}
-*/		else if ($PinCode_exists == 1){
+		else if ($PinCode_exists == 1){
 			$error_msg   = "PIN Code already exists";
 			$field_focus = 'PinCode';
 		}
-		else if ($CellNumber_exists == 1){
+*/		else if ($CellNumber_exists == 1){
 			$error_msg   = "CellNumber already exists";
 			$field_focus = 'CellNumber';
 		}
@@ -306,14 +350,14 @@ if(isset($_POST['submit']) && $_POST['submit'] != ''){
 					
 					<div class="form-group col-sm-6">
 						<label>First Name</label>
-						<input type="text" class="form-control" id="FirstName" name="FirstName" maxlength="100" value="<?php if(isset($FirstName) && $FirstName != '') echo $FirstName;  ?>" >
+						<input type="text" class="form-control" id="FirstName" name="FirstName" maxlength="100" value="<?php if(isset($FirstName) && $FirstName != '') echo ucfirst($FirstName);  ?>" >
 					</div>
 					<div class="form-group col-sm-6">
 						<label>Last Name</label>
-						<input type="text" class="form-control" id="LastName" name="LastName" maxlength="20" value="<?php if(isset($LastName) && $LastName != '' ) echo $LastName;  ?>" >
+						<input type="text" class="form-control" id="LastName" name="LastName" maxlength="20" value="<?php if(isset($LastName) && $LastName != '' ) echo ucfirst($LastName);  ?>" >
 					</div>
 					
-					<div class="form-group col-sm-6">
+					<div class="form-group col-sm-6 clear">
 						<label>Email</label>
 						<input type="text" class="form-control" name="Email" id="Email" maxlength="100" value="<?php if(isset($Email) && $Email != '') echo $Email;  ?>" >
 					</div>
@@ -330,7 +374,7 @@ if(isset($_POST['submit']) && $_POST['submit'] != ''){
 					?>	
 					
 					<?php if(!isset($_GET['editId'])){ ?>
-					<div class="form-group col-sm-6">
+					<div class="form-group col-sm-6 clear">
 						<label>Password</label>
 						<input type="<?php echo $type; ?>" class="form-control" id="Password" name="Password" maxlength="50" value="<?php if(isset($Password) && $Password != '') echo $Password; ?>" >
 					</div>
@@ -340,7 +384,7 @@ if(isset($_POST['submit']) && $_POST['submit'] != ''){
 					</div>
 					<?php } ?>		
 							
-					<div class="form-group col-sm-6">
+					<div class="form-group col-sm-6 clear">
 						<label>Google Plus Id</label>
 						<input type="text" class="form-control" id="GooglePlusId" name="GooglePlusId" maxlength="30" value="<?php if(isset($GooglePlusId) && $GooglePlusId != '' ) echo $GooglePlusId; ?>" >
 					</div>	
@@ -348,15 +392,32 @@ if(isset($_POST['submit']) && $_POST['submit'] != ''){
 						<label>Facebook Id</label>
 						<input type="text" class="form-control" id="FbId" name="FbId" maxlength="20" value="<?php if(isset($FbId) && $FbId != '' ) echo $FbId; ?>" >
 					</div>
-					<div class="form-group col-sm-6">
+					
+					<div class="form-group col-sm-6 clear">
+						<div class="col-xs-6 col-sm-6 col-md-5 no-padding">
+							<label>Country</label>
+							<div class="form-group col-md-12 col-lg-12 no-padding ">
+							<select class="form-control" id="Country" name="Country">
+								<option value="">Select</option>
+									<?php
+									if(isset($LocationList) && count($LocationList) > 0){
+										foreach($LocationList as $key=>$val){ ?>
+								<option value="<?php echo $val->Location; ?>" <?php if(isset($Country) && $Country == $val->Location) echo "selected"; ?>><?php echo ucfirst($val->Location).'&nbsp;('.$val->Code.')'; ?></option>
+							<?php } }?>
+						</select>
+							</select>
+							</div>
+						</div>
+					</div>
+					<div class="form-group col-sm-6 ">
 						<label>Location</label>
 						<input type="text" class="form-control" id="Location" name="Location" maxlength="100" value="<?php if(isset($Location) && $Location != '' ) echo $Location; ?>" >
 					</div>
-					<div class="form-group col-sm-6">
+					<!-- <div class="form-group col-sm-6">
 						<label>Country</label>
 						<input type="text" class="form-control" id="Country" name="Country" maxlength="100" value="<?php if(isset($Country) && $Country != '' ) echo $Country; ?>" >
-					</div>
-					<div class="form-group col-sm-6">
+					</div> -->
+					<div class="form-group col-sm-6 clear">
 						<label>Zip Code</label>
 						<input type="text" class="form-control" id="ZipCode" name="ZipCode" maxlength="30" value="<?php if(isset($ZipCode) && $ZipCode != '' ) echo $ZipCode; ?>" >
 					</div>
@@ -366,7 +427,7 @@ if(isset($_POST['submit']) && $_POST['submit'] != ''){
 					</div>	
 					
 					<?php if(!isset($_GET['editId'])) { ?>
-					<div class="form-group col-sm-6 col-lg-6 ">
+					<div class="form-group col-sm-6 col-lg-6 clear">
 						<label>Photo</label>
 						<div class="row">
 						    <div class="col-sm-8  col-lg-5"> 
@@ -389,7 +450,7 @@ if(isset($_POST['submit']) && $_POST['submit'] != ''){
 					</div>	
 					<?php } else { ?>
 				
-					<div class="form-group col-sm-6 col-lg-6 ">
+					<div class="form-group col-sm-6 col-lg-6 clears">
 						<label>Photo</label>
 						<div class="row">
 							<div class="col-sm-8  col-lg-5"> 
@@ -434,18 +495,52 @@ if(isset($_POST['submit']) && $_POST['submit'] != ''){
 					</div>
 					
 					<div class="form-group col-sm-6 col-xs-12">
+						<label class="notification col-xs-6   no-padding">BuySomething</label>
+						<div class=" col-xs-6   no-padding">
+							<label class="col-xs-5 no-padding"><input type="Radio" value="1" class="" id="BuySomething"  name="BuySomething" <?php if(isset($BuySomething) && $BuySomething == '1') echo 'checked';?> > &nbsp;&nbsp;On</label>&nbsp;&nbsp;&nbsp;&nbsp;
+							<label class="col-xs-5 no-padding"><input type="Radio" value="0" id="BuySomething" name="BuySomething" <?php if(isset($BuySomething) && $BuySomething == '0') echo 'checked';?> > &nbsp;&nbsp;Off</label>
+						</div>
+					</div>	
+					<div class="form-group col-sm-6 col-xs-12">
 						<label class="notification col-xs-6   no-padding">Recieve Credit</label>
 						<div class=" col-xs-6   no-padding">
 							<label class="col-xs-5 no-padding"><input type="Radio" value="1" class="" id="RecieveCredit"  name="RecieveCredit" <?php if(isset($RecieveCredit) && $RecieveCredit == '1') echo 'checked';?> > &nbsp;&nbsp;On</label>&nbsp;&nbsp;&nbsp;&nbsp;
 							<label class="col-xs-5 no-padding"><input type="Radio" value="0" id="RecieveCredit" name="RecieveCredit" <?php if(isset($RecieveCredit) && $RecieveCredit == '0') echo 'checked';?> > &nbsp;&nbsp;Off</label>
 						</div>
-					</div>	
-						
+					</div>		
 					<div class="form-group col-sm-6 col-xs-12">
-						<label class="notification col-xs-6   no-padding">Buy Something</label>
+						<label class="notification col-xs-6   no-padding">Deals &amp; Offers</label>
 						<div class=" col-xs-6 no-padding">
-							<label class="col-xs-5 no-padding"><input type="Radio" value="1"  class=""  id="BuySomething"  name="BuySomething" <?php if(isset($BuySomething) && $BuySomething == '1') echo 'checked';?> > &nbsp;&nbsp;On</label>&nbsp;&nbsp;&nbsp;&nbsp;
-							<label class="col-xs-5 no-padding"><input type="Radio" value="0" id="BuySomething" name="BuySomething" <?php if(isset($BuySomething) && $BuySomething == '0') echo 'checked';?> > &nbsp;&nbsp;Off</label>
+							<label class="col-xs-5 no-padding"><input type="Radio" value="1" id="DealsOffers"  name="DealsOffers" <?php if(isset($DealsOffers) && $DealsOffers == '1') echo 'checked';?> > &nbsp;&nbsp;On</label>&nbsp;&nbsp;&nbsp;&nbsp;
+							<label class="col-xs-5 no-padding"><input type="Radio" value="0" id="DealsOffers"  name="DealsOffers" <?php if(isset($DealsOffers) && $DealsOffers == '0') echo 'checked';?> > &nbsp;&nbsp;Off</label>
+						</div>
+					</div>
+					<div class="form-group col-sm-6 col-xs-12">
+						<label class="notification col-xs-6   no-padding">Sounds</label>
+						<div class=" col-xs-6 no-padding">
+							<label class="col-xs-5 no-padding"><input type="Radio" value="1" id="Sounds"  name="Sounds" <?php if(isset($Sounds) && $Sounds == '1') echo 'checked';?> > &nbsp;&nbsp;On</label>&nbsp;&nbsp;&nbsp;&nbsp;
+							<label class="col-xs-5 no-padding"><input type="Radio" value="0" id="Sounds"  name="Sounds" <?php if(isset($Sounds) && $Sounds == '0') echo 'checked';?> > &nbsp;&nbsp;Off</label>
+						</div>
+					</div>
+					<div class="form-group col-sm-6 col-xs-12">
+						<label class="notification col-xs-6   no-padding">Passcode</label>
+						<div class=" col-xs-6 no-padding">
+							<label class="col-xs-5 no-padding"><input type="Radio" value="1" id="Passcode"  name="Passcode" <?php if(isset($Passcode) && $Passcode == '1') echo 'checked';?> > &nbsp;&nbsp;On</label>&nbsp;&nbsp;&nbsp;&nbsp;
+							<label class="col-xs-5 no-padding"><input type="Radio" value="0" id="Passcode"  name="Passcode" <?php if(isset($Passcode) && $Passcode == '0') echo 'checked';?> > &nbsp;&nbsp;Off</label>
+						</div>
+					</div>
+					<div class="form-group col-sm-6 col-xs-12">
+						<label class="notification col-xs-6   no-padding">Payment Preference</label>
+						<div class=" col-xs-6 no-padding">
+							<label class="col-xs-5 no-padding"><input type="Radio" value="1" id="PaymentPreference"  name="PaymentPreference" <?php if(isset($PaymentPreference) && $PaymentPreference == '1') echo 'checked';?> > &nbsp;&nbsp;On</label>&nbsp;&nbsp;&nbsp;&nbsp;
+							<label class="col-xs-5 no-padding"><input type="Radio" value="0" id="PaymentPreference"  name="PaymentPreference" <?php if(isset($PaymentPreference) && $PaymentPreference == '0') echo 'checked';?> > &nbsp;&nbsp;Off</label>
+						</div>
+					</div>
+					<div class="form-group col-sm-6 col-xs-12">
+						<label class="notification col-xs-6   no-padding">RememberMe</label>
+						<div class=" col-xs-6 no-padding">
+							<label class="col-xs-5 no-padding"><input type="Radio" value="1" id="RememberMe"  name="RememberMe" <?php if(isset($RememberMe) && $RememberMe == '1') echo 'checked';?> > &nbsp;&nbsp;On</label>&nbsp;&nbsp;&nbsp;&nbsp;
+							<label class="col-xs-5 no-padding"><input type="Radio" value="0" id="RememberMe"  name="RememberMe" <?php if(isset($RememberMe) && $RememberMe == '0') echo 'checked';?> > &nbsp;&nbsp;Off</label>
 						</div>
 					</div>
 					<?php } ?>

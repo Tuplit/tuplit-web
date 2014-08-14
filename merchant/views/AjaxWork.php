@@ -2,6 +2,8 @@
 require_once('includes/CommonIncludes.php');
 //add/edit/delete category
 if(isset($_GET['action']) && $_GET['action'] == 'ADD_EDIT_DELETE_CATEGORY'){
+	//$_GET			=	unEscapeSpecialCharacters($_GET);
+	//$_GET			=	escapeSpecialCharacters($_GET);
 	$categoryName 	= $_GET['CategoryName'];
 	$categoryId 	= $_GET['CategoryId'];
 	$postType		= $_GET['type'];

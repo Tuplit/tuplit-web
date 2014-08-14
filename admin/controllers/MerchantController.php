@@ -23,6 +23,13 @@ class MerchantController extends Controller
 			return $this->MerchantModelObj->getMerchantList($fields,$condition);
 	}
 	
+	function getProductsScold($id)
+	{
+		if (!isset($this->MerchantModelObj))
+			$this->loadModel('MerchantModel', 'MerchantModelObj');
+		if ($this->MerchantModelObj)
+			return $this->MerchantModelObj->getProductsScold($id);
+	}
 	function deleteMerchantEntries($id)
 	{
 		if (!isset($this->MerchantModelObj))
@@ -30,12 +37,12 @@ class MerchantController extends Controller
 		if ($this->MerchantModelObj)
 			return $this->MerchantModelObj->deleteMerchantEntries($id);
 	}
-	function approveMerchant($id)
+	function approveMerchant($id,$status)
 	{
 		if (!isset($this->MerchantModelObj))
 			$this->loadModel('MerchantModel', 'MerchantModelObj');
 		if ($this->MerchantModelObj)
-			return $this->MerchantModelObj->approveMerchant($id);
+			return $this->MerchantModelObj->approveMerchant($id,$status);
 	}
 	function selectMerchantDetail($id)
 	{
@@ -98,5 +105,19 @@ class MerchantController extends Controller
 		if ($this->MerchantModelObj)
 			return $this->MerchantModelObj->selectMerchantDetails($field,$condition);
 	}	
+	function merchantOrders()
+	{
+		if (!isset($this->MerchantModelObj))
+			$this->loadModel('MerchantModel', 'MerchantModelObj');
+		if ($this->MerchantModelObj)
+			return $this->MerchantModelObj->merchantOrders();
+	}	
+	function insertDetails($data)
+	{
+		if (!isset($this->MerchantModelObj))
+			$this->loadModel('MerchantModel', 'MerchantModelObj');
+		if ($this->MerchantModelObj)
+			return $this->MerchantModelObj->insertDetails($data);
+	}		
 }
 ?>

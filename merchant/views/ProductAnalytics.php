@@ -78,11 +78,11 @@ commonHead();
 							<input type="hidden" id="cur_month_end_date" name="cur_month_end_date" value="<?php echo $end_date; ?>" />
 						</form>
 					</div>
-					
-					<div class="main_graph"><div class="graph"></div></div>
 				</div>
-		 	</div>
+				
 			
+		 	<div class="main_graph col-xs-12" id="chart_list"><div class="graph"></div></div>
+			</div>
 		</section>
 	<?php  footerLogin(); ?>
 	<?php commonFooter(); ?>

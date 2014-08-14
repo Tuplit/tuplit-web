@@ -46,8 +46,10 @@ $condition = '';
 $transferList  	= $transferObj->getTransferList($condition);
 $tot_rec 		= $transferObj->getTotalRecordCount();
 $userListTemp	= $transferObj->getUserDetail();
+if(isset($userListTemp) && !empty($userListTemp)) {
 foreach($userListTemp as $val) 
-	$userList[$val->id]	=	ucfirst($val->FirstName.' '.$val->LastName);
+	$userList[$val->id]	=	ucfirst($val->FirstName).' '.ucfirst($val->LastName);
+}
 ?>
 <body class="skin-blue">
 <?php top_header(); ?>
@@ -95,13 +97,13 @@ foreach($userListTemp as $val)
 				</form>				
 			</div>	
 		</div>
-		<div class="product_list paging">
+		<div class="row paging">
 					<?php if(isset($transferList) && is_array($transferList) && count($transferList) > 0){ ?>
-					<div class="col-xs-12 col-sm-3 no-padding">
+					<div class="col-xs-12 col-sm-3">
 						<span class="totl_txt">Total Transfer(s) : <b><?php echo $tot_rec; ?></b></span>
 					</div>
-					<div class="col-xs-12 col-sm-9 no-padding">
-						<div class="dataTables_paginate paging_bootstrap row no-margin">
+					<div class="col-xs-12 col-sm-9">
+						<div class="dataTables_paginate paging_bootstrap row">
 								<?php pagingControlLatest($tot_rec,'Transfer'); ?>
 						</div>
 					</div>
@@ -114,7 +116,7 @@ foreach($userListTemp as $val)
 		               <div class="box-body table-responsive no-padding no-margin">
 						<table class="table table-hover">
                                <tr>
-									<th align="center" width="5%" class="text-center">#</th>									
+									<th align="center" width="2%" class="text-center">#</th>									
 									<th width="10%">Debited user</th>
 									<th width="10%">Credited user</th>
 									<th width="10%" align="center">Notes</th>

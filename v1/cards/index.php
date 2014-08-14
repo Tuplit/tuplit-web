@@ -107,19 +107,19 @@ $app->get('/',tuplitApi::checkToken(),function () use ($app) {
 		
         $cards 						=  	R::dispense('cards');		
 		$cards->UserId				= 	$userId;	
-		$getCardDetails				=	$cards->getCards();
+		$getCardDetails				=	$cards->getCards();		
+		if($getCardDetails && count($getCardDetails['result']) > 0){
 		
-		if($getCardDetails){
 	        $response->setStatus(HttpStatusCode::Created);
 	        $response->meta->dataPropertyName 		= 'UserCardList';		
 			$response->returnedObject 				= $getCardDetails['result'];	
 			echo $response;
 		}
 		else{
-			 /**
-	         * throwing error when no transaction found
-	         */
-			  throw new ApiException("No cards found", ErrorCodeType::NoResultFound);
+			/**
+			* throwing error when no transaction found
+			*/
+			throw new ApiException("No cards found", ErrorCodeType::NoResultFound);
 		}
 	
 	}
@@ -149,9 +149,8 @@ $app->post('/topup',tuplitApi::checkToken(),function () use ($app) {
 		// Create a http request
         $req	 					= 	$app->request();
 		$userId 					= 	tuplitApi::$resourceServer->getOwnerId();
-		
 		// Create a json response object
-        $response 		= 	new tuplitApiResponse();
+        $response 					= 	new tuplitApiResponse();
 		
         $cards 						=  	R::dispense('cards');		
 		$cards->UserId				= 	$userId;	
@@ -172,6 +171,56 @@ $app->post('/topup',tuplitApi::checkToken(),function () use ($app) {
 		}
 		
 	}
+    catch (ApiException $e){
+        // If occurs any error message then goes here
+        tuplitApi::showError(
+            $e,
+            $e->getHttpStatusCode(),
+            $e->getErrors()
+        );
+    }
+    catch (\Slim\Exception\Stop $e){
+        // If occurs any error message for slim framework then goes here
+    }
+    catch (Exception $e) {
+        // If occurs any error message then goes here
+        tuplitApi::showError($e);
+    }
+});
+
+
+/**
+* Delete Cards
+* DELETE /v1/cards
+*/
+$app->delete('/:CardId',tuplitApi::checkToken(), function ($CardId) use ($app) {
+
+    try {
+
+        // Create a http request
+        $req 		= $app->request();
+		$userId 	= tuplitApi::$resourceServer->getOwnerId();
+		
+	
+		$cards 		 		= R::dispense('cards');
+		$cards->UserId	 	= $userId ;
+		$cards->CardId	 	= $CardId ;
+		$Cards       		= $cards->cardDelete();	
+		if(isset($Cards->Id) && !empty($Cards->Id)){
+			$response = new tuplitApiResponse();
+	        $response->setStatus(HttpStatusCode::Created);
+	        $response->meta->dataPropertyName = 'Cards';
+			if(isset($Cards->msg) && !empty($Cards->msg))
+				$response->addNotification($Cards->msg);
+	        else 
+				$response->addNotification('Card has been deleted successfully');
+	        echo $response;
+		}
+		else{
+			// Error occured while deleting card
+			throw new ApiException("Invalid card id" ,  ErrorCodeType::ErrorInCardDelete);
+		}
+    }
     catch (ApiException $e){
         // If occurs any error message then goes here
         tuplitApi::showError(

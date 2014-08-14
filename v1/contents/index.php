@@ -88,25 +88,21 @@ $app->get('/', function () use ($app) {
 
 /**
 * Get web-page contents
-* GET /v1/contents
+* GET /v1/webpagecontent/
 */
 $app->get('/webpagecontent/:url', function ($url) use ($app) {
 
     try {
 
 		/**
-		* Retrieving static contents array
+		* Retrieving web-page static contents array
 		*/
         $response 	   	= new tuplitApiResponse();
         $response->setStatus(HttpStatusCode::Ok);
         $response->meta->dataPropertyName = 'webPageContent';
 		
 		$webcontent		= R::dispense('general');
-		$pageContent 	= $webcontent->getWebPageContent($url);
-		
-		/**
-         * Get Discount Tier array
-         */				
+		$pageContent 	= $webcontent->getWebPageContent($url);				
 	    $response->returnedObject = $pageContent;
         $response->addNotification('Web page content has been retrieved successfully');
         echo $response;
@@ -128,8 +124,82 @@ $app->get('/webpagecontent/:url', function ($url) use ($app) {
         tuplitApi::showError($e);
     }
 });
+
+/**
+* Get countries
+* GET /v1/countries
+*/
+$app->get('/countries/', function () use ($app) {
+
+    try {
+
+		$response 	   	= new tuplitApiResponse();
+        $response->setStatus(HttpStatusCode::Ok);
+        $response->meta->dataPropertyName = 'countries';
+		
+		$countries					= R::dispense('general');
+		$countriesList 				= $countries->getcountries();
+	    $response->returnedObject 	= $countriesList;
+        $response->addNotification('Countries has been retrieved successfully');
+        echo $response;
+
+    }
+    catch (ApiException $e){
+        // If occurs any error message then goes here
+        tuplitApi::showError(
+            $e,
+            $e->getHttpStatusCode(),
+            $e->getErrors()
+        );
+    }
+    catch (\Slim\Exception\Stop $e){
+        // If occurs any error message for slim framework then goes here
+    }
+    catch (Exception $e) {
+        // If occurs any error message then goes here
+        tuplitApi::showError($e);
+    }
+});
+
+/**
+* Get currencies
+* GET /v1/currencies
+*/
+$app->get('/currencies/', function () use ($app) {
+
+    try {
+
+		$response 	   	= new tuplitApiResponse();
+        $response->setStatus(HttpStatusCode::Ok);
+        $response->meta->dataPropertyName = 'currencies';
+		
+		$currencies					= R::dispense('general');
+		$currenciesList 			= $currencies->getcurrencies();
+	    $response->returnedObject 	= $currenciesList;
+        $response->addNotification('Currencies has been retrieved successfully');
+        echo $response;
+
+    }
+    catch (ApiException $e){
+        // If occurs any error message then goes here
+        tuplitApi::showError(
+            $e,
+            $e->getHttpStatusCode(),
+            $e->getErrors()
+        );
+    }
+    catch (\Slim\Exception\Stop $e){
+        // If occurs any error message for slim framework then goes here
+    }
+    catch (Exception $e) {
+        // If occurs any error message then goes here
+        tuplitApi::showError($e);
+    }
+});
+
+
+
 /**
 * Start the Slim Application
 */
-
 $app->run();

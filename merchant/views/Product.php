@@ -3,8 +3,8 @@ require_once('includes/CommonIncludes.php');
 merchant_login_check();
 $hide 		= 	0;
 $Photo 		= 	$PhotoContent = $ProductId = '';
-$adddeals	=	$addspecial	=	0;
-$ItemType	=	'1';
+$adddeals	=	$addspecial	=	$updatepro	=	0;
+$ItemType	=	$allowProducts	=	'1';
 if(isset($_GET['add']) && !empty($_GET['add'])) {
 	if($_GET['add'] == 'deals')
 		$adddeals	=	1;
@@ -29,160 +29,6 @@ if(isset($_SESSION['merchantDetailsInfo']) && is_array($_SESSION['merchantDetail
 	}
 }
 
-//getting product categories
-$url					=	WEB_SERVICE.'v1/categories/products';
-$curlCategoryResponse 	= 	curlRequest($url, 'GET', null, $_SESSION['merchantInfo']['AccessToken']);
-if(isset($curlCategoryResponse) && is_array($curlCategoryResponse) && $curlCategoryResponse['meta']['code'] == 201 && is_array($curlCategoryResponse['productCategoryDetails']) ) {
-	if(isset($curlCategoryResponse['productCategoryDetails']))
-		$productCategories = $curlCategoryResponse['productCategoryDetails'];	
-} 
-
-//Product List
-$merchantId				= 	$_SESSION['merchantInfo']['MerchantId'];
-$url					=	WEB_SERVICE.'v1/products/?Type=1';
-$curlMerchantResponse  	= 	curlRequest($url, 'GET', null, $_SESSION['merchantInfo']['AccessToken']);
-if(isset($curlMerchantResponse) && is_array($curlMerchantResponse) && $curlMerchantResponse['meta']['code'] == 201) {
-	$ProductsArray   	=	$curlMerchantResponse['ProductList'];		
-}
-
-if(isset($_GET['add']) && !empty($_GET['add']))
-	$Category 			= 	$_GET['add'];
-
-//getting product detail
-if(isset($_GET['edit']) && !empty($_GET['edit'])) {	
-	$url							=	WEB_SERVICE.'v1/products/'.$_GET['edit'];
-	$curlCategoryResponse 			= 	curlRequest($url, 'GET', null, $_SESSION['merchantInfo']['AccessToken']);
-	if(isset($curlCategoryResponse) && is_array($curlCategoryResponse) && $curlCategoryResponse['meta']['code'] == 201 && is_array($curlCategoryResponse['ProductDetail']) ) {
-		if(isset($curlCategoryResponse['ProductDetail'])) {
-			$ProductDetail 			= 	$curlCategoryResponse['ProductDetail'];
-			$ProductDetail			=	$ProductDetail[0];
-			if(isset($ProductDetail) && count($ProductDetail) > 0) {
-				$ProductId			= 	$ProductDetail['id'];
-				$Photo 				= 	$ProductDetail['Photo'];
-				$Category 			= 	$ProductDetail['fkCategoryId'];
-				$ItemName 			= 	$ProductDetail['ItemName'];
-				$ItemDescription	= 	$ProductDetail['ItemDescription'];
-				$Price 				= 	$ProductDetail['Price'];	
-				$Status 			= 	$ProductDetail['Status'];
-				$Discount 			= 	$ProductDetail['DiscountApplied'];
-				if($ProductDetail['DiscountApplied'] == 1) {
-					$DiscountPrice 	= 	$ProductDetail['Price'] - (($ProductDetail['Price']/100) * $merchantInfo['DiscountTier']);
-					floatval($DiscountPrice); 
-				}
-				else
-					$DiscountPrice 	= 	$ProductDetail['Price'];
-				if($ProductDetail['ItemType'] == 3 && !empty($ProductDetail['SpecialProducts'])) {
-					$editSpecialProduct			=	$ProductDetail['SpecialProducts'];
-					$TotaleditSpecialProduct	=	count($editSpecialProduct);
-					$RowSpecialIds				=	$SpecialProductIds	=	'';
-					$TotalSpecialAmount			=	0;
-					foreach($editSpecialProduct as $spkey=>$sppro) {
-						//Forming total rowids
-						$pt					=	$spkey + 1;
-						if(empty($RowSpecialIds))
-							$RowSpecialIds	=	$pt;
-						else
-							$RowSpecialIds	=	$RowSpecialIds.','.$pt;
-						
-						//calculating total price
-						if(!empty($sppro['Quantity']) && !empty($sppro['Price']))
-							$TotalSpecialAmount	=	$TotalSpecialAmount	+ ($sppro['Quantity']*$sppro['Price']);
-						
-						//Forming special products insert ids
-						if(empty($SpecialProductIds))
-							$SpecialProductIds	=	$sppro['SpecialId'];
-						else
-							$SpecialProductIds	=	$SpecialProductIds.','.$sppro['SpecialId'];
-					}
-						
-					//echo "<pre>"; echo print_r($editSpecialProduct); echo "</pre>";
-					//echo $RowSpecialIds;
-				}				
-			}
-		}		
-	}	
-}
-
-//Adding and updating Products
-if((isset($_POST['merchant_product_submit']) && $_POST['merchant_product_submit'] == 'Save') || (isset($_POST['merchant_product_update']) && $_POST['merchant_product_update'] == 'Update')){	
-	if(isset($_POST['product_photo_upload']) && !empty($_POST['product_photo_upload'])) {
-		$Photo 					= 	TEMP_IMAGE_PATH.$_POST['product_photo_upload'];
-		$PhotoContent			= 	$_POST['product_photo_upload'];
-	}	
-	$Category 					= 	$_POST['Category'];
-	$ItemName 					= 	$_POST['ItemName'];
-	$Price 						= 	$_POST['Price'];
-	$Status 					= 	$_POST['Status'];
-	$Discount 					= 	$_POST['Discount'];
-	$DiscountPrice 				= 	$_POST['DiscountPrice'];
-	$ItemDescription 			= 	'';
-	$SpecialIds					= 	'';
-	$SpecialQty					= 	'';
-	$original_Price				=	'';
-	
-	if($_POST['productType'] == 2) {
-		$ItemType				= 	'2';
-		$Category 				= 	'0';
-		$Discount 				= 	'0';
-		$ItemDescription		= $_POST['ItemDescription'];
-	}
-	
-	if($_POST['productType'] == 3) {
-		$ItemType				= 	'3';
-		$Category 				= 	'0';
-		$Discount 				= 	'0';
-		$original_Price			= 	$_POST['TotalPrice'];
-		$rowids					= 	explode(',',$_POST['TotalRowIds']);
-		foreach($rowids as $val) {			
-			if(empty($SpecialIds)) {
-				$SpecialIds		=	$_POST['Products'.$val];
-				$SpecialQty		=	$_POST['quantity'.$val];
-			}
-			else {
-				$SpecialIds		=	$SpecialIds.",".$_POST['Products'.$val];
-				$SpecialQty		=	$SpecialQty.",".$_POST['quantity'.$val];
-			}
-		}
-	}
-	$data	=	array(
-				'ProductId'				=> 	$ProductId,
-				'SpecialIds'			=> 	$SpecialIds,
-				'SpecialQty'			=> 	$SpecialQty,
-				'Photo' 				=> 	$PhotoContent,
-				'CategoryId'			=> 	$Category,
-				'ItemName' 				=> 	$ItemName,	
-				'ItemDescription'		=> 	$ItemDescription,	
-				'Price' 				=> 	$Price,	
-				'OriginalPrice'			=> 	$original_Price,	
-				'Status' 				=> 	$Status,
-				'Discount' 				=> 	$Discount,
-				'ItemType' 				=> 	$ItemType,
-				'ImageAlreadyExists' 	=> 	$_POST['empty_product_photo'],
-			);
-	//echo "<pre>"; echo print_r($data); echo "</pre>";
-	//echo json_encode($data);
-	//die();
-	if(isset($_GET['edit']) && !empty($_GET['edit'])) {
-		$method			=	'PUT';
-		$url			=	WEB_SERVICE.'v1/products/'.$ProductId;
-		$curlResponse	=	curlRequest($url,$method,json_encode($data),$_SESSION['merchantInfo']['AccessToken']);	
-	}
-	else {
-		$method			=	'POST';	
-		$url			=	WEB_SERVICE.'v1/products/';
-		$curlResponse	=	curlRequest($url,$method,$data, $_SESSION['merchantInfo']['AccessToken']);		
-	}
-	
-	if(isset($curlResponse) && is_array($curlResponse) && $curlResponse['meta']['code'] == 201) {
-		$successMessage = 	$curlResponse['notifications'][0];
-		unset($_POST);
-	} else if(isset($curlResponse['meta']['errorMessage']) && $curlResponse['meta']['errorMessage'] != '') {
-		$errorMessage	=	$curlResponse['meta']['errorMessage'];
-	} else {
-		$errorMessage 	= 	"Bad Request";
-	}
-}
-
 //Delete Product
 if(isset($_GET['delete']) && !empty($_GET['delete'])) {
 	$delType		=	1;
@@ -195,35 +41,231 @@ if(isset($_GET['delete']) && !empty($_GET['delete'])) {
 		$url					=	WEB_SERVICE.'v1/products/'.$_GET['delete'].'?Type=3&ProductIds='.$delSpProducts;
 	else
 		$url					=	WEB_SERVICE.'v1/products/'.$_GET['delete'];
-	$curlCategoryResponse 	= 	curlRequest($url, 'DELETE', null,$_SESSION['merchantInfo']['AccessToken']);
-	if(isset($curlCategoryResponse) && is_array($curlCategoryResponse) && $curlCategoryResponse['meta']['code'] == 201) {
+	$curlDeleteResponse 	= 	curlRequest($url, 'DELETE', null,$_SESSION['merchantInfo']['AccessToken']);
+	if(isset($curlDeleteResponse) && is_array($curlDeleteResponse) && $curlDeleteResponse['meta']['code'] == 201) {
 		$successMessage 	= 	"Product Deleted successfully";
 	}	
 }
 
-if(isset($errorMessage) && $errorMessage != ''){
-	$msg			=	$errorMessage;
-	$display 		= 	"block";
-	$class   		= 	"alert-danger";
-	$class_icon 	= 	"fa-warning";
-	$errorMessage 	= 	'';
-}else if(isset($successMessage) && $successMessage != ''){
-	$msg			=	$successMessage;
-	$display		=	"block";
-	$class 			= 	"alert-success";
-	$class_icon 	= 	"fa-check";
-	$successMessage = 	'';
-	$hide			=  1;
-}
+	//getting product categories
+	$url					=	WEB_SERVICE.'v1/categories/products';
+	$curlCategoryResponse 	= 	curlRequest($url, 'GET', null, $_SESSION['merchantInfo']['AccessToken']);
+	if(isset($curlCategoryResponse) && is_array($curlCategoryResponse) && $curlCategoryResponse['meta']['code'] == 201 && is_array($curlCategoryResponse['productCategoryDetails']) ) {
+		if(isset($curlCategoryResponse['productCategoryDetails']))
+			$productCategories = $curlCategoryResponse['productCategoryDetails'];	
+	} 
+
+	//Product List
+	$merchantId				= 	$_SESSION['merchantInfo']['MerchantId'];
+	$url					=	WEB_SERVICE.'v1/products/?Type=1';
+	$curlMerchantResponse  	= 	curlRequest($url, 'GET', null, $_SESSION['merchantInfo']['AccessToken']);
+	if(isset($curlMerchantResponse) && is_array($curlMerchantResponse) && $curlMerchantResponse['meta']['code'] == 201) {
+		$ProductsArray   	=	$curlMerchantResponse['ProductList'];		
+	}
+
+	if(isset($_GET['add']) && !empty($_GET['add']))
+		$Category 			= 	$_GET['add'];
+
+	//getting product detail
+	if(isset($_GET['edit']) && !empty($_GET['edit'])) {	
+		$url							=	WEB_SERVICE.'v1/products/'.$_GET['edit'];
+		$curlCategoryResponse 			= 	curlRequest($url, 'GET', null, $_SESSION['merchantInfo']['AccessToken']);
+		if(isset($curlCategoryResponse) && is_array($curlCategoryResponse) && $curlCategoryResponse['meta']['code'] == 201 && is_array($curlCategoryResponse['ProductDetail']) ) {
+			if(isset($curlCategoryResponse['ProductDetail'])) {
+				$ProductDetail 			= 	$curlCategoryResponse['ProductDetail'];
+				$ProductDetail			=	$ProductDetail[0];
+				if(isset($ProductDetail) && count($ProductDetail) > 0) {
+					$ProductId			= 	$ProductDetail['id'];
+					$Photo 				= 	$ProductDetail['Photo'];
+					$Category 			= 	$ProductDetail['fkCategoryId'];
+					$ItemName 			= 	$ProductDetail['ItemName'];
+					$ItemDescription	= 	$ProductDetail['ItemDescription'];
+					$Price 				= 	$ProductDetail['Price'];	
+					$Status 			= 	$ProductDetail['Status'];
+					$Discount 			= 	$ProductDetail['DiscountApplied'];
+					$updatepro			=	1;			
+					if($ProductDetail['DiscountApplied'] == 1) {
+						$DiscountPrice 	= 	$ProductDetail['Price'] - (($ProductDetail['Price']/100) * $merchantInfo['DiscountTier']);
+						floatval($DiscountPrice); 
+					}
+					else
+						$DiscountPrice 	= 	$ProductDetail['Price'];
+					if($ProductDetail['ItemType'] == 3 && !empty($ProductDetail['SpecialProducts'])) {
+						$editSpecialProduct			=	$ProductDetail['SpecialProducts'];
+						$TotaleditSpecialProduct	=	count($editSpecialProduct);
+						$RowSpecialIds				=	$SpecialProductIds	=	'';
+						$TotalSpecialAmount			=	0;
+						foreach($editSpecialProduct as $spkey=>$sppro) {
+							//Forming total rowids
+							$pt					=	$spkey + 1;
+							if(empty($RowSpecialIds))
+								$RowSpecialIds	=	$pt;
+							else
+								$RowSpecialIds	=	$RowSpecialIds.','.$pt;
+							
+							//calculating total price
+							if(!empty($sppro['Quantity']) && !empty($sppro['Price']))
+								$TotalSpecialAmount	=	$TotalSpecialAmount	+ ($sppro['Quantity']*$sppro['Price']);
+							
+							//Forming special products insert ids
+							if(empty($SpecialProductIds))
+								$SpecialProductIds	=	$sppro['SpecialId'];
+							else
+								$SpecialProductIds	=	$SpecialProductIds.','.$sppro['SpecialId'];
+						}
+					}				
+				}
+			}		
+		}	
+	}
+
+	//Adding and updating Products
+	if((isset($_POST['merchant_product_submit']) && $_POST['merchant_product_submit'] == 'Save') || (isset($_POST['merchant_product_update']) && $_POST['merchant_product_update'] == 'Update')){	
+		if(isset($_POST['product_photo_upload']) && !empty($_POST['product_photo_upload'])) {
+			$Photo 					= 	TEMP_IMAGE_PATH.$_POST['product_photo_upload'];
+			$PhotoContent			= 	$_POST['product_photo_upload'];
+		}	
+		$Category 					= 	$_POST['Category'];
+		$ItemName 					= 	$_POST['ItemName'];
+		$Price 						= 	$_POST['Price'];
+		$Status 					= 	$_POST['Status'];
+		$Discount 					= 	$_POST['Discount'];
+		$DiscountPrice 				= 	$_POST['DiscountPrice'];
+		$ItemDescription 			= 	'';
+		$SpecialIds					= 	'';
+		$SpecialQty					= 	'';
+		$original_Price				=	'';
+		
+		if($_POST['productType'] == 2) {
+			$ItemType				= 	'2';
+			$Category 				= 	'0';
+			$Discount 				= 	'0';
+			$ItemDescription		= $_POST['ItemDescription'];
+		}
+		
+		if($_POST['productType'] == 3) {
+			$ItemType				= 	'3';
+			$Category 				= 	'0';
+			$Discount 				= 	'0';
+			$original_Price			= 	$_POST['TotalPrice'];
+			$rowids					= 	explode(',',$_POST['TotalRowIds']);
+			foreach($rowids as $val) {			
+				if(empty($SpecialIds)) {
+					$SpecialIds		=	$_POST['Products'.$val];
+					$SpecialQty		=	$_POST['quantity'.$val];
+				}
+				else {
+					$SpecialIds		=	$SpecialIds.",".$_POST['Products'.$val];
+					$SpecialQty		=	$SpecialQty.",".$_POST['quantity'.$val];
+				}
+			}
+		}
+		$data	=	array(
+					'ProductId'				=> 	$ProductId,
+					'SpecialIds'			=> 	$SpecialIds,
+					'SpecialQty'			=> 	$SpecialQty,
+					'Photo' 				=> 	$PhotoContent,
+					'CategoryId'			=> 	$Category,
+					'ItemName' 				=> 	$ItemName,	
+					'ItemDescription'		=> 	$ItemDescription,	
+					'Price' 				=> 	$Price,	
+					'OriginalPrice'			=> 	$original_Price,	
+					'Status' 				=> 	$Status,
+					'Discount' 				=> 	$Discount,
+					'ItemType' 				=> 	$ItemType,
+					'ImageAlreadyExists' 	=> 	$_POST['empty_product_photo'],
+				);
+				
+		//checking merchant discount status
+		if($updatepro == 0)
+			$url				=	WEB_SERVICE.'v1/merchants/discount/';
+		else
+			$url				=	WEB_SERVICE.'v1/merchants/discount/?Type=1&Discount='.$Discount;
+		//echo $url;
+		$curlResponse 			= 	curlRequest($url, 'GET', null, $_SESSION['merchantInfo']['AccessToken']);
+		//echo "<pre>"; echo print_r($curlResponse); echo "</pre>";
+		if(isset($curlResponse) && is_array($curlResponse) && $curlResponse['meta']['code'] == 201) {
+			if(isset($curlResponse['ProductCounts']['Discounted']) && $curlResponse['ProductCounts']['Discounted'] == 1) {
+				if(isset($curlResponse['ProductCounts']['ProductDifference']) && $curlResponse['ProductCounts']['ProductDifference'] >= 1) {				
+					$allowProducts		=	1;
+				}
+				else if(isset($curlResponse['ProductCounts']['ProductDifference']) && $curlResponse['ProductCounts']['ProductDifference'] == 0) {						
+					if($curlResponse['ProductCounts']['ProductPlusDiscount'] == $curlResponse['ProductCounts']['TotalDiscountApplied'])
+						$allowProducts	=	1;
+					else if(($Discount == 1 || $ItemType == 2 ||  $ItemType == 3) && $updatepro == 0)
+						$allowProducts	=	1;
+					else {
+						$allowProducts  = 	0;
+						if(isset($updatepro) && $updatepro	==	1)
+							$errorMessage	=	"Please update an item with discount";
+						else
+							$errorMessage	=	"Now you can add only discounted item or edit an item with discount";
+					}
+				}					
+			}
+		} 
+		else if(isset($curlResponse['meta']['errorMessage']) && $curlResponse['meta']['errorMessage'] != '' && $curlResponse['meta']['code'] == '2000') {
+			$allowProducts		=	1;
+		} else if(isset($curlResponse['meta']['errorMessage']) && $curlResponse['meta']['errorMessage'] != '' && $curlResponse['meta']['code'] == '2223') {
+			if($Discount == 1 || $ItemType == 2 ||  $ItemType == 3)
+				$allowProducts	=	1;
+			else {
+				$allowProducts	=	0;
+				$errorMessage	=	$curlResponse['meta']['errorMessage'];
+			}
+		} else if(isset($curlResponse['meta']['errorMessage']) && $curlResponse['meta']['errorMessage'] != '') {
+			$allowProducts		=	0;
+			$errorMessage		=	$curlResponse['meta']['errorMessage'];
+		} else {
+			$allowProducts		=	0;
+			$errorMessage 		= 	"Bad Request";
+		}
+		
+		if($allowProducts == 1) {
+			if(isset($_GET['edit']) && !empty($_GET['edit'])) {
+				$method			=	'PUT';
+				$url			=	WEB_SERVICE.'v1/products/'.$ProductId;
+				$curlResponse	=	curlRequest($url,$method,json_encode($data),$_SESSION['merchantInfo']['AccessToken']);	
+			}
+			else {
+				$method			=	'POST';	
+				$url			=	WEB_SERVICE.'v1/products/';
+				$curlResponse	=	curlRequest($url,$method,$data, $_SESSION['merchantInfo']['AccessToken']);		
+			}
+			
+			if(isset($curlResponse) && is_array($curlResponse) && $curlResponse['meta']['code'] == 201) {
+				$successMessage = 	$curlResponse['notifications'][0];
+				unset($_POST);
+			} else if(isset($curlResponse['meta']['errorMessage']) && $curlResponse['meta']['errorMessage'] != '') {
+				$errorMessage	=	$curlResponse['meta']['errorMessage'];
+			} else {
+				$errorMessage 	= 	"Bad Request";
+			}
+		}
+	}	
+
+	if(isset($errorMessage) && $errorMessage != ''){
+		$msg			=	$errorMessage;
+		$display 		= 	"block";
+		$class   		= 	"alert-danger";
+		$class_icon 	= 	"fa-warning";
+		$errorMessage 	= 	'';
+	}else if(isset($successMessage) && $successMessage != ''){
+		$msg			=	$successMessage;
+		$display		=	"block";
+		$class 			= 	"alert-success";
+		$class_icon 	= 	"fa-check";
+		$successMessage = 	'';
+		$hide			=  1;
+	}
+
 commonHead();
 ?>
 
 <body class="skin-blue fixed" onload="fieldfocus('ItemName');">
-		<?php if(isset($_GET['show']) && $_GET['show'] ==0) {	
-				} 
-				else 
-					top_header(); 
-			if(isset($msg) && $msg != '') {
+		<?php 
+				if(isset($_GET['show']) && $_GET['show'] !=0) 	top_header(); 
+				if(isset($msg) && $msg != '') {
 		?><br><br>
 		<div align="center" class="alert <?php  echo $class;  ?> alert-dismissable col-xs-10">
 			<i class="fa <?php  echo $class_icon;  ?>"></i>  <?php echo $msg; ?>
@@ -234,9 +276,9 @@ commonHead();
 					<div class="form-group col-xs-12 no-padding" style="min-height:85px;">						   
 						<div class="col-sm-3 no-padding no-margin" style="margin-left:16px;">
 							<label class="col-xs-3 " id="product_photo_img">
-							<img height="75" width="75" src="<?php if(isset($Photo) && !empty($Photo)) echo $Photo; else echo MERCHANT_SITE_IMAGE_PATH."no_photo_burger.jpg"; ?>">
+							<img height="75" width="75" src="<?php if(isset($Photo) && !empty($Photo)) echo $Photo; else echo MERCHANT_SITE_IMAGE_PATH."no_photo_burger.jpg"; ?>" />
 							<?php if(isset($PhotoContent) && !empty($PhotoContent)) { ?>
-								<input id="product_photo_upload" type="hidden" value="<?php echo $PhotoContent; ?>" name="product_photo_upload">
+								<input id="product_photo_upload" type="hidden" value="<?php echo $PhotoContent; ?>" name="product_photo_upload" />
 							<?php } ?>
 						</label>
 						</div>
@@ -293,10 +335,10 @@ commonHead();
 										</select>
 									</div>
 									<div class="col-xs-2  no-padding">
-										<input type="text"  class="form-control" placeholder="Quantity" name="quantity" id="quantity" onkeypress="return isNumberKey(event);" maxlength="3" value="" onkeyup="return calculateSpecialPrice('2',this);">
+										<input type="text"  class="form-control" name="quantity" id="quantity" onkeypress="return isNumberKey(event);" maxlength="3" value="" onkeyup="return calculateSpecialPrice('2',this);">
 									</div>
 									<div class="col-xs-3">
-										<input type="text"  class="form-control" placeholder="Price" name="quantityTotalPrice" id="quantityTotalPrice" onkeypress="return isNumberKey(event);" value="" onkeyup="" readonly>				
+										<input type="text"  class="form-control" name="quantityTotalPrice" id="quantityTotalPrice" onkeypress="return isNumberKey(event);" value="" onkeyup="" readonly>				
 									</div>
 									<div class="col-xs-1 no-padding text-right" style="padding-top:5px !important">
 										<i class="fa fa-plus-circle fa-lg" id="plus" name="plus" onclick="return newSpecialRow(1,this);" style="color:#01b3a5;cursor:pointer;"></i>
@@ -326,10 +368,10 @@ commonHead();
 										</select>
 										</div>
 										<div class="col-xs-2  no-padding">
-											<input type="text"  class="form-control" placeholder="Quantity" name="quantity<?php echo $sprow;?>" id="quantity<?php echo $sprow;?>" onkeypress="return isNumberKey(event);" maxlength="3" value="<?php if(!empty($spval['Quantity']))  echo $spval['Quantity']; ?>" onkeyup="return calculateSpecialPrice('2',this);">
+											<input type="text"  class="form-control" name="quantity<?php echo $sprow;?>" id="quantity<?php echo $sprow;?>" onkeypress="return isNumberKey(event);" maxlength="3" value="<?php if(!empty($spval['Quantity']))  echo $spval['Quantity']; ?>" onkeyup="return calculateSpecialPrice('2',this);">
 										</div>
 										<div class="col-xs-3 ">
-										<input type="text"  class="form-control " placeholder="Price" name="quantityTotalPrice<?php echo $sprow;?>" id="quantityTotalPrice<?php echo $sprow;?>" onkeypress="return isNumberKey(event);" value="<?php if(!empty($spval['Quantity']) && !empty($spval['Price']))  echo ($spval['Quantity']*$spval['Price']); ?>" onkeyup="" readonly>
+										<input type="text"  class="form-control " name="quantityTotalPrice<?php echo $sprow;?>" id="quantityTotalPrice<?php echo $sprow;?>" onkeypress="return isNumberKey(event);" value="<?php if(!empty($spval['Quantity']) && !empty($spval['Price']))  echo ($spval['Quantity']*$spval['Price']); ?>" onkeyup="" readonly>
 										</div>
 										<div class="col-xs-1 no-padding text-right" style="padding-top:5px !important">
 											<i class="fa fa-plus-circle fa-lg" id="plus<?php echo $sprow;?>" name="plus<?php echo $sprow;?>" onclick="return newSpecialRow(1,this);" style="color:#01b3a5;cursor:pointer;<?php if($TotaleditSpecialProduct != $sprow) echo "display:none"; ?>"></i>
@@ -350,11 +392,11 @@ commonHead();
 										</div>
 										
 										<div class="col-xs-2 no-padding">
-										<input type="text"  class="form-control " placeholder="Quantity" name="quantity1" id="quantity1" onkeypress="return isNumberKey(event);" maxlength="3" value="" onkeyup="return calculateSpecialPrice('2',this);">
+										<input type="text"  class="form-control " name="quantity1" id="quantity1" onkeypress="return isNumberKey(event);" maxlength="3" value="" onkeyup="return calculateSpecialPrice('2',this);">
 										</div>
 										
 										<div class="col-xs-3 ">
-										<input type="text"  class="form-control " placeholder="Price" name="quantityTotalPrice1" id="quantityTotalPrice1" onkeypress="return isNumberKey(event);" value="" onkeyup="" readonly>
+										<input type="text"  class="form-control " name="quantityTotalPrice1" id="quantityTotalPrice1" onkeypress="return isNumberKey(event);" value="" onkeyup="" readonly>
 										</div>
 										<div class="col-xs-1 no-padding text-right" style="padding-top:5px !important">
 											<i class="fa fa-plus-circle fa-lg" id="plus1" name="plus1" onclick="return newSpecialRow(1,this);" style="color:#01b3a5;cursor:pointer;"></i>
@@ -443,11 +485,8 @@ commonHead();
 					</div>
 				</div><!-- /row -->		
 			</form>
-		<?php } if(isset($_GET['show']) && $_GET['show'] ==0) {
-				}
-				else footerLogin(); 
-		?>
-	<?php commonFooter(); ?>
+		<?php } 
+		if(isset($_GET['show']) && $_GET['show'] !=0) 	footerLogin(); 	commonFooter(); ?>
 </html>
 <script type="text/javascript">
 	$(document).ready(function() {

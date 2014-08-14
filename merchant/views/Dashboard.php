@@ -34,33 +34,33 @@ commonHead();
 <body class="skin-blue fixed">
 		<?php top_header(); ?>
 		<section class="content dashboard">
-		 <div class="row ">
-		 	<div class="col-lg-8 box-center"> 
-               <div class="col-sm-6 col-xs-12">
+		<div class="row ">
+			<div class="col-lg-8 box-center"> 
+				<div class="col-sm-4 col-md-6 col-xs-12">
                    <!-- small box -->
-                   <div class="small-box bg-teal" onclick="location.href='CreateOrder?cs=1'" style="cursor:pointer" title="Create Order">
-                       <div class="inner">
-                           <h3 class="text-center">
+					<div class="small-box bg-teal" onclick="location.href='CreateOrder?cs=1'" style="cursor:pointer" title="Create Order">
+						<div class="inner">
+							<h3 class="text-center">
 								<i class="fa fa-plus"></i>  <br>                  
 								Create Order
-                           </h3>
-                       </div>
-                       <div class="icon">
-                           <i class="ion ion-bag"></i>
-                       </div>
-                       <a class="small-box-footer" href="CreateOrder?cs=1">
-                           More info <i class="fa fa-arrow-circle-right"></i>
-                       </a>
-                   </div>
-               </div><!-- ./col -->
-               <div class="col-sm-6 col-xs-12">
+							</h3>
+						</div>
+						<div class="icon">
+							<i class="ion ion-bag"></i>
+						</div>
+						<a class="small-box-footer" href="CreateOrder?cs=1">
+							More info <i class="fa fa-arrow-circle-right"></i>
+						</a>
+					</div>
+				</div><!-- ./col -->
+							
+				<div class="col-md-3 col-sm-4 col-xs-12" style="cursor:pointer" onclick="location.href='Orders?cs=1'" title=" Manage Orders">
                    <!-- small box -->
-				   <?php /*if ($_SERVER['HTTP_HOST'] == '172.21.4.104') $managehref = 'Orders'; else $managehref = "#";*/ ?>
-                   <div class="small-box bg-teal" style="cursor:pointer" onclick="location.href='Orders?cs=1'" title=" Manage Orders">
+                   <div class="small-box bg-teal">
                        <div class="inner">
                            <h3 class="text-center">
-								<i class="fa fa-file-text-o"></i>  <br>
-                                Manage Orders
+								<i class="fa fa-file-text-o"></i> <br>
+								Manage Orders
                            </h3>
                        </div>
                        <div class="icon">
@@ -71,12 +71,34 @@ commonHead();
                        </a>
                    </div>
                </div><!-- ./col -->
-			  </div>
-			</div>
+			   <?php //if ($_SERVER['HTTP_HOST'] == '172.21.4.104') $transaction = 'TransactionList?cs=1'; else $transaction = "#"; ?>
+			   <?php $transaction = 'TransactionList?cs=1'; ?>
+               <div class="col-md-3 col-sm-4 col-xs-12" style="cursor:pointer" onclick="location.href='<?php echo $transaction;?>'"  title="Transactions">
+                   <!-- small box -->
+                   <div class="small-box bg-teal">
+                       <div class="inner">
+                           <h3 class="text-center">
+								<i class="fa fa-exchange"></i> <br> <!-- fa  fa-money -->
+								Transactions 
+                           </h3>
+                       </div>
+                       <div class="icon">
+                           <i class="ion ion-person-add"></i>
+                       </div>
+					    
+                       <a class="small-box-footer" href="<?php echo $transaction;?>">
+                           More info <i class="fa fa-arrow-circle-right"></i>
+                       </a>
+                   </div>
+               </div><!-- ./col -->
+				
+			 </div>
+		</div>
 				
 			  <div class="row">
 			  
 			  <div class="col-lg-8 box-center" >
+				<?php //if ($_SERVER['HTTP_HOST'] == '172.21.4.104') $Analyticshref = 'CustomerList?cs=1'; else $Analyticshref = "#"; ?>
 				<?php $Analyticshref = 'CustomerList?cs=1'; ?>
                	<div class="col-md-3 col-sm-6 col-xs-12" style="cursor:pointer" <?php if(!empty($Analyticshref)) echo 'onclick="location.href=\''.$Analyticshref.'\'"'; ?>  title="Analytics">
                    <!-- small box -->

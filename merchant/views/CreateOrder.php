@@ -230,7 +230,7 @@ commonHead();
 		
 		<section class="content">
 		<?php if(empty($merchantInfo['MangoPayUniqueId'])){?>
-				<div align="center" class="alert alert-danger alert-dismissable  col-lg-5 col-sm-7  col-md-5 col-xs-12"><i class="fa fa-warning"></i>&nbsp;&nbsp;Please connect with MangoPay in My Account to create orders.</div>
+				<div align="center" class="alert alert-danger alert-dismissable  col-lg-5 col-sm-7  col-md-5 col-xs-12"><i class="fa fa-warning"></i>&nbsp;&nbsp;Please connect with MangoPay in Settings to create orders.</div>
 		<?php }
 		else{
 			 if(isset($msg) && $msg != '') { ?>
@@ -254,9 +254,9 @@ commonHead();
 							?>
 							<tr id="orderrow<?php echo $orderval['ProductId']; ?>">
 								<td>
-									<i class="fa fa-minus" onclick="return removequantity(<?php echo $orderval['ProductId']; ?>);"></i>
-									<input id="quantity<?php echo $orderval['ProductId']; ?>" type="text" readonly="" onkeypress="return isNumberKey(event);" value="<?php echo $orderval['ProductsQuantity']; ?>" style="width:50px;text-align:center;" name="quantity<?php echo $orderval['ProductId']; ?>">
-									<i class="fa fa-plus" onclick="return addquantity(<?php echo $orderval['ProductId']; ?>);"></i>
+									<i class="fa fa-minus" onclick="return addRemoveQuantity(<?php echo $orderval['ProductId']; ?>,'2');"></i>
+									<input id="quantity<?php echo $orderval['ProductId']; ?>" onkeyup="return addRemoveQuantity(<?php echo $orderval['ProductId']; ?>,'3');" type="text" onkeypress="return isNumberKeyQuantity(event);" value="<?php echo $orderval['ProductsQuantity']; ?>" style="width:50px;text-align:center;" name="quantity<?php echo $orderval['ProductId']; ?>">
+									<i class="fa fa-plus" onclick="return addRemoveQuantity(<?php echo $orderval['ProductId']; ?>,'1');"></i>
 									<input id="imagePath<?php echo $orderval['ProductId']; ?>" type="hidden" value="<?php echo $orderval['imagePath']; ?>" name="imagePath<?php echo $orderval['ProductId']; ?>">
 								</td>
 									<td>
@@ -303,14 +303,17 @@ commonHead();
 						<!-- start product List -->
 							<div class="row clear">										
 								<?php foreach($PopularProducts as $key1=>$value1) { ?>	
-									<div class="col-xs-6 col-sm-3 col-md-2 " style="cursor:pointer;" onclick="return hideShowOrders('<?php echo $value1['fkProductsId'];?>','<?php echo $value1['ItemName'];?>','<?php echo $value1['Photo']; ?>','<?php echo $value1['Price']; ?>','<?php echo $value1['DiscountPrice']; ?>');">
+									<div class="col-xs-6 col-sm-3 col-md-2 " style="cursor:pointer;">
 										<div class="small-box ">
+											<div align="right"><i class="fa fa-shopping-cart fa-lg" title="Add to cart" alt="Add to cart" onclick="return hideShowOrders('<?php echo $value1['fkProductsId'];?>','<?php echo $value1['ItemName'];?>','<?php echo $value1['Photo']; ?>','<?php echo $value1['Price']; ?>','<?php echo $value1['DiscountPrice']; ?>');"></i></div>
+											<a href="<?php echo $value1['Photo'];?>" class="Product_fancybox" title="<?php echo ucfirst($value1['ItemName']);?>">
 												<img height="100" width="100" src="<?php echo $value1['Photo']; ?>" alt=""><br>
+											</a>
 											<div class="product_price" style="cursor:text;">
 											<span class="title_product" style=""><?php echo $value1['ItemName'];?></span>
-											<?php echo "<div class='cal pull-right'><strong>$".$value1['Price']."</strong></div> "; 
+											<?php echo "<div class='cal pull-right'><strong>".price_fomat($value1['Price'])."</strong></div> "; 
 												if($value1['DiscountPrice'] != 0)
-													echo "<div class='cal actual_price pull-right' style='color:gray;'>$".$value1['DiscountPrice']."</div>";
+													echo "<div class='cal actual_price pull-right' style='color:gray;'>".price_fomat($value1['DiscountPrice'])."</div>";
 											?>
 											</div>
 										</div>
@@ -338,21 +341,23 @@ commonHead();
 					<div class="box-body" id="products_block">
 						<?php if(isset($dealsArray) && !empty($dealsArray) && count($dealsArray)>0) { ?>
 							<div style="cursor:pointer"  class="col-xs-8 no-padding" onclick="return productCategoryHideShow('0_0')">
-								<h4>Deals</h4>
+								<h4><strong>Deals</strong></h4>
 							</div>
 							<div class="col-xs-4 text-right pad" style="font-size:20px;cursor:pointer" onclick="return productCategoryHideShow('0_0')"><i id="plusMinus0_0" class="fa <?php if(empty($Search)) echo "fa-caret-down"; else echo "fa-caret-up"; ?>"></i><input type="hidden" id="rowHidden0_0" value="1"></div>
 							
-							<div class="row clear" id="rowHide0_0" <?php if(empty($Search)) echo 'style="display:none;"'; ?>>										
+							<div class="row col-xs-12 clear" id="rowHide0_0" <?php if(empty($Search)) echo 'style="display:none;"'; ?>>										
 								<?php foreach($dealsArray as $key1=>$value1) { ?>	
-									<div class="col-xs-6 col-sm-3 col-md-2 <?php if($value1['Status'] == 2) echo "inactive";?>" style="cursor:pointer;" onclick="return hideShowOrders('<?php echo $value1['ProductId'];?>','<?php echo $value1['ItemName'];?>','<?php echo $value1['Photo']; ?>','<?php echo $value1['Price']; ?>','<?php echo $value1['DiscountPrice']; ?>');">
+									<div class="col-xs-11  col-md-3 col-sm-4 col-lg-2 <?php if($value1['Status'] == 2) echo "inactive";?>" style="cursor:pointer;" >
 										<div class="small-box ">
-											<img height="100" width="100" src="<?php echo $value1['Photo']; ?>" alt=""><br>
+											<?php if($value1['Status'] != 2) { ?>
+												<a class="edit"><i class="fa fa-shopping-cart fa-lg" title="Add to cart" alt="Add to cart"  onclick="return hideShowOrders('<?php echo $value1['ProductId'];?>','<?php echo $value1['ItemName'];?>','<?php echo $value1['Photo']; ?>','<?php echo $value1['Price']; ?>','<?php echo $value1['DiscountPrice']; ?>');"></i></a>
+											<?php } ?>
+											<a href="<?php echo $value1['Photo'];?>" class="Product_fancybox" title="<?php echo ucfirst($value1['ItemName']);?>">
+												<img height="100" width="100" src="<?php echo $value1['Photo']; ?>" alt=""><br>
+											</a>
 											<div class="product_price" style="cursor:text;">
 											<span class="title_product" style=""><?php echo $value1['ItemName'];?></span>
-											<?php 	echo "<div class='cal pull-right'><strong>$".$value1['Price']."</strong></div> ";
-													if($value1['DiscountPrice'] != 0)
-														echo "<div class='cal actual_price pull-right' style='color:gray;'>$".$value1['DiscountPrice']."</div>";  
-											?>
+											<?php 	echo "<div class='cal actual_price pull-right' style='color:gray;'><strong>".price_fomat($value1['Price'])."</strong></div> ";?>
 											</div>
 										</div>
 									</div> 
@@ -362,19 +367,24 @@ commonHead();
 						<?php } 
 						if(isset($specialArray) && !empty($specialArray) && count($specialArray)>0) { ?>
 							<div style="cursor:pointer"  class="col-xs-8 no-padding" style="cursor:pointer;" onclick="return productCategoryHideShow('0_1')">
-								<h4>Specials</h4>
+								<h4><strong>Specials</strong></h4>
 							</div>
 							<div class="col-xs-4 text-right pad" style="font-size:20px;cursor:pointer" onclick="return productCategoryHideShow('0_1')"><i id="plusMinus0_1" class="fa <?php if(empty($Search)) echo "fa-caret-down"; else echo "fa-caret-up"; ?>"></i><input type="hidden" id="rowHidden0_1" value="1"></div>
 							
 							<div class="row clear" id="rowHide0_1" <?php if(empty($Search)) echo 'style="display:none;"'; ?>>										
 								<?php foreach($specialArray as $key1=>$value1) { ?>	
-									<div class="col-xs-6 col-sm-3 col-md-2 <?php if($value1['Status'] == 2) echo "inactive";?>" style="cursor:pointer;" onclick="return hideShowOrders('<?php echo $value1['ProductId'];?>','<?php echo $value1['ItemName'];?>','<?php echo $value1['Photo']; ?>','<?php echo $value1['Price']; ?>','<?php echo $value1['DiscountPrice']; ?>');">
+									<div class="col-xs-6 col-sm-3 col-md-2 <?php if($value1['Status'] == 2) echo "inactive";?>" style="cursor:pointer;" >
 										<div class="small-box ">
-											<img height="100" width="100" src="<?php echo $value1['Photo']; ?>" alt=""><br>
+											<?php if($value1['Status'] != 2) { ?>
+												<a class="edit"><i class="fa fa-shopping-cart  fa-lg" title="Add to cart" alt="Add to cart"  onclick="return hideShowOrders('<?php echo $value1['ProductId'];?>','<?php echo $value1['ItemName'];?>','<?php echo $value1['Photo']; ?>','<?php echo $value1['Price']; ?>','<?php echo $value1['DiscountPrice']; ?>');"></i></a>
+											<?php } ?>
+											<a href="<?php echo $value1['Photo'];?>" class="Product_fancybox" title="<?php echo ucfirst($value1['ItemName']);?>">
+												<img height="100" width="100" src="<?php echo $value1['Photo']; ?>" alt=""><br>
+											</a>
 											<div class="product_price" style="cursor:text;">
 											<span class="title_product" style=""><?php echo $value1['ItemName'];?></span>
-											<?php 	echo "<div class='cal pull-right'><strong>$".$value1['OriginalPrice']."</strong></div> ";
-													echo "<div class='cal actual_price pull-right' style='color:gray;'>$".$value1['Price']."</div>";  
+											<?php 	echo "<div class='cal pull-right'><strong>".price_fomat($value1['Price'])."</strong></div> ";
+													echo "<div class='cal actual_price pull-right' style='color:gray;'>".price_fomat($value1['OriginalPrice'])."</div>";  
 											?>
 											</div>
 										</div>
@@ -386,22 +396,28 @@ commonHead();
 					
 						<?php if(isset($productList) && !empty($productList)) { ?>						
 						<!-- start product List -->
-						<?php foreach($productList as $key=>$value) { if(!empty($value[0]['ProductId'])) { $value = subval_sort($value,'Ordering');	?>
+						<?php foreach($productList as $key=>$value) { if(!empty($value[0]['ProductId'])) { 	?>
 								<div style="cursor:pointer"  class="col-xs-8 no-padding" style="cursor:pointer;" onclick="return productCategoryHideShow(<?php echo $key; ?>)">
-									<h4><?php echo $value[0]['CategoryName']; ?></h4>
+									<h4><strong><?php echo $value[0]['CategoryName']; ?></strong></h4>
 								</div>
 								<div class="col-xs-4 text-right pad" style="font-size:20px;cursor:pointer" onclick="return productCategoryHideShow(<?php echo $key; ?>)"><i id="plusMinus<?php echo $key; ?>" class="fa <?php if(empty($Search)) echo "fa-caret-down"; else echo "fa-caret-up"; ?>"></i><input type="hidden" id="rowHidden<?php echo $key; ?>" value="1"></div>
 								
 								<div class="row clear" id="rowHide<?php echo $key; ?>" <?php if(empty($Search)) echo 'style="display:none;"'; ?>>										
-									<?php foreach($value as $key1=>$value1) { ?>	
-										<div class="col-xs-6 col-sm-3 col-md-2 <?php if($value1['Status'] == 2) echo "inactive";?>" style="cursor:pointer;" onclick="return hideShowOrders('<?php echo $value1['ProductId'];?>','<?php echo $value1['ItemName'];?>','<?php echo $value1['Photo']; ?>','<?php echo $value1['Price']; ?>','<?php echo $value1['DiscountPrice']; ?>');">
+									<?php $value = subval_sort($value,'Ordering');  foreach($value as $key1=>$value1) { ?>	
+										<div class="col-xs-6 col-sm-3 col-md-2 <?php if($value1['Status'] == 2) echo "inactive";?>" style="cursor:pointer;" >
 											<div class="small-box ">
-												<img height="100" width="100" src="<?php echo $value1['Photo']; ?>" alt=""><br>
+												<?php if($value1['Status'] != 2) { ?>
+													<a class="edit"><i class="fa fa-shopping-cart  fa-lg" title="Add to cart" alt="Add to cart"  onclick="return hideShowOrders('<?php echo $value1['ProductId'];?>','<?php echo $value1['ItemName'];?>','<?php echo $value1['Photo']; ?>','<?php echo $value1['Price']; ?>','<?php echo $value1['DiscountPrice']; ?>');"></i></a>
+												<?php } ?>
+												<a href="<?php echo $value1['Photo'];?>" class="Product_fancybox" title="<?php echo ucfirst($value1['ItemName']);?>">
+													<img height="100" width="100" src="<?php echo $value1['Photo']; ?>" alt=""><br>
+												</a>
 												<div class="product_price" style="cursor:text;">
 												<span class="title_product" style=""><?php echo $value1['ItemName'];?></span>
-												<?php 	echo "<div class='cal pull-right'><strong>$".$value1['Price']."</strong></div> ";
-														if($value1['DiscountPrice'] != 0)
-															echo "<div class='cal actual_price pull-right' style='color:gray;'>$".$value1['DiscountPrice']."</div>";  
+												<?php 	
+														if($value1['DiscountPrice'] > 0 )
+															echo "<div class='cal pull-right'><strong>".price_fomat($value1['DiscountPrice'])."</strong></div> ";
+														echo "<div class='cal actual_price pull-right' style='color:gray;'>".price_fomat($value1['Price'])."</div>";  
 												?>
 												</div>
 											</div>
@@ -433,7 +449,7 @@ commonHead();
 						<?php if(isset($userList) && !empty($userList)) { ?>
 						<!-- start user List -->
 						<?php foreach($userList as $key=>$users) { ?>																		
-							<div class="col-xs-6 col-sm-3 col-md-2 " style="cursor:pointer;"  id="user<?php echo $users['id'];?>" onclick="return hideShowUsers('<?php echo $users['id'];?>','<?php echo $users['Photo'];?>','<?php echo $users['FirstName'].' '.$users['LastName'];?>','<?php echo $users['CurrentBalance'];?>');">
+							<div class="col-xs-6 col-sm-3 col-md-2 "  title="Add to cart" alt="Add to cart"  style="cursor:pointer;"  id="user<?php echo $users['id'];?>" onclick="return hideShowUsers('<?php echo $users['id'];?>','<?php echo $users['Photo'];?>','<?php echo ucfirst($users['FirstName']).' '.ucfirst($users['LastName']);?>','<?php echo $users['CurrentBalance'];?>');">
 								<div class="small-box" style="min-height:70px;padding:5px;">
 									<div class="col-xs-4 col-md-4  col-lg-3 no-padding text-left"><img width="50" height="60" style="padding:0" src="<?php echo $users['Photo']; ?>" alt=""></div>
 									<div class="col-xs-8  col-md-8   col-lg-9  text-left">
@@ -465,7 +481,7 @@ commonHead();
 		<?php footerLogin(); ?>
 	<?php commonFooter(); ?>
 	<script type="text/javascript">
-				
+		$('.Product_fancybox').fancybox();			
 		$("a[href='#bottom']").click(function() {
 			  var pos = $("#store-users").position().top;
 			  var ht = $(document).height() - pos;

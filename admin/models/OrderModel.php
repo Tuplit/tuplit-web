@@ -103,7 +103,88 @@ class OrderModel extends Model
 		if(count($result) == 0) return false;
 		else return $result;		
 	}
+	function getTransactionList($field,$condition)
+	{
+		$search_condition = '';
+		if(isset($_SESSION['tuplit_sess_merchant_id']) && $_SESSION['tuplit_sess_merchant_id'] != '')
+			$search_condition .= " and o.fkMerchantsId = ".$_SESSION['tuplit_sess_merchant_id']." ";
+			
+		$sql 				= 	"SELECT  count(id) as TotalOrders,SUM(TotalPrice) as TotalPrice ".$field." from orders as o 
+								where 1 and  o.OrderStatus IN (1)  ".$search_condition." ".$condition."";	
+							//	echo '-->'. $sql .'<br>';
+		$result	=	$this->sqlQueryArray($sql);
+		if(count($result) == 0) return false;
+		else return $result;	
+	}	
+	function getProductTransactions($field,$condition,$sort_condition)
+	{
+		$search_condition = '';
+		if(isset($_SESSION['tuplit_sess_merchant_id']) && $_SESSION['tuplit_sess_merchant_id'] != ''){
+			$search_condition .= " and o.fkMerchantsId = ".$_SESSION['tuplit_sess_merchant_id']." ";
+			$search_condition .= " and c.fkMerchantsId  = ".$_SESSION['tuplit_sess_merchant_id']." ";
+			$search_condition .= " and p.fkMerchantsId  = ".$_SESSION['tuplit_sess_merchant_id']." ";
+		}
+			
+		$sql 				= 	"SELECT  p.ItemName as Name,p.id as ProductId ,SUM(ProductsQuantity) as TotalQuantity,SUM(c.TotalPrice) as TotalPrice,
+									COUNT(o.id) as TotalOrders ".$field." from orders as o 
+									left join carts as c ON (c.CartId = o.fkCartId)
+		                         	left join products as p on(p.id = c.fkProductsId)
+									where 1  and  o.OrderStatus IN (1) ".$search_condition."   ".$condition." ".$sort_condition."";	
+		$result	=	$this->sqlQueryArray($sql);
+		if(count($result) == 0) return false;
+		else return $result;	
+	}	
+	function getCategoryTransactions($field,$condition,$sort_condition)
+	{
+		$search_condition = '';
+		if(isset($_SESSION['tuplit_sess_merchant_id']) && $_SESSION['tuplit_sess_merchant_id'] != ''){
+			$search_condition .= " and o.fkMerchantsId = ".$_SESSION['tuplit_sess_merchant_id']." ";
+		//$search_condition .= " and pc.fkMerchantId IN( ".$_SESSION['tuplit_sess_merchant_id'].",0) ";
+			$search_condition .= " and c.fkMerchantsId  = ".$_SESSION['tuplit_sess_merchant_id']." ";
+			$search_condition .= " and p.fkMerchantsId  = ".$_SESSION['tuplit_sess_merchant_id']." ";
+		}
+			
+		$sql 				= 	"SELECT  pc.CategoryName as Name,p.ItemType,p.fkCategoryId as CategoryId,SUM(ProductsQuantity) as TotalQuantity,SUM(c.TotalPrice) as TotalPrice,
+									COUNT(o.id) as TotalOrders ".$field." from orders as o
+									left join carts as c ON (c.CartId = o.fkCartId)
+		                         	left join products as p on(p.id = c.fkProductsId)
+									left join productcategories as pc on(pc.id = p.fkCategoryId )
+									where 1  and  o.OrderStatus IN (1) ".$search_condition."   ".$condition." ".$sort_condition."";	
+		$result	=	$this->sqlQueryArray($sql);
+		if(count($result) == 0) return false;
+		else return $result;	
+	}	
+	function getPieChart($field,$condition)
+	{
+		$search_condition = '';
+		if(isset($_SESSION['tuplit_sess_merchant_id']) && $_SESSION['tuplit_sess_merchant_id'] != ''){
+			$search_condition .= " and c.fkMerchantsId  = ".$_SESSION['tuplit_sess_merchant_id']." ";
+		}
+			
+		$sql 			= 		"select (select sum( c.TotalPrice ) from `carts` AS c
+									left join orders as o on (c.CartId = o.fkCartId)
+									left join products as p on (p.id = c.fkProductsId)
+									where ( (c.`ProductsCost` = c.DiscountPrice and p.ItemType IN(2,3)) or (c.`ProductsCost` > c.DiscountPrice and p.ItemType = 1)) and o.OrderStatus IN (1)  ".$search_condition ."  ".$condition."  
+									limit 0,1)  as specialProducts ,
+									(select sum( c.TotalPrice ) from `carts` AS c
+									left join orders as o on (c.CartId = o.fkCartId)
+									left join products as p on (p.id = c.fkProductsId)
+									where (c.`ProductsCost` = c.DiscountPrice and p.ItemType IN(1)) and o.OrderStatus IN (1) 	".$search_condition ."  ".$condition." 
+									limit 0,1)  as normalProducts
+ 									from `carts` where 1  limit 0,1" ;	
+	   $result	=	$this->sqlQueryArray($sql);
+		if(count($result) == 0) return false;
+		else return $result;	
+	}	
+	function getUserTransactions($fields,$conditions)
+	{
 	
-	
+		$sql =			"SELECT DISTINCT o.fkUsersId, u.FirstName, u.LastName, u.MangoPayUniqueId, u.WalletId FROM `orders` o
+						LEFT JOIN users u ON ( o.fkUsersId = u.id )
+						WHERE 1 AND ".$conditions." AND u.MangoPayUniqueId != '' AND u.WalletId != ''";			
+		 $result	=	$this->sqlQueryArray($sql);
+		if(count($result) == 0) return false;
+		else return $result;	
+	}
 }
 ?>

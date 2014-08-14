@@ -86,7 +86,7 @@ $CategoryListResult  = $ManagementObj->selectProductCategoryDetails($fields,$con
 		<div <?php if($show == 0) { ?>class="col-xs-7"<?php } else { ?> class="col-xs-12" <? } ?>>
 			<h1><i class="fa fa-list"></i><?php if($show == 0) echo " Product List"; else echo " Product List"; ?></h1>
 		</div>
-		<?php if($show == 0){ ?><div class="col-xs-5"><h3><a href="ProductManage"><i class="fa fa-plus-circle"></i>Add Product</a></h3></div><?php } ?>
+		<?php if($show == 0){ ?><div class="col-sm-5"><h3><a href="ProductManage"><i class="fa fa-plus-circle"></i> Add Product</a></h3></div><?php } ?>
 	</section>	
 	 <!-- Main content -->
 	<section class="content">
@@ -95,11 +95,11 @@ $CategoryListResult  = $ManagementObj->selectProductCategoryDetails($fields,$con
 				<form name="search_merchant" action="ProductList<?php if($show == 1) echo "?mer_id=".$mer_id."&cs=1"; ?>" method="post">
 				<div class="box box-primary">
 					<div class="box-body no-padding" >				
-						<div class="col-md-4  col-sm-4 form-group">
+						<div class="col-md-4  col-sm-4 <?php if($show != 0) { ?>col-sm-3<?}?> form-group">
 							<label>Item Name</label>
 							<input type="text" class="form-control" name="itemname" id="itemname"  value="<?php if(isset($_SESSION['item_sess_name']) && $_SESSION['item_sess_name'] != '') echo unEscapeSpecialCharacters($_SESSION['item_sess_name']); ?>" >
 						</div>
-						<div class="col-md-4 col-sm-4 form-group">
+						<div class="col-md-4 col-sm-4 <?php if($show != 0) { ?>col-sm-2<?}?> form-group">
 							<label>Price</label>
 							<input type="text" class="form-control" id="cost" name="cost"  value="<?php if(isset($_SESSION['item_sess_cost']) && $_SESSION['item_sess_cost'] != '') echo unEscapeSpecialCharacters($_SESSION['item_sess_cost']);  ?>" >
 						</div>	
@@ -120,7 +120,7 @@ $CategoryListResult  = $ManagementObj->selectProductCategoryDetails($fields,$con
 								<?php } } ?>		
 							</select>
 						</div>
-						<div class="form-group col-sm-5 col-md-4">
+						<div class="form-group col-sm-5 <?php if($show != 0) { ?>col-sm-3<?}?> col-md-4">
 							<label class="notification">Discount Applied</label>
 							<div class="radio ">
 							<label class="col-xs-3 no-padding"><input type="Radio" id="DiscountApplied" value="1" name="DiscountApplied" <?php if(isset($_SESSION['item_sess_product_discount']) && $_SESSION['item_sess_product_discount'] == '1') echo 'checked';?> > &nbsp;&nbsp;Yes</label>
@@ -168,7 +168,7 @@ $CategoryListResult  = $ManagementObj->selectProductCategoryDetails($fields,$con
                <div class="col-xs-12">
 			   	<?php if(isset($productListResult) && is_array($productListResult) && count($productListResult) > 0 ) { ?>
 				<form action="ProductList" class="l_form" name="ProductList" id="ProductList"  method="post">
-                   <div class="box">
+                   <div class="box <?php if($show != 0) { ?>height-control<?}?>">
                        <div class="box-body table-responsive no-padding">
                            <table class="table table-hover">
                                <tr>

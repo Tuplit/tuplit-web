@@ -247,9 +247,9 @@ if(!isset($_GET['show']))
 												
 												<div class="row-actions">
 												<?php if($value->Status == 1) { ?>
-													<a class="active_icon" onclick="javascript:return confirm('Are you sure want to change the status?')" href="ProductCategoryList?status=2&editId=<?php if(isset($value->id) && $value->id != '') echo $value->id;?>" alt="Click to Inactive" title="Click to Inactive"><i class="fa fa-thumbs-up "></i></a>
+													<!--<a class="active_icon" onclick="javascript:return confirm('Are you sure want to change the status?')" href="ProductCategoryList?status=2&editId=<?php if(isset($value->id) && $value->id != '') echo $value->id;?>" alt="Click to Inactive" title="Click to Inactive"><i class="fa fa-thumbs-up "></i></a>-->
 												<?php } else { ?>
-													<a class="inactive_icon" onclick="javascript:return confirm('Are you sure you want to change the status?')" title="Click to Active" alt="Click to Active" href="ProductCategoryList?status=1&editId=<?php if(isset($value->id) && $value->id != '') echo $value->id;?>"><i class="fa fa-thumbs-o-down "></i></a>
+													<!--<a class="inactive_icon" onclick="javascript:return confirm('Are you sure you want to change the status?')" title="Click to Active" alt="Click to Active" href="ProductCategoryList?status=1&editId=<?php if(isset($value->id) && $value->id != '') echo $value->id;?>"><i class="fa fa-thumbs-o-down "></i></a>-->
 													<?php } ?>
 													<a href="ProductCategoryManage?type=1&editId=<?php if(isset($value->id) && $value->id != '') echo $value->id; ?>&show=<?php if(isset($_GET['show'])) echo $_GET['show']; else echo '1' ;?>" title="" alt="Edit" class="addProductCategory edit"><i class="fa fa-edit "></i></a>
 					

@@ -5,7 +5,7 @@ merchant_login_check();
 $dealsArray			=	array();
 $totalPro			=	0;
 if(isset($_GET['Ajax']) && $_GET['Ajax'] == 1) {
-	if(isset($_POST['CatID']) && !empty($_POST['CatID']) && isset($_POST['idsarray']) && !empty($_POST['idsarray'])) {
+	if(isset($_POST['CatID']) && (!empty($_POST['CatID'])  || $_POST['CatID'] == 0) && isset($_POST['idsarray']) && !empty($_POST['idsarray'])) {
 		$ProductIds		=	explode(",",$_POST['idsarray']);
 		$data			=	array(
 								'CatId'				=> $_POST['CatID'],
@@ -14,7 +14,6 @@ if(isset($_GET['Ajax']) && $_GET['Ajax'] == 1) {
 		$method			=	'PUT';
 		$url			=	WEB_SERVICE.'v1/products/';
 		$curlResponse	=	curlRequest($url,$method,json_encode($data),$_SESSION['merchantInfo']['AccessToken']);
-		//echo "<pre>"; echo print_r($curlResponse); echo "</pre>";
 		if(isset($curlResponse) && is_array($curlResponse) && $curlResponse['meta']['code'] == 201) {
 			echo "1";
 		}
@@ -38,7 +37,7 @@ if(isset($curlMerchantResponse) && is_array($curlMerchantResponse) && $curlMerch
 		$hide	= 	1;	
 	}
 }
-//echo "<pre>"; echo print_r($merchantInfo); echo "</pre>";
+
 //getting product List
 $url					=	WEB_SERVICE.'v1/products/';
 $curlCategoryResponse 	= 	curlRequest($url, 'GET', null, $_SESSION['merchantInfo']['AccessToken']);
@@ -58,8 +57,7 @@ if(isset($productList) && !empty($productList)) {
 		}		
 	}
 	
-	if(isset($productList[0]) && count($productList[0]) > 0) {
-		
+	if(isset($productList[0]) && count($productList[0]) > 0) {		
 		foreach($productList[0] as $data) {
 			if($data['ItemType']	==	2) 
 				$dealsArray[]	=	$data;
@@ -68,11 +66,10 @@ if(isset($productList) && !empty($productList)) {
 		}
 		unset($productList[0]);
 	}
-	//echo "<pre>"; echo print_r($specialArray); echo "</pre>";
-	//echo "<pre>"; echo print_r($productList); echo "</pre>";
 	foreach($productList as $key=>$value) {
-		$totalPro		=	$totalPro + count($value);
-	}	
+		if($value[0]['ProductId'] != '')
+			$totalPro		=	$totalPro + count($value);
+	}
 }
 commonHead();
 ?>
@@ -83,7 +80,7 @@ commonHead();
 		<div class="product_list">
 		<div class="col-lg-12 box-center">	
 			<?php if(empty($merchantInfo['MangoPayUniqueId'])){?>
-				<div align="center" class="alert alert-danger alert-dismissable  col-lg-5 col-sm-7  col-md-5 col-xs-12"><i class="fa fa-warning"></i>&nbsp;&nbsp;Please connect with MangoPay in My Account to add products.</div>
+				<div align="center" class="alert alert-danger alert-dismissable  col-lg-5 col-sm-7  col-md-5 col-xs-12"><i class="fa fa-warning"></i>&nbsp;&nbsp;Please connect with MangoPay in Settings to add products.</div>
 			<?php } else if(isset($hide) && $hide == 1) { ?> <br/><br/><br/>
 				<div align="center" class="alert alert-danger alert-dismissable  col-lg-5 col-sm-7  col-md-5 col-xs-12"><i class="fa fa-warning"></i>&nbsp;&nbsp;Cannot add products until Price Scheme is selected in Settings</div>
 			<?php } else { ?>
@@ -105,10 +102,9 @@ commonHead();
 						<h4><strong>Deals</strong>&nbsp;&nbsp;This Category can't be renamed</h4>
 					</div>				
 					<div class="col-xs-4 text-right pad"><a href="Product?show=0&add=deals" class="newWindow"><i class="fa fa-plus"></i> Add Item</a></div>
-					<div class="row col-xs-12 clear" id="draggablePanelList_deals">										
+					<div class="row col-xs-12 clear draggableListdeals" id="dragList_deals">										
 						<?php 
 							if(isset($dealsArray) && count($dealsArray) > 0) {
-								$dealsArray = subval_sort($dealsArray,'Ordering');
 								foreach($dealsArray as $key1=>$value1 ) {								
 									if($value1["ProductId"]!= ''){ ?>	
 							<div class="col-xs-11  col-md-3 col-sm-4 col-lg-2 <?php if($value1['Status'] == 2) echo "inactive";?> paneldragging" id="<?php echo $value1["ProductId"];?>">
@@ -118,9 +114,9 @@ commonHead();
 									</a>
 									<a class="edit newWindow" href="Product?show=0&edit=<?php echo $value1['ProductId']; ?>&add=deals"><i class="fa fa-pencil fa-lg"></i></a>
 									<div class="product_price">
-									<span class="title_product" style="" title="<?php echo ucfirst($value1['ItemName']); ?>"><?php echo displayText(ucfirst($value1['ItemName']),10);?></span>
+									<span class="title_product" style="" title="<?php echo ucfirst($value1['ItemName']); ?>"><?php echo ucfirst($value1['ItemName']);?></span>
 									<?php 	
-										echo "<div class='cal actual_price pull-right' style='color:gray;'>$".$value1['Price']."</div> "; 
+										echo "<div class='cal actual_price pull-right' style='color:gray;'>".price_fomat($value1['Price'])."</div> "; 
 									?>
 									</div>
 								</div>
@@ -133,10 +129,9 @@ commonHead();
 						<h4><strong>Specials</strong>&nbsp;&nbsp;This Category can't be renamed</h4>
 					</div>				
 					<div class="col-xs-4 text-right pad"><a href="Product?show=0&add=specials" <?php if($totalPro != 0) echo 'class="specialsnewWindow"'; else echo 'onclick="return noProducts();"'; ?>><i class="fa fa-plus"></i> Add Item</a></div>
-					<div class="row col-xs-12 clear" id="draggablePanelList_special">										
+					<div class="row col-xs-12 clear draggableListspecial" id="dragList_special">										
 						<?php 
 							if(isset($specialArray) && count($specialArray) > 0) {
-								$specialArray = subval_sort($specialArray,'Ordering');
 								foreach($specialArray as $key1=>$value1 ) {								
 									if($value1["ProductId"]!= ''){ ?>	
 										<div class="col-xs-11  col-md-3 col-sm-4 col-lg-2 <?php if($value1['Status'] == 2) echo "inactive";?> paneldragging" id="<?php echo $value1["ProductId"];?>">
@@ -146,13 +141,13 @@ commonHead();
 												</a>
 												<a class="edit specialsnewWindow" href="Product?show=0&edit=<?php echo $value1['ProductId']; ?>&add=specials"><i class="fa fa-pencil fa-lg"></i></a>
 												<div class="product_price">
-												<span class="title_product" style="" title="<?php echo ucfirst($value1['ItemName']); ?>"><?php echo displayText(ucfirst($value1['ItemName']),10);?></span>
+												<span class="title_product" style="" title="<?php echo ucfirst($value1['ItemName']); ?>"><?php echo ucfirst($value1['ItemName']);?></span>
 												<?php 
 													if($value1['OriginalPrice'] != '0.00') {
-														echo "<div class='cal pull-right'><strong>$".floatval($value1['Price'])."</strong></div>";  
-														echo "<div class='cal actual_price pull-right' style='color:gray;'>$".floatval($value1['OriginalPrice'])."</div> "; 
+														echo "<div class='cal pull-right'><strong>".price_fomat($value1['Price'])."</strong></div>";  
+														echo "<div class='cal actual_price pull-right' style='color:gray;'>".price_fomat($value1['OriginalPrice'])."</div> "; 
 													} else {
-														echo "<div class='cal actual_price pull-right' style='color:gray;'>$".floatval($value1['Price'])."</div> "; 
+														echo "<div class='cal actual_price pull-right' style='color:gray;'>".price_fomat($value1['Price'])."</div> "; 
 													}
 												?>
 												</div>
@@ -171,10 +166,10 @@ commonHead();
 							</div>
 							
 							<div class="col-xs-4 text-right pad"><a href="Product?show=0&add=<?php echo $key; ?>" class="newWindow"><i class="fa fa-plus"></i> Add Item</a></div>
-							<div class="row col-xs-12 clear" id="draggablePanelList_<?php echo $key; ?>">										
+							<div class="row col-xs-12 clear draggableList" id="dragList_<?php echo $key; ?>">										
 								<?php 
 									$value = subval_sort($value,'Ordering');
-									foreach($value as $key1=>$value1 ) { 
+									foreach($value as $key1=>$value1 ) {
 										if($value1["ProductId"]!= ''){ ?>	
 											<div class="col-xs-11  col-md-3 col-sm-4 col-lg-2 <?php if($value1['Status'] == 2) echo "inactive";?> paneldragging" id="<?php echo $value1["ProductId"];?>">
 												<div id="<?php echo $value1["ProductId"];?>" class="small-box panel-heading">
@@ -183,11 +178,11 @@ commonHead();
 													</a>
 													<a class="edit newWindow" href="Product?show=0&edit=<?php echo $value1['ProductId']; ?>&add=<?php if($value1['fkCategoryId'] == 1) echo "deals"; ?>"><i class="fa fa-pencil fa-lg"></i></a>
 													<div class="product_price">
-													<span class="title_product" style="" title="<?php echo ucfirst($value1['ItemName']); ?>"><?php echo displayText(ucfirst($value1['ItemName']),10);?></span>
+													<span class="title_product" style="" title="<?php echo ucfirst($value1['ItemName']); ?>"><?php echo ucfirst($value1['ItemName']);?></span>
 													<?php 											
 														if($value1['DiscountPrice'] > 0)
-															echo "<div class='cal pull-right'><strong>$".floatval($value1['DiscountPrice'])."</strong></div>";  
-														echo "<div class='cal actual_price pull-right' style='color:gray;'>$".$value1['Price']."</div> "; 
+															echo "<div class='cal pull-right'><strong>".price_fomat($value1['DiscountPrice'])."</strong></div>";  
+														echo "<div class='cal actual_price pull-right' style='color:gray;'>".price_fomat($value1['Price'])."</div> "; 
 													?>
 													</div>
 												</div>
@@ -223,7 +218,6 @@ commonHead();
 					afterClose 	: function() {
 										location.reload();
 										return;
-										 //$.fancybox.resize();
 									}
 			});
 			$(".specialsnewWindow").fancybox({
@@ -236,15 +230,12 @@ commonHead();
 					afterClose 	: function() {
 										location.reload();
 										return;
-										 //$.fancybox.resize();
 									}
 			});
-				
 			$(".cateWindow").fancybox({
 					scrolling: 'none',			
 					type: 'iframe',
 					width: '380',
-					//height: '200',
 					maxWidth: '100%',  // for respossive width set					
 					fitToView: false,
 					minHeight : 135,
@@ -255,24 +246,20 @@ commonHead();
 			});
 		});
 		
-		<?php if ($_SERVER['HTTP_HOST'] == '172.21.4.104') {
-			if(isset($productList) && count($productList) > 0) { foreach($productList as $key=>$value) {  ?>	
-			jQuery(function($) {	
-				var panelList_<?php echo $key; ?> = $('#draggablePanelList_<?php echo $key; ?>');			
-				panelList_<?php echo $key; ?>.sortable({
-					handle: '.panel-heading',
-					update: function() {
-						idsarray	=	new Array();
-						i			=	0;
-						cat_id		=	'';
-						$('.paneldragging', panelList_<?php echo $key; ?>).each(function(index, elem) {
-							 var $listItem 	= $(elem),
-							 newIndex 		= $listItem.index();
-							 //console.log($listItem[0].id);
-							 idsarray[i]	=	$listItem[0].id;
-							i++;						 
-						});
-						$.ajax({
+		<?php	if(isset($productList) && count($productList) > 0) { foreach($productList as $key=>$value) {  ?>	
+				$("#dragList_<?php echo $key; ?>").sortable({
+					connectWith: ".draggableList",
+					update: function() {idsarray	=	new Array();
+							i			=	0;
+							cat_id		=	'';
+							$('.paneldragging', "#dragList_<?php echo $key; ?>").each(function(index, elem) {
+								 var $listItem 	= $(elem),
+								 newIndex 		= $listItem.index();
+								 idsarray[i]	=	$listItem[0].id;
+								i++;						 
+							});
+						
+							$.ajax({
 							type: "POST",
 							url: "./ProductList?Ajax=1",
 							data: 'idsarray='+idsarray+'&CatID='+<?php echo $key; ?>,			
@@ -282,39 +269,50 @@ commonHead();
 						});
 					}
 				});
-			});
 		<?php } } ?>
-		jQuery(function($) {	
-				var panelList_deals = $('#draggablePanelList_deals');			
-				panelList_deals.sortable({
-					handle: '.panel-heading',
-					update: function() {
-						idsarray	=	new Array();
-						i			=	0;
-						cat_id		=	'';
-						$('.paneldragging', panelList_deals).each(function(index, elem) {
-							 var $listItem 	= $(elem),
-							 newIndex 		= $listItem.index();
-							 //console.log($listItem[0].id);
-							 idsarray[i]	=	$listItem[0].id;
-							i++;						 
-						});
-						$.ajax({
-							type: "POST",
-							url: "./ProductList?Ajax=1",
-							data: 'idsarray='+idsarray+'&CatID=0',			
-							success: function (result){
-								
-							}			
-						});
-					}
+		$("#dragList_special").sortable({
+			connectWith: ".draggableListspecial",
+			update: function() {idsarray	=	new Array();
+					i			=	0;
+					cat_id		=	'';
+					$('.paneldragging', "#dragList_special").each(function(index, elem) {
+						 var $listItem 	= $(elem),
+						 newIndex 		= $listItem.index();
+						 idsarray[i]	=	$listItem[0].id;
+						i++;						 
+					});
+				
+					$.ajax({
+					type: "POST",
+					url: "./ProductList?Ajax=1",
+					data: 'idsarray='+idsarray+'&CatID=0',			
+					success: function (result){
+						
+					}			
 				});
-			});
-		<?php } ?>
+			}
+		});
+		$("#dragList_deals").sortable({
+			connectWith: ".draggableListdeals",
+			update: function() {idsarray	=	new Array();
+					i			=	0;
+					cat_id		=	'';
+					$('.paneldragging', "#dragList_deals").each(function(index, elem) {
+						 var $listItem 	= $(elem),
+						 newIndex 		= $listItem.index();
+						 idsarray[i]	=	$listItem[0].id;
+						i++;						 
+					});
+				
+					$.ajax({
+					type: "POST",
+					url: "./ProductList?Ajax=1",
+					data: 'idsarray='+idsarray+'&CatID=0',			
+					success: function (result){
+						
+					}			
+				});
+			}
+		});
 	</script>
-	 <script>
-/*$(function() {
-	$( ".panel" ).draggable();
-});*/
-</script>
 </html>

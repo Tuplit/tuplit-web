@@ -24,7 +24,9 @@ class Model extends Database
 	var $commentTable			            =   "comments";
 	var $devicetokenTable					=	"devicetokens";
 	var $webContentTable					=	"webcontent";
-	var $transferTable					=	"transfer";
+	var $transferTable						=	"transfer";
+	var $locationTable						=	"locations";
+	var $currencyTable						=	"currencies";
     /*Table Name*/
 	function Model()
 	{

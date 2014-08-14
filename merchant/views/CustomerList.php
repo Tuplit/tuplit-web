@@ -94,7 +94,6 @@ if(isset($curlCustomerResponse) && is_array($curlCustomerResponse) && $curlCusto
 } 
 commonHead();
 
-//echo "==>".__line__."<====<pre>";print_r($customerList);echo "</pre>=====";
 ?>
 
 <body class="skin-blue fixed">
@@ -128,14 +127,14 @@ commonHead();
 									<?php if(isset($value["Photo"]) && $value["Photo"] != ''){ 
 											?>
 									
-										<a <?php if(isset($value["OriginalPhoto"]) ) { ?>href="<?php echo $value["OriginalPhoto"]; ?>" class="fancybox" title="<?php echo  ucfirst($value["UserName"]);?>" <?php } ?> > 
+										<a <?php if(isset($value["OriginalPhoto"]) ) { ?>href="<?php echo $value["OriginalPhoto"]; ?>" class="fancybox" title="<?php  echo  ucfirst($value["FirstName"]).' '.ucfirst($value["LastName"]);?>" <?php } ?> > 
 											<img  width="36" height="36" align="top" class="img_border" src="<?php echo  $value["Photo"];?>" >
 										</a>
 									
 								<?php } else {?> <img  width="36" height="36" align="top" class="img_border" src="<?php echo MERCHANT_IMAGE_PATH.'no_user.jpeg';?>" > <?php  } ?>
 								</div>
 								<div class="col-xs-9 col-sm-5 col-md-11 "> 										
-										<?php if(isset($value["UserName"]) && $value["UserName"] != ''){ echo ucfirst($value["UserName"]); } ?>						
+										<?php  echo  ucfirst($value["FirstName"]).' '.ucfirst($value["LastName"]);?>					
 								</div>
 								</td>
 								<td align="right"><?php if(isset($value["TotalPrice"]) && $value["TotalPrice"]!= ''){ echo '$'.number_format((float)$value["TotalPrice"],2,'.',',');}?></td>
@@ -243,7 +242,8 @@ commonHead();
 									<th width="10%" class="text-right">Total Amount</th>
 									<th width="10%" class="text-right">Avg. Transaction</th>
 									<th width="10%" class="text-center word-break">No.of Transactions</th>
-									<th width="10%" class="text-center word-break">Days Between Orders</th>
+									<th width="10%" class="text-center">Days between orders (average)</th>
+									<!-- <th width="5%" class="text-center word-break">Average</th> -->
 									<th colspan="2" width="10%" class="text-center">Actions</th>
 								</tr>
                               <?php
@@ -255,7 +255,7 @@ commonHead();
 								<td align="center"><?php echo (($_SESSION['curpage'] - 1) * ($_SESSION['perpage']))+$key+1;?></td>												
 								<td>
 									<div class="col-xs-10 col-md-11 no-padding"> 										
-										<a href="UserDetail?viewId=<?php echo base64_encode($value["userId"]);?>&cs=1" class="userWindow white-space" title="View Customer Details" ><?php if(isset($value["UserName"]) && $value["UserName"] != ''){ echo ucfirst($value["UserName"]); } ?></a>								
+										<a href="UserDetail?viewId=<?php echo base64_encode($value["userId"]);?>&cs=1" class="userWindow white-space" title="View Customer Details" ><?php  echo  ucfirst($value["FirstName"]).' '.ucfirst($value["LastName"]);?></a>								
 									</div>
 								</td>
 								<td nowrap><?php if(isset($value["FirstVisit"]) && $value["FirstVisit"] != '0000-00-00 00:00:00'){ echo date('m/d/Y',strtotime($value["FirstVisit"])); }else echo '-';?></td>
@@ -295,29 +295,19 @@ commonHead();
 	<script type="text/javascript">
 		$(document).ready(function() {
 			$(".newWindow").fancybox({
-					scrolling: 'none',			
-					type: 'iframe',
-					width: '900',
-					maxWidth: '100%',  // for respossive width set					
-					fitToView: false,
-					 title: null,
-					//afterClose : function() {
-					//location.reload();
-					//return;
-				//}
+				scrolling: 'auto',			
+				type: 'iframe',
+				width: '800',
+				maxWidth: '100%',
+				fitToView: false,
 			});
 			$(".userWindow").fancybox({
 					scrolling: 'none',			
 					type: 'iframe',
 					width: '350',
-					//minHeight : 180,
 					maxWidth: '100%',  // for respossive width set					
 					fitToView: false,
 					 title: null,
-					//afterClose : function() {
-					//location.reload();
-					//return;
-				//}
 			});
 		});
 		$('.fancybox').fancybox();

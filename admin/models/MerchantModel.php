@@ -30,9 +30,7 @@ class MerchantModel extends Model
 		$sql = "select SQL_CALC_FOUND_ROWS ".$fields.", c.id as commentId from {$this->merchantTable} as m	".$join. " 
 				left join comments c on (m.id = c.fkMerchantsId and c.Status = 1) 
 				WHERE 1".$condition." group by m.id ORDER BY ".$sorting_clause." ".$limit_clause;
-		//echo "<br/>======".$sql;
 		$result	=	$this->sqlQueryArray($sql);
-		//echo "<pre>";   print_r($result);   echo "</pre>";
 		if(count($result) == 0) return false;
 		else {	
 			return $result;
@@ -50,14 +48,23 @@ class MerchantModel extends Model
 		$this->updateInto($sql);
 	}	
 	
-	function approveMerchant($id) {
-		$sql	 =	"update {$this->merchantTable}  set Status ='1' where id in (".$id.")";
+	function approveMerchant($id,$status) {
+		$sql	 =	"update {$this->merchantTable}  set Status ='".$status."' where id in (".$id.")";
 		//echo "<br>".$sql;
 		$this->updateInto($sql);
 	}
 	
 	function selectMerchantDetail($id){
 		$sql	 =	"select * from {$this->merchantTable} where id=".$id;
+		//echo "<br/>======".$sql;
+		$result = 	$this->sqlQueryArray($sql);
+			if($result) return $result;
+			else false;
+	}	
+	
+	function getProductsScold($id){
+		//$sql	 =	"select * from {$this->merchantTable} where id=".$id;
+		$sql	 =	"SELECT count(o.id) as TotalItems FROM {$this->orderTable} o  where o.OrderStatus=1 and  o.fkMerchantsId='".$id."'";
 		//echo "<br/>======".$sql;
 		$result = 	$this->sqlQueryArray($sql);
 			if($result) return $result;
@@ -106,6 +113,18 @@ class MerchantModel extends Model
 			$update_string .= " WebsiteUrl ='".$data['WebsiteUrl']."',";
 		if(!empty($data['Location']))
 			$update_string .= " Location ='".$data['Location']."',";
+		if(!empty($data['BusinessName']))
+			$update_string .= " BusinessName ='".$data['BusinessName']."',";
+		if(!empty($data['BusinessType']))
+			$update_string .= " BusinessType ='".$data['BusinessType']."',";
+		if(!empty($data['CompanyNumber']))
+			$update_string .= " RegisterCompanyNumber ='".$data['CompanyNumber']."',";
+		if(!empty($data['Country']))
+			$update_string .= " Country ='".$data['Country']."',";
+		if(!empty($data['Postcode']))
+			$update_string .= " PostCode ='".$data['Postcode']."',";
+		if(!empty($data['Currency']))
+			$update_string .= " Currency ='".$data['Currency']."',";
 		$update_string .= " ItemsSold ='".$data['ItemsSold']."',";
 		if(!empty($data['Address'])){
 			$update_string .= " Address ='".$data['Address']."',";
@@ -146,9 +165,6 @@ class MerchantModel extends Model
 		}
 		if(!empty($data['min_price']) && !empty($data['max_price']))
 			$update_string .= " PriceRange ='".$data['min_price'].",".$data['max_price']."',";			
-		if(!empty($data['min_price']) && !empty($data['max_price']))
-			$update_string .= " PriceRange ='".$data['min_price'].",".$data['max_price']."',";
-			
 		if(!empty($data['categorySelected'])) {
 			$sqldel = "delete from {$this->merchantcategoriesTable} where fkCategoriesId not in (".$data['categorySelected'].") and fkMerchantId = '".$data['merchant_id']."'";
 			$this->updateInto($sqldel);
@@ -163,6 +179,7 @@ class MerchantModel extends Model
 				}
 			}
 		}			
+		$update_string .= " DateModified ='".date('Y-m-d H:i:s')."',IpAddress = '".$data['ipaddress']."'";
 		$update_string = rtrim($update_string, ",");			
 		$sql =	"update {$this->merchantTable}  set ".$update_string." where id=".$data['merchant_id'];
 		$this->updateInto($sql);
@@ -206,6 +223,7 @@ class MerchantModel extends Model
 										DateCreated 	= '".date('Y-m-d H:i:s')."'
 										where id 		= '".strtoupper($data["id_".$i.""])."'
 										";
+										echo '-->'. $sql.'<br>';
 					$this->updateInto($sql);
 				}
 			}
@@ -303,6 +321,79 @@ class MerchantModel extends Model
 		$result = 	$this->sqlQueryArray($sql);
 			if($result) return $result;
 			else false;
+	}
+	
+	function merchantOrders(){
+		$sql	 =	"SELECT o.`fkMerchantsId` , m.CompanyName, count( o.id ) AS TotalOrders	FROM `orders` o
+						LEFT JOIN merchants m ON ( o.`fkMerchantsId` = m.id )
+						WHERE 1	AND m.Status =1	GROUP BY `fkMerchantsId` order by m.CompanyName asc";
+		//echo "<br/>======".$sql;
+		$result = 	$this->sqlQueryArray($sql);
+			if($result) return $result;
+			else false;
+	}
+	
+	function insertDetails($data){
+		$insert_string = '';
+		if(!empty($data['Password']))
+			$PassWord	=	sha1($data['Password'].ENCRYPTSALT);
+		if(!empty($data['FirstName']))
+			$insert_string .= " FirstName ='".$data['FirstName']."',";
+		if(!empty($data['LastName']))
+			$insert_string .= " LastName ='".$data['LastName']."',";
+		if(!empty($data['Email']))
+			$insert_string .= " Email ='".$data['Email']."',";
+		if(!empty($data['CompanyName']))
+			$insert_string .= " CompanyName ='".$data['CompanyName']."',";
+		if(!empty($data['PhoneNumber']))
+			$insert_string .= " PhoneNumber ='".$data['PhoneNumber']."',";
+		if(!empty($data['BusinessName']))
+			$insert_string .= " BusinessName ='".$data['BusinessName']."',";
+		if(!empty($data['BusinessType']))
+			$insert_string .= " BusinessType ='".$data['BusinessType']."',";
+		if(!empty($data['Address'])){
+			$insert_string .= " Address ='".$data['Address']."',";
+			$latlong = getLatLngFromAddress($data['Address']) ;
+				$latlngArray = explode('###',$latlong);
+			if(isset($latlngArray) && is_array($latlngArray) && count($latlngArray) > 0){
+				if(isset($latlngArray[0]))
+					$insert_string .= " Latitude  =	'". trim($latlngArray[0])."',";
+				if(isset($latlngArray[1]))
+					$insert_string .= " Longitude =	'".trim($latlngArray[1])."',"; 
+			}
+		}
+		if(!empty($data['CompanyNumber']))
+			$insert_string .= " RegisterCompanyNumber ='".$data['CompanyNumber']."',";
+		if(!empty($data['Country']))
+			$insert_string .= " Country ='".$data['Country']."',";
+		if(!empty($data['Postcode']))
+			$insert_string .= " PostCode ='".$data['Postcode']."',";
+		if(!empty($data['Password']))
+			$insert_string .= " Password ='".$PassWord."',";
+		if(!empty($data['Currency']))
+			$insert_string .= " Currency ='".$data['Currency']."',";
+		if(!empty($data['ReferedBy']))
+			$insert_string .= " HowHeared 	='".$data['ReferedBy']."',";
+			$insert_string .= "IpAddress    = '".$data['ipaddress']."',";
+			$insert_string .= " DateCreated = '".date('Y-m-d H:i:s')."',DateModified = '".date('Y-m-d H:i:s')."',
+								BrowserDetails	= '".$_SERVER['HTTP_USER_AGENT']."',Status = 0";
+		$insert_string = rtrim($insert_string, ",");			
+		$sql =	"insert into {$this->merchantTable}  set ".$insert_string."";
+		$this->result = $this->insertInto($sql);
+		$insertId = $this->sqlInsertId();
+		if(isset($insertId) && $insertId != '') {	
+			for($i=0;$i<=6;$i++) {
+				$sql = "insert into {$this->merchantshoppingTable} set 
+								fkMerchantId 	= '".$insertId."',
+								OpeningDay 		= '".$i."',
+								Start 			= '',
+								End 			= '',
+								DateType 		= '0',
+								DateCreated 	= '".date('Y-m-d H:i:s')."'";
+				$this->result = $this->insertInto($sql);
+			}
+		}
+        return $insertId;
 	}
 }
 ?>

@@ -16,7 +16,7 @@ class ManagementModel extends Model
 		if(isset($_SESSION['tuplit_sess_Category_status']) && $_SESSION['tuplit_sess_Category_status'] != '')
 			$condition .= " and c.Status = '".$_SESSION['tuplit_sess_Category_status']."' ";
 		if(isset($_SESSION['tuplit_sess_Category_registerdate']) && $_SESSION['tuplit_sess_Category_registerdate'] != '')
-			$condition .= " and date(c.DateCreated) = '".$_SESSION['tuplit_sess_Category_registerdate']."'";	
+			$condition .= " and date(c.DateCreated) >= '".$_SESSION['tuplit_sess_Category_registerdate']."'";	
 		$sql = "select SQL_CALC_FOUND_ROWS ".$fields." from {$this->categoryTable} as c	
 				WHERE 1".$condition." group by c.id ORDER BY ".$sorting_clause." ".$limit_clause;
 		//echo "<br/>======".$sql;

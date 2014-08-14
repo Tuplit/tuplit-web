@@ -7,14 +7,16 @@ $contentObj   =   new ContentController();
 $id	=	$ContentName	=	$ContentData	=	'';
 
 if(isset($_GET['action']) && !empty($_GET['action'])) {
-	$postdata	=	escapeSpecialCharacters($_POST);
+	$_POST     		= 	unEscapeSpecialCharacters($_POST);
+    $_POST     		= 	escapeSpecialCharacters($_POST);
+	//echo "<pre>"; echo print_r($_POST); echo "</pre>";die();
 	//New Content
 	if($_GET['action'] == 'Save')
-		$contentObj->insertContent($postdata);
+		$contentObj->insertContent($_POST);
 	
 	//Edit Content
 	if($_GET['action'] == 'Update')
-		$contentObj->updateContentDetail($postdata);
+		$contentObj->updateContentDetail($_POST);
 	
 	die();
 }
@@ -37,7 +39,7 @@ commonHead(); ?>
 	<!-- Content Header (Page header) -->
 	<section class="content-header">
 		<div class="row col-md-12"> 
-			<h1><i class="fa fa-pencil-square-o"></i> Content Manage</h1>
+			<h1><i class="fa fa-plus-circle "></i> <?php if(isset($_GET['editId']) && !empty($_GET['editId']))  echo "Edit"; else echo "Add"; ?> Content page</h1>
 		</div>
 	</section>
 	<!-- Main content -->
@@ -77,12 +79,12 @@ commonHead(); ?>
 <script type="text/javascript">
 tinymce.init({
 	height 	: "310",							
-	selector: "textarea", statusbar: false, menubar:false,
+	selector: "textarea", statusbar: false,
 	plugins	: [
 				"advlist autolink lists link image charmap print preview anchor",
 				"searchreplace visualblocks code fullscreen",
 				"insertdatetime media table contextmenu paste"
 				],
-	toolbar: "insertfile undo redo | styleselect | bold italic | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link image"
+	toolbar: "insertfile undo redo | styleselect | bold italic | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link image | code"
 	});		
 </script>

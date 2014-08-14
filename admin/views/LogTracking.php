@@ -23,6 +23,7 @@ if(isset($_GET['cs']) && $_GET['cs']=='1') {
 	unset($_SESSION['sess_logtrack_searchUserName']);
 	unset($_SESSION['sess_logtrack_searchIP']);
 	unset($_SESSION['sess_logtrack_urlString']);
+	unset($_SESSION['sess_logtrack_log_method']);
 }
 if(isset($_POST['Search']) && $_POST['Search'] != ''){
 	destroyPagingControlsVariables();
@@ -34,6 +35,7 @@ if(isset($_POST['Search']) && $_POST['Search'] != ''){
 	$_SESSION['sess_logtrack_searchUserName']	= trim($_POST['searchUserName']);
 	$_SESSION['sess_logtrack_searchIP']      	= trim($_POST['searchIP']);
 	$_SESSION['sess_logtrack_urlString']      	= trim($_POST['urlString']);
+	$_SESSION['sess_logtrack_log_method']      	= $_POST['log_method'];
 	//action_type
 }
 
@@ -57,7 +59,7 @@ if(isset($_SESSION['sess_logtrack_searchUserName'])	&&	$_SESSION['sess_logtrack_
 		foreach($searchUserIdsArray as $searchKey=>$searchValue)
 			$searchUserIds .= '"'.$searchValue.'",';
 		if(isset($searchUserIds)	&&	$searchUserIds !='')
-			$searchUserIds .= rtrim($searchUserIds,',');
+			$searchUserIds = rtrim($searchUserIds,',');
 		else
 			$searchUserIds	=	'noresult';
 	}
@@ -66,12 +68,6 @@ if(isset($_SESSION['sess_logtrack_searchUserName'])	&&	$_SESSION['sess_logtrack_
 
 setPagingControlValues('l.id',ADMIN_PER_PAGE_LIMIT);
 
-/*$logtracksResult	=	$logObj->logtrackDetails($where);
-$tot_rec 		 = $logObj->getTotalRecordCount();
-if($tot_rec==0 && !is_array($logtracksResult)) {
-	$_SESSION['curpage'] = 1;
-$logtracksResult	=	$logObj->logtrackDetails($where);
-}*/
 if($searchUserIds	!=	'noresult') {
 $searchUserIds	=	rtrim($searchUserIds,',');
 	if(	$searchUserIds !=	'')
@@ -151,6 +147,17 @@ if(isset($logtracksResult) && is_array($logtracksResult) && count($logtracksResu
 						<label>End Date</label>
 						<div class="col-lg-6 no-padding">
 							<input type="text" class="form-control datepicker" autocomplete="off"  title="Select Date" name="to_date" value="<?php if(isset($_SESSION['sess_logtrack_to_date']) && $_SESSION['sess_logtrack_to_date'] != '') echo date('m/d/Y',strtotime($_SESSION['sess_logtrack_to_date']));?>">
+						</div>
+					</div>
+					<div class="col-sm-4 form-group">
+						<label>Method</label>
+						<div class="col-lg-6 no-padding">
+							<select name="log_method" id="log_method" class="form-control">
+								<option value="">Select</option>
+								<?php foreach($methodArray as $key=>$value){?>
+								<option value="<?php echo $value;?>" <?php if(isset($_SESSION['sess_logtrack_log_method']) && ($_SESSION['sess_logtrack_log_method']== $value	)) echo 'selected';?>><?php echo $value;?></option>
+								<?php }?>
+							</select>
 						</div>
 					</div>
 					
@@ -236,6 +243,7 @@ if(isset($logtracksResult) && is_array($logtracksResult) && count($logtracksResu
 								}
 							  	else echo '-';?>
 						<br><br><p><b class="head_color">Method : </b><?php if(isset($value->method)	&&	$value->method !='') echo $value->method; else echo '-';?></p>
+						<p><b class="head_color">Access Token : </b><?php if(isset($value->user)	&&	$value->user !='') echo $value->user; else echo '-';?></p>
 						<?php }?>
 						</div>
 						</td>

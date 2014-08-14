@@ -4,6 +4,7 @@ admin_login_check();
 commonHead();
 require_once('controllers/ServiceController.php');
 $serviceObj   =   new ServiceController();
+$fieldNameArr = $sampleDataArr = $requiredArr = $explanationArr = array();
 if(isset($_GET['id']) && $_GET['id'] != '' ){
 	$condition       = " and id = ".$_GET['id'];
 	$field			 = " * ";
@@ -33,112 +34,126 @@ if(isset($_GET['id']) && $_GET['id'] != '' ){
 		}
 	}
 }
+
 ?>
 <body class="skin-blue">
 	<?php top_header(); ?>
 	
-	<form name="search_category" action="" method="post">
- 		 <table align="center" cellpadding="0" cellspacing="0" border="0" class="list" width="100%">
-       
-		<tr><td colspan="9"><h2><?php if(isset($process) && $process != '' ) { echo 'View Service - '.$process; } else echo 'View Service'?></h2></td></td></tr>
-		<tr><td height="20"></td></tr>
-		<tr>
-			<td align="center">
-				<table align="center" cellpadding="0" cellspacing="0" border="0"  width="75%">
-					<tr>
-						<td width="15%" align="left"  valign="top"><label>Purpose</label></td>
-						<td width="3%" align="center" valign="top">:</td>
-						<td align="left" valign="top">
+	<!-- Content Header (Page header) -->
+	<section class="content-header no-padding">
+		<div class="col-xs-12"> 
+			<h1><i class="fa fa-search"></i> <?php if(isset($process) && $process != '' ) { echo 'View Service - '.$process; } else echo 'View Service'?></h1>
+		</div>
+	</section>
+	 <!-- Main content -->
+	<section class="content">
+		<div class="row">
+			<div class="col-md-12 view-page"> 
+			 <form name="search_category" action="" method="post">
+				<div class="box box-primary"> 
+					<div class="form-group col-sm-6 row">
+						<label class=" col-sm-5   col-xs-5   col-md-4" >Purpose</label>
+						<div  class="col-sm-7 col-xs-7  col-md-8">
 							<?php if(isset($process) && $process != '') echo $process; else echo '-'; ?>
-						</td>
-					</tr>									
-					<tr><td height="20"></td></tr>
-					<tr>
-						<td align="left"  valign="top"><label>Endpoint</label></td>
-						<td align="center" valign="top">:</td>
-						<td align="left" valign="top"><?php if(isset($servicePath) && $servicePath != '') echo SITE_PATH.$servicePath;  else echo '-'; ?></td>
-					</tr>
-					<tr><td height="20"></td></tr>
-					<tr>
-						<td align="left"  valign="top"><label>Module Name</label></td>
-						<td align="center" valign="top">:</td>
-						<td align="left" valign="top"><?php if(isset($moduleName) && $moduleName != '' ) echo $moduleName; else echo '-'; ?></td>
-					</tr>	
-					<tr><td height="20"></td></tr>
-					<tr>
-						<td align="left"  valign="top"><label>Aspects</label></td>
-						<td align="center" valign="top">:</td>
-						<td align="left" valign="top"><?php if(isset($aspects) && $aspects != '' ) echo $aspects; else echo '-'; ?></td>
-					</tr>										
-					<tr><td height="20"></td></tr>
-					<tr>
-						<td align="left"  valign="top"><label>Authorization</label></td>
-						<td align="center" valign="top">:</td>
-						<td align="left" valign="top"><?php if(isset($authorization) && $authorization == '1' ) echo 'Yes'; else echo 'No'; ?></td>
-					</tr>									
-					<tr><td height="20"></td></tr>
-					<tr>
-						<td align="left"  valign="top"><label>Method</label></td>
-						<td align="center" valign="top">:</td>
-						<td align="left" valign="top"><?php if(isset($method) && $method != '' ) echo $method; else echo '-'; ?></td>
-						<input type="Hidden" id="method" name="method" value="<?php if(isset($method) && $method != '' ) echo $method; else echo '-'; ?>">
-					</tr>													
-					<tr><td height="20"></td></tr>
-					<tr class="inputParamDefault">
-						<td align="left"  valign="top"><label>Input Param</label></td>
-						<td  align="center" valign="top">:</td>
-						<td align="left"  valign="top">
-						<div class="param">
+						</div>
+					</div>	
+					<div class="form-group col-sm-6 row">
+						<label class=" col-sm-5   col-xs-5   col-md-4" >Endpoint</label>
+						<div  class="col-sm-7 col-xs-7  col-md-8">
+							<?php if(isset($servicePath) && $servicePath != '') echo SITE_PATH.$servicePath;  else echo '-'; ?>
+						</div>
+					</div>	
+					<div class="form-group col-sm-6 row">
+						<label class=" col-sm-5   col-xs-5   col-md-4" >Module Name</label>
+						<div  class="col-sm-7 col-xs-7  col-md-8">
+							<?php if(isset($moduleName) && $moduleName != '' ) echo $moduleName; else echo '-'; ?>
+						</div>
+					</div>						
+					<div class="form-group col-sm-6 row">
+						<label class=" col-sm-5   col-xs-5   col-md-4" >Aspects</label>
+						<div  class="col-sm-7 col-xs-7  col-md-8">
+							<?php if(isset($aspects) && $aspects != '' ) echo $aspects; else echo '-'; ?>
+						</div>
+					</div>	
+					<div class="form-group col-sm-6 row">
+						<label class=" col-sm-5   col-xs-5   col-md-4" >Authorization</label>
+						<div  class="col-sm-7 col-xs-7  col-md-8">
+							<?php if(isset($authorization) && $authorization == '1' ) echo 'Yes'; else echo 'No'; ?>
+						</div>
+					</div>	
+					<div class="form-group col-sm-6 row">
+						<label class=" col-sm-5   col-xs-5   col-md-4" >Method</label>
+						<div  class="col-sm-7 col-xs-7  col-md-8">
+							<?php if(isset($method) && $method != '' ) echo $method; else echo '-'; ?>
+							<input type="Hidden"  id="method" name="method" value="<?php if(isset($method) && $method != '' ) echo $method; else echo '-'; ?>">
+						</div>
+					</div>
+					<div class="form-group col-sm-6 row" id="inputParamDefault">
+						<label class=" col-sm-5   col-xs-5   col-md-4" >Input Param</label>
+						<div  class="col-sm-7 col-xs-7  col-md-8">
 							<?php if(isset($inputParam) && $inputParam != '' )  {
 								echo '<ul><li>'.str_replace(array("\r","\n\n","\n"),array('',"\n","</li>\n<li>"),trim($inputParam,"\n\r")).'</li></ul>';
 							} 
 							else echo '-'; ?>
-							</div>
-							</td>
-					</tr>									
-					<tr><td height="20"></td></tr>
-					<tr class="inputParamMultiple">
-						<td align="left"  valign="top"><label>Input Param</label></td>
-						<td align="center" valign="top">:</td>
-						<td>
-							<table cellpadding="5" class="service_list_input_param" cellspacing="0" width="100%" border="1">
-								<tr>
-									<th width="25%" style="letter-spacing:1px;font-family:trebuchet ms,Arial,Helvetica,sans-serif;border:1px solid #2BACED;color:#494949;">Field Name</th>
-									<th width="25%" style="letter-spacing:1px;font-family:trebuchet ms,Arial,Helvetica,sans-serif;border:1px solid #2BACED;color:#494949;">Data</th>
-									<th width="50%" style="letter-spacing:1px;font-family:trebuchet ms,Arial,Helvetica,sans-serif;border:1px solid #2BACED;color:#494949;">Description</th>
-								</tr>
-								<?php for($index = 0;$index < $rowCount;$index++) {?>
-								<tr>
-									<td style="padding-left:5px;padding-right:5px;text-align:left;height:25px;border:1px solid #2BACED;"><?php if(isset($fieldNameArr[$index])) echo htmlspecialchars($fieldNameArr[$index]); else if(empty($fieldNameArr[$index])) echo "-";?></td>
-									<td style="padding-left:5px;padding-right:5px;text-align:left;border:1px solid #2BACED;"><?php if(isset($sampleDataArr[$index]) && !empty($sampleDataArr[$index])) echo htmlspecialchars($sampleDataArr[$index]); else if(empty($sampleDataArr[$index])) echo "-";?></td>
-									<td style="padding-left:5px;padding-right:5px;text-align:justify;border:1px solid #2BACED;"><?php if(isset($requiredArr[$index]) && $requiredArr[$index] == 1) { echo "<b>Required: </b>"; } if(isset($explanationArr[$index]) && !empty($explanationArr[$index])) echo $explanationArr[$index]; else if(empty($explanationArr[$index])) echo "-";?></td>
-								</tr>
-								<?php }?>
-							</table>
-						</td>
-					</tr>
-					<tr>
-						<td  align="left"  valign="top"><label>Output Param</label></td>
-						<td align="center" valign="top">:</td>
-						<td align="left" valign="top">
-						<div class="param">
-						<?php if(isset($outputParam) && $outputParam != '' ) echo '<pre>'.$outputParam.'</pre>'; else echo '-'; ?>
 						</div>
-						</td>
-					</tr>									
-					<tr><td height="20"></td></tr>
-					 <tr>										
-						<td colspan="2">&nbsp;</td>
-						<td align="left">
-							<a href="ServiceManage?editId=<?php echo $_GET['id'];?>" class="submit" name="Edit" id="Edit" value="Edit" title="Edit" alt="Edit" >Edit </a> &nbsp;&nbsp;
-							<a href="ServiceList" class="submit" name="Back" id="Back" value="Back" title="Back" alt="Back">Back </a>
-						</td>
-					</tr> 
-				</table>
-			</td>
-		</tr>
-	</table>
-	</form>	
+					</div>										
+					<div class="form-group col-sm-6 row" id="inputParamMultiple">
+						<label class=" col-sm-5   col-xs-5   col-md-4" >Input Param</label>
+						<div  class="col-sm-7 col-xs-7  col-md-8">
+							<table class="table table-bordered" border="0" >
+								<tr>
+									<th width="25%">Field Name</th>
+									<th width="25%">Data</th>
+									<th width="50%">Description</th>
+								</tr>
+								<?php if(isset($serviceParamsDetails) && is_array($serviceParamsDetails) && count($serviceParamsDetails) > 0) {
+								 for($index = 0;$index < $rowCount;$index++) {?>
+								<tr>
+									<td><?php if(isset($fieldNameArr[$index])) echo htmlspecialchars($fieldNameArr[$index]); else if(empty($fieldNameArr[$index])) echo "-";?></td>
+									<td><?php if(isset($sampleDataArr[$index]) && !empty($sampleDataArr[$index])) echo htmlspecialchars($sampleDataArr[$index]); else if(empty($sampleDataArr[$index])) echo "-";?></td>
+									<td><?php 
+										if(isset($requiredArr[$index]) && $requiredArr[$index] == 1) 
+										{ 
+											echo "<b>Required </b>"; 
+										} 
+										if(isset($explanationArr[$index]) && !empty($explanationArr[$index])) { 
+											if($requiredArr[$index] == 1) 
+											{ 
+												echo "<b> : </b>"; 
+											} 
+											echo $explanationArr[$index]; 
+										} 
+										else if($requiredArr[$index] != 1 && empty($explanationArr[$index])) echo "-";?></td>
+								</tr>
+								<?php } }?>
+							</table>
+						</div>
+					</div>									
+					<div class="form-group col-sm-6 row">
+						<label class=" col-sm-5   col-xs-5   col-md-4" >Output Param</label>
+						<div  class="col-sm-7 col-xs-7  col-md-8">
+							<?php if(isset($outputParam) && $outputParam != '' ) echo '<pre>'.$outputParam.'</pre>'; else echo '-'; ?>
+						</div>
+					</div>	
+					<div class="box-footer col-sm-12" align="center">
+						<a href="ServiceManage?editId=<?php echo $_GET['id'];?>" title="Edit" alt="Edit" class="btn btn-success">Edit</a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+						<a href="ServiceList" class="btn btn-default" name="Back" id="Back" title="Back" alt="Back" >Back </a>
+				</div>
+				</div>		
+			</div>		
+		</div><!-- /.row -->
+	</section><!-- /.content -->				
 						 
 <?php commonFooter(); ?>
 </html>
+<script type="text/javascript">
+	$(document).ready(function() {
+		var tabindex = $("#method").attr("tabindex");
+		settabindex(+tabindex+1);
+		showHideInputParam();
+		//For Method Change Event
+		$("#method").change(function() {
+			showHideInputParam();
+		});
+	});
+</script>
