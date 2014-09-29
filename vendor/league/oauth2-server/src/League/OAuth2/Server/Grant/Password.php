@@ -141,7 +141,7 @@ class Password implements GrantTypeInterface {
         }
 
 	   
-	    $authParams['client_details'] = $clientDetails; // tuplit login check
+	    $authParams['client_details'] = $clientDetails; // simplyshredded login check
 		
 			$flag = 0;
 			if(!is_null($authParams['Email']) && !is_null($authParams['Password'])){
@@ -149,6 +149,7 @@ class Password implements GrantTypeInterface {
 			}
 			// Check if user's facebookid or linkedin are correct
 	         $userIdArray = call_user_func($this->getVerifyCredentialsCallback(), $authParams['Email'], $authParams['Password'], $authParams['FBId'], $authParams['GooglePlusId'], $authParams['DeviceToken'],$authParams['Token'],$authParams['UserData'], $authParams['Platform']);
+			
         if ($userIdArray === false) {
             throw new Exception\ClientException($this->authServer->getExceptionMessage('invalid_credentials'), 0);
         }

@@ -2,7 +2,7 @@
 require_once('includes/CommonIncludes.php');
 merchant_login_check();
 
-$UserName 	= 	$TransactionId = $OrderStatus = '';
+$UserName 	= 	$TransactionId = $OrderStatus = $OrderDoneBy = '';
 $load_more 	= 	$cur_page 	= $per_page = 0;
 $count		=	$tot_rec 	= $Price	= 0;
 $FromDate 	= 	$ToDate 	= '';
@@ -29,6 +29,7 @@ if((isset($_GET['cs']) && $_GET['cs'] == 1) || (isset($_GET['all']) && $_GET['al
 	unset($_SESSION['tuplit_sess_from_date']);
 	unset($_SESSION['tuplit_sess_to_date']);
 	unset($_SESSION['tuplit_sess_all']);
+	unset($_SESSION['tuplit_sess_OrderDoneBy']);
 	if(isset($_GET['cs']) && $_GET['cs'] == 1) {
 		$_SESSION['tuplit_sess_from_date'] 	= 	date('m/d/Y');
 		$_SESSION['tuplit_sess_to_date'] 	=	date('m/d/Y');
@@ -51,6 +52,9 @@ if(isset($_SESSION['tuplit_sess_TransactionId'])){
  if(isset($_SESSION['tuplit_sess_OrderStatus'])){
 	$OrderStatus		=	$_SESSION['tuplit_sess_OrderStatus'];
 }	 
+if(isset($_SESSION['tuplit_sess_OrderDoneBy'])){
+	$OrderDoneBy		=	$_SESSION['tuplit_sess_OrderDoneBy'];
+}	
 if(isset($_SESSION['tuplit_sess_from_date']) && isset($_SESSION['tuplit_sess_to_date'])) {
 	$FromDate			=	$_SESSION['tuplit_sess_from_date'];
 	$ToDate				=	$_SESSION['tuplit_sess_to_date'];
@@ -73,6 +77,10 @@ if(isset($_POST['Search'])){
 		$OrderStatus								=	trim($_POST['OrderStatus']);
 		$_SESSION['tuplit_sess_OrderStatus'] 		= 	$OrderStatus;
 	} 
+	if(isset($_POST['OrderDoneBy'])){
+		$OrderDoneBy								=	trim($_POST['OrderDoneBy']);
+		$_SESSION['tuplit_sess_OrderDoneBy'] 		= 	$OrderDoneBy;
+	} 
 	if(isset($_POST['from_date']) && isset($_POST['to_date'])) {
 		$FromDate									=	$_POST['from_date'];
 		$_SESSION['tuplit_sess_from_date']			=	$FromDate;
@@ -89,7 +97,7 @@ if(isset($_POST['cur_page']) && $_POST['cur_page'] != ''){
 }
 
 //getting order list
-$url					=	WEB_SERVICE.'v1/orders/?Start='.$cur_page.'&Limit='.$per_page.'&FromDate='.$FromDate.'&ToDate='.$ToDate.'&UserName='.$UserName.'&TransactionId='.$TransactionId.'&OrderStatus='.$OrderStatus.'&Price='.$Price;
+$url					=	WEB_SERVICE.'v1/orders/?Start='.$cur_page.'&Limit='.$per_page.'&FromDate='.$FromDate.'&ToDate='.$ToDate.'&UserName='.$UserName.'&TransactionId='.$TransactionId.'&OrderStatus='.$OrderStatus.'&Price='.$Price.'&OrderDoneBy='.$OrderDoneBy;
 //echo $url;
 $curlOrderResponse 		= 	curlRequest($url, 'GET', null, $_SESSION['merchantInfo']['AccessToken']);
 if(isset($curlOrderResponse) && is_array($curlOrderResponse) && $curlOrderResponse['meta']['code'] == 201 && is_array($curlOrderResponse['OrderList']) ) {
@@ -144,6 +152,14 @@ top_header(); ?>
 								</select>
 							</div>
 							<div class="col-sm-4 col-lg-3 form-group">
+								<label>Order DoneBy</label>
+								<select class="form-control" name="OrderDoneBy">
+									<option value="" >Select</option>								
+									<option value="1" <?php if(isset($OrderDoneBy) && $OrderDoneBy == 1) echo "selected";?>>Customer</option>
+									<option value="2" <?php if(isset($OrderDoneBy) && $OrderDoneBy == 2) echo "selected";?>>Merchant</option>
+								</select>
+							</div>
+							<div class="col-sm-4 col-lg-3 form-group">
 								<label>From Date</label>
 								<input  type="text" id = "from_date" class="form-control datepicker" autocomplete="off" title="Select Date" name="from_date" value="<?php if(isset($_SESSION['tuplit_sess_from_date'])) echo $_SESSION['tuplit_sess_from_date']; else if((isset($_SESSION['tuplit_sess_all']) && $_SESSION['tuplit_sess_all'] == 1)) echo ""; else echo $today; ?>" onchange="return emptyDates(this);">
 							</div>
@@ -179,12 +195,12 @@ top_header(); ?>
 							   <tr>
 									<th align="center" width="3%" class="text-center"> #</th>									
 									<th width="20%" class="text-left" colspan="2">Customer Details</th>
-									<th width="26%" class="text-left">Transaction Id</th>
-									<th width="5%" class="text-left">Order DoneBy</th>
-									<th width="5%" class="text-center">Total Items</th>
-									<th width="5%" class="text-right">Total Amount</th>
-									<th width="5%" class="text-center">Order Date</th>
-									<th width="5%">Order Status</th>
+									<th width="10%" class="text-left">Transaction Id</th>
+									<th width="7%" class="text-left">Order DoneBy</th>
+									<th width="7%" class="text-center">Total Items</th>
+									<th width="10%" class="text-right">Total Amount</th>
+									<th width="10%" class="text-center">Order Date</th>
+									<th width="7%">Order Status</th>
 									<th width="3%" class="text-center">Action</th>
 								</tr>
 							  <?php
@@ -204,11 +220,11 @@ top_header(); ?>
 								</td>
 								<td width="14%" align="left"><?php if(isset($name) && $name != ''){ ?><a href="UserDetail?viewId=<?php echo base64_encode($value["PUserId"]);?>&cs=1" class="userWindow white-space" > <?php echo $name; ?></a><?php }else echo '-';?></td>
 								<td width="10%" class="white-space" align="left"><?php if(isset($value["TransactionId"]) && $value["TransactionId"] != ''){ echo $value["TransactionId"]; }else echo '-';?></td>
-								<td align="left"><?php if(isset($value["OrderDoneBy"]) && $value["OrderDoneBy"] != ''){ if($value["OrderDoneBy"] == 1) echo "User"; if($value["OrderDoneBy"] == 2) echo "Merchant";}else echo '-';?></td>
+								<td align="left"><?php if(isset($value["OrderDoneBy"]) && $value["OrderDoneBy"] != ''){ if($value["OrderDoneBy"] == 1) echo "Customer"; if($value["OrderDoneBy"] == 2) echo "Merchant";}else echo '-';?></td>
 								<td align="center"><?php if(isset($value["TotalItems"]) && $value["TotalItems"] != ''){ echo $value["TotalItems"]; }else echo '-';?></td>
 								<td align="right"><?php if(isset($value["TotalPrice"]) && $value["TotalPrice"] != ''){ echo price_fomat($value["TotalPrice"]); }else echo '-';?></td>
 								<td align="center"><?php if(isset($value["OrderDate"]) && $value["OrderDate"] != '0000-00-00 00:00:00'){ echo date('m/d/Y',strtotime($value["OrderDate"])); }else echo '-';?></td>
-								<td align="left"><?php if(isset($value["OrderStatus"]) && $value["OrderStatus"] != ''){ echo $order_status_array[$value["OrderStatus"]];}?></td>
+								<td align="center" class="<?php if(isset($value["OrderStatus"]) && $value["OrderStatus"] != ''){ echo $order_status_array[$value["OrderStatus"]];}?>"><strong><?php if(isset($value["OrderStatus"]) && $value["OrderStatus"] != ''){ echo $order_status_array[$value["OrderStatus"]];}?></strong></td>
 								<td align="center">
 									<?php if(isset($value['Products']) && count($value['Products'])>0) {	 ?>
 									<a href="#<?php echo $value["CartId"]; ?>" class="productWindow" title="View Products"><i class="fa fa-search fa-lg"></i></a>
@@ -244,14 +260,14 @@ top_header(); ?>
 			<div class="box box-primary no-padding no-margin">
 				<div class="box-body table-responsive no-padding no-margin">
 					<?php if(isset($value['Products']) && count($value['Products']) > 0) { ?>
-					<table class="table table-hover">
+					<table class="table table-hover" width="100%">
 						   <tr>
 								<th align="center" width="3%" style="text-align:center">#</th>									
-								<th width="85%">Item Details</th>
-								<th width="5%" class="text-center">Quantity</th>
-								<th width="5%" class="text-right">Price</th>
-								<th width="5%" class="text-right">Discounted Price</th>
-								<th width="5%" class="text-right">Subtotal</th>
+								<th width="">Item Details</th>
+								<th width="10%" class="text-center">Quantity</th>
+								<th width="10%" class="text-right">Price</th>
+								<th width="10%" class="text-right">Discounted Price</th>
+								<th width="10%" class="text-right">Subtotal</th>
 							</tr>
 							<?php
 							foreach($value['Products'] as $key=>$value1){
@@ -295,12 +311,11 @@ top_header(); ?>
 <script type="text/javascript">
 $(document).ready(function() {
 	$(".productWindow").fancybox({
-			width: '200',
+			width: '500',
 			scrolling: 'auto',			
 			title: null,
-			maxWidth: '100%', 
-			fitToView: true,
-			scrolling: 'none'
+			//maxWidth: '100%', 
+			fitToView: true
 						
 	});
 	$(".fancybox").fancybox();

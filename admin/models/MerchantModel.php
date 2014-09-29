@@ -29,7 +29,7 @@ class MerchantModel extends Model
 		
 		$sql = "select SQL_CALC_FOUND_ROWS ".$fields.", c.id as commentId from {$this->merchantTable} as m	".$join. " 
 				left join comments c on (m.id = c.fkMerchantsId and c.Status = 1) 
-				WHERE 1".$condition." group by m.id ORDER BY ".$sorting_clause." ".$limit_clause;
+				WHERE 1".$condition." AND UserType = 1 group by m.id ORDER BY ".$sorting_clause." ".$limit_clause;
 		$result	=	$this->sqlQueryArray($sql);
 		if(count($result) == 0) return false;
 		else {	
@@ -99,10 +99,14 @@ class MerchantModel extends Model
 	function updateDetails($data,$icon,$img){
 	
 		$update_string = '';
+		if(!empty($data['Password']))
+			$PassWord	=	sha1($data['Password'].ENCRYPTSALT);
 		if(!empty($data['FirstName']))
 			$update_string .= " FirstName ='".$data['FirstName']."',";
 		if(!empty($data['LastName']))
 			$update_string .= " LastName ='".$data['LastName']."',";
+		if(!empty($data['Password']))
+			$update_string	.=	" Password = '".$PassWord."', ";
 		if(!empty($data['Email']))
 			$update_string .= " Email ='".$data['Email']."',";
 		if(!empty($data['CompanyName']))
@@ -180,7 +184,7 @@ class MerchantModel extends Model
 			}
 		}			
 		$update_string .= " DateModified ='".date('Y-m-d H:i:s')."',IpAddress = '".$data['ipaddress']."'";
-		$update_string = rtrim($update_string, ",");			
+		$update_string = rtrim($update_string, ",");	
 		$sql =	"update {$this->merchantTable}  set ".$update_string." where id=".$data['merchant_id'];
 		$this->updateInto($sql);
 	}

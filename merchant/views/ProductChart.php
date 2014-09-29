@@ -16,11 +16,9 @@ if(isset($_POST['action']) && $_POST['action']=='GET_CHART') {
 
 <?php if(isset($error_div) && $error_div==0 && !empty($product_array)) {?>
 <div class="box box-success">
- <div id="graph_list">
- 	
+	<div  class="col-xs-6  pull-right text-right space_top"><a id="view_list" href="#view_list"><strong><i class="fa fa-list"></i> View Product List</strong></a></div>
 	 <div class="box-header clear">
 	     <h3 class="box-title pull-left">Bar Chart</h3>
-		 <div  class="col-xs-6  pull-right text-right space_top"><a id="view_list" href="#charts"><i class="fa fa-list"></i> View Product List</a></div>
 	 </div>			  
 	<div class="box-body chart-responsive">
 	     <div class="chart" id="bar-chart1" style="height:300px;"></div>
@@ -31,7 +29,6 @@ if(isset($_POST['action']) && $_POST['action']=='GET_CHART') {
 	 <div class="box-body chart-responsive">
 	     <div class="chart" id="bar-chart3" style="height: 300px;"></div>
 	 </div>
-</div>
 <?php } ?>
  <script type="text/javascript">
 $('.chart').html('');
@@ -43,7 +40,7 @@ $(document).ready(function() {
 	var barchart2 = new Morris.Bar({
               element: 'bar-chart1',
               resize: true,
-			  xLabelMargin: 10,
+			  xLabelMargin: 20,
               data: [
 			  <?php 
 			  if(isset($xarrays) && is_array($xarrays)) {
@@ -161,6 +158,20 @@ $(document).ready(function() {
 
 
 	<?php if(isset($product_array) && !empty($product_array)) { ?>
-		<div align="right" class="col-xs-12"><span class=""><a id="charts" href="#view_list"> <i class="fa fa-bar-chart-o"></i> View Charts</a></span><br><br></div>					
+		<div align="right" class="col-xs-12"><span class=""><a id="charts" href="#charts"> <strong><i class="fa fa-bar-chart-o"></i> View Charts</strong></a></span><br><br></div>					
 	<?php } ?>		
 </div>
+<script type="text/javascript">
+	$("a[href='#view_list']").click(function() {
+		  var pos = $("#pro_list").position().top;
+		  var ht = $(document).height() - pos;
+		 $("html, body").animate({ scrollTop: $("#pro_list").offset().top - $(".navbar").height()  }, {duration: $("#pro_list").offset().top});
+		  return false; 
+    });
+	$("a[href='#charts']").click(function() {
+		  var pos = $("#view_list").position().top;
+		  var ht = $(document).height() - pos;
+		 $("html, body").animate({ scrollTop: $("#view_list").offset().top - $(".navbar").height()  }, {duration: $("#view_list").offset().top});
+		  return false; 
+    });
+</script>

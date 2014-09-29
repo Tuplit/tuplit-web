@@ -293,7 +293,7 @@ $CategoryListResult  = $ManagementObj->selectProductCategoryDetails($fields,$con
 												<img width="50" height="50" align="top" class="img_border" src="<?php echo $icon_image_path;?>" >
 											 </a>
 										<?php } else { ?>
-											<img width="50" height="50"align="top" class="img_border" src="<?php echo $icon_image_path;?>" >
+											<div class="no_photo img50 valign"><i class="fa fa-user"></i></div><!-- <img width="50" height="50"align="top" class="img_border" src="<?php echo $icon_image_path;?>" > -->
 										<?php }?>
 										<a href="<?php echo SITE_PATH.'/admin/MerchantDetail?viewId='.$value->fkMerchantsId.'&proview=1'; ?>" class="fancybox" title="<?php echo $value->CompanyName; ?>">
 											<?php if(isset($value->CompanyName) && $value->CompanyName != ''){ ?>

@@ -102,12 +102,12 @@ commonHead();
 						<h4><strong>Deals</strong>&nbsp;&nbsp;This Category can't be renamed</h4>
 					</div>				
 					<div class="col-xs-4 text-right pad"><a href="Product?show=0&add=deals" class="newWindow"><i class="fa fa-plus"></i> Add Item</a></div>
-					<div class="row col-xs-12 clear draggableListdeals" id="dragList_deals">										
+					<div class="row   no-padding no-margin col-xs-12 clear draggableListdeals" id="dragList_deals">										
 						<?php 
 							if(isset($dealsArray) && count($dealsArray) > 0) {
 								foreach($dealsArray as $key1=>$value1 ) {								
 									if($value1["ProductId"]!= ''){ ?>	
-							<div class="col-xs-11  col-md-3 col-sm-4 col-lg-2 <?php if($value1['Status'] == 2) echo "inactive";?> paneldragging" id="<?php echo $value1["ProductId"];?>">
+							<div class="col-xs-12  col-md-3 col-sm-4 col-lg-2 <?php if($value1['Status'] == 2) echo "inactive";?> paneldragging" id="<?php echo $value1["ProductId"];?>">
 								<div id="<?php echo $value1["ProductId"];?>" class="small-box panel-heading">
 									<a href="<?php echo $value1['Photo'];?>" class="Product_fancybox" title="<?php echo ucfirst($value1['ItemName']);?>">
 										<img height="100" width="100" src="<?php echo $value1['Photo']; ?>" alt=""><br/>
@@ -116,7 +116,7 @@ commonHead();
 									<div class="product_price">
 									<span class="title_product" style="" title="<?php echo ucfirst($value1['ItemName']); ?>"><?php echo ucfirst($value1['ItemName']);?></span>
 									<?php 	
-										echo "<div class='cal actual_price pull-right' style='color:gray;'>".price_fomat($value1['Price'])."</div> "; 
+										echo "<div class='cal actual_price pull-right' style='color:gray;font-weight:bold;'>".price_fomat($value1['Price'])."</div> "; 
 									?>
 									</div>
 								</div>
@@ -129,12 +129,12 @@ commonHead();
 						<h4><strong>Specials</strong>&nbsp;&nbsp;This Category can't be renamed</h4>
 					</div>				
 					<div class="col-xs-4 text-right pad"><a href="Product?show=0&add=specials" <?php if($totalPro != 0) echo 'class="specialsnewWindow"'; else echo 'onclick="return noProducts();"'; ?>><i class="fa fa-plus"></i> Add Item</a></div>
-					<div class="row col-xs-12 clear draggableListspecial" id="dragList_special">										
+					<div class="row  no-padding no-margin col-xs-12 clear draggableListspecial" id="dragList_special">										
 						<?php 
 							if(isset($specialArray) && count($specialArray) > 0) {
 								foreach($specialArray as $key1=>$value1 ) {								
 									if($value1["ProductId"]!= ''){ ?>	
-										<div class="col-xs-11  col-md-3 col-sm-4 col-lg-2 <?php if($value1['Status'] == 2) echo "inactive";?> paneldragging" id="<?php echo $value1["ProductId"];?>">
+										<div class="col-xs-12 col-md-3 col-sm-4 col-lg-2 <?php if($value1['Status'] == 2) echo "inactive";?> paneldragging" id="<?php echo $value1["ProductId"];?>">
 											<div id="<?php echo $value1["ProductId"];?>" class="small-box panel-heading">
 												<a href="<?php echo $value1['Photo'];?>" class="Product_fancybox" title="<?php echo ucfirst($value1['ItemName']);?>">
 													<img height="100" width="100" src="<?php echo $value1['Photo']; ?>" alt=""><br/>
@@ -145,9 +145,9 @@ commonHead();
 												<?php 
 													if($value1['OriginalPrice'] != '0.00') {
 														echo "<div class='cal pull-right'><strong>".price_fomat($value1['Price'])."</strong></div>";  
-														echo "<div class='cal actual_price pull-right' style='color:gray;'>".price_fomat($value1['OriginalPrice'])."</div> "; 
+														echo "<div class='cal actual_price pull-right' style='color:gray;font-weight:bold;'>".price_fomat($value1['OriginalPrice'])."</div> "; 
 													} else {
-														echo "<div class='cal actual_price pull-right' style='color:gray;'>".price_fomat($value1['Price'])."</div> "; 
+														echo "<div class='cal actual_price pull-right' style='color:gray;font-weight:bold;'>".price_fomat($value1['Price'])."</div> "; 
 													}
 												?>
 												</div>
@@ -166,12 +166,12 @@ commonHead();
 							</div>
 							
 							<div class="col-xs-4 text-right pad"><a href="Product?show=0&add=<?php echo $key; ?>" class="newWindow"><i class="fa fa-plus"></i> Add Item</a></div>
-							<div class="row col-xs-12 clear draggableList" id="dragList_<?php echo $key; ?>">										
+							<div class="row  no-padding no-margin col-xs-12 clear draggableList" id="dragList_<?php echo $key; ?>">										
 								<?php 
 									$value = subval_sort($value,'Ordering');
 									foreach($value as $key1=>$value1 ) {
 										if($value1["ProductId"]!= ''){ ?>	
-											<div class="col-xs-11  col-md-3 col-sm-4 col-lg-2 <?php if($value1['Status'] == 2) echo "inactive";?> paneldragging" id="<?php echo $value1["ProductId"];?>">
+											<div class="col-xs-12 col-md-3 col-sm-4 col-lg-2 <?php if($value1['Status'] == 2) echo "inactive";?> paneldragging" id="<?php echo $value1["ProductId"];?>">
 												<div id="<?php echo $value1["ProductId"];?>" class="small-box panel-heading">
 													<a href="<?php echo $value1['Photo'];?>" class="Product_fancybox" title="<?php echo ucfirst($value1['ItemName']);?>">
 														<img height="100" width="100" src="<?php echo $value1['Photo']; ?>" alt=""><br/>
@@ -182,7 +182,7 @@ commonHead();
 													<?php 											
 														if($value1['DiscountPrice'] > 0)
 															echo "<div class='cal pull-right'><strong>".price_fomat($value1['DiscountPrice'])."</strong></div>";  
-														echo "<div class='cal actual_price pull-right' style='color:gray;'>".price_fomat($value1['Price'])."</div> "; 
+														echo "<div class='cal actual_price pull-right' style='color:gray;font-weight:bold;'>".price_fomat($value1['Price'])."</div> "; 
 													?>
 													</div>
 												</div>
@@ -238,7 +238,7 @@ commonHead();
 					width: '380',
 					maxWidth: '100%',  // for respossive width set					
 					fitToView: false,
-					minHeight : 135,
+					minHeight : 175,
 					afterClose : function() {
 									location.reload();
 									return;
@@ -251,10 +251,10 @@ commonHead();
 					connectWith: ".draggableList",
 					update: function() {idsarray	=	new Array();
 							i			=	0;
-							cat_id		=	'';
+							//cat_id		=	'';
 							$('.paneldragging', "#dragList_<?php echo $key; ?>").each(function(index, elem) {
-								 var $listItem 	= $(elem),
-								 newIndex 		= $listItem.index();
+								 var $listItem 	= $(elem);
+								// newIndex 		= $listItem.index();
 								 idsarray[i]	=	$listItem[0].id;
 								i++;						 
 							});
@@ -274,10 +274,10 @@ commonHead();
 			connectWith: ".draggableListspecial",
 			update: function() {idsarray	=	new Array();
 					i			=	0;
-					cat_id		=	'';
+					//cat_id		=	'';
 					$('.paneldragging', "#dragList_special").each(function(index, elem) {
-						 var $listItem 	= $(elem),
-						 newIndex 		= $listItem.index();
+						 var $listItem 	= $(elem);
+						// newIndex 		= $listItem.index();
 						 idsarray[i]	=	$listItem[0].id;
 						i++;						 
 					});
@@ -296,10 +296,10 @@ commonHead();
 			connectWith: ".draggableListdeals",
 			update: function() {idsarray	=	new Array();
 					i			=	0;
-					cat_id		=	'';
+					//cat_id		=	'';
 					$('.paneldragging', "#dragList_deals").each(function(index, elem) {
-						 var $listItem 	= $(elem),
-						 newIndex 		= $listItem.index();
+						 var $listItem 	= $(elem);
+						 //newIndex 		= $listItem.index();
 						 idsarray[i]	=	$listItem[0].id;
 						i++;						 
 					});

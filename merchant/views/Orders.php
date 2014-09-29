@@ -157,12 +157,10 @@ commonHead();
 											<a href="<?php echo $value['Photo']?>" class="fancybox" title="<?php echo $name; ?>">
 												<img height="50" width="50" src="<?php echo $value['ThumbPhoto']?>" alt=""/>
 											</a>		
-											<?php if(!SERVER){ ?>
 											<!--<a class="newWindow" href="PrintOrder?cs=1&printId=<?php echo  $value['OrderId']; ?>" title="Print"><i class="fa fa-print"></i></a>&nbsp;&nbsp;-->
 											<a class="newWindow" title="View Products" href="OrderProductDetail?cs=1&orderId=<?php echo  $value['OrderId']; ?>"><i class="fa fa-search fa-lg" style=" font-size: 0.99em;vertical-align: 3%;" ></i></a>
-											<?php } ?>									
 										</div>					
-										<div class="col-xs-9">
+										<div class="col-xs-9 min-height90">
 											<span class="text-small" data-toggle="tooltip" title="<?php echo $name; ?>" data-original-title="<?php echo $name; ?>"><?php echo displayText($name,17); ?></span>
 											<span class="help-block no-margin"><?php echo $value['Email']?></span>
 											<span class="help-block no-margin"><?php echo $value['UserId']?></span>
@@ -176,14 +174,16 @@ commonHead();
 														if($pro_val['Refund'] != 2) {
 															if($key1 < 2) { ?>
 															
-															<div class="col-xs-7 no-padding"><?php echo  $pro_val['ItemName']?> </div>
-															<div class="col-xs-5 no-padding text-right"><?php echo $pro_val['ProductsQuantity'].'&nbsp;&nbsp;&nbsp;'.price_fomat($pro_val['TotalPrice']); ?></div>
+															<div class="col-xs-6 no-padding clear"><?php echo  $pro_val['ItemName']?> </div>
+															<div class="col-xs-2 no-padding text-right price_cal"><span>x</span> <?php echo $pro_val['ProductsQuantity']; ?></div>
+															<div class="col-xs-4 no-padding text-right"><?php echo price_fomat($pro_val['TotalPrice']); ?></div>
 																
 															<?php } else {  ?> 
 															
 															<div class="col-xs-12 no-padding otherItemsNew<?php echo $key;?>" style="display:none;">
-																<div class="col-xs-7 no-padding"><?php echo  $pro_val['ItemName']?> </div>
-																<div class="col-xs-5 no-padding text-right"><?php echo $pro_val['ProductsQuantity'].'&nbsp;&nbsp;&nbsp;'.price_fomat($pro_val['TotalPrice']); ?></div>
+																<div class="col-xs-6 no-padding"><?php echo  $pro_val['ItemName']?> </div>
+																<div class="col-xs-2 no-padding text-right price_cal"><span>x</span> <?php echo $pro_val['ProductsQuantity']; ?></div>
+																<div class="col-xs-4 no-padding text-right"><?php echo price_fomat($pro_val['TotalPrice']); ?></div>
 															</div>
 											<?php } }  }?>
 												<div class="text-center col-xs-12 no-padding " <?php if(count($value['Products']) <= 2) {  ?>style="visibility:hidden;"<?php } ?>><a style="cursor:pointer" id="linkNew<?php echo $key; ?>" onclick="return showAllItems('New<?php echo $key; ?>');">Show all items</a></div>
@@ -193,13 +193,14 @@ commonHead();
 										<div class="col-xs-12 no-padding"><hr></div>											
 										<div class="col-xs-8 no-padding"><strong>Total</strong> </div>
 										<div class="col-xs-4 no-padding text-right"><strong><?php echo price_fomat($value['TotalPrice']); ?></strong></div>		
-																
+										<div class="col-xs-12 no-padding"><hr></div>					
 										<!-- <div class="col-md-12 no-padding"><hr></div> -->
-										<div class="col-xs-12" style="padding-top:7px;"></div>
-										<div class="col-xs-4 no-padding"><a class="text-red" class="Reject" href="?Reject=<?php echo  $value['OrderId']; ?>" onclick="return approveReject('reject');" ><i class="fa fa-trash-o"></i> Reject</a></div>
-										<?php if($value['OrderDoneBy'] == 1) { ?>
-											<div class="col-xs-8 no-padding text-right"><a href="?Approve=<?php echo  $value['OrderId']; ?>"  id="submit" class="btn btn-success" title="Approve" onclick="return approveReject('approve');"><i class="fa fa-check"></i>  Approve</a></div>		
-										<?php } ?>
+										<div class="col-xs-12 no-padding min-height40" >
+											<div class="col-xs-4 no-padding"><a class="text-red" class="Reject" href="?Reject=<?php echo  $value['OrderId']; ?>" onclick="return approveReject('reject');" ><i class="fa fa-trash-o"></i> Reject</a></div>
+											<?php if($value['OrderDoneBy'] == 1) { ?>
+												<div class="col-xs-8 no-padding text-right"><a href="?Approve=<?php echo  $value['OrderId']; ?>"  id="submit" class="btn btn-success" title="Approve" onclick="return approveReject('approve');"><i class="fa fa-check"></i>  Approve</a></div>		
+											<?php } ?>
+										</div>
 									</div>
 								</div> 				
 							<?php } } else { ?>
@@ -207,7 +208,7 @@ commonHead();
 							<?php } ?>
 						<!-- End New Orders List -->						
 							<?php if(isset($_SESSION['tuplitNewOrderTotal']) && !empty($_SESSION['tuplitNewOrderTotal']) && $_SESSION['tuplitNewOrderTotal'] > $End) { ?>
-									<div class="col-xs-12 clear text-center" id="loadmorehome"> <a style="cursor:pointer" class="loadmore" id="loadmore" name="loadmore" class="btn btn-success" title="Load More" onclick="return loadMoreNewOrders();"><i class="fa fa-download"></i> <strong>Load More</strong></a></div>
+									<div class="col-xs-12 clear text-center" id="loadmorehome"> <a style="cursor:pointer" class="loadmore" id="loadmore" name="loadmore" class="btn btn-success" title="Load More" onclick="return loadMoreNewOrders();"><i class="fa fa-download"></i> <strong>Load More</strong></a><br><br></div>
 							<?php } ?>
 					</div>
 					
@@ -241,12 +242,10 @@ commonHead();
 									<a href="<?php echo $value['Photo']?>" class="fancybox" title="<?php echo $name; ?>">
 										<img height="50" width="50" src="<?php echo $value['ThumbPhoto']?>" alt=""/>
 									</a>
-									<?php if(!SERVER){ ?>
 										<a class="newWindow" href="PrintOrder?cs=1&printId=<?php echo  $value['OrderId']; ?>" title="Print"><i class="fa fa-print"></i></a>&nbsp;&nbsp;
 										<a class="newWindow" title="View Products" href="OrderProductDetail?cs=1&orderId=<?php echo  $value['OrderId']; ?>"><i class="fa fa-search fa-lg" style=" font-size: 0.99em;vertical-align: 3%;" ></i></a>
-									<?php } ?>
 								</div>		
-								<div class="col-xs-9">									
+								<div class="col-xs-9 min-height90">									
 									<span data-toggle="tooltip" title="<?php echo $name; ?>"><?php echo displayText($name,17); ?></span>
 									<span class="help-block no-margin"><?php echo $value['Email']?></span>
 									<span class="help-block no-margin"><?php echo $value['UserId']?></span>
@@ -254,17 +253,21 @@ commonHead();
 									
 									<!--<a class="newWindow" href="PrintOrder?cs=1&printId=<?php echo  $value['OrderId']; ?>" ><i class="fa fa-print"></i></a> -->
 								</div>
-								<div class="col-xs-12 no-padding list_height <?php echo $ordersClass; ?>">
+								<div class="col-xs-12 no-padding list_height clear <?php echo $ordersClass; ?>">
 									<?php if(!empty($value['Products'])) {											
 											foreach($value['Products'] as $key1=>$pro_val) {
 												if($key1 < 2) { ?>
-												<div class="col-xs-7 no-padding"><?php echo  $pro_val['ItemName']?> </div>
-												<div class="col-xs-5 no-padding text-right"><?php echo $pro_val['ProductsQuantity'].'&nbsp;&nbsp;&nbsp;'.price_fomat($pro_val['TotalPrice']); ?></div>
+												<div class="col-xs-6 no-padding clear"><?php echo  $pro_val['ItemName']?> </div>
+												<div class="col-xs-2 no-padding text-right price_cal"><span>x</span> <?php echo $pro_val['ProductsQuantity']; ?></div>
+												<div class="col-xs-4 no-padding text-right"><?php echo price_fomat($pro_val['TotalPrice']); ?></div>
+												
+												
 												<?php } else {  ?> 
 												
 												<div class="col-xs-12 no-padding otherItemsToday<?php echo $key;?>" style="display:none;">
-													<div class="col-xs-7 no-padding"><?php echo  $pro_val['ItemName']?> </div>
-													<div class="col-xs-5 no-padding text-right"><?php echo $pro_val['ProductsQuantity'].'&nbsp;&nbsp;&nbsp;'.price_fomat($pro_val['TotalPrice']); ?></div>
+													<div class="col-xs-6 no-padding clear"><?php echo  $pro_val['ItemName']?> </div>
+													<div class="col-xs-2 no-padding text-right price_cal"><span>x</span> <?php echo $pro_val['ProductsQuantity']; ?></div>
+													<div class="col-xs-4 no-padding text-right"><?php echo price_fomat($pro_val['TotalPrice']); ?></div>
 												</div>
 												
 									<?php } } 
@@ -272,16 +275,17 @@ commonHead();
 												<div class="text-center col-xs-12 no-padding "><a style="cursor:pointer" id="linkToday<?php echo $key; ?>" onclick="return showAllItems('Today<?php echo $key; ?>');">Show all items</a></div>
 									<?php } } ?>	
 								</div>							
+								
 								<div class="col-xs-12 no-padding"><hr></div>	
-										
 								<div class="col-xs-8 no-padding"><strong>Total</strong> </div>			
 								<div class="col-xs-4 no-padding text-right"><strong><?php echo price_fomat($value['TotalPrice']); ?></strong></div>
 								<div class="col-xs-12 no-padding"><hr></div>	
-								<div class="col-xs-8 no-padding text-right">
-									<?php 
+								
+								<div class="col-xs-12 no-padding text-center">
+									<?php if($value['RefundStatus'] == 2) { $statusText = 'Rejected / Refunded'; $class='btn-danger'; } else {
 									if($value['OrderStatus'] == 2) {$statusText = 'Rejected'; $class='btn-danger';}else {$statusText = 'Approved'; $class='btn-success';}
-									?>
-									<a id="submit" class="btn <?php echo $class;?>" title="<?php echo $statusText;?>"><?php echo $statusText;?></a>
+									} ?>
+									<a id="submit" class="btn no-link <?php echo $class;?>" title="<?php echo $statusText;?>"><?php echo $statusText;?></a>
 								</div>
 							</div>
 						</div> 				
@@ -301,9 +305,9 @@ commonHead();
 			$(".newWindow").fancybox({
 				scrolling: 'auto',			
 				type: 'iframe',
-				width: '800',
+				width: '600',
 				maxWidth: '100%',	
-					title: null,			
+				title: null,			
 				fitToView: false
 			});	
 			$(".productWindow").fancybox({

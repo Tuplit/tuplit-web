@@ -61,10 +61,15 @@ if(isset($merchantdetailarray) && is_array($merchantdetailarray) && count($merch
 			if(file_exists(MERCHANT_ICONS_IMAGE_PATH_REL.$merchant_image))
 				$icon_image_path = MERCHANT_ICONS_IMAGE_PATH.$merchant_image;
 		}
-	}
+	}/*
 	if(isset($icon_image_path) && $icon_image_path != ''){
 			$merchantimage =  "<img  width='50' height='50' align='top' class='img_border' src='".$icon_image_path."' >";		
-	}	
+	}	*/
+	if(isset($icon_image_path) && basename($icon_image_path) != "no_user.jpeg") {
+		$merchantimage =  "<img  width='50' height='50' align='top'   class='img_border' src='".$icon_image_path."' >";		
+	} else { 
+		$merchantimage =  "	<div class='no_photo img50 valign'><i class='fa fa-user'></i></div>";
+	}
 }
 	$show = 1;
 	$mer_id = $_GET['mer_id'];
@@ -100,9 +105,14 @@ if(isset($_GET['user_id']) && !empty($_GET['user_id'])) {
 			}
 		}
 		$username = ucfirst($userdetailarray[0]->FirstName).' '.ucfirst($userdetailarray[0]->LastName);
-		if(isset($image_path) && $image_path != ''){
+		/*if(isset($image_path) && $image_path != ''){
 			$userimage =  "<img  width='50' height='50'  class='img_border' src='".$image_path."' >";		
-			}	
+			}	*/
+			if(isset($image_path) && basename($image_path) != "no_user.jpeg") {
+				$userimage =  "<img  width='50' height='50'  class='img_border' src='".$image_path."' >";		
+			} else { 
+				$userimage =  "	<div class='no_photo img50 valign'><i class='fa fa-user'></i></div>";
+			}
 	}		
 	$show = 2;
 	$user_id = $_GET['user_id'];

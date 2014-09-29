@@ -15,6 +15,9 @@ use Exceptions\ApiException as ApiException;
 use Valitron\Validator as Validator;
 use Helpers\RedBeanHelper as RedBeanHelper;
 
+//Require needed models
+require_once	'Orders.php';
+
 class Friends extends RedBean_SimpleModel implements ModelBaseInterface {
 
 	/**
@@ -87,10 +90,11 @@ class Friends extends RedBean_SimpleModel implements ModelBaseInterface {
         $bean 						= 	$this->bean;
         $bean->DateCreated 			= 	date('Y-m-d H:i:s');
         $bean->DateModified 		= 	$bean->DateCreated;
-		if($bean->FacebookFriends){
+		$response					=  	array();
+		if($bean->GoogleFriends){
 			$fbids = '';
-			foreach($bean->FacebookFriends as $key=>$value){
-				$fbids .= $value->id.',';
+			foreach($bean->GoogleFriends as $key=>$value){
+				$fbids .= $value.',';
 			}
 			if($fbids != ''){
 				$fbids = trim($fbids,',');
@@ -104,18 +108,18 @@ class Friends extends RedBean_SimpleModel implements ModelBaseInterface {
 					$invitedIdArray[$key] = $val['OtherUserUniquevalue'];
 				}
 			}
-			foreach($bean->FacebookFriends as $fkey=>$value){
-				$response['FacebookFriends'][$fkey]['id'] = $value->id;
-				if(in_array($value->id,$invitedIdArray))
-					$response['FacebookFriends'][$fkey]['AlreadyInvited'] = 1;
+			foreach($bean->GoogleFriends as $fkey=>$value){
+				$response['GoogleFriends'][$fkey]['id'] = $value;
+				if(in_array($value,$invitedIdArray))
+					$response['GoogleFriends'][$fkey]['AlreadyInvited'] = 1;
 				else
-					$response['FacebookFriends'][$fkey]['AlreadyInvited'] = 0;
+					$response['GoogleFriends'][$fkey]['AlreadyInvited'] = 0;
 			}
 		}
 		if($bean->ContactFriends){
 			$contactids = '';
 			foreach($bean->ContactFriends as $key=>$value){
-				$contactids .= $value->id.',';
+				$contactids .= $value.',';
 			}
 			if($contactids != ''){
 				$contactids 			= trim($contactids,',');
@@ -130,8 +134,8 @@ class Friends extends RedBean_SimpleModel implements ModelBaseInterface {
 				}
 			}
 			foreach($bean->ContactFriends as $ckey=>$value){
-				$response['ContactFriends'][$ckey]['id'] = $value->id;
-				if(in_array($value->id,$invitedContactArray))
+				$response['ContactFriends'][$ckey]['id'] = $value;
+				if(in_array($value,$invitedContactArray))
 					$response['ContactFriends'][$ckey]['AlreadyInvited'] = 1;
 				else
 					$response['ContactFriends'][$ckey]['AlreadyInvited'] = 0;
@@ -143,42 +147,63 @@ class Friends extends RedBean_SimpleModel implements ModelBaseInterface {
 	/**
 	* Get user friend list
 	*/
-    public function usersFriendsList(){ // Tuplit user friendlist
+    public function usersFriendsList($type = ''){ // Tuplit user friendlist
 		/**
 		* Get the bean
 		* @var $bean Friends
 		*/
         $bean 				= 	$this->bean;
-        $start				=	$bean->Start;
-		$limit				=	$bean->Limit;
-		$friendsListArray= array();
-		if($bean->UserId != ''){
+		if(isset($bean->Start))
+			$start				=	$bean->Start;
+		else
+			$start			=	0;
+		$friendsId	=	$search = '';
+		$friendsListArray	= 	$friendsIdArray	=	array();
+		
+		$condition			=	" and WalletId != '' ";
+		if(isset($bean->Search) && !empty($bean->Search)){
+			$search			=	$bean->Search;
+			$condition		.=	" and (FirstName like '%".trim($search)."%' || LastName like '%".trim($search)."%') ";
+		}
+		if($bean->UserId != '') {
 			$userId			=	$bean->UserId;
-			$sql 			= 	"SELECT  group_concat(`fkFriendsId`,',', fkUsersId) as friendsId  FROM friends 
-								where  (fkUsersId = ".$userId." or fkFriendsId = ".$userId.") and Status = 1 ";
-	   		$friends		= 	R::getAll($sql);
+			$sql 			= 	"SELECT  *  FROM friends 
+									where  (fkUsersId = ".$userId." or fkFriendsId = ".$userId.") and Status = 1 ";
+	   		$friends		= 	R::getAll($sql);			
 			if($friends){
-				if($friends[0]['friendsId'] != ''){
-					$sql 			=  "SELECT SQL_CALC_FOUND_ROWS id,FirstName,LastName,Photo,Email,FBId FROM users where id IN (".$friends[0]['friendsId'].") and id != ".$userId." and Status = 1 ORDER BY FirstName asc limit $start,$limit";
-	   				$friendsArray 	=  R::getAll($sql);
-					$totalRec 		=  R::getAll('SELECT FOUND_ROWS() as count');
-					$total 			= (integer)$totalRec[0]['count'];
-					$listedCount	=  count($friendsArray);
-					if($friendsArray){
-						foreach($friendsArray as $key => $value){
-							$user_image_path = '';
-							if(isset($value['Photo']) && $value['Photo'] != ''){
-								$user_image_path = USER_IMAGE_PATH.$value['Photo'];
-							}
-							$value['Photo'] 			= 	$user_image_path;
-							$friendsListArray[]			= 	$value;
-						}
+				foreach($friends as $val) {
+					if($val['fkFriendsId'] != $userId) {
+						if(!in_array($val['fkFriendsId'],$friendsIdArray))							
+							$friendsIdArray[]	=	$val['fkFriendsId'];
 					}
-					$usersFriendsList['result'] 		= 	$friendsListArray;
-					$usersFriendsList['totalCount']   	= 	$total;
-					$usersFriendsList['listedCount']   	= 	count($friendsListArray);
+					if($val['fkUsersId'] != $userId) {
+						if(!in_array($val['fkUsersId'],$friendsIdArray))						
+							$friendsIdArray[]	=	$val['fkUsersId'];
+					}		
+				}
+				$friendsId	=	implode(',',$friendsIdArray);
+					//echo "=======>".$friendsId;
+				if(!empty($friendsId)){
+					//Getting user Info
+					$dis_user 				= 	R::dispense('orders');
+					$dis_user->friendsId	=	$friendsId;
+					$dis_user->userId		=	$userId;
+					$dis_user->condition	=	$condition;	
+					$dis_user->start		=	$start;	
+					// have to remove after friends model implementation
+					$usersFriendsList		=	$dis_user->getFriendsInfo($type);
 					return $usersFriendsList;
 				}
+			}
+			else if($search	!= ''){// have to remove after friends model implementation
+					$dis_user 				= 	R::dispense('orders');
+					$dis_user->userId		=	$userId;
+					$dis_user->condition	=	$condition;	
+					$dis_user->start		=	$start;	
+					// have to remove after friends model implementation
+					$dis_user->search		=	$search;
+					$usersFriendsList		=	$dis_user->getFriendsInfo($type);
+					return $usersFriendsList;
 			}
 		}
 	}
@@ -194,7 +219,7 @@ class Friends extends RedBean_SimpleModel implements ModelBaseInterface {
 		*/
 		$bean 				= 	$this->bean;
 		$userId				=	$bean->UserId;
-		$fbId				=	$bean->FbId;
+		$fbId				=	$bean->GoogleId;
 		$inviteType			=	$bean->InviteType;
 		$cellNumber			=	$bean->CellNumber;
 
@@ -211,7 +236,7 @@ class Friends extends RedBean_SimpleModel implements ModelBaseInterface {
 		$this->validateUser($userId);
 		
 		//validate FbId and invite type
-		if($bean->FbId == '' && $bean->CellNumber == '')
+		if($bean->GoogleId == '' && $bean->CellNumber == '')
 			$this->validateParams();
 			
 		$this->validateInvite();
@@ -231,10 +256,10 @@ class Friends extends RedBean_SimpleModel implements ModelBaseInterface {
 	public function validateParams()
     {
 		$bean 		= 	$this->bean;
-		if($bean->FbId == ''){
+		if($bean->GoogleId == ''){
 		  	$rules 	= 	[
 							'required' => [
-								 ['FbId']
+								 ['GoogleId']
 							],
 							
 						];
@@ -279,13 +304,42 @@ class Friends extends RedBean_SimpleModel implements ModelBaseInterface {
 		* @var $bean Friends
 		*/
         $bean = $this->bean;
-		if($bean->FbId != '')
-	        $existingAccount = R::findOne('invites', 'OtherUserUniquevalue = ? and fkUsersId = ?  and inviteType = 1', array($bean->FbId,$bean->UserId));
+		if($bean->GoogleId != '')
+	        $existingAccount = R::findOne('invites', 'OtherUserUniquevalue = ? and fkUsersId = ?  and inviteType = 1', array($bean->GoogleId,$bean->UserId));
 		else if($bean->CellNumber != '')
 	        $existingAccount = R::findOne('invites', 'OtherUserUniquevalue = ? and fkUsersId = ? and inviteType = 2', array($bean->CellNumber,$bean->UserId));
         if ($existingAccount) {
             // an account with that FacebookId or CellNumber already exists in the system - don't create invite
             throw new ApiException("Already invitation sent", ErrorCodeType::AlreadyInvited);
+		}
+	}
+	
+	/**
+	* @param  insert facebook friend
+	*/
+    public function insertFBFriends(){
+	
+		/**
+		* Get the bean
+		* @var $bean Friends
+		*/
+		$bean 				= 	$this->bean;
+		$userId				=	$bean->UserId;
+		$fbId				=	$bean->OtherUserUniquevalue;
+		if($fbId != '' && $userId != ''){
+			$inviteType		=	 1;
+			$sql 			= 	"select fkUsersId as friendsId from invites where OtherUserUniquevalue = ".$fbId." and inviteType = 1 ";
+			$inviteResult 	= 	R::getAll($sql);
+			if(isset($inviteResult) && count($inviteResult) > 0){
+				foreach($inviteResult as $key=>$value){
+					$friends 						= 	R::dispense('friends');
+					$friends->fkUsersId 			=	$userId;
+					$friends->fkFriendsId 			=	$value['friendsId'];	
+					$friends->Status  				=   1;	
+					$friends->DateCreated			=   date('Y-m-d H:i:s');
+					$friendsId 						=  	R::store($friends);
+				}
+			}
 		}
 	}
 }

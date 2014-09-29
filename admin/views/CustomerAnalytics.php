@@ -56,22 +56,20 @@ $merchantList		= 	$merchantObj->selectMerchantDetails($field,$condition);
 ?>
 <body class="skin-blue">
 <?php if($show ==1){?>
-	
 		<div class="col-xs-12 no-padding">	 
 			<section class="content-header"> 
-                <h1 class="no-margin space_bottom">Top 5 Customers</h1>
+                <h1 class="no-top-margin space_bottom">Top 5 Customers</h1>
             </section>
 			<div class="product_list">
 				<div class="box box-primary no-padding no-margin">
 					<div class="box-body table-responsive no-padding no-margin">
-						
 						<?php if(isset($analyticsList) && !empty($analyticsList)) { ?>
 						<table class="table table-hover" border="0">
                                <tr>
 									<th class="text-center" width="3%">#</th>									
 									<th width="55%">Name</th>
 									<th width="10%" class="text-right">Total Amount</th>
-									<th width="" class="text-center">No.of Transactions</th>
+									<th class="text-center">No.of Transactions</th>
 								</tr>
                               <?php
 							  	foreach($analyticsList as $key=>$value){
@@ -92,26 +90,23 @@ $merchantList		= 	$merchantObj->selectMerchantDetails($field,$condition);
 								}
 									$count += 1;
 								?>
-							<tr>
-								<td align="center"><?php echo $key+1;?></td>												
-								<td>
-									<div class="col-xs-3 col-sm-1 col-md-1 no-padding">
-									<?php if(isset($image_path) && $image_path != ''){ 
-											?>
-									
-										<a <?php if(isset($original_image_path) ) { ?>href="<?php echo $original_image_path; ?>" class="fancybox" title="<?php  echo  ucfirst($value->FirstName).' '.ucfirst($value->LastName);?>" <?php } ?> > 
-											<img  width="36" height="36" align="top" class="img_border" src="<?php echo  $image_path;?>" >
-										</a>
-									
-								<?php } else {?> <img  width="36" height="36" align="top" class="img_border" src="<?php echo ADMIN_IMAGE_PATH.'no_user.jpeg';?>" > <?php  } ?>
-								</div>
-								<div class="col-xs-9 col-sm-5 col-md-11 "> 										
-										<?php  echo  ucfirst($value->FirstName).' '.ucfirst($value->LastName);?>					
-								</div>
-								</td>
-								<td align="right"><?php if(isset($value->TotalPrice) && $value->TotalPrice != ''){ echo '$'.number_format((float)$value->TotalPrice,2,'.',',');}?></td>
-								<td align="center"><?php if(isset($value->TotalOrders) && $value->TotalOrders != ''){ echo $value->TotalOrders;}?></td>
-							</tr>
+								<tr>
+									<td align="center"><?php echo $key+1;?></td>												
+									<td>
+										<div class="col-xs-2 no-padding">
+											<?php if(isset($image_path) && $image_path != ''){ ?>
+												<a <?php if(isset($original_image_path) ) { ?>href="<?php echo $original_image_path; ?>" class="fancybox" title="<?php  echo  ucfirst($value->FirstName).' '.ucfirst($value->LastName);?>" <?php } ?> > 
+													<img  width="36" height="36" align="top" class="img_border" src="<?php echo  $image_path;?>" >
+												</a>
+											<?php } else {?> 
+											<img  width="36" height="36" align="top" class="img_border" src="<?php echo ADMIN_IMAGE_PATH.'no_user.jpeg';?>" > 
+											<?php  } ?>
+										</div>
+										<div class="col-xs-9 no-padding"><?php  echo  ucfirst($value->FirstName).' '.ucfirst($value->LastName);?></div>
+									</td>
+									<td align="right"><?php if(isset($value->TotalPrice) && $value->TotalPrice != ''){ echo '$'.number_format((float)$value->TotalPrice,2,'.',',');}?></td>
+									<td align="center"><?php if(isset($value->TotalOrders) && $value->TotalOrders != ''){ echo $value->TotalOrders;}?></td>
+								</tr>
 							<?php } //end for ?>	
                            </table>
 							<!-- End product List -->						 
@@ -124,83 +119,75 @@ $merchantList		= 	$merchantObj->selectMerchantDetails($field,$condition);
 				</div>					
 			</div>
 		</div>
-	
 		<?php } else {?>
+		
 	<?php top_header(); ?>
 	<!-- Content Header (Page header) -->
 	<section class="content-header">
-		<div class="row col-xs-10">
-			<h1><i class="fa fa-list"></i> Customer Analytics </h1>			
+		<div class="row col-xs-10 col-sm-6">
+			<h1><i class="fa fa-list"></i> Customer Analytics </h1>		
 		</div>
+		<?php if(isset($analyticsList) && !empty($analyticsList)) { ?>
+		<div class="col-xs-10 col-sm-6  pull-right">
+			<h3><a href="CustomerAnalytics?Show=1" class="newWindow"><i class="fa fa-users"></i> View top 5 customers</a></h3>
+		</div>
+		<?php } ?>	
 	</section>
 	<!-- Main content -->
 	<section class="content">
-		<div class="col-sm-3 btn-inline space_top pull-right no-margin" style="padding-bottom:20px;">
-			<?php if(isset($analyticsList) && !empty($analyticsList)) { ?>
-				<a href="CustomerAnalytics?Show=1" class="newWindow col-xs-12 btn btn-success"><i class="fa fa-users"></i> View top 5 customers</a>
-			<?php } ?>
-		</div>
 		<div class="row">
-			<div class="col-xs-12">
+		<div class=" col-xs-12">
 				<form name="search_Analytics" action="CustomerAnalytics?cs=1" method="post">
-				<div class="box box-primary">	
+					<div class="box box-primary">	
 						<div class="box-body no-padding" >		
-							<div class="form-group col-sm-4 col-xs-6">
-							<label>Merchant</label>
-							<select class="form-control " name="Merchant" id="Merchant" onchange="getProductCategory(this.value);">
-								<option value="" >Select</option>								
-								<?php if(isset($merchantList) && !empty($merchantList)) {
-									foreach($merchantList as $m_key=>$m_val) {								
-								?>
-								<option value="<?php echo $m_val->id;?>" <?php if(isset($_SESSION['tuplit_sess_merchant_id']) && $_SESSION['tuplit_sess_merchant_id'] == $m_val->id) echo "selected"; ?>><?php echo ucfirst($m_val->CompanyName);?></option>
-								<?php } } ?>								
-							</select>
+							<div class="form-group col-sm-3 ">
+								<label>Merchant</label>
+								<select class="form-control " name="Merchant" id="Merchant" onchange="getProductCategory(this.value);">
+									<option value="" >Select</option>								
+									<?php if(isset($merchantList) && !empty($merchantList)) {
+										foreach($merchantList as $m_key=>$m_val) {								
+									?>
+									<option value="<?php echo $m_val->id;?>" <?php if(isset($_SESSION['tuplit_sess_merchant_id']) && $_SESSION['tuplit_sess_merchant_id'] == $m_val->id) echo "selected"; ?>><?php echo ucfirst($m_val->CompanyName);?></option>
+									<?php } } ?>								
+								</select>
 							</div>
-						</div>
-						<div class="box-body no-padding" >				
-							<div class="col-sm-4 form-group">
+							<div class="col-sm-3 form-group">
 								<label>User Name</label>
 								<input type="text" class="form-control" name="UserName" id="UserName"  value="<?php  if(isset($_SESSION['tuplit_sess_order_user_name']) && $_SESSION['tuplit_sess_order_user_name'] != '') echo unEscapeSpecialCharacters($_SESSION['tuplit_sess_order_user_name']);  ?>" >
 							</div>
-						</div>
-						<div class="box-body no-padding" >				
-							<div class="col-sm-4 form-group">
+							<div class="col-sm-2 col-xs-6 form-group">
 								<label>No.of Orders</label>
 								<input type="text" class="form-control" name="Vistit" id="Vistit"  value="<?php  if(isset($_SESSION['tuplit_sess_order_visit']) && $_SESSION['tuplit_sess_order_visit'] != '') echo $_SESSION['tuplit_sess_order_visit'];  ?>" >
 							</div>
-						</div>
-						<div class="box-body no-padding" >				
-							<div class="col-sm-4 form-group">
+							<div class="col-sm-2 col-xs-6 form-group">
 								<label>Total Spend</label>
 								<input type="text" class="form-control" name="TotalSpend" id="TotalSpend"  value="<?php if(isset($_SESSION['tuplit_sess_order_total_spend']) && $_SESSION['tuplit_sess_order_total_spend'] != '') echo $_SESSION['tuplit_sess_order_total_spend'];  ?>" >
 							</div>
-						</div>
-						<div class="box-body no-padding" >				
-							<div class="col-sm-3 form-group">
+							<div class="col-sm-2 col-xs-12 form-group">
 								<label>Date</label>
-							<input type="text" class="form-control datepicker" name="DateFrom" id="DateFrom"  value="<?php  if(isset($_SESSION['tuplit_sess_DateFrom']) && $_SESSION['tuplit_sess_DateFrom'] != '') echo $_SESSION['tuplit_sess_DateFrom'];  ?>" >
+								<input type="text" class="form-control datepicker" name="DateFrom" id="DateFrom"  value="<?php  if(isset($_SESSION['tuplit_sess_DateFrom']) && $_SESSION['tuplit_sess_DateFrom'] != '') echo $_SESSION['tuplit_sess_DateFrom'];  ?>" >
 							</div>
-						</div>
-						<div class="col-sm-12 box-footer clear" align="center">
-							<label>&nbsp;</label>
-							<input type="submit" class="btn btn-success" name="Search" id="Search" value="Search" >
-						</div>
-				</div>
-				</form>				
-			</div>	
+							<div class="col-xs-12 box-footer clear" align="center">
+								<label>&nbsp;</label>
+								<input type="submit" class="btn btn-success" name="Search" id="Search" value="Search" >
+							</div>	
+						</div>	
+					</div>	
+				</form>		
+			</div>
 		</div>	
-		
 		<div class="row product_list paging">
-					<div class="col-xs-12 col-sm-2">
-					<?php if(isset($analyticsList) && is_array($analyticsList) && count($analyticsList) > 0){ ?>
-						<div class="dataTables_info">Total Customer(s)&nbsp:&nbsp;<strong><?php echo $tot_rec; ?></strong></div>
-					</div>
-					<div class="col-xs-12 col-sm-10">
-						<div class="dataTables_paginate paging_bootstrap row">
-								<?php pagingControlLatest($tot_rec,'Analytics'); ?>
-						</div>
-					</div>
-					<?php } ?>
+			<?php if(isset($analyticsList) && is_array($analyticsList) && count($analyticsList) > 0){ ?>
+			<div class="col-xs-12 col-sm-2">
+			
+				<div class="dataTables_info">Total Customer(s)&nbsp:&nbsp;<strong><?php echo $tot_rec; ?></strong></div>
+			</div>
+			<div class="col-xs-12 col-sm-10">
+				<div class="dataTables_paginate paging_bootstrap row">
+						<?php pagingControlLatest($tot_rec,'CustomerAnalytics'); ?>
+				</div>
+			</div>
+			<?php } ?>
 		</div>
 		<div class="row">
             	<div class="col-xs-12">
@@ -275,7 +262,7 @@ $(document).ready(function() {
 	$(".newWindow").fancybox({
 		scrolling: 'auto',			
 		type: 'iframe',
-		width: '800',
+		width: '550',
 		maxWidth: '100%',
 		
 		fitToView: false,

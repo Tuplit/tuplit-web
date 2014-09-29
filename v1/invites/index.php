@@ -53,8 +53,8 @@ $app->post('/',tuplitApi::checkToken(),function () use ($app) {
 		*/
         $invites 			= R::dispense('friends');
 		$invites->UserId	= $requestedById;		
-		if($req->params('FBId'))
-			$invites->FbId			= $req->params('FBId');
+		if($req->params('GoogleId'))
+			$invites->GoogleId			= $req->params('GoogleId');
 		if($req->params('CellNumber'))
 			$invites->CellNumber	= $req->params('CellNumber');
 		 $inviteId 					= $invites->inviteFriend();

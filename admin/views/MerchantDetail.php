@@ -61,7 +61,7 @@ if(isset($_GET['viewId']) && $_GET['viewId'] != '' ){
 					<div class="form-group col-sm-6 row">
 						<label class=" col-sm-5   col-xs-5   col-md-4" >Business Name</label>
 						<div  class="col-sm-7 col-xs-7  col-md-8">
-						<?php if(!empty($merchantListResult[0]->BusinessName)) { echo $merchantListResult[0]->BusinessName; } else { echo "-"; } ?></div>
+						<?php if(!empty($merchantListResult[0]->BusinessName)) { echo ucfirst($merchantListResult[0]->BusinessName); } else { echo "-"; } ?></div>
 					</div>	
 					<div class="form-group col-sm-6 row">
 						<label class=" col-sm-5   col-xs-5   col-md-4" >Business Type</label>
@@ -86,7 +86,7 @@ if(isset($_GET['viewId']) && $_GET['viewId'] != '' ){
 					<div class="form-group col-sm-6 row">
 						<label class=" col-sm-5   col-xs-5   col-md-4" >Country</label>
 						<div  class="col-sm-7 col-xs-7  col-md-8">
-						<?php if(!empty($merchantListResult[0]->Country)) { echo $merchantListResult[0]->Country; } else { echo "-"; } ?></div>
+						<?php if(!empty($merchantListResult[0]->Country)) { echo ucfirst($merchantListResult[0]->Country); } else { echo "-"; } ?></div>
 					</div>
 					<div class="form-group col-sm-6 row">
 						<label class=" col-sm-5   col-xs-5   col-md-4" >Postcode</label>
@@ -140,7 +140,8 @@ if(isset($_GET['viewId']) && $_GET['viewId'] != '' ){
 							<?php if($merchant_image != ''){?>
 							<a href="<?php echo $image_path; ?>" class="fancybox" title="<?php echo ucfirst($merchantListResult[0]->CompanyName); ?>"><img width="100" height="100" align="top" class="img_border" src="<?php echo $image_path;?>" ></a>
 							<?php }else {?>
-								<img width="100" height="100" align="top" class="img_border" src="<?php echo $image_path;?>" >
+								<div class="no_photo img100"><i class="fa fa-user"></i></div>
+								<!-- <img width="100" height="100" align="top" class="img_border" src="<?php echo $image_path;?>" > -->
 							<?php } ?>
 						</div>
 					</div>

@@ -157,25 +157,17 @@ function delRow(ref,id_val,ref_id,type)
 	else
 		alert("Atleast one row is required");
 }*/
-$(document).ready(function() {
-	var tabindex = $("#method").attr("tabindex");
-	settabindex(+tabindex+1);
-	showHideInputParam();
-	//For Method Change Event
-	$("#method").change(function() {
-		showHideInputParam();
-	});
-});
+
 
 function showHideInputParam() {
 	var value = $("#method").val();
 		if(value == "GET" || value == "POST") {
-			$(".inputParamDefault").hide();
-			$(".inputParamMultiple").show();
+			$("#inputParamDefault").hide();
+			$("#inputParamMultiple").show();
 		}
 		else {
-			$(".inputParamDefault").show();
-			$(".inputParamMultiple").hide();
+			$("#inputParamDefault").show();
+			$("#inputParamMultiple").hide();
 		}
 }
 function settabindex(index) {
@@ -607,7 +599,7 @@ function calculateDiscountPrice() {
 		$('#DiscountPrice').val(discount_price);		
 	}
 	else {
-		$('#DiscountPrice').val('0');	
+		$('#DiscountPrice').val(price);	
 	}	 
 }
 function getProductCategory(merchant_id){
@@ -763,9 +755,10 @@ jQuery(function() {
 }
 
 function saveContent(id) {
-	var content 	=  tinyMCE.activeEditor.getContent();
+	var content 	=  escape(tinyMCE.activeEditor.getContent());
 	var filename 	=  $('#ContentName').val();
 	var ContentUrl 	=  $('#ContentUrl').val();
+	//alert(content);
 	if(id == 'Save'){
 		dataurl		=	"ContentManage?action=Save";
 		datapost	=	"Content="+content+"&filename="+filename+"&ContentUrl="+ContentUrl;
@@ -816,4 +809,251 @@ function deleteAllContent(){
 		else
 			return false;
 	}
+}
+
+function locationAlreadyExist() {
+	code	=	$('#LocationCode').val();
+	name	= 	$('#LocationName').val();
+	id 		=	$('#location_id').val();
+	ajaxval	=	$('#ajax').val();
+	if(ajaxval != '') {
+		return true;
+	} else {
+		if(code != '' && name != '') {
+			if(id != '')
+				datapost	=	"LocationCode="+code+"&LocationName="+name+"&idedit="+id;
+			else
+				datapost	=	"LocationCode="+code+"&LocationName="+name;
+			$.ajax({
+				type	: 	"POST",
+				url		: 	'LocationManage?ajax=1',
+				data	: 	datapost,
+				success	: 	function (result){
+					if(result == 1) {
+						$('#ajax').val('1');
+						$('#add_location_form').submit();
+					}
+					else if(result == 2) {
+						$('#error2').html(' Location code already exists')
+						$('#error1').show();
+						$('#success1').hide();
+					}
+					else if(result == 3) {
+						$('#error2').html(' Location name already exists')
+						$('#error1').show();
+						$('#success1').hide();
+					}
+				}			
+			});
+		}
+	}	
+	return false;
+}
+function currencyAlreadyExist() {
+	Location	=	$('#Location').val();
+	code		=	$('#CurrencyCode').val();
+	name		= 	$('#CurrencyName').val();
+	id 			=	$('#Currency_id').val();
+	ajaxval		=	$('#ajax').val();
+	if(ajaxval != '') {
+		return true;
+	} else {
+		if(code != '' && name != '' && Location != '') {
+			if(id != '')
+				datapost	=	"CurrencyCode="+code+"&CurrencyName="+name+"&Location="+Location+"&Currency_id="+id;
+			else
+				datapost	=	"CurrencyCode="+code+"&CurrencyName="+name+"&Location="+Location;
+			$.ajax({
+				type	: 	"POST",
+				url		: 	'CurrencyManage?ajax=1',
+				data	: 	datapost,
+				success	: 	function (result){
+					if(result == 1) {
+						$('#ajax').val('1');
+						$('#add_currency_form').submit();
+					}
+					else if(result == 2) {
+						$('#error2').html(' Currency already added for this location')
+						$('#error1').show();
+						$('#success1').hide();
+					}
+					else if(result == 3) {
+						$('#error2').html(' Currency code already exists')
+						$('#error1').show();
+						$('#success1').hide();
+					}
+					else if(result == 4) {
+						$('#error2').html(' Currency name already exists')
+						$('#error1').show();
+						$('#success1').hide();
+					}
+				}			
+			});
+		}
+	}	
+	return false;
+}
+function loadGraph(search,graghType,sortVal,fieldVal)
+{
+	$("#sort_val").val(sortVal);
+	$("#sort_field").val(fieldVal);
+    var queryString		=	'';
+	//$('.chart').html('<img align="absmiddle" src="'+actionPath+'webresources/images/no_datas.png">');
+    if(search=='1')
+	{
+		queryString		=	$("div.dashboard_filter #dashboard_list_search").serialize();
+	}
+     else
+        queryString		=	"cs=1";
+	if(graghType=='2') {
+		var chart_url = 'ProductChart';//AjaxBarChart
+	} 
+	else {
+		var chart_url = 'AjaxBarChart';
+	}
+   $.ajax({
+        type: "POST",
+        url : chart_url,
+		data : "action=GET_CHART&"+queryString,
+        success: function(result){
+            result	=	$.trim(result);
+                $('.graph').html(result);
+        }
+    });
+    return false;
+}
+function sortTable(idval){
+    $("#orderby").val(idval);
+	var order = $("#ordertype").val();
+	if( order == 'desc'){
+		$("#ordertype").val('asc');
+		if(idval == 'Name')
+			$("#name_bg").attr('src', path+'webresources/images/asc.gif');
+		else if(idval == 'TotalPrice')
+			$("#sales_bg").attr('src', path+'webresources/images/asc.gif');
+		else if(idval == 'TotalQuantity')
+			$("#quantity_bg").attr('src', path+'webresources/images/asc.gif');
+	}
+	else if(order == 'asc'){
+		$("#ordertype").val('desc');
+		if(idval == 'Name')
+			$("#name_bg").attr('src', path+'webresources/images/desc.gif');
+		else if(idval == 'TotalPrice')
+			$("#sales_bg").attr('src', path+'webresources/images/desc.gif');
+		else if(idval == 'TotalQuantity')
+			$("#quantity_bg").attr('src', path+'webresources/images/desc.gif');
+	}
+	else{
+		$("#ordertype").val('desc');
+		if(idval == 'Name')
+			$("#name_bg").attr('src', path+'webresources/images/desc.gif');
+		else if(idval == 'TotalPrice')
+			$("#sales_bg").attr('src', path+'webresources/images/desc.gif');
+		else if(idval == 'TotalQuantity')
+			$("#quantity_bg").attr('src', path+'webresources/images/desc.gif');
+	}
+	var fieldVal	=  $("#orderby").val();
+	var sortVal 	=  $("#ordertype").val();
+	loadGraph(1,2,sortVal,fieldVal);
+}
+function getCurrency() {
+	var country		=	$('#Country').val();
+	$.ajax({
+		 url: actionPath+"models/AjaxAction.php",
+        data: 'action=GET_CURRENCY_FROM_COUNTRY&country_name='+country,
+        success: function (result){
+			$('#Currency').val(result);
+        }			
+				
+	});
+}	
+
+function typeSubmit() {
+	$('#type').val('1');
+}
+function showLoader()
+{
+    if($.browser.msie)
+    {
+        var loaderBlock = $('<div id="preloaderImage" style="display:none;position:fixed;left:0px;top:0px;background-color:rgba(0,0,0,0.4);layer-background-color:#ffffff;height:100%;width:100%;z-index:1000;"></div>');
+    }
+    else
+    {
+        var loaderBlock = $('<div id="preloaderImage" style="display:none;position:fixed;left:0px;top:0px;background-color:rgba(0,0,0,0.4);layer-background-color:#ffffff;height:100%;width:100%;z-index:1000;"></div>');
+    }
+    loaderBlock.append('<div  id="sub" class="load-icon-bg"><div><i class="fa fa-spinner fa-spin fa-lg"></i></div></div>');
+    $('body').append(loaderBlock);
+    $('#preloaderImage').show();
+}
+
+function removeLoader()
+{
+    $('#preloaderImage').remove();
+}
+$('body').ajaxStart(function() {
+  showLoader();
+}).ajaxStop(function() {
+  removeLoader();
+});
+function addRowWeb(ref)
+{
+	var field_name 	= "field_name_clone_";
+	var sample_data = "sample_data_clone_";
+	var explanation	= "explanation_clone_";
+	var count 		= 0;
+	var node 		= $(ref).closest("tr");
+	var empty		=	0;
+	$(ref).closest("table").find("tr").each(function() {
+		var text 	=	$(this).find("input").eq(0).val();
+		if(text == "")
+			empty = 1;
+	});
+	if(empty == 0)
+	{
+		var length		= node.attr("clone");
+		var tabindex	= $("#method").attr("tabindex");
+		var clonedRow 	= node.clone(true);
+		clonedRow.insertAfter(node);
+		if(length >= 0) 	{
+			count = (+length)+1;
+			clonedRow.attr("clone",count);
+			clonedRow.find("input").val("");
+			clonedRow.find("select").val(0);
+			clonedRow.find("textarea").text("");
+			settabindex(tabindex);
+		}
+	}
+	else
+		alert("Please fill the row to add new row");
+}
+function delRowWeb(ref)
+{	
+	var count	=	$("#inputParam tr").length;
+	if(count > 2)	
+	{
+		var bool	=	confirm("Are you sure to delete ?");
+		if(bool)
+			$(ref).closest("tr").remove();
+	}
+	else
+		alert("Atleast one row is required");
+}
+
+function pushnotification(val) {
+	$('input[name=SendCredit][value=' + val + ']').prop('checked',true);
+	$('input[name=BuySomething][value=' + val + ']').prop('checked',true);
+	$('input[name=RecieveCredit][value=' + val + ']').prop('checked',true);
+	$('input[name=DealsOffers][value=' + val + ']').prop('checked',true);
+	$('input[name=Sounds][value=' + val + ']').prop('checked',true);
+	$('input[name=Passcode][value=' + val + ']').prop('checked',true);
+	$('input[name=PaymentPreference][value=' + val + ']').prop('checked',true);
+	$('input[name=RememberMe][value=' + val + ']').prop('checked',true);
+}
+
+function notification() {
+	val	=	$( "input:radio[name=PushNotification]:checked" ).val();
+	if(val	==	1)
+		return true;
+	else	
+		return false;
 }

@@ -205,12 +205,12 @@ $topmerchantlist = $StatisticsObj->getTopMerchantsList($fields,$condition);
 			  <div class="box-body table-responsive no-padding no-margin">
 				 <table class="table table-hover">
  					<tr><th width="35%">Process </th><th width="65%">Total</th></tr>
-					<tr><td>No. of Users Registered</td><td><?php echo $Totalnoof_users; ?></td></tr>
+					<tr><td>No. of Customers Registered</td><td><?php echo $Totalnoof_users; ?></td></tr>
 					<tr><td>No. of Merchants Registered</td><td><?php echo $Totalnoof_merchants; ?></td></tr>
-					<tr><td>No. of Users login  </td><td><?php echo $totaluserlogin ; ?></td></tr>		
+					<tr><td>No. of Customers login  </td><td><?php echo $totaluserlogin ; ?></td></tr>		
 					<tr><td>No. of Merchants login </td><td><?php echo $totalmerchantlogin ; ?></td></tr>	
-					<tr><td>No .of Orders done by Users </td><td><?php echo $Orderdoneby_user ; ?></td></tr>
-					<tr><td>No .of Orders done by Merchants </td><td><?php echo $Orderdoneby_merchant ; ?></td></tr>								
+					<tr><td>No. of Orders done by Customer </td><td><?php echo $Orderdoneby_user ; ?></td></tr>
+					<tr><td>No. of Orders done by Merchants </td><td><?php echo $Orderdoneby_merchant ; ?></td></tr>								
 					<tr><td>No. of Orders</td><td><?php echo $noof_orders."<p class='help-block no-margin'>(".$new_count."- New, ".$rejected_count." - Rejected, ".$accepted_count." - Accepted)</p>"; ?></td></tr>
 					<tr><td>Total Order Price</td><td><?php echo price_fomat($totalprice)." <p class='help-block no-margin'>( Accepted - ".price_fomat($acceptedprice).")</p>" ; ?></td></tr>																
 				</table>
@@ -275,7 +275,7 @@ $topmerchantlist = $StatisticsObj->getTopMerchantsList($fields,$condition);
 		
 		<div>
 		<?php if(isset($topuserlist) && is_array($topuserlist) && count($topuserlist) > 0){?>
-		<div><h1>Users List</h1></div>
+		<div><h1>Customers List</h1></div>
 		<div class="box">
                        <div class="box-body table-responsive no-padding no-margin">
                            <table class="table table-hover">

@@ -26,7 +26,7 @@ if(isset($_COOKIE['tuplit_merchant_email']) && $_COOKIE['tuplit_merchant_email']
 
 //login after sign up process
 if(isset($_GET['type']) && $_GET['type'] == 1){
-	$responseMessage 	= 	'You have registered successfully.Please wait till you get approval mail.';
+	$responseMessage 	= 	'You have registered successfully. Please wait till you get approval mail.';
 	$msg_class 		 	= 	"alert alert-success alert-col-xs-4";
 	$class_icon   		= 	"fa-check";
 }
@@ -69,15 +69,45 @@ if($doLogin){
 		$url						=	WEB_SERVICE.'v1/merchants/'.$merchantId.'?From=0';
 		$curlMerchantResponse 		= 	curlRequest($url, 'GET', null, $_SESSION['merchantInfo']['AccessToken']);
 		if(isset($curlMerchantResponse) && is_array($curlMerchantResponse) && $curlMerchantResponse['meta']['code'] == 201 && $curlMerchantResponse['merchant']['MerchantId'] != '' ) {
-			$_SESSION['merchantDetailsInfo']   =	$curlMerchantResponse['merchant'];
-			if(isset($curlMerchantResponse['merchant']['Address']) && !empty($curlMerchantResponse['merchant']['Address'])){
-				header("Location:Dashboard");
-				die();
+
+			if(isset($curlMerchantResponse['merchant']['UserType']) && !empty($curlMerchantResponse['merchant']['UserType']) && $curlMerchantResponse['merchant']['UserType'] == 2){
+				//Login as sub user
+				$merchantId					= 	$curlMerchantResponse['merchant']['MainMerchantId'];
+				$url						=	WEB_SERVICE.'v1/merchants/'.$merchantId.'?From=0';
+				$curlMerchantResponse 		= 	curlRequest($url, 'GET', null, $_SESSION['merchantInfo']['AccessToken']);
+				if(isset($curlMerchantResponse) && is_array($curlMerchantResponse) && $curlMerchantResponse['meta']['code'] == 201 && $curlMerchantResponse['merchant']['MerchantId'] != '' ) {
+					$_SESSION['merchantSubuser']		=	'1';
+					$_SESSION['merchantDetailsInfo']   	=	$curlMerchantResponse['merchant'];
+					
+					$url				=	WEB_SERVICE.'oauth2/password/token/merchants/';
+					$method				=	'POST';
+					$data				=	array(
+												'ClientId' => CLIENT_ID,
+												'ClientSecret' => CLIENT_SECRET,
+												'Email' => $curlMerchantResponse['merchant']['Email'],
+												'Password' => ''
+											);
+					$curlResponse		=	curlRequest($url,$method,$data);
+					if(isset($curlResponse) && is_array($curlResponse) && $curlResponse['meta']['code'] == 201 && $curlResponse['login']['Status'] == 'success' ) {
+						$_SESSION['merchantInfo']   =	$curlResponse['login'];
+						header("Location:Dashboard");
+						die();
+					}
+				}
+				else{
+					$responseMessage 	= 	$curlMerchantResponse['meta']['errorMessage'];
+				}
+			} else {
+				$_SESSION['merchantDetailsInfo']   =	$curlMerchantResponse['merchant'];
+				if(isset($curlMerchantResponse['merchant']['Address']) && !empty($curlMerchantResponse['merchant']['Address'])){
+					header("Location:Dashboard");
+					die();
+				}
+				else{
+					header("Location:Myaccount");	
+					die();
+				}	
 			}
-			else{
-				header("Location:Myaccount");	
-				die();
-			}	
 		}
 		else{
 			$responseMessage 	= 	$curlMerchantResponse['meta']['errorMessage'];

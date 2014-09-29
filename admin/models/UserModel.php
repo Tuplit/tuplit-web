@@ -107,6 +107,11 @@ class UserModel extends Model
 														  SendCredit		= 1,
 														  RecieveCredit		= 1,
 														  BuySomething		= 1,
+														  DealsOffers		= 1,
+														  Sounds			= 1,
+														  Passcode			= 1,
+														  PaymentPreference	= 1,
+														  RememberMe		= 1,
 														  Platform			= 0,
 														  DateCreated 		= '".date('Y-m-d H:i:s')."',
 														  DateModified		= '".date('Y-m-d H:i:s')."'";

@@ -272,12 +272,16 @@ if($tot_rec!=0 && !is_array($merchantListResult)) {
 										<?php if($value->Status == 0) { ?>									
 											<a data-toggle="tooltip" title="Approve" onclick="javascript:return confirm('Are you sure to approve this merchant?')" href="MerchantList?approveId=<?php if(isset($value->id) && $value->id != '') echo $value->id;?>"><i class="fa fa-thumbs-up text-olive fa-2x icon-shadow"></i></a>
 										<?php } ?>
+										
 										<?php if(!empty($value->Icon)) { ?>
 										<a href="<?php echo $image_path; ?>" class="fancybox" title="<?php echo ucfirst($value->CompanyName);?>">
 											<img id="<?php echo $value->id ;?>"  width="36" height="36" align="top" class="img_border" src="<?php echo $image_path;?>" >
 										</a>
 										<?php } else {?>
-										<img id="<?php echo $value->id ;?>"  width="36" height="36" align="top" class="img_border" src="<?php echo $image_path;?>" >
+										
+										<div class="no_photo img36"><i class="fa fa-user"></i></div> <!-- no_image font icon used -->
+										<!-- <img id="<?php echo $value->id ;?>"  width="36" height="36" align="top" class="img_border" src="<?php echo $image_path;?>" > -->
+										
 										<?php } ?>
 									</div> 
 									<?php } ?>								
@@ -310,7 +314,12 @@ if($tot_rec!=0 && !is_array($merchantListResult)) {
 										<a href="<?php echo SITE_PATH.'/admin/OrderList?mer_id='.$value->id.'&cs=1'; ?>"  class="view newWindow" data-toggle="tooltip" data-original-title="order list"><i class="fa fa fa-shopping-cart"></i></a>
 										<?php //if(!empty($value->commentId)) { ?>
 										<a href="<?php if(isset($value->id) && $value->id != '') echo SITE_PATH.'/admin/CommentList?mer_id='.$value->id.'&cs=1'; else echo "#"; ?>"  class="view newWindow" data-toggle="tooltip" data-original-title="comment list"><i class="fa fa-comments"></i></a>
-										<?php //} ?>										
+										<?php //} ?>
+										<a href="<?php echo SITE_PATH.'/admin/SubUserList?mer_id='.$value->id.'&sub_user=2&cs=1'; ?>"  class="view  newWindow" data-toggle="tooltip" data-original-title="Salesperson list"><i class="fa fa-lg fa-male"></i></a>		<!-- man-stand-icon -->
+										
+										<!-- <a href="<?php echo SITE_PATH.'/admin/SubUserList?mer_id='.$value->id.'&sub_user=2&cs=1'; ?>"  class="view  newWindow" data-toggle="tooltip" data-original-title="Salesperson list"><i class="fa fa fa-users"></i></a> -->	
+										
+																	
 										<a onclick="javascript:return confirm('Are you sure to delete?')" href="MerchantList?delId=<?php if(isset($value->id) && $value->id != '') echo $value->id;?>" data-toggle="tooltip" data-original-title="Delete" class="delete"><i class="fa fa-trash-o "></i></a>
 									</div>
 								</td>

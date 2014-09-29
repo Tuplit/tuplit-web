@@ -60,10 +60,10 @@ commonHead(); ?>
 	<?php top_header(); ?>
 	<!-- Content Header (Page header) -->
 	<section class="content-header no-padding">
-		<div class="col-xs-7">
+		<div class="col-xs-6">
 			<h1><i class="fa fa-list"></i> Service List</h1>
 		</div>
-		<div class="col-sm-5 col-xs-12"><h3><a href="ServiceManage" title="Add Service"><i class="fa fa-plus-circle"></i> Add Service</a></h3></div>
+		<div class="col-xs-6"><h3><a href="ServiceManage" title="Add Service"><i class="fa fa-plus-circle"></i> Add Service</a></h3></div>
 	</section>	
 	 <!-- Main content -->
 	<section class="content">

@@ -101,7 +101,6 @@ $app->post('/', tuplitApi::checkToken(),function () use ($app) {
 		//getting user details
 		$userDetails 				=   R::findOne('users', 'id=?', [$userId]);
 		$order->userDetails			= 	$userDetails;
-		//echo "<pre>"; echo print_r($userDetails); echo "</pre>";
 		/**
          * Place the new order
          */
@@ -110,9 +109,7 @@ $app->post('/', tuplitApi::checkToken(),function () use ($app) {
 		if($result['orderId']) { 
 					
 			$merchantDetails 							=   R::findOne('merchants', 'id=?', [$MerchantId]);	
-			//echo "<pre>"; echo print_r($merchantDetails); echo "</pre>";
 			$adminDetails 								=   R::findOne('admins', 'id=?', ['1']);
-			//echo "<pre>"; echo print_r($adminDetails); echo "</pre>";
 			if($merchantDetails && $userDetails && $adminDetails) {				
 				$merchantName							=	$merchantDetails->CompanyName;
 				$merchantAddress						=	$merchantDetails->Address;
@@ -363,6 +360,8 @@ $app->get('/', tuplitApi::checkToken(), function () use ($app) {
 			$orders->UserName 	= 	$request->params('UserName');
 		if($request->params('OrderStatus') !='')
 			$orders->OrderStatus=	$request->params('OrderStatus');
+		if($request->params('OrderDoneBy') !='')
+			$orders->OrderDoneBy=	$request->params('OrderDoneBy');
 		if($request->params('Price') !='')
 			$orders->Price		=	$request->params('Price');
 		if($request->params('TransactionId') !='')

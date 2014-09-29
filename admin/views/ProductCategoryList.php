@@ -120,7 +120,7 @@ if(!isset($_GET['show']))
 					
 					<div class="box-body no-padding" >
 				
-						<div class="col-sm-4 form-group">
+						<div class="col-sm-3 form-group">
 							<label>Category Name</label>
 							<input type="text" class="form-control" name="CategoryName" id="CategoryName"  value="<?php  if(isset($_SESSION['tuplit_sess_product_category_name']) && $_SESSION['tuplit_sess_product_category_name'] != '') echo unEscapeSpecialCharacters($_SESSION['tuplit_sess_product_category_name']);  ?>" >
 						</div>
@@ -136,7 +136,7 @@ if(!isset($_GET['show']))
 							</select>
 						</div>
 						<?php } ?>
-						<div class="col-sm-4 form-group">
+						<div class="col-sm-2 form-group">
 							<label>Status</label>
 							<select name="Status" id="Status"  class="form-control col-sm-4">
 								<option value="">Select</option>
@@ -144,7 +144,7 @@ if(!isset($_GET['show']))
 								<option value="2" <?php  if(isset($_SESSION['tuplit_sess_product_category_status']) && $_SESSION['tuplit_sess_product_category_status'] != '' && $_SESSION['tuplit_sess_product_category_status'] == '2') echo 'Selected';  ?>>Inactive</option>
 							</select>
 						</div>
-						<div class="col-sm-5 col-xs-12 col-md-6 form-group">
+						<div class="col-sm-3 col-xs-12 form-group">
 							<label>Created Date</label>
 							<div class="col-xs-6 no-padding"> <input type="text"  maxlength="10" class="form-control  fleft" name="SearchDate" id="SearchDate" title="Select Date" value="<?php if(isset($_SESSION['tuplit_sess_product_category_registerdate']) && $_SESSION['tuplit_sess_product_category_registerdate'] != '') echo date('m/d/Y',strtotime($_SESSION['tuplit_sess_product_category_registerdate'])); else echo '';?>" ></div>
 							<div class="col-xs-6">(mm/dd/yyyy)</div>
@@ -235,7 +235,7 @@ if(!isset($_GET['show']))
 																<img width="25" height="25" align="top" class="img_border" src="<?php echo $icon_image_path;?>" >
 															 </a>
 														<?php } else { ?>
-															<img width="25" height="25" align="top" class="img_border" src="<?php echo $icon_image_path;?>" >
+															<div class="no_photo img25 valign"><i class="fa fa-user"></i></div><!-- <img width="25" height="25" align="top" class="img_border" src="<?php echo $icon_image_path;?>" > -->
 														<?php }?>
 														<!-- <a href="<?php //echo SITE_PATH.'/admin/MerchantDetail?viewId='.$value->fkMerchantId; ?>" class="fancybox" title="<?php //echo $value->CompanyName; ?>"> -->
 													<?php	if($value->CompanyName != ''){?>
@@ -273,7 +273,7 @@ if(!isset($_GET['show']))
 																<img width="25" height="25" align="top" class="img_border" src="<?php echo $icon_image_path;?>" >
 															 </a>
 														<?php } else { ?>
-															<img width="25" height="25"align="top" class="img_border" src="<?php echo $icon_image_path;?>" >
+															<div class="no_photo img25 valign"><i class="fa fa-user"></i></div><!-- <img width="25" height="25"align="top" class="img_border" src="<?php echo $icon_image_path;?>" > -->
 														<?php }?>
 														<!-- <a href="<?php //echo SITE_PATH.'/admin/MerchantDetail?viewId='.$value->fkMerchantId; ?>" class="fancybox" title="<?php //echo $value->CompanyName; ?>"> -->
 													<?php	if($value->CompanyName != ''){?>

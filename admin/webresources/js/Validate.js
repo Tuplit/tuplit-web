@@ -108,7 +108,7 @@ $("#add_user_form").validate({
 		Email				:	{ required:'Email is required' },
 		Password			:	{ required:'Password is required',minlength:'Password should have atleast 6 characters'},
 		C_Password		    :   { required:'Confirm Password is required',minlength:'Confirm Password should have atleast 6 characters',equalTo:'Password mismatch' },
-		PinCode				:	{ required:'PIN Code is required',minlength:'PIN Code must have 4 characters' },
+		PinCode				:	{ required:'PIN Code is required',minlength:'PIN Code must have 4 numbers' },
 		CellNumber 		    :    { mobile_format:'Cell Number should have atleast 10 numbers'}
 		/*CellNumber			:	{ required:'Cell Number is required' }
 		empty_user_photo	:	{ required:'User Image is required'},
@@ -195,13 +195,10 @@ $("#merchant_edit_form").validate({
 		empty_icon_photo	:	{ required:true },
 		empty_merchant_photo		:	{ required:true },
 		priceValidation		:	{ required:true,min_val:true},
-		set_0				: {set_0:true},
-		set_1				: {set_1:true},
-		set_2				: {set_2:true},
-		set_3				: {set_3:true},
-		set_4				: {set_4:true},
-		set_5				: {set_5:true},
-		set_6				: {set_6:true}
+		BusinessName	   :	{ required:true },
+		BusinessType	   :	{ required:true },
+		Country	   		   :	{ required:true },
+		Postcode	       :	{ required:true }
 
 	},
 	messages:{
@@ -209,7 +206,7 @@ $("#merchant_edit_form").validate({
 		LastName       		:	{ required:'Last Name is required'},
 		CompanyName         :	{ required:'Company Name is required'},
 		Email				:	{ required:'Email is required',email:'Please enter a valid Email address.'},
-		PhoneNumber			:	{ required:'Phone Number is required',minlength:'Phone Number should have atleast 10 numbers'},
+		PhoneNumber			:	{ required:'Mobile Number is required',minlength:'Mobile Number should have atleast 10 numbers'},
 		WebsiteUrl		    :   { required:'Website url is required',url:'Please enter valid url'},
 		Location			:	{ required:'Location is required'},		
 		Address				:	{ required:'Address is required'},
@@ -220,16 +217,46 @@ $("#merchant_edit_form").validate({
 		empty_icon_photo		: 	{ required:'Icon is required'},
 		empty_merchant_photo		: 	{ required:'Image is required'},
 		priceValidation		:	{ required:'Price range is required',min_val:'Please enter valid price range'},
-		set_0				: {set_0:'To hour must be greater then from hour'},
-		set_1				: {set_1:'To hour must be greater then from hour'},
-		set_2				: {set_2:'To hour must be greater then from hour'},
-		set_3				: {set_3:'To hour must be greater then from hour'},
-		set_4				: {set_4:'To hour must be greater then from hour'},
-		set_5				: {set_5:'To hour must be greater then from hour'},
-		set_6				: {set_6:'To hour must be greater then from hour'}
+		BusinessName		: 	{ required:'Business Name is required'},
+		BusinessType   		:	{ required:'Business Type is required' },
+		Country   			:	{ required:'Country is required' },
+		Postcode	   		:	{ required:'Postcode is required' }
 	}		
 });
+//--------------Add Merchant---------------start
+$("#merchant_add_form").validate({
+	rules:{
+		FirstName          :	{ required:true},
+		LastName           :	{ required:true},
+		CompanyName        :	{ required:true },
+		Email        	   :	{ required:true,email:true},
+		PhoneNumber	       :    { required:true,minlength:10},
+		Address		   	   :	{ required:true },
+		BusinessName	   :	{ required:true },
+		BusinessType	   :	{ required:true },
+		Country	   		   :	{ required:true },
+		Postcode	       :	{ required:true },
+		Password	       :	{ required:true,minlength:6 },
+		C_Password		   :	{ required:true,minlength:6,equalTo:'#Password'},
+		ReferedBy	       :	{ required:true },
 
+	},
+	messages:{
+		FirstName       	:	{ required:'First Name is required'},
+		LastName       		:	{ required:'Last Name is required'},
+		CompanyName         :	{ required:'Company Name is required'},
+		Email				:	{ required:'Email is required',email:'Please enter a valid Email address.'},
+		PhoneNumber			:	{ required:'Mobile Number is required',minlength:'Mobile Number should have atleast 10 numbers'},
+		Address				:	{ required:'Address is required'},
+		BusinessName		: 	{ required:'Business Name is required'},
+		BusinessType   		:	{ required:'Business Type is required' },
+		Country   			:	{ required:'Country is required' },
+		Postcode	   		:	{ required:'Postcode is required' },
+		Password			:	{ required:'Password is required',minlength:'Password should have atleast 6 characters'},
+		C_Password		    :   { required:'Confirm Password is required',minlength:'Confirm Password should have atleast 6 characters',equalTo:'Password mismatch' },
+		ReferedBy			: 	{ required:'How Heard is required'},
+	}		
+});
 $.validator.addMethod("min_val", function(value, element) {	
 	 if(parseInt($('#max_price').val()) == 0)
 		 return false;
@@ -240,77 +267,6 @@ $.validator.addMethod("min_val", function(value, element) {
 	 else
 		return true
 });
-$.validator.addMethod("set_0", function(value, element) {
-	if($('#set_0').val() == '' || ($('#set_0').val() != '' && $('#to_0').val() == '00' && $('#from_0').val() == '00'))
-		return true;
-	else {
-		if((parseInt($('#to_0').val()) < parseInt($('#from_0').val())) || (parseInt($('#to_0').val()) == parseInt($('#from_0').val())))
-			return false;
-		else
-			return true;
-	}
-});	
-$.validator.addMethod("set_1", function(value, element) {
-	if($('#set_1').val() == '' || ($('#set_1').val() != '' && $('#to_1').val() == '00' && $('#from_1').val() == '00'))
-		return true;
-	else {
-		if((parseInt($('#to_1').val()) < parseInt($('#from_1').val())) || (parseInt($('#to_1').val()) == parseInt($('#from_1').val())))
-			return false;
-		else
-			return true;
-	}
-});	
-$.validator.addMethod("set_2", function(value, element) {
-	if($('#set_2').val() == '' || ($('#set_2').val() != '' && $('#to_2').val() == '00' && $('#from_2').val() == '00'))
-		return true;
-	else {
-		if((parseInt($('#to_2').val()) < parseInt($('#from_2').val())) || (parseInt($('#to_2').val()) == parseInt($('#from_2').val())))
-			return false;
-		else
-			return true;
-	}
-});	
-$.validator.addMethod("set_3", function(value, element) {
-	if($('#set_3').val() == '' || ($('#set_3').val() != '' && $('#to_3').val() == '00' && $('#from_3').val() == '00'))
-		return true;
-	else {
-		if((parseInt($('#to_3').val()) < parseInt($('#from_3').val())) || (parseInt($('#to_3').val()) == parseInt($('#from_3').val())))
-			return false;
-		else
-			return true;
-	}
-});	
-$.validator.addMethod("set_4", function(value, element) {
-	if($('#set_4').val() == '' || ($('#set_4').val() != '' && $('#to_4').val() == '00' && $('#from_4').val() == '00'))
-		return true;
-	else {
-		if((parseInt($('#to_4').val()) < parseInt($('#from_4').val())) || (parseInt($('#to_4').val()) == parseInt($('#from_4').val())))
-			return false;
-		else
-			return true;
-	}
-});	
-$.validator.addMethod("set_5", function(value, element) {
-	if($('#set_5').val() == '' || ($('#set_5').val() != '' && $('#to_5').val() == '00' && $('#from_5').val() == '00'))
-		return true;
-	else {
-		if((parseInt($('#to_5').val()) < parseInt($('#from_5').val())) || (parseInt($('#to_5').val()) == parseInt($('#from_5').val())))
-			return false;
-		else
-			return true;
-	}
-});	
-$.validator.addMethod("set_6", function(value, element) {
-	if($('#set_6').val() == '' || ($('#set_6').val() != '' && $('#to_6').val() == '00' && $('#from_6').val() == '00'))
-		return true;
-	else {
-		if((parseInt($('#to_6').val()) < parseInt($('#from_6').val())) || (parseInt($('#to_6').val()) == parseInt($('#from_6').val())))
-			return false;
-		else
-			return true;
-	}
-});	
-		
 //--------------Add user----------------End
 
 //--------------Forget Password---------------start
@@ -343,6 +299,7 @@ $("#add_product_form").validate({
 //--------------Add Product----------------End
 
 });
+
 //--------------------merchant - Opening Hours ------------------Start
 $("#merchant_edit_form").submit(function() {
 	var validatetime = '1';
@@ -365,11 +322,11 @@ $("#merchant_edit_form").submit(function() {
 		$('#error_'+i).html('');
 		if($('#row_'+i).val() != '') {
 			if(!$("#from1_"+i).val().match(/^(0?[1-9]|1[012])(:[0-5]\d) [APap][mM]$/)) {			
-				$('#error_'+i).html('Invalid From time. Please select HH, MM and AM/PM');
+				$('#error_'+i).html('Please select from time');
 				validatetime = '0';
 			}
 			else if(!$("#to1_"+i).val().match(/^(0?[1-9]|1[012])(:[0-5]\d) [APap][mM]$/)) {			
-				$('#error_'+i).html('Invalid To time. Please select HH, MM and AM/PM');
+				$('#error_'+i).html('Please select to time');
 				validatetime = '0';
 			}
 			else {
@@ -382,23 +339,25 @@ $("#merchant_edit_form").submit(function() {
 						$('#error_'+i).html('From time and To time should not be same');
 						validatetime = '0';
 					}
-					//Start time
+					/*//Start time
 					var startsplit 		= start.split(" ");
 					var startarray 		= startsplit[0].split(":").map(Number);
 					if(startsplit[1] == 'pm') {
-						startarray[0] = startarray[0] + 12;
+						if(startarray[0] < 12)
+							startarray[0] = startarray[0] + 12;
 					}
 					//End Time
 					var endsplit 		= end.split(" ");
 					var endarray 		= endsplit[0].split(":").map(Number);	
 					if(endsplit[1] == 'pm') {
-						endarray[0] = endarray[0] + 12;
+						if(endarray[0] < 12)
+							endarray[0] = endarray[0] + 12;
 					}
 					//Checking
 					if((startarray[0] > endarray[0]) || ((startarray[0] == endarray[0]) && (startarray[1] > endarray[1]))) {
 						$('#error_'+i).html('To time must be greater then From time');
 						validatetime = '0';
-					}					
+					}	*/				
 				}				
 			}
 		} 		
@@ -419,7 +378,7 @@ $("#content_form").validate({
 		content			  :	{ content:true}		
 	},
 	messages:{
-		ContentName     :	{ required:'Content name is required'},
+		ContentName     :	{ required:'Content Name is required'},
 		ContentUrl     :	{ required:'Content URL is required'},
 		content     	:	{ content:'Please enter content details'}
 	}
@@ -432,3 +391,35 @@ $.validator.addMethod("content", function(value, element) {
 		return false;
 });
 //--------------Web content----------------End
+
+//--------------Location manage---------------start
+$("#add_location_form").validate({
+	rules:{			
+		LocationCode       	:	{ required:true},		
+		LocationName       	:	{ required:true},		
+		Status			  	:	{ required:true}		
+	},
+	messages:{
+		LocationCode     	:	{ required:'Location Code is required'},
+		LocationName     	:	{ required:'Location Name is required'},
+		Status     			:	{ required:'Status is required'}
+	}
+});
+//--------------Location manage----------------End
+
+//--------------Currency manage---------------start
+$("#add_currency_form").validate({
+	rules:{			
+		Location	       	:	{ required:true},		
+		CurrencyCode       	:	{ required:true},		
+		CurrencyName       	:	{ required:true},		
+		Status			  	:	{ required:true}		
+	},
+	messages:{
+		Location    	 	:	{ required:'Location is required'},
+		CurrencyCode     	:	{ required:'Currency Code is required'},
+		CurrencyName     	:	{ required:'Currency Name is required'},
+		Status     			:	{ required:'Status is required'}
+	}
+});
+//--------------Currency manage----------------End

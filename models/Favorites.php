@@ -81,21 +81,25 @@ class Favorites extends RedBean_SimpleModel implements ModelBaseInterface {
 		* @var $bean Favorites
 		*/
         $bean 			= 	$this->bean;
-		$condition		=	'';
-		if(isset($bean->Name))
-			$condition	=	" and m.CompanyName like '%".$bean->Name."%'";
+		$condition		=	$merchantIds =	'';
+		$merchantIdsArr	=	array();
+		$start			=	$bean->Start;
+		
+		if(isset($bean->Search) && !empty($bean->Search))
+			$condition	=	" and m.CompanyName like '%".$bean->Search."%'";
 			
 		//getting user favorite merchantIds
 		$sql 			= 	"select f.fkMerchantsId from favorites f
 								left join merchants m on (f.fkMerchantsId = m.id) 
-								where f.FavouriteType = 1  and f.fkUsersId ='".$bean->UsersId."' ".$condition;
+								where f.FavouriteType = 1 and m.Status = 1 and f.fkUsersId ='".$bean->UsersId."' ".$condition." ORDER BY f.id desc";
+		//echo $sql;
 		$result 		= 	R::getAll($sql);
-		$merchantIds 	= 	'';
+		
 		if($result) {
-			foreach($result as $val) {
-					$merchantIdsArray[] 	= 	$val['fkMerchantsId'];
-			}
-			$merchantIds 					= 	implode(',',$merchantIdsArray);
+			foreach($result as $val)
+				$merchantIdsArr[]			=	$val['fkMerchantsId'];
+				
+			$merchantIds					=	implode(',',$merchantIdsArr);
 			$merchant 						= 	R::dispense('merchants');
 			$merchant->Latitude				= 	$bean->Latitude;
 			$merchant->Longitude			= 	$bean->Longitude;

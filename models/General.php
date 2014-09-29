@@ -39,8 +39,9 @@ class General extends RedBean_SimpleModel implements ModelBaseInterface {
 			* The users were found
 			*/
 			foreach($result as $key=>$value){
+					$str = str_replace("\r\n","<br>",trim($value['Content']));
 					$content    = array("PageName"			=>		$value['PageName'],
-										"Content"			=>		ucfirst($value['Content']),
+										"Content"			=>		ucfirst(nl2br($str)),
 										);
 					$StaticArray[]	=	$content;
 			}
@@ -108,6 +109,60 @@ class General extends RedBean_SimpleModel implements ModelBaseInterface {
 			* throwing error when Content not Found
 			*/
 			throw new ApiException("Content not Found", ErrorCodeType::NoResultFound);
+		}
+	}
+	
+	/**
+	* get countries List
+	*/
+    public function getcountries()
+    {
+		/**
+		* Query to get countries
+		*/
+		$sql 		= 	"SELECT * FROM locations where fkCurrencyId != 0 and Status='1' order by  Location asc";
+   		$result 	= 	R::getAll($sql);
+		if(is_array($result) && count($result) >0){
+			$countries	=	array();
+			/**
+			* The countries were found
+			*/
+			foreach($result as $val)
+				$countries[$val['id']]	=	$val;
+			return $countries;
+		}
+		else{
+			/**
+			* throwing error when countries not Found
+			*/
+			throw new ApiException("Countries not Found", ErrorCodeType::NoResultFound);
+		}
+	}
+	
+	/**
+	* get currencies List
+	*/
+    public function getcurrencies()
+    {
+		/**
+		* Query to get currencies
+		*/
+		$sql 		= 	"SELECT * FROM currencies where Status='1'";
+   		$result 	= 	R::getAll($sql);
+		if(is_array($result) && count($result) >0){
+			$currencies	=	array();
+			/**
+			* The currencies were found
+			*/
+			foreach($result as $val)
+				$currencies[$val['fkLocationId']]	=	$val;
+			return $currencies;
+		}
+		else{
+			/**
+			* throwing error when currencies not Found
+			*/
+			throw new ApiException("Currencies not Found", ErrorCodeType::NoResultFound);
 		}
 	}
 	

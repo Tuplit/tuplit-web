@@ -31,7 +31,6 @@ class Cards extends RedBean_SimpleModel implements ModelBaseInterface {
     public function __construct() {
 
     }
-
    
 	/**
 	* Create cards 
@@ -49,21 +48,20 @@ class Cards extends RedBean_SimpleModel implements ModelBaseInterface {
         // validate the creation
         $userInfo							=	$this->validateCreate();
 		
+		if(isset($bean->Amount) && !empty($bean->Amount) && $bean->Amount > 0)
+			$this->validateAmount($bean->Amount);
+		
 		$UserDetails['userAccountId']		=	$userInfo->MangoPayUniqueId;
 		$UserDetails['userCurrency']		=	$bean->Currency;
 		$UserDetails['walletId']			=	$userInfo->WalletId;
 		$UserDetails['userWalletId']		=	$userInfo->WalletId;
-		if(!isset($bean->Amount) || $bean->Amount == '')
-			$UserDetails['amount']				=	1000;		
-		else
-			$UserDetails['amount']				=	$bean->Amount;		
+		$UserDetails['amount']				=	$bean->Amount;		
 		$UserDetails['cardNumber']			=	$bean->CardNumber;		
 		$UserDetails['cardExpirationDate']	=	$bean->CardExpirationDate;		
-		$UserDetails['cvv']					=	$bean->CVV;		
+		$UserDetails['cvv']					=	$bean->CVV;	
 		$result								=	addCreditCard($UserDetails);
-		if($result->CardId){
-			$UserDetails['cardId']				=	$result->CardId;		
-			$amountAdd 							=   topupWallet($UserDetails);
+		if($result->CardId){			
+			$UserDetails['cardId']			=	$result->CardId;		
 		}
 		return $result;
     }
@@ -103,9 +101,7 @@ class Cards extends RedBean_SimpleModel implements ModelBaseInterface {
             // user not found
             throw new ApiException("The user was not in active status.", ErrorCodeType::UserNotInActiveStatus);
 		} else {
-			
 			if(isset($bean->WalletId) || isset($bean->MangoPayId)) {
-			
 				if(empty($bean->WalletId) || empty($bean->MangoPayId)) {
 					// incorrect WalletId or MangoPayUniqueId
 					throw new ApiException("WalletId, MangoPayId are required.", ErrorCodeType::UserNotInActiveStatus);
@@ -113,15 +109,6 @@ class Cards extends RedBean_SimpleModel implements ModelBaseInterface {
 					$usersInfo['WalletId']			= $bean->WalletId;
 					$usersInfo['MangoPayUniqueId']	= $bean->MangoPayId;
 				}
-				
-				/*if(isset($bean->WalletId) && !empty($bean->WalletId) && $bean->WalletId != $usersInfo->WalletId) {
-					 // incorrect WalletId
-					throw new ApiException("Your WalletId was incorrect.", ErrorCodeType::UserNotInActiveStatus);
-				}
-				if(isset($bean->MangoPayUniqueId) && !empty($bean->MangoPayUniqueId) && $bean->MangoPayUniqueId != $usersInfo->MangoPayUniqueId) {
-					 // incorrect MangoPayId
-					throw new ApiException("Your MangoPayId was incorrect.", ErrorCodeType::UserNotInActiveStatus);
-				}*/
 			} else if(empty($usersInfo->WalletId) || empty($usersInfo->MangoPayUniqueId)) {
 				 // not connected with MangoPay
 				throw new ApiException("You are not connected with MangoPay Account.", ErrorCodeType::UserNotInActiveStatus);
@@ -129,6 +116,7 @@ class Cards extends RedBean_SimpleModel implements ModelBaseInterface {
 			return $usersInfo;
 		}		
     }	
+	
 	/**
 	* get cards 
 	*/
@@ -157,10 +145,12 @@ class Cards extends RedBean_SimpleModel implements ModelBaseInterface {
 		else
 			$userAccountId				=	$userInfo->MangoPayUniqueId;
 		if($userAccountId != ''){
+			//echo"<br>see here====sdfsfsdf===========";
 			$result						=	getUserCards($userAccountId);
+			//echo'<pre>';print_r($result);echo'</pre>';
 			if($result){
 			  foreach($result as $key=>$val){
-			  	if($val->Active == 1){
+			  	if(isset($val->Active) && $val->Active == 1){
 					$cardArray['Id']   				= $val->Id;
 					$cardArray['CardNumbar'] 		= $val->Alias;
 					$cardArray['CardType']   		= $val->CardType;
@@ -178,9 +168,14 @@ class Cards extends RedBean_SimpleModel implements ModelBaseInterface {
 			  }	
 			  $cardList['result']					= $cardListArray;
 			}
+			/*else {
+				
+				throw new ApiException("No cards found", ErrorCodeType::NoResultFound);
+			}*/
 		}
 		return $cardList;
     }
+	
 	/**
 	* Topup wallet
 	*/
@@ -197,16 +192,21 @@ class Cards extends RedBean_SimpleModel implements ModelBaseInterface {
         // validate the creation
         $userInfo							=	$this->validateCreate();
 		
+		//validate amount
+		$this->validateAmount($bean->Amount);
+		
 		$UserDetails['userAccountId']		=	$userInfo->MangoPayUniqueId;
 		$UserDetails['userCurrency']		=	$bean->Currency;
 		$UserDetails['userWalletId']		=	$userInfo->WalletId;
 		$UserDetails['amount']				=	$bean->Amount;		
 		$UserDetails['cardId']				=	$bean->CardId;		
 		$result								=	topupWallet($UserDetails);
-		if(isset($result) && count($result) >0){
+		if(isset($result) && $result->Status != 'FAILED'){
 		  return $result;
+		} else if(isset($result)){
+			// error
+			throw new ApiException($result->ResultMessage, ErrorCodeType::NoResultFound);
 		}
-		//echo "<pre>"; echo print_r($result);
     }
 	 /**
     * Validate the card id
@@ -227,5 +227,55 @@ class Cards extends RedBean_SimpleModel implements ModelBaseInterface {
             $errors = $v->errors();
             throw new ApiException("Please check the card's properties. Fill CardId,Amount,Currency with correct values." ,  ErrorCodeType::SomeFieldsRequired, $errors);
         }
+    }
+	
+	 /**
+    * Validate the amount
+    */
+    public function validateAmount($amount)
+    {
+		if ($amount <= 0 || $amount >= 100) {           
+            throw new ApiException("Sorry you can't process this amount value. Try with less amount below $99" , ErrorCodeType::NoResultFound);
+        }
+    }
+	
+	/**
+    * Deleting user cards
+    */
+    public function cardDelete()
+    {
+		/**
+		* Get the bean
+		* @var $bean Cards
+		*/
+        $bean					= 	$this->bean;
+
+        // validate the creation
+        $userInfo				=	$this->validateCreate();
+		
+		//getting users cards
+		$userCards				=	$this->getCards();
+		if(count($userCards['result']) > 0) {
+			$cardArray			=	array();
+			foreach($userCards['result'] as $val) {
+				if(!empty($val['Id'])) {
+					$cardArray[]=	$val['Id'];
+				}
+			}
+			//Check weather this card is for this user
+			if(in_array($bean->CardId,$cardArray)) {
+				$cardId			=	$bean->CardId;
+				//deleting the card
+				$result			=	deleteCard($cardId);
+				if(isset($result) && count($result) > 0)
+					return $result;
+			} else {
+				// Invalid user card Id
+				throw new ApiException("Invalid card id. Unable to delete it.", ErrorCodeType::ErrorInCardDelete);
+			}
+		} else {
+			// No cards found
+			throw new ApiException("Sorry, you are not having card to delete", ErrorCodeType::NoResultFound);
+		}
     }
 }

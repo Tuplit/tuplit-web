@@ -713,10 +713,10 @@ $app->post('/checkfriends',tuplitApi::checkToken(), function () use ($app) {
          * Get a friends table instance
          */
 		$friends = R::dispense('friends');
-		if(isset($input->FacebookFriends))
-			$friends->FacebookFriends		= $input->FacebookFriends;
+		if(isset($input->GoogleFriends))
+			$friends->GoogleFriends			= $input->GoogleFriends;
 		else
-			$friends->FacebookFriends		= '';
+			$friends->GoogleFriends			= '';
 		if(isset($input->ContactFriends))
 			$friends->ContactFriends		= $input->ContactFriends;
 		else

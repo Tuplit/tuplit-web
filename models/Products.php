@@ -59,7 +59,12 @@ class Products extends RedBean_SimpleModel implements ModelBaseInterface {
 			}
 			//Image Path
 			if(isset($result[0]['Photo']) && $result[0]['Photo'] != ''){
-				$image_path = PRODUCT_IMAGE_PATH.$result[0]['Photo'];					
+				if(SERVER)
+					$image_path = PRODUCT_IMAGE_PATH.$result[0]['Photo'];
+				else if(file_exists(PRODUCT_IMAGE_PATH_REL.$result[0]['Photo']))
+					$image_path = PRODUCT_IMAGE_PATH.$result[0]['Photo'];
+				else
+					$image_path = ADMIN_IMAGE_PATH.'no_image.jpeg';
 			} else if(isset($result['Photo']) && $result[0]['Photo'] == '') {
 				$image_path = ADMIN_IMAGE_PATH.'no_image.jpeg';
 			}
@@ -92,11 +97,25 @@ class Products extends RedBean_SimpleModel implements ModelBaseInterface {
 	*/
 	public function getProductList($merchantId,$Search,$app=0)
     {
+		
 		global	$discountTierArray;
+		$type		=	'';
+		/**
+		* Get the bean
+		* @var $bean Product
+		*/
+        $bean 		= $this->bean;	
+		
+		if(isset($bean->Type) && !empty($bean->Type) && $bean->Type == 1) {
+			$type		=	$bean->Type;
+			$orderby	=	'p.ItemName asc';
+		} else {
+			$orderby	=	'pc.id asc, p.id desc';
+		}
 		/**
 		* Query to get products list
 		*/
-		if(!empty($Search))
+		if(!empty($Search)) 
 			$condition  = "AND (p.ItemName LIKE '%".$Search."%'OR pc.CategoryName LIKE '%".$Search."%')";
 		else
 			$condition  = '';
@@ -104,25 +123,24 @@ class Products extends RedBean_SimpleModel implements ModelBaseInterface {
 		$fields 		= 'p.id as ProductId,p.ItemName,pc.id as fkCategoryId,p.Photo,p.DiscountApplied,p.Price,p.OriginalPrice,p.ItemType,p.ItemDescription,pc.CategoryName,pc.fkMerchantId as CategoryMerchnatId,p.Status,p.Ordering';
 		$sql 			= 	"SELECT ".$fields." from productcategories  as pc 
 							left join products as p on (p.fkCategoryId = pc.id  and p.fkMerchantsId = ".$merchantId." and p.Photo!='' and p.Status in (1,2))
-							where pc.fkMerchantId IN(".$merchantId.") and  pc.Status=1 ".$condition." order by pc.id asc, p.id desc";
+							where pc.fkMerchantId IN(".$merchantId.") and  pc.Status=1 ".$condition." order by ".$orderby;
 		$result 		= R::getAll($sql);
-		
 		if(!empty($Search))
 			$condition  = "AND ( p.ItemName LIKE '%".$Search."%' )";
 		else
 			$condition  = '';
-			
-		$sql2 			= 	"SELECT p.id as ProductId,p.ItemName,p.fkCategoryId,p.Photo,p.DiscountApplied,p.Price,p.OriginalPrice,p.ItemType,p.Status,p.Ordering from products as p							
-							where p.fkMerchantsId = $merchantId and p.Photo!='' and p.Status in (1,2) and p.ItemType in (2,3) ".$condition." order by p.Ordering asc";
-		$result2 		= 	R::getAll($sql2);
-		foreach($result2 as $key=>$cat) {
-			$result2[$key]['CategoryName'] = '';
+		$result2		=	array();		
+		if($type == '') {
+			$sql2 			= 	"SELECT p.id as ProductId,p.ItemName,p.fkCategoryId,p.Photo,p.DiscountApplied,p.Price,p.OriginalPrice,p.ItemType,p.Status,p.Ordering from products as p							
+								where p.fkMerchantsId = $merchantId and p.Photo!='' and p.Status in (1,2) and p.ItemType in (2,3) ".$condition." order by p.Ordering asc";
+			$result2 		= 	R::getAll($sql2);
+			foreach($result2 as $key=>$cat) {
+				$result2[$key]['CategoryName'] = '';
+			}
 		}
-		
 		
 		if($result || $result2){
 			$result	=	array_merge($result,$result2);		
-			//echo'<pre>';print_r($result);echo'</pre>';	
 			//getting merchant discountTier
 			$sql1 		= "SELECT DiscountTier,DiscountType,DiscountProductId from merchants where id='".$merchantId."'";
 			$result1 	= R::getAll($sql1);
@@ -133,12 +151,11 @@ class Products extends RedBean_SimpleModel implements ModelBaseInterface {
 			}
 			else 
 				$discountTier = '1';
-			
 			foreach($result as $key=>$value){
 				//Image Path
 				$image_path = '';				
 				if(isset($value['Photo']) && $value['Photo'] != '')
-					$image_path = PRODUCT_IMAGE_PATH.$value['Photo'];					
+					$image_path = PRODUCT_IMAGE_PATH.$value['Photo'];
 				else if(isset($value['Photo']) && $value['Photo'] == '')
 					$image_path = MERCHANT_SITE_IMAGE_PATH.'no_image.jpeg';
 				$result[$key]['Photo']	=	$image_path;
@@ -202,15 +219,19 @@ class Products extends RedBean_SimpleModel implements ModelBaseInterface {
 				$result[$key]['DiscountPrice']	=	floatval($discountPrice);
 			}
 			
-			$productListArray = array();		
-			foreach($result as $key=>$value){
-				if($app == 0)
-					$keyIndex = $value['fkCategoryId'];
-				else
-					$keyIndex = $value['CategoryName'];
-				$productListArray[$keyIndex][] = $value;		
+			if($type == '') {
+				$productListArray = array();		
+				foreach($result as $key=>$value){
+					if($app == 0)
+						$keyIndex = $value['fkCategoryId'];
+					else
+						$keyIndex = $value['CategoryName'];
+					$productListArray[$keyIndex][] = $value;		
+				}
+				return $productListArray;
+			} else {
+				return $result;
 			}
-			return $productListArray;
 		}
 		else{
 			/**
@@ -229,14 +250,20 @@ class Products extends RedBean_SimpleModel implements ModelBaseInterface {
 		/**
 		* Query to get products list
 		*/
+		$staus_condition = '';
 		if(!empty($Search))
 			$condition  = 	"AND (p.ItemName LIKE '%".$Search."%'OR pc.CategoryName LIKE '%".$Search."%')";
 		else
 			$condition  = 	'';
+		if($app == 1){
+			$staus_condition	=	' p.Status = 1 ';
+		}
+		else
+			$staus_condition	=	' p.Status in (1,2)';
 		$fields 		= 	'p.id as ProductId,p.ItemName,p.fkCategoryId,pc.CategoryName,p.Photo,p.DiscountApplied,p.Price,p.ItemType,p.OriginalPrice,pc.CategoryName,pc.fkMerchantId as CategoryMerchnatId,p.Status,p.Ordering';
 		$sql 			= 	"SELECT ".$fields." from products as p
 							left join productcategories pc on (p.fkCategoryId = pc.id )
-							where p.fkMerchantsId = $merchantId and p.Photo!='' and p.Status in (1,2) and pc.Status=1 ".$condition." order by pc.id asc, p.Ordering asc";
+							where p.fkMerchantsId = $merchantId and p.Photo!='' and ".$staus_condition." and pc.Status=1 ".$condition." order by pc.id asc, p.Ordering asc";
 		$result 		= 	R::getAll($sql);
 		
 		if(!empty($Search))
@@ -245,31 +272,35 @@ class Products extends RedBean_SimpleModel implements ModelBaseInterface {
 			$condition  = 	'';
 		
 		$sql2 			= 	"SELECT p.id as ProductId,p.ItemName,p.fkCategoryId,p.Photo,p.DiscountApplied,p.Price,p.ItemType,p.OriginalPrice,p.Status,p.Ordering from products as p							
-							where p.fkMerchantsId = $merchantId and p.Photo!='' and p.Status in (1,2) and p.ItemType in (2,3) ".$condition." order by p.Ordering asc";
+							where p.fkMerchantsId = $merchantId and p.Photo!='' and ".$staus_condition." and p.ItemType in (3) ".$condition." order by p.Ordering asc";
 		$result2 		= 	R::getAll($sql2);
 		$tempSpecial	=	array();
 		foreach($result2 as $key=>$cat) {
-			if($cat['ItemType'] == 2) {
+			/*if($cat['ItemType'] == 2) {
 				$result2[$key]['CategoryName'] = 'Deals';
 				$result2[$key]['fkCategoryId'] = '0';				
-			}
+			}*/
 			if($cat['ItemType'] == 3) {
 				$tempSpecial[]	=	$cat;
 				unset($result2[$key]);
 			}
 		}
+
 		$tempSpecial = subval_sort($tempSpecial,'ProductId');
 		if($result){
 			$result							=	array_merge($result2,$result);
-		
+			
 			//getting merchant discountTier
 			$sql1 							= 	"SELECT DiscountTier,DiscountType,DiscountProductId from merchants where id='".$merchantId."'";
 			$result1 						= 	R::getAll($sql1);
-			if($result1) {
-				$discountTier 				= 	$discountTierArray[$result1[0]['DiscountTier']];
+			if($result1) {	
+				$discountTier				=	1;
+				if(!empty($result1[0]['DiscountTier']))
+					$discountTier 			= 	$discountTierArray[$result1[0]['DiscountTier']];
 				$DiscountType 				= 	$result1[0]['DiscountType'];
 				$DiscountProductId  		= 	$result1[0]['DiscountProductId'];
 			}
+
 			foreach($result as $key=>$value){
 				unset($result[$key]['OriginalPrice']);
 				
@@ -313,14 +344,16 @@ class Products extends RedBean_SimpleModel implements ModelBaseInterface {
 				}
 				$result[$key]['DiscountPrice']							=	floatval($discountPrice);
 			}
-			
+
 			$productCategoryList 	= 	$productDiscountArray			= 	$productSpecialArray	= 	array();
 			$spkey														=	0;	
 			
 			//SpecialProducts array
 			if(isset($tempSpecial) && !empty($tempSpecial) && count($tempSpecial) > 0) {
 				if(count($tempSpecial) >= 2) {
-					for($si = count($tempSpecial) - 1; $si >= count($tempSpecial) - 2; $si--) {
+					$spStart	=	count($tempSpecial) - 1;
+					$spEnd		=	count($tempSpecial) - 2;
+					for($si = $spStart; $si >= $spEnd; $si--) {
 						$productSpecialArray[$spkey]['ProductId']		=	$tempSpecial[$si]['ProductId'];
 						$productSpecialArray[$spkey]['ItemName']		=	ucfirst($tempSpecial[$si]['ItemName']);
 						if(!empty($tempSpecial[$si]['Photo']))
@@ -331,6 +364,7 @@ class Products extends RedBean_SimpleModel implements ModelBaseInterface {
 						$productSpecialArray[$spkey]['DiscountPrice']	=	$tempSpecial[$si]['Price'];
 						$productSpecialArray[$spkey]['DiscountTier']	=	'';	
 						$spkey											=	$spkey	+	1;
+						unset($tempSpecial[$si]);
 					}
 				}
 				else if(count($tempSpecial) == 1){
@@ -343,9 +377,9 @@ class Products extends RedBean_SimpleModel implements ModelBaseInterface {
 					$productSpecialArray[0]['Price']					=	$tempSpecial[0]['OriginalPrice'];
 					$productSpecialArray[0]['DiscountPrice']			=	$tempSpecial[0]['Price'];
 					$productSpecialArray[0]['DiscountTier']				=	'';	
+					unset($tempSpecial[0]);
 				}
 			}
-			
 			foreach($result as $key=>$value){
 				if($value['DiscountPrice'] != 0) {
 					unset($value['fkCategoryId']);
@@ -379,10 +413,29 @@ class Products extends RedBean_SimpleModel implements ModelBaseInterface {
 						$temp['Items'][$key1]['DiscountPrice']			= 	$value1['DiscountPrice'];
 						$temp['Items'][$key1]['Ordering']				= 	$value1['Ordering'];
 					}					
-				}
+				}	
 				$productCategoryList[$key]								= 	$temp;
 			}
 			
+			if(!empty($tempSpecial) && count($tempSpecial) > 0) {
+				$temp 												=	array();
+				$temp['CategoryId'] 								= 	'0';
+				$temp['CategoryName'] 								= 	'Specials';
+				foreach($tempSpecial as $key1=>$value1) {						
+					$temp['Items'][$key1]['ProductId']				= 	$value1['ProductId'];
+					$temp['Items'][$key1]['ItemName']				= 	ucfirst($value1['ItemName']);
+					if(!empty($value1['Photo']))
+						$temp['Items'][$key1]['Photo']				=	PRODUCT_IMAGE_PATH.$value1['Photo'];
+					else
+						$temp['Items'][$key1]['Photo']				=	MERCHANT_SITE_IMAGE_PATH.'no_image.jpeg';
+					$temp['Items'][$key1]['DiscountApplied']		= 	$value1['DiscountApplied'];
+					$temp['Items'][$key1]['Price']					= 	$value1['OriginalPrice'];
+					$temp['Items'][$key1]['Status']					= 	$value1['Status'];
+					$temp['Items'][$key1]['DiscountPrice']			= 	$value1['Price'];
+					$temp['Items'][$key1]['Ordering']				= 	$value1['Ordering'];
+				}	
+				$productCategoryList[]								= 	$temp;
+			}
 			$outputProductListArray['SpecialProducts'] 					= 	$productSpecialArray;
 			$outputProductListArray['DiscountProducts'] 				= 	$productDiscountArray;
 			$outputProductListArray['MenuProducts'] 					= 	$productCategoryList;
@@ -527,17 +580,19 @@ class Products extends RedBean_SimpleModel implements ModelBaseInterface {
 		
 		// validate the model	
 			$this->validate($type);
+		
 		if(empty($type)) {	
 			unset($bean->CatId);
+			
 			//validate product exists or not
 			$this->validateCreate();
-			if($bean->CategoryId){
-				$bean->fkCategoryId = $bean->CategoryId;
-				unset($bean->CategoryId);
-			}        
+			
+			$bean->fkCategoryId = $bean->CategoryId;
+			unset($bean->CategoryId);
+			  
 			unset($bean->ImageAlreadyExists);
 			$bean->DateModified = $DateModified;
-		
+			
 			// modify the bean to the database
 			R::store($this);
 		} else {
@@ -629,7 +684,23 @@ class Products extends RedBean_SimpleModel implements ModelBaseInterface {
 	*/
 	public function getProductsDiscounttype($merchantId)
     {
-		$sql 			= 	"select count(id) as productCount,DiscountApplied from products where Status = 1 and fkMerchantsId  = ".$merchantId." group by DiscountApplied";
+		$sql 			= 	"select count(id) as productCount,DiscountApplied from products where Status = 1 and fkMerchantsId  = ".$merchantId." and ItemType = 1 group by DiscountApplied";
+		$countResult 	=	R::getAll($sql);
+		return $countResult;
+	}
+	
+	/**
+	* get merchant total products
+	*/
+	public function getProductsTotal()
+    {
+		/**
+		* Get the bean
+		* @var $bean Products
+		*/
+        $bean = $this->bean;
+		
+		$sql 			= 	"select fkCategoryId as CategoryId,DiscountApplied,ItemType from products where Status = 1 and fkMerchantsId  = ".$bean->merchantId;
 		$countResult 	=	R::getAll($sql);
 		return $countResult;
 	}

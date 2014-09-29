@@ -65,7 +65,7 @@ if($tot_rec!=0 && !is_array($contentList)) {
 			<div class="col-xs-12 col-sm-10">
 				<div class="dataTables_paginate paging_bootstrap row">
 				<?php if(is_array($contentList) && count($contentList) > 0 ) {
-						pagingControlLatest($tot_rec,'contentList'); ?>
+						pagingControlLatest($tot_rec,'ContentList'); ?>
 				<?php }?>
 				</div>
 			</div>

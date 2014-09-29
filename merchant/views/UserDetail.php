@@ -55,30 +55,23 @@ commonHead();
 	
 	<!-- <section class="content"> -->
 		<div class="row">	
-			
-			<div class="">
-				<div class="">
-					<div class="col-xs-12 no-padding">
+					<div class="col-xs-12 no-padding user_details">
 						<?php if(isset($image_path) && $image_path != ''){ ?>
-						<div class="col-xs-4 col-sm-4 col-md-5">
+						<div class="col-xs-3 col-sm-4 col-md-5">
 							<a <?php if(isset($image_path) && basename($image_path) != "no_user.jpeg") { ?>href="<?php echo $original_image_path; ?>" class="fancybox" title="<?php echo  ucfirst($FirstName).' '.ucfirst($LastName);?>" <?php } ?> > 
-								<img width="100" align="top" class="img_border" src="<?php echo $image_path;?>" >
+								<img width="80" height="80" align="top" class="img_border" src="<?php echo $image_path;?>" >
 							</a>
 						</div>
 					<?php } ?>
-						<div class="col-xs-8 col-sm-8 col-md-5"> 								
-							<?php if(isset($FirstName) && $FirstName != ''){ echo ucfirst($FirstName).' '; } ?>								
+						<div class="col-xs-8 col-sm-8 col-md-5" style="line-height:20px"> 								
+							<i class="fa fa-fw fa-user"></i> <?php if(isset($FirstName) && $FirstName != ''){ echo ucfirst($FirstName).' '; } ?>								
 						
 							<?php if(isset($LastName) && $LastName != ''){ echo ucfirst($LastName); } ?><br>
 							<i class="fa fa-fw fa-envelope"></i> <?php if(isset($Email) && $Email != '' ){ echo $Email;} ?><br>
 							<?php if(isset($CellNumber) && $CellNumber != ''){?><i class="fa fa-fw fa-phone"></i>  <?php echo $CellNumber; echo '</br>'; } ?>
-							<?php if(isset($Country) && $Country != '' ) {?><i class="fa fa-fw fa-map-marker"></i><?php echo ucfirst($Country); echo '</br>'; }?>
+							<?php if(isset($Country) && $Country != '' ) {?><i class="fa fa-fw fa-map-marker"></i><?php echo ucfirst($Country); echo ','; }?>
 							<?php if(isset($ZipCode) && $ZipCode != '' ) echo $ZipCode;  ?>
 						</div>
-						
-					
-				</div>		
-			</div>
 			</div>		
 		</div><!-- /.row -->
 	<!-- </section> --><!-- /.content -->				  	

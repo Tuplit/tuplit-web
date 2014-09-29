@@ -399,13 +399,13 @@ function pagingControlLatestAjax($total,$functionName='')
 		if($total > $per_page_array[0]){ ?>
 		<div class="col-xs-12  col-sm-3 mb_clr pad no-padding">
 			<span class="pull-right">
-			<select name="per_page" id="per_page" onchange="setPerPageAjax(this.value);" style="width:60px;">
+			<select class="form-control" name="per_page" id="per_page" onchange="setPerPageAjax(this.value);">
 			<?php foreach($per_page_array as $value){?>
 				<option value="<?php echo($value);?>" <? if($per_page == $value) echo " selected='selected'"?>><?php echo($value);?></option>
 			<?php }?>
 			</select>
 			</span>
-			<div class="pull-right">Per page &nbsp;</div>
+			<div class="pull-right LH30">Per page &nbsp;</div>
 	 </div>
 
 		<?php }?>
@@ -1574,7 +1574,8 @@ function getStringForMonth($dataArray) {
 		$value_arr[$value["month"]] = $value["TotalPrice"];
 	}
 	$month_arr = array_unique($month_arr);
-	for($i=1;$i<=12;$i++) {
+	$month_val	=	date('n');
+	for($i=1;$i<=$month_val;$i++) {
 		if(in_array($i,$month_arr)) {
 			$category_arr[$i] = $value_arr[$i];
 		} else {
@@ -1755,7 +1756,32 @@ function getStringForDayProduct($dataArray,$start_date='',$end_date='',$type='')
 		
 		
 }
-
+function csvDownload($contentArray,$filename) {
+	/*$headerArray = $header_name = array();
+	$headerArray	=	array_keys($contentArray[0]);
+	if(isset($headerArray) && count($headerArray) > 0 ){
+		foreach($headerArray as $key=>$val){
+			$header_name[]	=	'<b>'.$val.'</b>';
+		}
+	}*/
+	header('Content-Description: File Transfer');
+	header('Content-Type: text/csv; charset=utf-8');
+	header('Content-Disposition: attachment;filename=' . $filename);
+	//ob_clean();
+	$fp = fopen('php://output', 'w');
+    fputcsv($fp, array_keys($contentArray[0]));	
+    foreach ($contentArray as $fields) {
+       $fields = (array)$fields;
+       fputcsv($fp, $fields);
+    }
+    fclose($fp);
+    die();
+}
+function getCents($dollars)
+{
+     $cents = $dollars * 100;
+     return $cents;
+}
 /*
 function getCurrencyFromCountry($country_name)
 {
@@ -1778,4 +1804,19 @@ function getCurrencyFromCountry($country_name)
 	
 }
 */
+function detectLayout()
+{
+	require_once(ABS_PATH.'/includes/MobileDetect.php');
+    $detect = new Mobile_Detect();
+		if($detect->isTablet())
+			$layout = 'tablet';
+		else if($detect->isMobile())
+			$layout = 'mobile';
+		else
+			$layout = 'desktop';
+	return $layout;
+}
+function convertCentstoDollar($amt){
+	
+}
 ?>

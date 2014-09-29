@@ -120,7 +120,7 @@ commonHead();
 											<?php if(isset($_GET['Type']) && $_GET['Type'] == 1) { ?>
 											<p>You can login your App and proceed further.</p>     
 											<?php } else { ?>
-												<div class="" align="center"><a href="<?php echo SITE_PATH; ?>/merchant/login"><i class="fa fa-reply"></i>&nbsp;&nbsp;back to login</a></div>  
+												<div class="" align="center"><a href="<?php echo SITE_PATH; ?>/merchant/Login"><i class="fa fa-reply"></i>&nbsp;&nbsp;back to login</a></div>  
 											<?php }?>             
 										</div>
 									</div>

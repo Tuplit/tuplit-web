@@ -118,7 +118,7 @@ global $BusinessType;
 $BusinessType = array('1'=>'Restaurant','2'=>'Foods','3'=>'Drinks');
 
 global $HowyouHeared;
-$HowyouHeared = array('1'=>'Friends','2'=>'Websites','3'=>'News','4'=>'Advertisement');
+$HowyouHeared = array('1'=>'Press','2'=>'Social Media','3'=>'Advertising','4'=>'Search engine','5'=>'Friend','6'=>'Other');
 
 global $userLoadMore;
 $userLoadMore	= 12;

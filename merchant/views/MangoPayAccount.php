@@ -50,7 +50,7 @@ commonHead();
 ?>
 <body class="skin-blue fixed" onload="fieldfocus('user_name');">
 		<section class="content-header col-xs-12 no-padding">
-			<h1 class=" no-margin"><?php if($show == 1)  echo '&nbsp;&nbsp;';  else  echo "Mango Pay"; ?></h1>
+			<h1 class=" no-margin"><?php if($show == 1)  echo '&nbsp;&nbsp;';  else  echo "Mangopay"; ?></h1>
 		</section>
 		
 		<div class="col-xs-12 no-padding" id="mangopay-box">

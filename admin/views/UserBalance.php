@@ -29,7 +29,7 @@ commonHead();
 				<div class="form-group col-xs-12 row">
 					<label class="col-xs-6 col-sm-4" >Balance</label>
 					<div  class="col-xs-6 col-sm-8">
-					<?php if(isset($balance) && $balance != '') echo number_format((float)$balance, 2, '.', ','); else echo 0; ?>	</div>
+					<?php if(isset($balance) && $balance != '') echo price_fomat($balance/100); else echo price_fomat(0); ?>	</div>
 				</div>	
 				<div class="form-group col-xs-12 row">
 					<label class="col-xs-6 col-sm-4" >Currency</label>

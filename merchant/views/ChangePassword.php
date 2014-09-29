@@ -43,16 +43,14 @@ commonHead();
 			<h1>Change Password</h1>
 		</section>
 		
-		<div class="form-box" id="login-box">
 			<form action="" name="change_password_form" id="change_password_form"  method="post">
+		<div class="form-box" id="login-box">
 				<div class="body">
 					<?php if(isset($responseMessage) && $responseMessage != '') { ?>
-						<div class="<?php echo $msg_class; ?>" style="margin-top:7px"><i class="fa <?php echo $class_icon; ?>"></i>&nbsp;&nbsp;
-							<?php echo $responseMessage;?>
-						</div>
+						<div class="<?php echo $msg_class; ?> clear" style="margin-top:7px"><i class="fa <?php echo $class_icon; ?>"></i>&nbsp;&nbsp;<?php echo $responseMessage;?></div>
 					<?php  } ?>
 
-					<div class="col-xs-12 no-padding">
+					<div class="col-xs-12 no-padding clear">
 					
 					<div class="form-group col-xs-12 no-padding no-margin"  style="height:65px" >
 						<input type="password" name="OldPassword" id="OldPassword" class="form-control" required placeholder="Old Password" value=""/>
@@ -70,7 +68,7 @@ commonHead();
 					<input type="submit" name="password_change_submit" id="password_change_submit" title="CHANGE PASSWORD" value="CHANGE PASSWORD" class="btn btn-success btn-lg btn-block ">
 				</div>
 				
-			</form>
 		</div>
+			</form>
 	<?php commonFooter(); ?>
 </html>

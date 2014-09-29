@@ -36,7 +36,7 @@ if (!empty($_FILES[$fileElementName]['error'])) {
             break;
         case '999':
         default:
-            $error = 'No error code avaiable';
+            $error = 'No error code available';
     }
 }
 elseif (empty($_FILES[$fileElementName]['tmp_name']) || $_FILES[$fileElementName]['tmp_name'] == 'none') {
@@ -44,7 +44,7 @@ elseif (empty($_FILES[$fileElementName]['tmp_name']) || $_FILES[$fileElementName
 }
 else {
 	if ($_FILES[$fileElementName]['tmp_name'] != '') {
-		$res = getImageSize($_FILES[$fileElementName]['tmp_name']);
+		//$res = getImageSize($_FILES[$fileElementName]['tmp_name']);
 		/*if( $fileElementName == 'com_photo' && ( $res[0] < '640' || $res[1] < '240' ) ){
 			$error = 'Image dimension should be greater than 640x240';
 		}*/
@@ -60,7 +60,7 @@ else {
 		}*/
 		if (!in_array($_FILES[$fileElementName]['type'], $file_types_array)) {
             $error = 'Please upload JPEG, JPG and PNG images only.';
-        }else if($fileElementName == 'product_photo'){
+        }else if($fileElementName == 'product_photo' || $fileElementName == 'myStore'){
 			if ($_FILES[$fileElementName]['size'] > 1048576) {
 				$error = 'Image size should not be less than 1 MB';
 			}
@@ -76,13 +76,16 @@ else {
         $error = 'Upload any of jpg, png or gif image.';
     if ($error == '') {
         $imageType = explode("/", $_FILES[$fileElementName]['type']);
-        $image_name =	$_SESSION['merchantInfo']['MerchantId']."_".$fileElementName;
+		if(isset($_GET['imagetot']) && !empty($_GET['imagetot']))
+			$image_name =	$_SESSION['merchantInfo']['MerchantId']."_".$_GET['imagetot']."_".$fileElementName;
+		else
+			$image_name =	$_SESSION['merchantInfo']['MerchantId']."_".$fileElementName;
         if (file_exists($imagePath . $image_name . ".".$imageType[1] )) //. $imageType[1]
 		{
 			@unlink($imagePath . $image_name . ".".$imageType[1] );
 		}
-       // copy($_FILES[$fileElementName]['tmp_name'], $imagePath . $image_name . ".".$imageType[1]);
-	   move_uploaded_file($_FILES[$fileElementName]['tmp_name'], $imagePath . $image_name . ".".$imageType[1] );
+		// copy($_FILES[$fileElementName]['tmp_name'], $imagePath . $image_name . ".".$imageType[1]);
+		move_uploaded_file($_FILES[$fileElementName]['tmp_name'], $imagePath . $image_name . ".".$imageType[1] );
         $msg .= $image_name . '####'.$imageType[1] ;
     }
     //for security reason, we force to remove all uploaded file

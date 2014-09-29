@@ -1,5 +1,6 @@
 <?php
-function commonHead() { ?>
+mysql_set_charset('utf8');//
+function commonHead() { $page = getCurrPage(); ?>
 <!DOCTYPE html>
 <html>
 <head>
@@ -18,9 +19,13 @@ function commonHead() { ?>
 	<link rel="STYLESHEET" type="text/css" href="<?php echo ADMIN_STYLE_PATH; ?>jquery.fancybox.css"> 
 	
 	<link rel="STYLESHEET" type="text/css" href="<?php echo ADMIN_STYLE_PATH; ?>jquery-ui.css"> 
-	<link rel="STYLESHEET" type="text/css" href="<?php echo ADMIN_STYLE_PATH; ?>jquery.ui.theme.css">
+	<link href="<?php echo ADMIN_STYLE_PATH; ?>theme/morris/morris.css" rel="stylesheet" type="text/css" />
 	
+	<?php if($page	==	'MerchantManage') { ?>	
+		<link rel="STYLESHEET" type="text/css" href="<?php echo ADMIN_STYLE_PATH; ?>TimeSelect.css">
+	<?php } ?>	
 	<script type="text/javascript">
+	
 		if (Function('/*@cc_on return document.documentMode===10@*/')()){
 			 document.documentElement.className+='ie10';
 		}
@@ -35,31 +40,48 @@ function commonHead() { ?>
                 'General Settings' 	=> array('GeneralSettings'),
                 'Change Password' 	=> array('ChangePassword'),
 				'CMS' 				=> array('StaticPages'),
-				'Slider Images' 	=> array('SliderImages')
+				'Slider Images' 	=> array('SliderImages'),
+				'Location List' 	=> array('LocationList?cs=1'),
+				'Currency List' 	=> array('CurrencyList?cs=1')
             ),
-			'Customer Management' 		=> array(
-				'Add Customer'	 		=> array('UserManage'),
-                'Customer List' 		=> array('UserList?cs=1'),
+			'Customer Management' 	=> array(
+				'Add Customer'	 	=> array('UserManage'),
+                'Customer List' 	=> array('UserList?cs=1'),
 			),
 			'Merchant Management' 	=> array(
+				'Add Merchant'	 	=> array('MerchantManage'),
 				'Merchant List'	 	=> array('MerchantList?cs=1'),
+				'Product List'	 	=> array('ProductList?cs=1'),
+                'Product Category List' => array('ProductCategoryList?cs=1'),
 			),
 			'Category Management' 	=> array(
 				'Add Category'	 	=> array('CategoryManage'),
                 'Category List' 	=> array('CategoryList?cs=1'),
 			),
-			'Product Management' 	=> array(
+			'Content Management' 	=> array(
+				'Add Content'	 	=> array('ContentManage'),
+                'Content List' 		=> array('ContentList?cs=1'),
+			),	
+			/*'Product Management' 	=> array(
 				'Product List'	 	=> array('ProductList?cs=1'),
                 'Product Category List' => array('ProductCategoryList?cs=1'),
-			),
+			),*/
 			'Order Management' 		=> array(
 				'Order List'	 	=> array('OrderList?cs=1'),
 			),
 			'Reports' => array(
-				'Log Tracking'	 	=> array('LogTracking?cs=1'),
+				'Log Tracking'	 		=> array('LogTracking?cs=1'),
+				'Statistics'			=> array('Statistics?cs=1'),
 				'Customer Analytics'	=> array('CustomerAnalytics?cs=1'),
-				'Transfer'			=> array('Transfer?cs=1'),
-				/*'Statistics'		=> array('Statistics?cs=1'),*/
+				'Products/Category Analytics'	=> array('ProductAnalytics?cs=1'),
+				'Transaction Analytics'	=> array('TransactionAnalytics?cs=1'),
+				'Transfer'				=> array('Transfer?cs=1'),
+				'Transactions'			=> array('TransactionList?cs=1'),
+				
+			),
+			'Webservice Management' 			=> array(
+				'Service List'	 	=> array('ServiceList?cs=1'),
+				'Add Service'	 	=> array('ServiceManage'),
 			),
         );
 	}
@@ -69,13 +91,16 @@ function commonHead() { ?>
                 'General Settings' 	=> array('GeneralSettings'),
                 'Change Password' 	=> array('ChangePassword'),
 				'CMS' 				=> array('StaticPages'),
-				'Slider Images' 	=> array('SliderImages')
+				'Slider Images' 	=> array('SliderImages'),
+				'Location List' 	=> array('LocationList?cs=1'),
+				'Currency List' 	=> array('CurrencyList?cs=1')
             ),
-			'Customer Management' 		=> array(
-				'Add Customer'	 		=> array('UserManage'),
-                'Customer List' 		=> array('UserList?cs=1'),
+			'Customer Management' 	=> array(
+				'Add Customer'	 	=> array('UserManage'),
+                'Customer List' 	=> array('UserList?cs=1'),
 			),
 			'Merchant Management' 	=> array(
+				'Add Merchant'	 	=> array('MerchantManage'),
 				'Merchant List'	 	=> array('MerchantList?cs=1'),
 				'Product List'	 	=> array('ProductList?cs=1'),
                 'Product Category List' => array('ProductCategoryList?cs=1'),
@@ -92,20 +117,29 @@ function commonHead() { ?>
 				'Order List'	 	=> array('OrderList?cs=1'),
 			),
 			'Reports' => array(
-				'Log Tracking'	 	=> array('LogTracking?cs=1'),
-				'Statistics'		=> array('Statistics?cs=1'),
-				'Customer Analytics'			=> array('CustomerAnalytics?cs=1'),
-				'Transfer'			=> array('Transfer?cs=1'),
+				'Log Tracking'	 		=> array('LogTracking?cs=1'),
+				'Statistics'			=> array('Statistics?cs=1'),
+				'Customer Analytics'	=> array('CustomerAnalytics?cs=1'),
+				'Products/Category Analytics'	=> array('ProductAnalytics?cs=1'),
+				'Transaction Analytics'	=> array('TransactionAnalytics?cs=1'),
+				'Transfer'				=> array('Transfer?cs=1'),
+				'Transactions'			=> array('TransactionList?cs=1'),
+				
+			),
+			'Webservice Management' 			=> array(
+				'Service List'	 	=> array('ServiceList?cs=1'),
+				'Add Service'	 	=> array('ServiceManage'),
 			),
         );
 	}
-    $main_link_array['Settings'] 				= 	array('GeneralSettings', 'ChangePassword','StaticPages','SliderImages');
+    $main_link_array['Settings'] 				= 	array('GeneralSettings', 'ChangePassword','StaticPages','SliderImages','LocationManage','LocationList','CurrencyManage','CurrencyList');
 	$main_link_array['Customer Management'] 	=	array('UserManage','UserDetail','UserList','Messages','Activity','MyActivity');
 	$main_link_array['Merchant Management'] 	=	array('MerchantList','MerchantDetail','MerchantManage','ProductList','ProductDetail','ProductCategoryManage','ProductCategoryDetail','ProductCategoryList','ProductManage');
 	$main_link_array['Order Management'] 		=	array('OrderList','OrderDetail','OrderManage');
 	$main_link_array['Category Management'] 	=	array('CategoryManage','CategoryDetail','CategoryList');
 	$main_link_array['Content Management'] 		=	array('ContentManage','ContentList');
-	$main_link_array['Reports'] 				=	array('LogTracking','Statistics','CustomerAnalytics','Transfer');
+	$main_link_array['Webservice Management'] 	=	array('ServiceList','ServiceDetail','ServiceManage');
+	$main_link_array['Reports'] 				=	array('LogTracking','Statistics','CustomerAnalytics','Transfer','TransactionAnalytics','ProductAnalytics','TransactionList');
 	
 	$page = getCurrPage();
 	if(isset($_GET['st']) && $_GET['st']!='') {
@@ -183,7 +217,9 @@ if(!strstr($_SERVER['PHP_SELF'],'ResetPassword.php')){
 	require_once('controllers/MerchantController.php');
 	$MerchantObj   =   new MerchantController();
 	$result = $MerchantObj->getMerchantNotApproved();
-	$merchantApproveTotal = $result[0]->total;?>
+	$merchantApproveTotal = $result[0]->total; 
+	$page = getCurrPage(); 
+?>
  <input type="Hidden" id="mer_app_tot" value="<?php echo $merchantApproveTotal; ?>">
 <?php } ?>
 			 
@@ -198,12 +234,17 @@ if(!strstr($_SERVER['PHP_SELF'],'ResetPassword.php')){
 	<script src="<?php echo ADMIN_SCRIPT_PATH; ?>AjaxDirector.js" type="text/javascript"></script>
 	<script src="<?php echo ADMIN_SCRIPT_PATH; ?>AjaxFileUpload.js" type="text/javascript"></script>
 	<script src="<?php echo ADMIN_SCRIPT_PATH; ?>fancybox/jquery.fancybox.js" type="text/javascript"></script>
-	<script src="<?php echo ADMIN_SCRIPT_PATH; ?>jquery-ui.js" type="text/javascript"></script>	
+	<script src="<?php echo ADMIN_SCRIPT_PATH; ?>jquery-ui.js" type="text/javascript"></script>
 		
-	<?php $page = getCurrPage(); if($page	==	'ContentManage') { ?>	
+	<?php if($page	==	'MerchantManage') { ?>	
+	<script src="<?php echo ADMIN_SCRIPT_PATH; ?>TimeSelect.js" type="text/javascript"></script>
+	<?php }  if($page	==	'ContentManage') { ?>	
 	<script src="<?php echo ADMIN_SCRIPT_PATH; ?>tinymce/tinymce.min.js" type="text/javascript"></script>
 	<?php } ?>
 	
+<!-- Morris.js charts -->
+ 	
+    <script src="<?php echo ADMIN_SCRIPT_PATH; ?>theme/plugins/morris/morris.min.js" type="text/javascript"></script>
 	<script type="text/javascript">
 	var tot = $('#mer_app_tot').val();
 	//alert(tot)

@@ -199,7 +199,7 @@ if(isset($_GET['delete']) && !empty($_GET['delete'])) {
 						if(isset($updatepro) && $updatepro	==	1)
 							$errorMessage	=	"Please update an item with discount";
 						else
-							$errorMessage	=	"Now you can add only discounted item or edit an item with discount";
+							$errorMessage	=	"This product must have discount or add discount to existing product";
 					}
 				}					
 			}
@@ -266,7 +266,7 @@ commonHead();
 		<?php 
 				if(isset($_GET['show']) && $_GET['show'] !=0) 	top_header(); 
 				if(isset($msg) && $msg != '') {
-		?><br><br>
+		?>
 		<div align="center" class="alert <?php  echo $class;  ?> alert-dismissable col-xs-10">
 			<i class="fa <?php  echo $class_icon;  ?>"></i>  <?php echo $msg; ?>
 		</div>
@@ -282,7 +282,7 @@ commonHead();
 							<?php } ?>
 						</label>
 						</div>
-						<div class="col-xs-8 col-sm-12">
+						<div class="col-xs-8 col-sm-12 no-padding ">
 							<input type="file"  name="product_photo" id="product_photo" onchange="return ajaxAdminFileUploadProcess('product_photo');"  /> 
 							<p class="help-block">Pls upload JPG or PNG files. The best resolution is 300X300 pixels.</p>						
 							<span class="error" for="empty_product_photo" generated="true" style="display: none">Product Image is required</span>										
@@ -446,7 +446,7 @@ commonHead();
 					<div class="form-group col-xs-12" <?php if($adddeals == 1) echo 'style="display:none;"'; ?>>
 						<div class="col-xs-8 no-padding">
 							<label class="col-xs-6 col-sm-3 no-padding">Discounted Item</label>
-							<p class="help-block col-xs-6">You are in <?php if(isset($merchantInfo['DiscountTier'])) echo "<span id='discounttier'>".$merchantInfo['DiscountTier']."</span>"; ?> Tier</p>
+							<p class="help-block col-xs-0">You are in <?php if(isset($merchantInfo['DiscountTier'])) echo "<span id='discounttier'>".$merchantInfo['DiscountTier']."</span>"; ?> Tier</p>
 							
 						</div>						
 						<div class="col-xs-4 col-sm-12 no-padding text-right"> 
@@ -459,7 +459,7 @@ commonHead();
 					<div class="form-group col-xs-12" <?php if($adddeals == 1) echo 'style="display:none;"'; ?>>
 					<div class="col-xs-8 no-padding">	
 						<label class="col-xs-6 col-sm-3 no-padding">Discounted Price</label>
-						<p class="help-block col-xs-6">Calculated automatically</p>
+						<p class="help-block col-xs-0">Calculated automatically</p>
 					</div> 
 						<div class="col-xs-3 col-sm-12 no-padding text-right">
 							<span class="no-padding" id="discount_price">
@@ -473,7 +473,7 @@ commonHead();
 						</div>
 					</div>
 					<input type="Hidden"  class="form-control text-right" name="productType" id="productType" value="<?php if($adddeals == 1 && $addspecial == 0) echo '2'; else if($adddeals == 1 && $addspecial == 1) echo '3'; else echo "1"; ?>" readonly>
-					<div class="footer col-xs-12 text-center clear"> 
+					<div class="footer col-xs-12 text-center clear" style="padding-bottom:10px;"> 
 						<a href="#" class="link" onclick="parent.jQuery.fancybox.close();">Cancel</a>&nbsp;&nbsp;&nbsp;
 						<?php if(isset($_GET['edit']) && !empty($_GET['edit'])) { ?>
 							<input type="Hidden" name="editId" id="editId" value="<?php echo $_GET['edit']; ?>" />

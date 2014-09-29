@@ -29,14 +29,14 @@ commonHead();
 ?>
 <body class="skin-blue fixed">
 		<?php top_header(); ?>
-		<section class="content no-padding">
-			<div class="col-lg-10 box-center">	
+		<section class="content ">
+			<div class="col-lg-10 no-padding box-center">	
 				<?php  AnalyticsTab(); ?>
 			</div>
 		</section>
 		
-		<section class="row content no-padding no-margin">
-		<div class="col-lg-10 box-center">	
+		<section class="row content no-top-padding no-margin">
+		<div class="col-lg-10 no-padding box-center">	
 			<section class="content-header">
                 <h1 class="no-top-margin">Transaction Analytics</h1>
             </section>

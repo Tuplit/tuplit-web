@@ -11,22 +11,26 @@ $sns = Aws\Sns\SnsClient::factory(array(
 	'region' => REGION
 ));
 $badge = $badge + 1;
+$pushdata = array();
 
   if($EndpointArn  !=''){
 	  try
 	  {
 	   if($platform == 2){
+			$pushdata	=	array('message' => $message,
+								'badge'=>(integer)$badge ,										
+								'processId' => $processId,
+								'type' => $type,
+								'userId' => $userId );
+			if($sound == 1)
+				$pushdata['sound'] = $sound;
+		
 			$data = array(
 			    'TargetArn' => $EndpointArn,
 			    'MessageStructure' => 'json',
 			    'Message' => json_encode(array(
 			        'GCM' => json_encode(array(
-			            'data' => array('message' => $message,
-										'badge'=>(integer)$badge ,
-										'sound' => 'default',
-										'processId' => $processId,
-										'type' => $type,
-										'userId' => $userId ),
+			            'data' => $pushdata,
 			        ))
 			    ))
 			 );
@@ -37,29 +41,31 @@ $badge = $badge + 1;
 				$apns = 'APNS_SANDBOX';
 		    else
 		  		$apns = 'APNS';
+				
+			$pushdata	=	array('alert' => $message,
+								'badge'=>(integer)$badge ,										
+								'processId' => $processId,
+								'type' => $type,
+								'userId' => $userId );
+			if($sound == 1)
+				$pushdata['sound'] = $sound;
 			
 			$data = array(
 				    'TargetArn' => $EndpointArn,
 				    'MessageStructure' => 'json',
 				    'Message' => json_encode(array(
 						$apns => json_encode(array(
-				            'aps' => array('alert' => $message,
-											'badge'=> (integer)$badge ,
-											'sound' => 'default',
-											'processId' => $processId,
-											'type' => $type,
-											'userId' => $userId),
+				            'aps' => $pushdata,
 				        ))
 				    ))
 				 );
 			$sns->publish($data);
-			
 		}
 	  return 1;
 	  }
 	  catch (Exception $e)
 	  {
-	  //  echo'<pre>';print_r($data);echo'</pre>';
+	 //  echo'<pre>';print_r($data);echo'</pre>';
 		//echo"<br>";
 		//print($EndpointArn . " - Failed: " . $e->getMessage() . "!\n");
 		return 0;

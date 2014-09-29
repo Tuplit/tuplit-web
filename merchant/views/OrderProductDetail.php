@@ -12,7 +12,7 @@ if(isset($_SESSION['merchantInfo']['AccessToken'])){
 		if(!empty($_GET['transId'])) {
 			$transId			=	$_GET['transId'];
 			$url				=	WEB_SERVICE.'v1/orders/'.$transId.'?Type=1';
-		}		
+		}
 		//echo $url;
 		$curlCategoryResponse 	= 	curlRequest($url, 'GET', null, $_SESSION['merchantInfo']['AccessToken']);
 		if(isset($curlCategoryResponse) && is_array($curlCategoryResponse) && $curlCategoryResponse['meta']['code'] == 201 && is_array($curlCategoryResponse['OrderDetails']) ) {
@@ -21,10 +21,6 @@ if(isset($_SESSION['merchantInfo']['AccessToken'])){
 		} 
 	}
 }
-/*if(isset($OrderList) && !empty($OrderList)) {
-	echo "<pre>"; echo print_r($OrderList); echo "</pre>";
-}*/
-
 if(isset($_GET['cs']) && $_GET['cs'] == 1) {
 	unset($_SESSION['refund_errorMessage']);
 	unset($_SESSION['refund_successMessage']);
@@ -39,7 +35,9 @@ if(isset($_GET['OrderID']) && !empty($_GET['OrderID'])) {
 	$method				=	'GET';
 	$curlResponse		=	curlRequest($url,$method,'',$_SESSION['merchantInfo']['AccessToken']);
 	if(isset($curlResponse) && is_array($curlResponse) && $curlResponse['meta']['code'] == 201 && $curlResponse['meta']['dataPropertyName'] == 'OrderRefund' ) {
-		$_SESSION['refund_successMessage'] = $curlResponse['notifications'][0];		
+		//$_SESSION['refund_successMessage'] = $curlResponse['notifications'][0];		
+		$_SESSION['refund_successMessage'] = 'Refund has been done successfully';
+		$OrderList['RefundStatus']	=	'2';
 	} else if(isset($curlResponse['meta']['errorMessage']) && $curlResponse['meta']['errorMessage'] != '') {
 		$_SESSION['refund_errorMessage']	=	$curlResponse['meta']['errorMessage'];
 	} else {
@@ -79,7 +77,7 @@ commonHead();
 		<!-- Start New Orders List -->						
 			<?php if(isset($OrderList) && !empty($OrderList)) {	?>
 						<div class="col-xs-6 col-sm-1" style="width:auto">
-								<img height="75" width="75" src="<?php echo $OrderList['Photo']?>" alt=""/>
+								<img class="img_border" height="75" width="75" src="<?php echo $OrderList['Photo']?>" alt=""/>
 						</div>					
 						<div class="col-xs-6 col-sm-7 no-padding">
 							<?php echo ucfirst($OrderList['FirstName'])."&nbsp;".ucfirst($OrderList['LastName']); ?>	<br>
@@ -87,8 +85,9 @@ commonHead();
 							<span class="help-block no-margin"><?php echo $OrderList['UniqueId']; ?></span>
 							<span class="help-block no-margin"><?php echo time_ago($OrderList['OrderDate']); ?></span>
 						</div>
-						<?php if ($_SERVER['HTTP_HOST'] == '172.21.4.104' && !empty($OrderList['TransactionId'])){ ?>
-							<div class="" align="right" style="padding-right:30px;" id="refund_msg_but"><br/><br/>
+						<div class="clear"><br></div>
+						<?php if (!empty($OrderList['TransactionId']) && $OrderList['RefundStatus'] == 1){ ?>
+							<div class="" align="right" style="padding-right:5px;" id="refund_msg_but"><br/><br/>
 								<a class="btn btn-success margin-bottom" title="Refund Order" onclick="return refundBox();">
 									<i class="fa fa-reply"></i> Refund Order
 								</a>
@@ -100,10 +99,10 @@ commonHead();
 											<td width="2%">&nbsp;</td>
 											<td align="right"><label>Message</label></td>
 											<td width="2%">&nbsp;</td>
-											<td width="25%"><textarea class="form-control" name="refund_msg" id="refund_msg" rows="3" cols="100"></textarea></td>
+											<td width="50%"><textarea class="form-control" name="refund_msg" id="refund_msg" rows="5" cols="400"></textarea></td>
 											<td width="2%">&nbsp;</td>
 											<td>
-												<a class="btn btn-success margin-bottom" title="Refund Order" href="#" onclick="return refundSubmit(1,'');">
+												<a class="btn btn-success margin-bottom" title="Refund Order" href="#" onclick="return refundSubmit(1,'1');">
 													<i class="fa  fa-reply"></i> Refund Order
 												</a>
 												<input type="submit" value="submit" style="display:none;">
@@ -114,7 +113,7 @@ commonHead();
 							</div>
 						<?php } ?>
 						<div class="col-xs-12 table-responsive no-padding list_height no-margin">
-						<table class="table table-hover no-margin">
+						<table class="table  no-margin">
                               <tr>
 								<th align="center" width="5%" class="text-center">#</th>				
 								<th width="30%">Item Name</th>					
@@ -122,7 +121,7 @@ commonHead();
 								<th width="25%">Price Details</th>	
 								<th width="5%" class="text-center">Quantity</th>	
 								<th width="15%" class="text-right">Total Amount</th>												
-								<?php if ($_SERVER['HTTP_HOST'] == '172.21.4.104' && !empty($OrderList['TransactionId'])){ ?><th width="5%"></th><?php } ?>
+								<!-- <?php //if ($_SERVER['HTTP_HOST'] == '172.21.4.104' && !empty($OrderList['TransactionId'])){ ?><th width="5%"></th><?php// } ?> -->
 							</tr>
 							<?php if(!empty($OrderList['Products'])) {											
 									foreach($OrderList['Products'] as $key1=>$pro_val) {
@@ -172,21 +171,21 @@ commonHead();
 											</div>						
 										</td>
 										<td class="text-right"><?php echo price_fomat($pro_val['TotalPrice']); ?></td>
-										<?php if ($_SERVER['HTTP_HOST'] == '172.21.4.104' && !empty($OrderList['TransactionId'])){ ?><td>
-											<form method="post" action="OrderProductDetail?cs=1&OrderID=<?php echo $OrderList['OrderId']; ?>&ProductId=<?php echo $pro_val['ProductID']; ?>" id="RefundProduct<?php echo $pro_val['ProductID']; ?>" name="RefundProduct<?php echo $pro_val['ProductID']; ?>">
-												<a class="btn btn-success margin-bottom"  data-toggle="tooltip" data-original-title="Refund &nbsp;<?php echo $pro_val["ItemName"];  ?>" title="Refund &nbsp;<?php echo $pro_val["ItemName"];  ?>" href="#" onclick="return refundSubmit(2,<?php echo $pro_val['ProductID']; ?>);">
+										<!-- <?php //if ($_SERVER['HTTP_HOST'] == '172.21.4.104' && !empty($OrderList['TransactionId'])){ ?>
+										<td>
+											<form method="post" action="OrderProductDetail?cs=1&OrderID=<?php //echo $OrderList['OrderId']; ?>&ProductId=<?php //echo $pro_val['ProductID']; ?>" id="RefundProduct<?php //echo $pro_val['ProductID']; ?>" name="RefundProduct<?php //echo $pro_val['ProductID']; ?>">
+												<a class="btn btn-success margin-bottom"  data-toggle="tooltip" data-original-title="Refund &nbsp;<?php //echo $pro_val["ItemName"];  ?>" title="Refund &nbsp;<?php //echo $pro_val["ItemName"];  ?>" href="#" onclick="return refundSubmit(2,<?php //echo $pro_val['ProductID']; ?>);">
 													<i class="fa  fa-reply"></i> 
 												</a>
 											</form>
-										</td><?php } ?>
+										</td>
+										<?php// } ?> -->
 									</tr>
 							<?php } } ?>
 								<tr>
 								 	<td colspan="5"><div class="col-xs-8 no-padding"><strong>Total</strong> </div></td>
 									<td class="text-right"><strong><?php echo price_fomat($OrderList['TotalPrice']); ?></strong></td>
-									<?php if ($_SERVER['HTTP_HOST'] == '172.21.4.104' && !empty($OrderList['TransactionId'])){ ?>
-									<td>&nbsp;</td>
-									<?php } ?>
+									
 								</tr>
 						</table>
 						</div>

@@ -160,9 +160,9 @@ if(isset($_POST['Add']) || isset($_POST['Save'])){
 						</div>
 						
 						<div class="form-group col-sm-6">
-							<div class="col-xs-6 col-sm-6 col-md-5 no-padding">
+							<div class="col-xs-12 col-sm-6 col-md-5 no-padding">
 								<label>Method</label>
-								<div class="form-group col-md-12 col-lg-12 no-padding no-margin">
+								<div class="form-group col-md-12 col-lg-12 no-padding ">
 									<select class="form-control" id="method" name="method">
 										<option value="">Select Method</option>
 										<?php foreach($methodArray as $value) { ?>
@@ -179,6 +179,7 @@ if(isset($_POST['Add']) || isset($_POST['Save'])){
 						</div>
 						<div class="form-group col-sm-12 clear" id="inputParamMultiple">
 							<label>Input Param</label>
+							<div class="table-responsive">
 							<table cellpadding="0" cellspacing="7" id="inputParam" border="0" width="100%" align="center" class="table table-bordered no-margin">
 								<tr align="center">
 									<td width="23%" align="left"><strong>Field Name</strong></td>
@@ -204,6 +205,7 @@ if(isset($_POST['Add']) || isset($_POST['Save'])){
 								</tr>
 								<?php }?>
 							</table>
+							</div>
 						</div>
 						<div class="form-group  col-md-6 col-sm-12 clear">
 							<label>Output Param</label>

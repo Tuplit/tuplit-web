@@ -17,25 +17,35 @@ else{
 		$merchantInfo  =	$_SESSION['merchantDetailsInfo'];
 	}
 }
+$from_date	=	date("m/d/Y",strtotime("-1 month"));
+$to_date	=	date("m/d/Y",strtotime("+1 day"));
 if((isset($_POST['Search']) && !empty($_POST['Search'])) || (isset($_POST['export-excel']) && $_POST['export-excel'] == 1)) {
-	$from_date	=	$_POST['from_date'];
-	$to_date	=	$_POST['to_date'];
-	if(isset($_POST['from_date']) && !empty($_POST['from_date']) && isset($_POST['to_date']) && !empty($_POST['to_date'])) {
-		$condition		=	"?Start=".strtotime($_POST['from_date'])."&End=".strtotime($_POST['to_date']);
-	} else if(isset($_POST['from_date']) && !empty($_POST['from_date']) && isset($_POST['to_date']) && empty($_POST['to_date'])) {
-		$condition		=	"?Start=".strtotime($_POST['from_date']);
-	} else if(isset($_POST['from_date']) && empty($_POST['from_date']) && isset($_POST['to_date']) && !empty($_POST['to_date'])) {
-		$condition		=	"?Start=".strtotime($_POST['to_date']);
-	}
-	if(isset($_POST['Status']) && !empty($_POST['Status'])) {
-		if(!empty($condition))
-			$condition		.=	"&Status=".$_POST['Status'];
-		else
-			$condition		=	"?Status=".$_POST['Status'];
-		$status	=	$_POST['Status'];
-	}
+	if(isset($_POST['from_date']) && !empty($_POST['from_date']))
+		$from_date	=	$_POST['from_date'];
+	if(isset($_POST['to_date']) && !empty($_POST['to_date']))
+		$to_date	=	$_POST['to_date'];
 }
-
+if(isset($from_date) && !empty($from_date) && isset($to_date) && !empty($to_date)) {
+	$condition		=	"?Start=".strtotime($from_date)."&End=".strtotime($to_date);
+} else if(isset($from_date) && !empty($from_date) && isset($to_date) && empty($to_date)) {
+	$condition		=	"?Start=".strtotime($from_date);
+} else if(isset($from_date) && empty($from_date) && isset($to_date) && !empty($to_date)) {
+	$condition		=	"?Start=".strtotime($to_date);
+}
+if(isset($_POST['Status']) && !empty($_POST['Status'])) {
+	if(!empty($condition))
+		$condition		.=	"&Status=".$_POST['Status'];
+	else
+		$condition		=	"?Status=".$_POST['Status'];
+	$status	=	$_POST['Status'];
+}
+if(isset($_POST['Nature']) && !empty($_POST['Nature'])) {
+	if(!empty($condition))
+		$condition		.=	"&Nature=".$_POST['Nature'];
+	else
+		$condition		=	"?Nature=".$_POST['Nature'];
+	$nature	=	$_POST['Nature'];
+}
 //getting transaction list
 $url					=	WEB_SERVICE.'v1/merchants/getTransactionList/'.$condition;
 $curlCustomerResponse 	= 	curlRequest($url, 'GET', null, $_SESSION['merchantInfo']['AccessToken']);
@@ -108,6 +118,14 @@ commonHead();
 									<option value="2" <?php if(isset($status) && $status == 2) echo "selected"; ?>>Failed</option>
 								</select>
 							</div>
+							<div class="col-sm-4 col-md-2 form-group">
+								<label>Transaction Type</label>
+								<select id="Nature" class="form-control" name="Nature">
+									<option value="">Select</option>
+									<option value="REGULAR" <?php if(isset($nature) && $nature == 'REGULAR') echo "selected"; ?>>Regular</option>
+									<option value="REFUND" <?php if(isset($nature) && $nature == 'REFUND') echo "selected"; ?>>Refund</option>
+								</select>
+							</div>
 						</div>
 						<div class="box-footer col-sm-12" align="center">
 							<input type="submit" class="btn btn-success" name="Search" id="Search" value="Search" title="Search">
@@ -116,10 +134,10 @@ commonHead();
 					</form>
 				</div>
 			</div>
-			<?php if(!SERVER){ ?>
+			 <?php if(isset($TransactionsList) && !empty($TransactionsList) && count($TransactionsList) > 0) { ?>
 			<div class="box-footer col-sm-12 row no-padding pull-right" align="right">
 				<input type="Button" class="btn btn-success" name="export_csv" onclick="exportExcelSubmit('search_transaction');" id="export_csv" value="Export CSV" title="Export CSV">
-			</div>	
+			</div>
 			<?php } ?>
 			<div class="row clear" style="padding-top:10px;">
             	<div class="col-xs-12 no-padding">
@@ -132,19 +150,17 @@ commonHead();
                                <tr>
 									<th align="center" width="3%" class="text-center">#</th>									
 									<th width="10%">Transaction ID</th>
-									<th width="7%">Date</th>
-									<th width="7%">Time</th>
+									<th width="5%">Date</th>
+									<th width="5%">Time</th>
 									<!--<th width="10%">Customer Id</th>-->
 									<th width="10%">Customer Name</th>
 									<th width="5%" class="text-right">Amount Debited</th>
 									<th width="5%" class="text-right">Amount Credited</th>
 									<th width="5%" class="text-right">Transaction Fee</th>
-									<th width="7%" class="">Nature</th>
-									<th width="7%" class="">Status</th>
-									<th width="7%">Status Message</th>
-									<?php if ($_SERVER['HTTP_HOST'] == '172.21.4.104'){ ?>
+									<th width="5%" class="">Nature</th>
+									<th width="5%" class="">Status</th>
+									<th width="12%">Status Message</th>
 									<th align="center" width="3%">Action</th>
-									<?php } ?>
 								</tr>
                               <?php $count	=	0;
 							  	foreach($TransactionsList as $key=>$value){	
@@ -158,26 +174,24 @@ commonHead();
 									<td><?php echo date("H:i:s", $value['CreationDate']); ?></td>
 									<!--<td><?php echo $value['AuthorId']; ?></td>-->
 									<td><?php if(!empty($value['Customer'])) echo $value['Customer']; else echo "Test Transaction"; ?></td>
-									<td class="text-right"><?php echo '<b>'.price_fomat($value['DebitedFunds']['Amount'])."</b>"; ?></td>
-									<td class="text-right"><?php echo '<b>'.price_fomat($value['CreditedFunds']['Amount'])."</b>"; ?></td>
-									<td class="text-right"><?php echo '<b>'.price_fomat($value['Fees']['Amount'])."</b>";//echo $value['DebitedFunds']['Currency'].' '.$value['Fees']['Amount']; ?></td>
+									<td class="text-right"><?php echo '<b>'.price_fomat($value['DebitedFunds']['Amount']/100)."</b>"; ?></td>
+									<td class="text-right"><?php echo '<b>'.price_fomat($value['CreditedFunds']['Amount']/100)."</b>"; ?></td>
+									<td class="text-right"><?php echo '<b>'.price_fomat($value['Fees']['Amount']/100)."</b>";//echo $value['DebitedFunds']['Currency'].' '.$value['Fees']['Amount']; ?></td>
 									<td class=""><?php echo $value['Nature']; ?></td>
 									<td class=""><?php 
 										if($value['Status'] == 'SUCCEEDED')
-											echo "<b style='color: #01a99a;'>".$value['Status']."</b>"; 
+											echo "<b class='text-teal'>".$value['Status']."</b>"; 
 										else if($value['Status'] == 'FAILED')
-											echo "<b style='color: #FF4747;'>".$value['Status']."</b>";
+											echo "<b class='text-red'>".$value['Status']."</b>";
 										//echo $value['Status'];
 										?>
 									</td>
 									<td><?php echo $value['ResultMessage']; ?></td>
-									<?php if ($_SERVER['HTTP_HOST'] == '172.21.4.104'){ ?>
 										<td align="center">
 											<?php if($value['Nature'] != 'REFUND') { ?>
-											<a class="newWindow" title="View transaction details" href="OrderProductDetail?cs=1&transId=<?php echo  $value['Id']; ?>"><i class="fa fa-search fa-lg" style=" font-size: 0.99em;vertical-align: 3%;" ></i></a>
+											<a class="newWindow" title="View transaction details" href="OrderProductDetail?cs=1&transId=<?php echo  $value['Id']; ?>"><i class="fa fa-search fa-lg"></i></a>
 											<?php } else echo '-'; ?>
 										</td>
-									<?php } ?>
 								</tr>
 							<?php } //end for ?>	
                            </table>

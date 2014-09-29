@@ -126,7 +126,7 @@ if(isset($_GET['viewId']) && $_GET['viewId'] != '' ){
 									<img width="50" height="50" align="top" class="img_border" src="<?php echo $icon_image_path;?>" >
 								</a>
 							<?php } else {?>
-								<img width="50" height="50" align="top" class="img_border" src="<?php echo $icon_image_path;?>" >
+								<div class="no_photo img50 valign"><i class="fa fa-user"></i></div><!-- <img width="50" height="50" align="top" class="img_border" src="<?php echo $icon_image_path;?>" > -->
 							<?php } ?>
 							<?php if(isset($productListResult[0]->CompanyName) && $productListResult[0]->CompanyName != ''){ ?>
 								<span title="Company Name">

@@ -128,8 +128,8 @@ if(!isset($userNameArr) ||  count($userNameArr) < 0 ){
 <body class="skin-blue" onload="">
 	<!-- Content Header (Page header) -->
 	<section class="content-header no-padding">
-		<div class="col-xs-8 col-sm-7">
-			<h1><i class="fa fa-list"></i> Send Push Notification</h1>
+		<div class="col-xs-10 col-sm-7">
+			<h1><i class="fa fa-envelope"></i> Send Push Notification</h1>
 		</div>
 	</section>
 	<!-- Main content -->
@@ -137,13 +137,13 @@ if(!isset($userNameArr) ||  count($userNameArr) < 0 ){
 		<div class="row paging form-group">
 			<div class="col-xs-12 col-sm-2">
 				<?php if($tot_user != '') { ?>
-				<div class="dataTables_info">No. Of Users : <?php echo $tot_user; ?></div>
+				<div class="dataTables_info">No. Of Users&nbsp:&nbsp;<strong><?php echo $tot_user; ?></strong></div>
 				<?php } ?>
 			</div>
 		</div>
 	<?php if(isset($msg) && $msg != '') { ?>
 	 <div class="row">
-              <div align="center" class="alert <?php  echo $class;  ?> alert-dismissable col-xs-11  col-sm-4"><i class="fa fa-check"></i>  <?php echo $msg; ?></div>
+              <div align="center" class="alert <?php  echo $class;  ?> alert-dismissable col-xs-11  col-sm-4"><i class="fa fa-check"></i> <?php echo $msg; ?></div>
 	 </div>	
 	
 	<?php } ?>
@@ -155,7 +155,7 @@ if(!isset($userNameArr) ||  count($userNameArr) < 0 ){
 		<div class="col-xs-12">
 		<form name="pushNotificationForm" id="pushNotificationForm" action="" method="post">
 			<input type="hidden" value="" id="message_hidden" name="message_hidden"/>
-			<?php 
+			<?php
 			 if(isset($userNameArr) && is_array($userNameArr) && count($userNameArr) > 0 ){
 			 if(isset($_GET['checkdelete']) && is_array($_GET['checkdelete'])) {
 				foreach($_GET['checkdelete'] as $id) {?>
@@ -164,7 +164,6 @@ if(!isset($userNameArr) ||  count($userNameArr) < 0 ){
 			<?php  if(isset($_GET['checkdelete']) && is_array($_GET['checkdelete'])) {
 					foreach($userNameArr as $id=>$user) {?>
 			<input type="hidden" value="<?php echo $user; ?>" name="user_name[<?php  echo $id;?>]">
-			</form>
 			<?php } } } ?>
 		<div class="box box-primary">
 			<div class="box-body no-padding" >	
@@ -172,8 +171,7 @@ if(!isset($userNameArr) ||  count($userNameArr) < 0 ){
 				<div class="col-xs-2">
 					<label>User</label>
 				</div>
-				<div class="col-xs-1" style="padding-right:0px;">:</div>
-				<div class="col-xs-9 no-padding">
+				<div class="col-xs-10">
 				<?php if(isset($userNameDisp)) echo $userNameDisp;?>
 				</div>
 			</div>
@@ -182,8 +180,7 @@ if(!isset($userNameArr) ||  count($userNameArr) < 0 ){
 					<?php } ?>
 					<label>Message</label>
 				</div>
-				<div class="col-xs-1" style="padding-right:0px;">:</div>
-				<div class="col-xs-9 no-padding">
+				<div class="col-xs-10">
 					<textarea id="message" class="form-control" name="message" rows="4" cols="25" ></textarea>
 				</div>
 			</div>

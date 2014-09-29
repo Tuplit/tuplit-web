@@ -173,7 +173,11 @@ if(isset($_GET['viewId']) && $_GET['viewId'] != '' ){
 				<div class="form-group col-xs-12 col-sm-6 row">
 					<label class="col-xs-6  col-sm-5" >Photo</label>
 					<div  class="col-xs-6  col-sm-7">
-						<a <?php if(isset($original_image_path) && $original_image_path != '') {  ?> href="<?php echo $original_image_path; ?>" class="fancybox"<?php } else { ?> href="Javascript:void(0);"<?php } ?> title="Click here" alt="Click here" ><?php if(isset($image_path) && $image_path != '') { ?> <img width="75" height="75" src="<?php echo $image_path;?>"><?php } ?></a>
+						<?php if(isset($original_image_path) && $original_image_path != '') {  ?> 
+						<a href="<?php echo $original_image_path; ?>" class="fancybox"  title="Click here" alt="Click here" ><?php if(isset($image_path) && $image_path != '') { ?> <img width="75" height="75" src="<?php echo $image_path;?>"><?php } ?></a>
+						<?php } else { ?>
+						<div class="no_photo img75"><i class="fa fa-user"></i></div>
+						<?php } ?>
 					</div>
 				</div>
 				
@@ -192,20 +196,19 @@ if(isset($_GET['viewId']) && $_GET['viewId'] != '' ){
 					</div>
 															
 				</div>
-				
-				<div class="form-group col-xs-12 col-sm-6 row">
-					<label class="col-xs-7 col-sm-5"  class="notification">Receive Credit</label>
-					<div  class="col-xs-4 col-sm-7">
-						<?php if(isset($RecieveCredit) && $RecieveCredit == '1') echo 'On'; else echo 'Off'; ?>
-					</div>
-				</div>	
 				<div class="form-group col-xs-12 col-sm-6 row">
 					<label class="col-xs-7 col-sm-5"  class="notification">Buy Something</label>
 					<div  class="col-xs-4 col-sm-7">
 						<?php if(isset($BuySomething) && $BuySomething == '1') echo 'On'; else echo 'Off'; ?>
 					</div>
 				
-				</div>	
+				</div>					
+				<div class="form-group col-xs-12 col-sm-6 row">
+					<label class="col-xs-7 col-sm-5"  class="notification">Receive Credit</label>
+					<div  class="col-xs-4 col-sm-7">
+						<?php if(isset($RecieveCredit) && $RecieveCredit == '1') echo 'On'; else echo 'Off'; ?>
+					</div>
+				</div>					
 				<div class="form-group col-xs-12 col-sm-6 row">
 					<label class="col-xs-7 col-sm-5"  class="notification">Deals &amp; Offers</label>
 					<div  class="col-xs-4 col-sm-7">

@@ -45,9 +45,12 @@ if(isset($merchantdetailarray) && is_array($merchantdetailarray) && count($merch
 				$icon_image_path = MERCHANT_ICONS_IMAGE_PATH.$merchant_image;
 		}
 	}
-	if(isset($icon_image_path) && $icon_image_path != ''){
+	if(isset($icon_image_path) && basename($icon_image_path) != "no_user.jpeg") {
 			$merchantimage =  "<img  width='50' height='50' align='top' class='img_border' src='".$icon_image_path."' >";		
-	}	
+	}
+	else { 
+			$merchantimage =  "	<div class='no_photo img50 valign'><i class='fa fa-user'></i></div>";
+	}
 }
 	$show = 1;
 	$mer_id = $_GET['mer_id'];
@@ -80,9 +83,11 @@ if(isset($_GET['user_id']) && !empty($_GET['user_id'])) {
 			}
 		}
 		$username = ucfirst($userdetailarray[0]->FirstName).' '.ucfirst($userdetailarray[0]->LastName);
-		if(isset($image_path) && $image_path != ''){
+		if(isset($image_path) && basename($image_path) != "no_user.jpeg") {
 			$userimage =  "<img  width='50' height='50'  class='img_border' src='".$image_path."' >";		
-			}	
+		} else { 
+			$userimage =  "	<div class='no_photo img50 valign'><i class='fa fa-user'></i></div>";
+		} 
 	}							
 	$show = 2;
 	$user_id = $_GET['user_id'];
@@ -395,9 +400,14 @@ if(isset($OverallOrderList) && is_array($OverallOrderList) && count($OverallOrde
 						   <td>
 								<?php if(isset($image_path) && $image_path != ''){ ?>
 									<div class=" col-sm-4  col-lg-3  no-padding">
-										<a <?php if(isset($image_path) && basename($image_path) != "no_user.jpeg") { ?>href="<?php echo $original_path; ?>" class="fancybox" title="<?php echo  ucfirst($value->FirstName).' '.ucfirst($value->LastName);?>" <?php } ?> > 
+										<?php if(isset($image_path) && basename($image_path) != "no_user.jpeg") { ?>
+										
+										<a href="<?php echo $original_path; ?>" class="fancybox" title="<?php echo  ucfirst($value->FirstName).' '.ucfirst($value->LastName);?>" > 
 											<img id="<?php echo $value->id ;?>"  width="36" height="36" align="top" class="img_border" src="<?php echo $image_path;?>" >
 										</a>
+										 <?php } else { ?>
+										 <div class="no_photo img36"><i class="fa fa-user"></i></div>
+										 <? } ?>
 									</div>
 								<?php } ?>
 									<div class="col-xs-9  col-sm-8 col-lg-9 no-padding" nowrap> 								

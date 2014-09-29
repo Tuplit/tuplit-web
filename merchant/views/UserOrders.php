@@ -19,14 +19,15 @@ else{
 }
 if(isset($_GET['cs']) && $_GET['cs'] == 1){
 	destroyPagingControlsVariables();
-	$_SESSION['tuplit_sess_order_from_date'] = '';
-	$_SESSION['tuplit_sess_order_to_date']	=	'';
+	$_SESSION['tuplit_sess_order_from_date'] 	= 	'';
+	$_SESSION['tuplit_sess_order_to_date']		=	'';
+	$_SESSION['tuplit_sess_trans_id']			=	'';
+	$_SESSION['tuplit_sess_order_status']		=	'';
 }
-$UserName = $VisitCount = $TotalSpend = '';
-$load_more = $cur_page = $per_page = 0;
+$cur_page = $per_page = 0;
 $count	=	$tot_rec = 0;
+$TransactionId	=  $OrderStatus	 = '';
 $FromDate = $ToDate = date('Y-m-d');
-
 
 if(!isset($_SESSION['tuplit_sess_order_from_date'])) 
 	$_SESSION['tuplit_sess_order_from_date']	=	$FromDate;	//=	$today;//
@@ -43,6 +44,10 @@ if(isset($_POST['Search']) && $_POST['Search'] != ''){
 		$ToDate				=	$_POST['to_date'];
 		$_SESSION['tuplit_sess_order_to_date']	=	$ToDate;
 	}
+	if(isset($_POST['transaction_id']) && $_POST['transaction_id'] != '')
+		$_SESSION['tuplit_sess_trans_id']		= $_POST['transaction_id'];
+	if(isset($_POST['order_status']) && $_POST['order_status'] != '')
+		$_SESSION['tuplit_sess_order_status']	= $_POST['order_status'];
 }
 
 if(isset($_POST['cur_page']) && $_POST['cur_page'] != ''){
@@ -55,10 +60,16 @@ if(isset($_SESSION['tuplit_sess_order_from_date']) && $_SESSION['tuplit_sess_ord
 if(isset($_SESSION['tuplit_sess_order_to_date']) && $_SESSION['tuplit_sess_order_to_date'] != ''){
 	 $ToDate		=	$_SESSION['tuplit_sess_order_to_date'];
 }
+if(isset($_SESSION['tuplit_sess_trans_id']) && $_SESSION['tuplit_sess_trans_id'] != ''){
+	 $TransactionId		=	$_SESSION['tuplit_sess_trans_id'];
+}
+if(isset($_SESSION['tuplit_sess_order_status']) && $_SESSION['tuplit_sess_order_status'] != ''){
+	 $OrderStatus		=	$_SESSION['tuplit_sess_order_status'];
+}
 if(isset($_GET['viewId']) && $_GET['viewId'] != ''){
     $UserId			=	base64_decode($_GET['viewId']);
 	//getting order list of users
-	$url					=	WEB_SERVICE.'v1/orders/?UserId='.$UserId.'&Start='.$cur_page.'&Limit='.$per_page.'&FromDate='.$FromDate.'&ToDate='.$ToDate;
+	$url					=	WEB_SERVICE.'v1/orders/?UserId='.$UserId.'&Start='.$cur_page.'&Limit='.$per_page.'&FromDate='.$FromDate.'&ToDate='.$ToDate.'&TransactionId='.$TransactionId.'&OrderStatus='.$OrderStatus	;
 	$curlOrderResponse 		= 	curlRequest($url, 'GET', null, $_SESSION['merchantInfo']['AccessToken']);
 	//echo "<pre>"; print_r( $curlOrderResponse); echo "</pre>";
 	if(isset($curlOrderResponse) && is_array($curlOrderResponse) && $curlOrderResponse['meta']['code'] == 201 && is_array($curlOrderResponse['OrderList']) ) {
@@ -83,7 +94,24 @@ commonHead();
 				<div class="product_list">
 					<form name="search_merchant" action="UserOrders?viewId=<?php echo $_GET['viewId'];?>&cs=1" method="post">
 					<div class="box box-primary">
-						
+						<div class="box-body no-padding" >				
+							<div class="col-sm-3 col-xs-3 form-group">
+								<label>Transaction ID</label>
+								<input type="text" id ="transaction_id" class="form-control" name="transaction_id" value="<?php if(isset($TransactionId) && $TransactionId != '') echo $TransactionId;?>" >
+							</div>
+						</div>
+						<div class="box-body no-padding" >				
+							<div class="col-sm-3 col-xs-3 form-group">
+								<label>Order Status</label>
+								<select name="order_status" id="order_status" class="form-control col-sm-4">
+									<option value="">Select</option>
+										<?php if(isset($orderStatusArray) && is_array($orderStatusArray) && count($orderStatusArray) > 0 ) { 
+												foreach($orderStatusArray as $orderkey=>$ordervalue) { ?>
+										<option value="<?php echo $orderkey;?>" <?php if(isset($_SESSION['tuplit_sess_order_status']) && $_SESSION['tuplit_sess_order_status'] == $orderkey && $_SESSION['tuplit_sess_order_status'] != '') echo 'selected';?> ><?php echo $ordervalue; ?></option>
+										<?php } } ?>
+								</select>
+							</div>
+						</div>
 						<div class="box-body no-padding" >				
 							<div class="col-sm-3 col-xs-3 form-group">
 								<label>Start Date</label>
@@ -118,19 +146,19 @@ commonHead();
 				<div class="box box-primary no-padding no-margin">
 					<div class="box-body table-responsive no-padding no-margin">
 						
-						<table class="table "> <!-- table-hover -->
+						<table class="table table-bordered "> <!-- table-hover -->
 								<tr>
-									<th align="center" width="4%" class="text-center" rowspan="2"> #</th>									
-									<th width="25%" rowspan="2">Transaction Id</th>
-									<th width="10%" rowspan="2" class="text-right">Price</th>
-									<th width="10%" rowspan="2" class="text-center">Order Date</th>
-									<th width="10%" rowspan="2">Order Status</th>
-									<th width="25%" colspan="3" class="text-center">Product Details</th>
+									<th align="center" width="3%" class="text-center" rowspan="2" style="vertical-align:middle"> #</th>									
+									<th width="15%" rowspan="2" style="vertical-align:middle">Transaction Id</th>
+									<th width="7%" rowspan="2" class="text-right" style="vertical-align:middle">Price</th>
+									<th width="5%" rowspan="2" class="text-center" style="vertical-align:middle">Order Date</th>
+									<th width="4%" rowspan="2" style="vertical-align:middle">Order Status</th>
+									<th width="30%" colspan="3" class="text-center">Product Details</th>
 								</tr>
 								<tr>
 									<th>Item Name</th>
-									<th class="text-center">Quantity</th>
-									<th class="text-right">Total Price</th>
+									<th class="text-center" width="3%">Quantity</th>
+									<th class="text-right" width="5%">Total Price</th>
 								</tr>
 								<?php if(isset($orderList) && is_array($orderList) && count($orderList) > 0 ) {
 									$i = 0;
@@ -145,7 +173,7 @@ commonHead();
 										<td align="left" rowspan="<?php echo $rowspan;?>"><?php if(isset($value["TransactionId"]) && $value["TransactionId"] != ''){ echo $value["TransactionId"]; }else echo '-';?></td>
 										<td align="right" rowspan="<?php echo $rowspan;?>"><?php if(isset($value["TotalPrice"]) && $value["TotalPrice"] != ''){ echo '$'.number_format($value["TotalPrice"],2,'.',','); }else echo '-';?></td>
 										<td align="center" rowspan="<?php echo $rowspan;?>"><?php if(isset($value["OrderDate"]) && $value["OrderDate"] != '0000-00-00 00:00:00'){ echo date('m/d/Y',strtotime($value["OrderDate"])); }else echo '-';?></td>
-										<td align="left" rowspan="<?php echo $rowspan;?>"><?php if(isset($value["OrderStatus"]) && $value["OrderStatus"] != ''){ echo $order_status_array[$value["OrderStatus"]];}?></td>
+										<td align="center" class="<?php if(isset($value["OrderStatus"]) && $value["OrderStatus"] != ''){ echo $order_status_array[$value["OrderStatus"]];}?>" rowspan="<?php echo $rowspan;?>"><strong><?php if(isset($value["OrderStatus"]) && $value["OrderStatus"] != ''){ echo $order_status_array[$value["OrderStatus"]];}?></strong></td>
 											<?php 
 											 $j= 1;
 											foreach($value["Products"] as $p_key => $p_value) { 

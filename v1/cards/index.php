@@ -49,10 +49,11 @@ $app->post('/',tuplitApi::checkToken(),function () use ($app) {
         $cards 						=  	R::dispense('cards');		
 		$cards->UserId				= 	$userId;	
 		$cards->Currency 			= 	$req->params('Currency');
-		$cards->Amount	 			= 	$req->params('Amount');
+		
 		$cards->CardNumber	 		= 	$req->params('CardNumber');
 		$cards->CardExpirationDate	= 	$req->params('CardExpirationDate');
 		$cards->CVV		 			= 	$req->params('CVV');
+		if($req->params('Amount') != '')				$cards->Amount	 			= 	$req->params('Amount');
 		if($req->params('WalletId') != '')		$cards->WalletId		= 	$req->params('WalletId');
 		if($req->params('MangoPayId') != '')	$cards->MangoPayId		= 	$req->params('MangoPayId');
 		$cardCreation				=	$cards->create();

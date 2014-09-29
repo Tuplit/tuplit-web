@@ -167,14 +167,21 @@ function sendMail($mailContentArray,$type)
 				$mailData 			=	str_replace('{NAME1}',  $mailContentArray['name1'], $mailData);
 				$mailData 			=	str_replace('{ADDRESS}',  $mailContentArray['address'], $mailData);
 				$mailData 			=	str_replace('{TOTAL}',  $mailContentArray['TotalPrice'], $mailData);
-				
-				$mailData 			=	str_replace('{TRANSACTIONID}',  $mailContentArray['TransactionId'], $mailData);
+				$transactionData	= 	'';
+				if(!empty($mailContentArray['TransactionId'])) {
+					$transactionData	=	'<tr><td height="10" ></td></tr>	
+											<tr><td align="center" style="color:#010101;font-size:15px;font-family:Calibri;"><strong>Transaction ID</strong></td></tr>
+											<tr><td align="center" style="color:#666666;font-size:15px;font-family:Calibri;">'. $mailContentArray['TransactionId'].'</td></tr>';
+					$mailData 			=	str_replace('{TRANSACTIONID}',  $transactionData, $mailData);
+				}	else {
+					$mailData 			=	str_replace('{TRANSACTIONID}',  $transactionData, $mailData);
+				}
 				$mailData 			=	str_replace('{ORDERID}',  $mailContentArray['orderId'], $mailData);
 				$productData		=	'';
 				foreach($mailContentArray['CartDetails'] as $val) {
-				//echo "<pre>"; print_r($val);die();
 					$productData	.=	'<tr>
-											<td align="left" style="color:#010101;font-size:20px;font-family:Calibri;"><span style="color:#6b5f5f;font-size:12px;font-family:Calibri;">'.$val['ProductsQuantity'].'x</span>&nbsp;&nbsp;<b>&nbsp;&nbsp;'.$val['ItemName'].'</b></td> 
+											<td align="left" style="color:#010101;font-size:20px;font-family:Calibri;">&nbsp;&nbsp;<span style="color:#6b5f5f;font-size:12px;font-family:Calibri;">'.$val['ProductsQuantity'].' x&nbsp;&nbsp;</span></td> 
+											<td align="left" style="color:#010101;font-size:20px;font-family:Calibri;"><b>&nbsp;&nbsp;'.$val['ItemName'].'</b></td>
 											<td align="right" style="color:#010101;font-size:20px;font-family:Calibri;"><b>$'.number_format((float)($val['DiscountPrice'] * $val['ProductsQuantity']), 2, '.', '').'&nbsp;&nbsp;</b></td></tr>';
 				}
 				$mailData 			=	str_replace('{PRODUCTSLIST}',  $productData, $mailData);
@@ -190,10 +197,10 @@ function sendMail($mailContentArray,$type)
 		$headers        .= 	"From: $from\r\n";
 		$headers 		.= 	"Content-type: text/html\r\n";
 		if ($_SERVER['HTTP_HOST'] == '172.21.4.104'){
-			if($_SERVER['REMOTE_ADDR'] == '172.21.4.215' || $_SERVER['REMOTE_ADDR'] == '172.21.4.81'){
+			if($_SERVER['REMOTE_ADDR'] == '172.21.4.215' || $_SERVER['REMOTE_ADDR'] == '172.21.4.81'|| $_SERVER['REMOTE_ADDR'] == '172.21.4.130'){
 				echo $mailData;
 				//die();
-			}			
+			}	
 			//$sendmail = sendMailSes($from,$to,$subject,$mailData,'');
 		}
 		else {
@@ -734,7 +741,7 @@ function deleteImages($type,$image_name){
 		$filename = 'merchants/'.$image_name;
 	} else if($type == 8){ //merchants
 		$filename = 'products/'.$image_name;
-	}
+	} 
 	$bucket = BUCKET_NAME;
 	
 	require_once('sdk.class.php');// Include the SDK
@@ -937,7 +944,9 @@ function checkVideo($files){
 	    }
 	}
 }
-function subval_sort($a,$subkey) {
+function subval_sort($a,$subkey,$type='') {
+		//$type = '' for ascending 
+		//$type = 1 for descending 
 			$b  = $c  =	array();
 			if(is_array($a) && count($a) > 0) {
 				foreach($a as $k=>$v) {
@@ -945,7 +954,10 @@ function subval_sort($a,$subkey) {
 				}
 			}
 			if(is_array($b) && count($b) > 0) {
-				asort($b);
+				if($type == 1)
+					arsort($b);
+				else
+					asort($b);
 				foreach($b as $key=>$val) {
 					$c[]   = $a[$key];
 				}
@@ -1287,7 +1299,7 @@ function createEndpointARNAWS($PlatformApplicationArn,$Token,$CustomUserData){
 	$endpoint = require("sns-create.php");
 	return $endpoint;die();
 }
-function sendNotificationAWS($message,$EndpointArn,$platform,$badge,$type,$processId,$userId){
+function sendNotificationAWS($message,$EndpointArn,$platform,$badge,$type,$processId,$userId,$sound){
 	error_reporting(E_ALL);
 	$endpoint = require("sns-send.php");
 	return $endpoint;die();
@@ -1900,7 +1912,7 @@ function formOpeningHours($openinghours) {
 	return	$newopeninghours;
 }
 
-function openingHoursStringupdated($openHoursArray){
+function openingHoursStringupdated($openHoursArray,$type= ''){
 	$temp = (array)$openHoursArray;
 	$openHoursArray = array();
 	foreach($temp as $key=>$val) {
@@ -1911,8 +1923,13 @@ function openingHoursStringupdated($openHoursArray){
 	if(count($openHoursArray) == 0)
 		$openHour['Closed'] = "Mon to Sun : Closed";
 	else if($openHoursArray[0]['DateType'] == 1) {
-		$from	=	openHourExplode($openHoursArray[0]['Start']);
-		$to		=	openHourExplode($openHoursArray[0]['End']);		
+		if($type != '') {
+			$from					=	openHourExplode($openHoursArray[0]['Start']);
+			$to						=	openHourExplode($openHoursArray[0]['End']);
+		} else {
+			$from	=	$openHoursArray[0]['Start'];
+			$to		=	$openHoursArray[0]['End'];	
+		}			
 		$openHour['Open'][0] = "Mon to Sun : ".$from." - ".$to;
 	}
 	else {
@@ -1922,8 +1939,13 @@ function openingHoursStringupdated($openHoursArray){
 		//Converting to 24 hours
 		foreach($openHoursArray as $key=>$val) {
 			if(!empty($val['Start']) && !empty($val['End'])) {
-				$from						=	openHourExplode($val['Start']);
-				$to							=	openHourExplode($val['End']);
+				if($type != '') {
+					$from					=	openHourExplode($val['Start']);
+					$to						=	openHourExplode($val['End']);
+				} else {
+					$from					=	$val['Start'];
+					$to						=	$val['End'];
+				}
 				$newopenHoursArray[$key]	=	$from.' - '.$to;
 			} else {
 				$newopenHoursArray[$key]	=	'';
@@ -1982,7 +2004,7 @@ function openHourExplode($openHours) {
 	$splittime		=	explode(":", $hrmin);
 	$hr				=	$splittime[0];
 	$min			=	$splittime[1];
-	if($ampm == 'PM') {
+	if($ampm == 'PM' && $hr != 12) {
 		$hr			=	$hr + 12;
 	}
 	if(strlen($hr) == 1){
@@ -2025,5 +2047,233 @@ function msort($array, $key, $sort_flags = SORT_ASC) {
     }
     return $array;
 }
+function getCents($dollars)
+{
+     $cents = $dollars * 100;
+     return $cents;
+}
+/* Chart Functions Starts */
+	/* To get inbetween dates from the given dates */
+function createDateRangeArray($strDateFrom,$strDateTo)//date format should be ('Y-m-d')
+{
+	// takes two dates formatted as YYYY-MM-DD and creates an
+    // inclusive array of the dates between the from and to dates.
 
+    // could test validity of dates here but I'm already doing
+    // that in the main script
+
+    $aryRange=array();
+    $iDateFrom=mktime(1,0,0,substr($strDateFrom,5,2),     substr($strDateFrom,8,2),substr($strDateFrom,0,4));
+    $iDateTo=mktime(1,0,0,substr($strDateTo,5,2),     substr($strDateTo,8,2),substr($strDateTo,0,4));
+    if ($iDateTo>=$iDateFrom)
+    {
+        array_push($aryRange,date('Y-m-d',$iDateFrom)); // first entry
+        while ($iDateFrom<$iDateTo)
+        {
+            $iDateFrom+=86400; // add 24 hours
+            array_push($aryRange,date('Y-m-d',$iDateFrom));
+        }
+    }
+    return $aryRange;
+}
+function getStringForDay($dataArray,$start_date='',$end_date='',$type='') {
+	foreach($dataArray as $key => $value) {
+			list($month,$day,$year) = explode('/',$value->day);
+			$date_format = date('Y-m-d',strtotime($month.'/'.$day.'/'.$year));
+			$data_content_array[$date_format] =$value->TotalPrice;
+		}
+		if(isset($start_date) && $start_date=='' && isset($end_date) && $end_date=='') {
+			$last_date =  date('m-t-Y');
+			$curr_date = date('Y-m-d');
+			$cur_month = date('m');
+			$cur_year = date('Y');
+			if($type == 1){
+				$start_date = date('Y-m-d',strtotime("-7days"));
+				$end_date = date('Y-m-d',strtotime($curr_date));
+			}
+			else {
+				$start_date = date('Y-m-d',strtotime($cur_year.'-'.$cur_month.'-01'));
+				$end_date = date('Y-m-d',strtotime($curr_date));
+			}
+		} 
+		$date_differ_array = createDateRangeArray($start_date,$end_date);
+		$total_count = count($date_differ_array);
+		foreach($date_differ_array as $key => $value) {
+			if($value!=$start_date && $value!=$end_date) {
+				$exclude_mrgindate_differ_array[$key] = $value;
+			}
+		}
+		if($type == 1){
+			foreach($date_differ_array as $key => $value) {
+				list($year,$month,$date) = explode('-',$value);
+				$month_array[] = $month;
+				if(array_key_exists($value,$data_content_array)) {
+					$category_array[$value] = $data_content_array[$value];
+				} else {
+					$category_array[$value] = 0;
+				}
+			}
+		}
+		else if($total_count<=31) {
+			foreach($date_differ_array as $key => $value) {
+				list($year,$month,$date) = explode('-',$value);
+				$month_array[] = $month;
+				if(array_key_exists($value,$data_content_array)) {
+					$category_array[$value] = $data_content_array[$value];
+				} else {
+					$category_array[$value] = 0;
+				}
+			}
+		} else {
+			$random_category_keys = array_rand($exclude_mrgindate_differ_array,28);
+			$random_date_differ_array[] = $start_date;
+			foreach($random_category_keys as $key => $value) {
+				$random_date_differ_array[] = $date_differ_array[$value];
+			}
+			$random_date_differ_array[] = $end_date;
+			foreach($random_date_differ_array as $key => $value) {
+				list($year,$month,$date) = explode('-',$value);
+				$month_array[] = $month;
+				if(array_key_exists($value,$data_content_array)) {
+					$category_array[$value] = $data_content_array[$value];
+				} else {
+					$category_array[$value] = 0;
+				}
+			}
+		}
+		$month_array = array_unique($month_array);
+		foreach($category_array as $date => $value) {
+			if(isset($month_array) && is_array($month_array) && count($month_array)==1) {
+				list($year,$month,$day) = explode('-',$date);
+				$x_labels[] = $day;
+			} else { 
+				$date_format = date('M d',strtotime($date));
+				if($type == 1)
+					$x_labels[] = "".$date_format."";
+				else
+					$x_labels[] = "'".$date_format."'";
+			}
+			$values[] = $value;
+			
+		}
+		$x_labels_string = implode(',',$x_labels);
+		$value_string = implode(',',$values);
+		return $x_labels_string.'###'.$value_string;
+		
+		
+}
+function getStringForMonth($dataArray) {
+	foreach($dataArray as $key => $value) {
+		$month_arr[] = $value->month;
+		$value_arr[$value->month] = $value->TotalPrice;
+	}
+	$month_arr = array_unique($month_arr);
+	$month_val	=	date('n');
+	for($i=1;$i<=$month_val;$i++) {
+		if(in_array($i,$month_arr)) {
+			$category_arr[$i] = $value_arr[$i];
+		} else {
+			$category_arr[$i] = 0;
+		}
+	}
+	foreach($category_arr as $key => $value) {
+		$values[] = $value;
+	}
+	$value_string = implode(',',$values);
+	return $value_string;
+}
+function getStringForHour($dataArray) {
+	foreach($dataArray as $key => $value) {
+		$hour_arr[] = $value->hour;
+		$value_arr[$value->hour] = $value->TotalPrice;
+	}
+	$hour_arr = array_unique($hour_arr);
+	for($i=1;$i<=24;$i++) {
+		if(in_array($i,$hour_arr)) {
+			$category_arr[$i] = $value_arr[$i];
+		} else {
+			$category_arr[$i] = 0;
+		}
+	}
+	foreach($category_arr as $key => $value) {
+		$x_labels[] = $key;
+		$values[] = $value;
+	}
+	$x_labels_string = implode(',',$x_labels);
+	$value_string = implode(',',$values);
+	return $x_labels_string.'###'.$value_string;
+}
+function GetBetween($var1="",$var2="",$pool){
+	$temp1 = strpos($pool,$var1)+strlen($var1);
+	$result = substr($pool,$temp1,strlen($pool));
+	$dd=strpos($result,$var2);
+	if($dd == 0){
+	$dd = strlen($result);
+	}
+	return substr($result,0,$dd);
+}
+function getStringForDayTime($dataArray) {
+//echo "<pre>"; print_r($dataArray ); echo "</pre>";
+$morning_arr = $noon_arr = $evening_arr  = $value_morning_arr = array();
+$value_morning_arr['Late Night'] = $value_morning_arr['Evening'] = $value_morning_arr['Afternoon'] =  $value_morning_arr['Morning']  = 0;
+	foreach($dataArray as $key => $value) {
+		if ($value->hour < 12) {
+    		$morning_arr[] = $value->hour;
+			$value_morning_arr['Morning'] += $value->TotalPrice;
+		} else if ($value->hour  >= 12 && $value->hour < 16) {
+		    $noon_arr[] = $value->hour;
+			$value_morning_arr['Afternoon'] += $value->TotalPrice;
+		} else if($value->hour >= 16 && $value->hour  < 22) {
+		   $evening_arr[] = $value->hour;
+		   $value_morning_arr['Evening'] += $value->TotalPrice;
+		}
+		 else{
+		   $night_arr[] = $value->hour;
+		   $value_morning_arr['Late Night'] += $value->TotalPrice;
+		}
+		//$value_morning_arr[] = $value["TotalPrice"];
+	}
+	//echo "<pre>"; print_r( $value_morning_arr); echo "</pre>";
+	foreach($value_morning_arr as $key => $value) {
+		$x_labels[] = $key;
+		$values[] 	= $value;
+	}
+	$x_labels_string 	= implode(',',$x_labels);
+	$value_string 		= implode(',',$values);
+	return $x_labels_string.'###'.$value_string;
+}
+function getStringForDayProduct($dataArray,$start_date='',$end_date='',$type='') {
+	usort( $dataArray, function( $a, $b) {  
+	    if( $a->TotalOrders == $b->TotalOrders) 
+	        return 0; 
+	    return $a->TotalOrders < $b->TotalOrders ? 1 : -1; // Might need to switch 1 and -1
+	});
+	foreach($dataArray as $key => $value) {
+	   if($key <= 9){
+			$x_labels[] = $value->Name;
+			$y_labels[] = $value->TotalOrders;
+	   }
+	}
+	$x_labels_string = implode(',',$x_labels);
+	$value_string = implode(',',$y_labels);
+	return $x_labels_string.'###'.$value_string;
+		
+		
+}
+/* Chart Function Ends */
+
+function csvDownload($contentArray,$filename) {
+	header('Content-Description: File Transfer');
+	header('Content-Type: text/csv; charset=utf-8');
+	header('Content-Disposition: attachment;filename=' . $filename);
+	//ob_clean();
+	$fp = fopen('php://output', 'w');
+    fputcsv($fp, array_keys($contentArray[0]));	
+    foreach ($contentArray as $fields) {
+       $fields = (array)$fields;
+       fputcsv($fp, $fields);
+    }
+    fclose($fp);
+    die();
+}
 ?>

@@ -48,7 +48,7 @@
 <?php } else { ?>
 	<div class="row clear">		
 		 <div align="center" class="alert alert-danger alert-dismissable col-lg-4 col-sm-5 col-xs-10">
-		 	<i class="fa fa-fw fa-warning"></i>No results found</div>							
+		 	<i class="fa fa-fw fa-warning"></i> No results found</div>							
 	</div>							
 <?php } ?>						
 <?php if(isset($error_div) && $error_div==0 && !empty($order_array)) {?>

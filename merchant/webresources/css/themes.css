@@ -30,12 +30,19 @@ a:focus {
 .m-center { margin : auto; float : none !important; }
 .space_bottom  { padding-bottom  :10px !important; }
 .space_top  { padding-top  :10px !important; }
+.no-link { cursor : default; }
 	/*max-width : 100%;
 	height : auto;*/
 img.resize {
 	max-width : 100%;
 	height : auto;
 }
+
+.fa-spin {-webkit-animation:spin 1s infinite linear;-moz-animation:spin 1s infinite linear;-o-animation:spin 1s infinite linear;animation:spin 1s infinite linear}
+
+.load-icon-bg {position:fixed;top:50%;left:50%;margin-top:-22px;margin-left:-22px;background-image:url('../images/fancybox/fancybox_sprite.png');background-position:0 -108px;opacity:0.8;cursor:pointer;z-index:8060;text-align :center;}
+.load-icon-bg i{color :#fff;}
+.load-icon-bg div{width:44px;height:44px;text-align :center;padding-top :14px;}
 
 /* Layouts */
 .wrapper {
@@ -209,10 +216,10 @@ img {
   background-color: #01b3a5 !important
 }
 /* Text colors */
-.text-red {
+.text-red   ,.Rejected  {
   color: #f56954 !important
 }
-.text-teal {
+.text-teal ,.Accepted {
   color: #01a194 !important
 }
 .text-gray {
@@ -240,7 +247,7 @@ img {
 }
 /* Remove Top padding */
 .no-top-padding {
-  padding: 0px 15px;
+  padding-top : 0px;
 }
 /* Remove Top margins */
 .no-top-margin {
@@ -1212,8 +1219,8 @@ body > .header .logo .icon {
   
   	body > .header .logo { font-size:19px; }
   
-	.small-box h3 {  font-size:25px;  }
-	.dashboard  .col-sm-6  ,.dashboard  .col-md-3	{	 width : 50%; }
+	.small-box h3 {  font-size:16px;  }
+/*	.dashboard  .col-sm-6  ,.dashboard  .col-md-3	{	 width : 50%; }*/
 	.small-box h3 i  { 
 		font-size: 30px;
 		padding-bottom: 5px;
@@ -1366,7 +1373,7 @@ img.resize {
   cursor: default
 }
 .box .box-header a {
-  color: #444
+/*  color: #444*/
 }
 .box .box-header > .box-tools {
   padding: 5px 10px 5px 5px
@@ -2888,7 +2895,7 @@ footer {
 	padding : 10px;
 	background-color : #f5f4f4;
 	text-align : center;
-	min-height : 157px;
+	min-height : 155px;
 	
 	overflow : hidden;
 }
@@ -2935,7 +2942,13 @@ footer {
 .small-box .list_height_2 {
 	min-height : 110px
 }
+.min-height90 {
+	min-height : 90px
+}
 
+.min-height40 {
+	min-height : 35px
+}
 
 
 
@@ -2950,6 +2963,10 @@ footer {
     margin-left: 0;
     padding-top: 40px;
 }
+}
+
+@media screen and (max-width: 1024px) {
+/*	body { border : 1px solid #f0f;}*/
 }
 
 .col-xs-offset-1.help-block {
@@ -3065,14 +3082,14 @@ a.link {
 
 .help-block { font-size  :11px; }
 .cal{
-	width : 50%;
+	width : 35%;
 	float : left;
 	word-wrap : break-word;
 }
 .title_product{
     display: block;
     float: left;
-    width: 50%;
+    width: 65%;
     word-wrap: break-word;
 }
 @media screen and  (max-width:480px) and (min-width: 320px) {/*
@@ -3436,7 +3453,15 @@ a.active{
 .drag_pos input[type=file] { opacity  : 0;  	position : absolute;  top : 0px;  width : 100%;  cursor : pointer; }
 /*----*/
 
-
+@media only screen 
+and (min-width : 320px) 
+and (max-width : 480px) 
+and (orientation : portrait) { 
+	
+.photo_gray_bg img { width : 100%; height : auto; }
+.no-padding-right { padding-left : 0px; }  /* my store page only*/
+/*	.order-block { margin-top:45px; }*/
+}
 
 
 /*** Create Order */
@@ -3463,8 +3488,26 @@ and (orientation : landscape) {
 	.order_list .col-md-3:nth-child(6n+1) {
 		clear : left;
 	}
+	.order_list .col-md-3 {
+		padding-left : 0;
+	}
+	.order_list { padding-left :15px !important; }  /** Manage orders page*/
 }
 
+
+@media screen and (max-width: 1340px) {
+	.order_list .small-box {
+	  font-size: 13px;
+	}
+}
+
+@media only screen and (min-width : 768px) and (max-width : 1024px) {
+	
+	.order_list .col-md-3 {
+		padding-left : 0;
+	}
+	.order_list.box  { padding-left : 15px;}
+}/* for Ipad Both */
 
 #NewOrderListHtml  .small-box {
 	 background-color: #ccfaf6;
@@ -3488,9 +3531,56 @@ and (orientation : landscape) {
   	position : inherit;
   	
   }
-
-.ui-sortable .col-xs-3 { cursor : move; }
+.product_list .col-xs-12.col-sm-4 {
+	padding-right  :0px;
+}
+.product_list .box-body {
+	padding : 15px;
+}
+.ui-sortable .paneldragging { cursor : move; }
 .ui-datepicker select ,.ui-datepicker optgroup{ color : #333 !important; padding : 0}
+/** CREATE Order Page Aug13 */
+@media only screen and (min-width : 1028px) and (max-width : 1920px)  {
+	body { border : 0px solid #f0f;}
+	.product_list .col-xs-12.col-sm-4:nth-child(6n+1){
+		padding-left  :0px;
+		clear : left;
+	}
+}
+@media only screen and (min-width : 768px) and (max-width : 1024px) and (orientation : portrait) {
+	.product_list .col-xs-12.col-sm-4:nth-child(3n+1){
+		padding-left  :0px;
+		clear : left;
+	}
+}/* 780 only*/
+@media only screen and (min-width : 768px) and (max-width : 1024px) and (orientation : landscape) {
+	.product_list .col-xs-12.col-sm-4:nth-child(4n+1){
+		padding-left  :0px;
+		clear : left;
+	}
+}
+@media only screen and (min-width : 320px) and (max-width : 480px) and (orientation : portrait) {
+		
+	.product_list .col-xs-12.col-sm-4, #users_block .col-xs-12.col-sm-4 {
+		padding  :0px;
+	}
+	.search-form {
+		margin : 12px 0 8px 0 !important;
+	}
+}
+@media only screen and (min-width : 320px) and (max-width : 480px) and (orientation : landscape) {
+	.product_list .col-xs-12.col-sm-4 {
+	  padding-left: 0;
+	  width: 50%;
+	}
+	.product_list .col-xs-12.col-sm-4:nth-child(2n+1) {
+	  padding-right: 7px;
+	  clear : left;
+	}
+	.product_list .col-xs-12.col-sm-4:nth-child(2n+2) {
+	  padding-left: 7px;
+	}
+}
 
 /*-----*/
 
@@ -3504,5 +3594,33 @@ and (orientation : landscape) {
 	padding-bottom : 5px;
 	text-align : justify;
 }
+.price_cal {font-size:11px;padding-top:2px !important;}
+.price_cal span { color:gray; }
 
+.salesman_icons {
+	position : relative;
+	width: 30px;
+	height : 80px;
+	padding-top:20px;
+	padding-bottom:20px;
+	margin:auto;
+}
+.salesman_icons i {
+	position : absolute;
+	padding:0 !important;;
+}
+.salesman_icons i.one { left : 0px; top : 7px;}
+.salesman_icons i.two { left : -31px; top : 25px;font-size:50px;}
+.salesman_icons i.three { left : 25px; top : 25px;font-size:50px;}
 
+@media only screen and (min-width : 320px) and (max-width : 480px) {
+	
+.salesman_icons {
+	height : 41px;
+	padding-top:0px;
+	padding-bottom:0px;
+}
+.salesman_icons i.one { left : 0px; top :0;}
+.salesman_icons i.two { left : -22px; top : 10px;}
+.salesman_icons i.three { left : 22px; top : 10px;}
+}

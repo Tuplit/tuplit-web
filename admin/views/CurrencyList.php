@@ -114,7 +114,7 @@ $LocationList		=	$currencyObj->getLocationList();
 				<form name="search_Currency" action="CurrencyList" method="post">
 				<div class="box box-primary">
 					<div class="box-body no-padding" >
-						<div class="col-sm-3 form-group">
+						<div class="col-sm-4 col-lg-3 form-group">
 							<label>Location</label>
 							<select name="Location" id="Location"  class="form-control col-sm-4">
 								<option value="">Select</option>
@@ -124,23 +124,23 @@ $LocationList		=	$currencyObj->getLocationList();
 								<?php } } ?>
 							</select>
 						</div>
-						<div class="col-sm-3 form-group">
-							<label>Currency code</label>
+						<div class="col-sm-4 col-lg-2 form-group">
+							<label>Currency Code</label>
 							<input type="text" class="form-control" name="CurrencyCode" id="CurrencyCode"  value="<?php  if(isset($_SESSION['tuplit_sess_Currency_code']) && $_SESSION['tuplit_sess_Currency_code'] != '') echo unEscapeSpecialCharacters($_SESSION['tuplit_sess_Currency_code']);  ?>" >
 						</div>
-						<div class="col-sm-3 form-group">
+						<div class="col-sm-4 col-lg-2 form-group">
 							<label>Currency Name</label>
 							<input type="text" class="form-control" name="CurrencyName" id="CurrencyName"  value="<?php  if(isset($_SESSION['tuplit_sess_Currency_name']) && $_SESSION['tuplit_sess_Currency_name'] != '') echo unEscapeSpecialCharacters($_SESSION['tuplit_sess_Currency_name']);  ?>" >
 						</div>
-						<!--<div class="col-sm-3 form-group">
+						<div class="col-sm-4 col-lg-2 form-group">
 							<label>Status</label>
 							<select name="Status" id="Status"  class="form-control col-sm-4">
 								<option value="">Select</option>
 								<option value="1" <?php  if(isset($_SESSION['tuplit_sess_Currency_status']) && $_SESSION['tuplit_sess_Currency_status'] != '' && $_SESSION['tuplit_sess_Currency_status'] == '1') echo 'Selected';  ?> >Active</option>
-								<option value="0" <?php  if(isset($_SESSION['tuplit_sess_Currency_status']) && $_SESSION['tuplit_sess_Currency_status'] != '' && $_SESSION['tuplit_sess_Currency_status'] == '0') echo 'Selected';  ?>>Inactive</option>
+								<option value="2" <?php  if(isset($_SESSION['tuplit_sess_Currency_status']) && $_SESSION['tuplit_sess_Currency_status'] != '' && $_SESSION['tuplit_sess_Currency_status'] == '2') echo 'Selected';  ?>>Inactive</option>
 							</select>
-						</div>-->
-						<div class="col-sm-3 form-group">
+						</div>
+						<div class="col-sm-5 col-lg-3 col-xs-12 form-group">
 							<label>Created Date</label>
 							<div class="col-xs-6 no-padding"> <input type="text"  maxlength="10" class="form-control  fleft" name="SearchDate" id="SearchDate" title="Select Date" value="<?php if(isset($_SESSION['tuplit_sess_Currency_registerdate']) && $_SESSION['tuplit_sess_Currency_registerdate'] != '') echo date('m/d/Y',strtotime($_SESSION['tuplit_sess_Currency_registerdate'])); else echo '';?>" ></div>
 							<div class="col-xs-6 LH30">(mm/dd/yyyy)</div>
@@ -204,14 +204,14 @@ $LocationList		=	$currencyObj->getLocationList();
 									<td align="center" nowrap><?php echo (($_SESSION['curpage'] - 1) * ($_SESSION['perpage']))+$key+1;?></td>												
 									<td>
 										<div class="mb_wrap">											
-											<div class="col-xs-10">
+											<div class="col-xs-10 no-padding">
 												<b>Code &nbsp;: </b><?php if(isset($value->Code) && $value->Code != '') echo strtoupper($value->Code); else echo '-';   ?></br>
 												<b>Location &nbsp;: </b><?php if(isset($value->LocationName) && $value->LocationName != '') echo ucfirst($value->LocationName); else echo '-';   ?></br>
 												<b>Name : </b><?php if(isset($value->Currency) && $value->Currency != '') echo ucfirst($value->Currency);  else echo '-'; ?></br>
 												<i class="fa fa-fw fa-calendar"></i> <?php if(isset($value->DateCreated) && $value->DateCreated != '0000-00-00 00:00:00'){ echo date('m/d/Y',strtotime($value->DateCreated)); }else echo '-';?>
 											</div> 
 											<div class="row-actions col-xs-12">
-												<?php if($value->Status == 1) { ?><a class="active_icon" onclick="javascript:return confirm('Are you sure want to change the status?')" href="CurrencyList?status=2&editId=<?php if(isset($value->id) && $value->id != '') echo $value->id;?>" title="Click to Inactive"><i class="fa fa-user "></i></a><?php } else { ?><a class="inactive_icon" onclick="javascript:return confirm('Are you sure you want to change the status?')" title="Click to Active" href="CurrencyList?status=1&editId=<?php if(isset($value->id) && $value->id != '') echo $value->id;?>"><i class="fa fa-user "></i></a><?php } ?>
+												<?php if($value->Status == 1) { ?><a class="active_icon" onclick="javascript:return confirm('Are you sure want to change the status?')" href="CurrencyList?status=2&editId=<?php if(isset($value->id) && $value->id != '') echo $value->id;?>" title="Click to Inactive"><i class="fa fa-money "></i></a><?php } else { ?><a class="inactive_icon" onclick="javascript:return confirm('Are you sure you want to change the status?')" title="Click to Active" href="CurrencyList?status=1&editId=<?php if(isset($value->id) && $value->id != '') echo $value->id;?>"><i class="fa fa-money "></i></a><?php } ?>
 												<a href="CurrencyManage?editId=<?php if(isset($value->id) && $value->id != '') echo $value->id; ?>" title="Edit" data-toggle="tooltip" alt="Edit" class="edit"><i class="fa fa-edit "></i></a>
 												<a onclick="javascript:return confirm('Are you sure to delete?') " href="CurrencyList?delId=<?php if(isset($value->id) && $value->id != '') echo $value->id;?>" title="Delete" data-toggle="tooltip" alt="Delete" class="delete"><i class="fa fa-trash-o "></i></a>
 											</div>
@@ -226,14 +226,14 @@ $LocationList		=	$currencyObj->getLocationList();
 									<td align="center" nowrap><?php echo (($_SESSION['curpage'] - 1) * ($_SESSION['perpage']))+$key+1;?></td>												
 									<td>
 									<div class="mb_wrap_sm">
-										<div class="col-xs-10"> 
+										<div class="col-xs-10 no-padding"> 
 											<b>Code &nbsp;: </b><?php if(isset($value->Code) && $value->Code != '') echo strtoupper($value->Code); else echo '-';   ?></br>
 											<b>Location &nbsp;: </b><?php if(isset($value->LocationName) && $value->LocationName != '') echo ucfirst($value->LocationName); else echo '-';   ?></br>
 											<b>Name : </b><?php if(isset($value->Currency) && $value->Currency != '') echo ucfirst($value->Currency);  else echo '-'; ?></br>
 											<i class="fa fa-fw fa-calendar"></i> <?php if(isset($value->DateCreated) && $value->DateCreated != '0000-00-00 00:00:00'){ echo date('m/d/Y',strtotime($value->DateCreated)); }else echo '-';?>
 										</div> 
 										<div class="row-actions col-xs-12">
-											<?php if($value->Status == 1) { ?><a class="active_icon" onclick="javascript:return confirm('Are you sure want to change the status?')" href="CurrencyList?status=2&editId=<?php if(isset($value->id) && $value->id != '') echo $value->id;?>" title="Click to Inactive"><i class="fa fa-user "></i></a><?php } else { ?><a class="inactive_icon" onclick="javascript:return confirm('Are you sure you want to change the status?')" title="Click to Active" href="CurrencyList?status=1&editId=<?php if(isset($value->id) && $value->id != '') echo $value->id;?>"><i class="fa fa-user "></i></a><?php } ?>
+											<?php if($value->Status == 1) { ?><a class="active_icon" onclick="javascript:return confirm('Are you sure want to change the status?')" href="CurrencyList?status=2&editId=<?php if(isset($value->id) && $value->id != '') echo $value->id;?>" title="Click to Inactive"><i class="fa fa-money "></i></a><?php } else { ?><a class="inactive_icon" onclick="javascript:return confirm('Are you sure you want to change the status?')" title="Click to Active" href="CurrencyList?status=1&editId=<?php if(isset($value->id) && $value->id != '') echo $value->id;?>"><i class="fa fa-money "></i></a><?php } ?>
 											<a href="CurrencyManage?editId=<?php if(isset($value->id) && $value->id != '') echo $value->id; ?>" title="Edit" data-toggle="tooltip" class="edit"><i class="fa fa-edit "></i></a>
 											<a onclick="javascript:return confirm('Are you sure to delete?') " href="CurrencyList?delId=<?php if(isset($value->id) && $value->id != '') echo $value->id;?>" title="Delete" data-toggle="tooltip" class="delete"><i class="fa fa-trash-o "></i></a>
 										</div>
@@ -257,7 +257,7 @@ $LocationList		=	$currencyObj->getLocationList();
                </div>
 			   
 			   <?php } else { ?>	
-						<div class="alert alert-danger alert-dismissable col-sm-5  "><i class="fa fa-warning"></i> No Currency found</div> 
+						<div class="alert alert-danger alert-dismissable col-sm-5  col-xs-11 "><i class="fa fa-warning"></i> No Currency found</div> 
 					<?php } ?>	
            </div>
 	</section><!-- /.content -->	

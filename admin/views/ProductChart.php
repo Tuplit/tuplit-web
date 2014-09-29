@@ -13,7 +13,7 @@
 
 <?php if(isset($error_div) && $error_div==0 && !empty($product_array)) {?>
  <div>
- 	<div align="right"><a id="view_list" href="#charts">View Product List</a></div>
+ 	<div align="right"><a id="view_list" href="#view_list"><strong><i class="fa fa-list"></i> View Product List</strong></a></div>
 	 <div class="box-header">
 	     <h3 class="box-title">Bar Chart</h3>
 	 </div>			  
@@ -28,7 +28,7 @@
 	 </div>
 </div> 
 <?php } ?>
- <script type="text/javascript">
+<script type="text/javascript">
 $('.chart').html('');
 <?php if(isset($error_div) && $error_div==0 && !empty($product_array)) {	?>
 
@@ -51,7 +51,7 @@ $(document).ready(function() {
               ykeys: ['a'],
               labels: ['Order(s)'],
               hideHover: 'auto',
-			//  xLabelAngle: 60
+			 
 			 
           });
 		 var orderby	=	$("#orderby").val();
@@ -107,7 +107,7 @@ $(document).ready(function() {
 <?php
 
  } ?>
- <div class="row table-responsive no-margin">
+ <div class="row table-responsive no-margin" id="pro_list">
 	<?php if(isset($product_array) && !empty($product_array)) { ?>
 	<form  id="productAnalytics" name="productAnalytics" action="#" method="post">
 		<input type="Hidden" name="orderby" id="orderby" value="<?php if(isset($sort_field) && $sort_field !='') echo $sort_field;?>">
@@ -142,7 +142,9 @@ $(document).ready(function() {
 		<?php } //end for ?>	
 	  </table>
   </form>
-  <div align="right"><span class=""><a id="charts" href="#view_list">View Charts</a></span></div>
+ <?php if(isset($product_array) && !empty($product_array)) { ?>
+		<div align="right" class="col-xs-12"><span class=""><a id="charts" href="#charts"> <strong><i class="fa fa-bar-chart-o"></i> View Charts</strong></a></span><br><br></div>					
+	<?php } ?>		
 <?php } else { ?>
 	<div class="row clear">		
 		 <div align="center" class="alert alert-danger alert-dismissable col-lg-4 col-sm-5 col-xs-10">
@@ -150,3 +152,17 @@ $(document).ready(function() {
 	</div>							
 <?php } ?>						
 </div>
+<script type="text/javascript">
+	$("a[href='#view_list']").click(function() {
+		  var pos = $("#pro_list").position().top;
+		  var ht = $(document).height() - pos;
+		 $("html, body").animate({ scrollTop: $("#pro_list").offset().top - $(".navbar").height()  }, {duration: $("#pro_list").offset().top});
+		  return false; 
+    });
+	$("a[href='#charts']").click(function() {
+		  var pos = $("#view_list").position().top;
+		  var ht = $(document).height() - pos;
+		 $("html, body").animate({ scrollTop: $("#view_list").offset().top - $(".navbar").height()  }, {duration: $("#view_list").offset().top});
+		  return false; 
+    });
+</script>

@@ -18,24 +18,34 @@ $condition       	= "  Status =1 and MangoPayUniqueId != '' order by CompanyName
 $merchantList		= 	$merchantObj->selectMerchantDetails($field,$condition);
 if((isset($_POST['Search']) && !empty($_POST['Search'])) || (isset($_POST['export-excel']) && $_POST['export-excel'] == 1)) {
 	if(isset($_POST['Merchant']) && $_POST['Merchant'] != ''){
-		$from_date	=	$_POST['from_date'];
-		$to_date	=	$_POST['to_date'];
+		if(isset($_POST['from_date']) && !empty($_POST['from_date']))
+			$from_date	=	$_POST['from_date'];
+		else
+			$from_date	=	date("m/d/Y",strtotime("-1 month"));
+		if(isset($_POST['to_date']) && !empty($_POST['to_date']))
+			$to_date	=	$_POST['to_date'];
+		else
+			$to_date			=	date("m/d/Y",strtotime("+1 day"));
 		if(isset($_POST['Merchant']) && $_POST['Merchant'] != ''){
 			$_SESSION['tuplit_sess_merchant_id']	=	$_POST['Merchant'];
 			$merchantListResult  					= 	$merchantObj->selectMerchantDetail($_POST['Merchant']);
 		}
 		$inputarr['Id']				=	$merchantListResult[0]->WalletId;
-		if(isset($_POST['from_date']) && !empty($_POST['from_date']))
-			 $inputarr['Start']	=	strtotime($_POST['from_date']);
-		if(isset($_POST['to_date']) && !empty($_POST['to_date']))
-			$to_date   = $inputarr['End']		=	strtotime($_POST['to_date']);
+		if(isset($from_date) && !empty($from_date))
+			$inputarr['Start']	=	strtotime($from_date);
+		if(isset($to_date) && !empty($to_date))
+			$inputarr['End']		=	strtotime($to_date);
 		if(isset($_POST['Status']) && !empty($_POST['Status'])) {
+			$status		=	$_POST['Status'];
 			if($_POST['Status'] == 1)
 				$inputarr['Status']		=	'SUCCEEDED';
 			else if($_POST['Status'] == 2)
 				$inputarr['Status']		=	'FAILED';
 		}
-			
+		if(isset($_POST['Nature']) && !empty($_POST['Nature'])) {
+			$nature					=	$_POST['Nature'];
+			$inputarr['Nature']		=	$nature;
+		}
 		$result					=	GetTransactionsNew($inputarr);		
 		$fields					=	'';
 		$conditions				=	"o.fkMerchantsId =".$_POST['Merchant']." ";	
@@ -45,21 +55,19 @@ if((isset($_POST['Search']) && !empty($_POST['Search'])) || (isset($_POST['expor
 				$nameArray[$val->MangoPayUniqueId]	=	ucfirst($val->FirstName).' '.ucfirst($val->LastName);
 			}
 		}
+		//forming result 
+		foreach($result as $key=>$val){
+			$TransactionsList[$key]					= 	(array)$val;
 			
-			//forming result 
-			foreach($result as $key=>$val){
-				$TransactionsList[$key]					= 	(array)$val;
-				
-				//user uniqueId
-				$id							=	$val->AuthorId;
-				if(array_key_exists($id,$nameArray))
-					$TransactionsList[$key]['Customer']	=	$nameArray[$id];
-				else
-					$TransactionsList[$key]['Customer']	=	'';
-			}
+			//user uniqueId
+			$id							=	$val->AuthorId;
+			if(array_key_exists($id,$nameArray))
+				$TransactionsList[$key]['Customer']	=	$nameArray[$id];
+			else
+				$TransactionsList[$key]['Customer']	=	'';
+		}
 	}
 }
-
 /* FOR CSV export */
 if(isset($_POST['export-excel']) && $_POST['export-excel'] == 1)
 {
@@ -91,24 +99,22 @@ commonHead();
 
 <body class="skin-blue">
 	<?php top_header(); ?>
-	
 	<!-- Content Header (Page header) -->
 	<section class="content-header no-padding">
-		<div class="col-xs-7">
+		<div class="col-xs-12">
 			<h1><i class="fa fa-list"></i> Transaction List</h1>
 		</div>
 	</section>
-	
 	 <!-- Main content -->
 	<section class="content">
 		<div class="row">
 			<div class="col-xs-12">
 					<form name="search_transaction" id="search_transaction" action="TransactionList?cs=1" method="post">
 					<div class="box box-primary">
-						<div class="box-body" >		
+						<div class="box-body no-padding" >		
 							<div class="col-sm-4 form-group">
 									<label>Merchant</label>
-									<select class="form-control " name="Merchant" id="Merchant" onchange="getProductCategory(this.value);">
+									<select class="form-control " name="Merchant" id="Merchant">
 										<option value="" >Select</option>								
 										<?php if(isset($merchantList) && !empty($merchantList)) {
 											foreach($merchantList as $m_key=>$m_val) {								
@@ -117,15 +123,15 @@ commonHead();
 										<?php } } ?>								
 									</select>
 							</div>
-							<div class="col-sm-4  col-md-2 form-group">
+							<div class="col-sm-4 col-xs-6 col-md-2 form-group">
 								<label>After Date</label>
-								<input  type="text" id = "from_date" class="form-control datepicker" autocomplete="off" title="Select Date" name="from_date" value="<?php if(isset($_POST['from_date']) && $_POST['from_date'] != '') echo $_POST['from_date'];?>" onchange="return emptyDates(this);">
+								<input  type="text" id = "from_date" class="form-control datepicker" autocomplete="off" title="Select Date" name="from_date" value="<?php if(isset($from_date) && $from_date != '') echo $from_date;?>" onchange="return emptyDates(this);">
 							</div>
-							<div class="col-sm-4 col-md-2 form-group">
+							<div class="col-sm-4 col-xs-6 col-md-2 form-group">
 								<label>Before Date</label>
-								<input type="text" id = "to_date" class="form-control datepicker" autocomplete="off"  title="Select Date" name="to_date" value="<?php if(isset($_POST['to_date']) && $_POST['to_date'] != '') echo $_POST['to_date'];?>" onchange="return emptyDates(this);">
+								<input type="text" id = "to_date" class="form-control datepicker" autocomplete="off"  title="Select Date" name="to_date" value="<?php if(isset($to_date) && $to_date != '') echo $to_date;?>" onchange="return emptyDates(this);">
 							</div>
-							<div class="col-sm-4 col-md-2 form-group">
+							<div class="col-sm-4 col-xs-12 col-md-2 form-group">
 								<label>Status</label>
 								<select id="Status" class="form-control" name="Status">
 									<option value="">Select</option>
@@ -133,8 +139,16 @@ commonHead();
 									<option value="2" <?php if(isset($status) && $status == 2) echo "selected"; ?>>Failed</option>
 								</select>
 							</div>
+							<div class="col-sm-4 col-xs-12 col-md-2 form-group">
+								<label>Transaction Type</label>
+								<select id="Nature" class="form-control" name="Nature">
+									<option value="">Select</option>
+									<option value="REGULAR" <?php if(isset($nature) && $nature == 'REGULAR') echo "selected"; ?>>Regular</option>
+									<option value="REFUND" <?php if(isset($nature) && $nature == 'REFUND') echo "selected"; ?>>Refund</option>
+								</select>
+							</div>
 						</div>
-						<div class="box-footer col-sm-12" align="center">
+						<div class="box-footer col-xs-12" align="center">
 							<input type="submit" class="btn btn-success" name="Search" id="Search" value="Search" title="Search">
 						</div>					
 					</div>
@@ -181,9 +195,9 @@ commonHead();
 									<td><?php echo date("H:i:s", $value['CreationDate']); ?></td>
 									<!--<td><?php echo $value['AuthorId']; ?></td>-->
 									<td><?php if(!empty($value['Customer'])) echo $value['Customer']; else echo "Test Transaction"; ?></td>
-									<td class="text-right"><?php echo '<b>'.price_fomat($value['DebitedFunds']->Amount)."</b>"; ?></td>
-									<td class="text-right"><?php echo '<b>'.price_fomat($value['CreditedFunds']->Amount)."</b>"; ?></td>
-									<td class="text-right"><?php echo '<b>'.price_fomat($value['Fees']->Amount)."</b>";//echo $value['DebitedFunds']['Currency'].' '.$value['Fees']['Amount']; ?></td>
+									<td class="text-right"><?php echo '<b>'.price_fomat($value['DebitedFunds']->Amount/100)."</b>"; ?></td>
+									<td class="text-right"><?php echo '<b>'.price_fomat($value['CreditedFunds']->Amount/100)."</b>"; ?></td>
+									<td class="text-right"><?php echo '<b>'.price_fomat($value['Fees']->Amount/100)."</b>";//echo $value['DebitedFunds']['Currency'].' '.$value['Fees']['Amount']; ?></td>
 									<td class=""><?php echo $value['Nature']; ?></td>
 									<td class=""><?php 
 										if($value['Status'] == 'SUCCEEDED')

@@ -91,7 +91,6 @@ else if(isset($_GET['msg']) && $_GET['msg'] == 4){
 ?>
 <body class="skin-blue">
 	<?php top_header(); ?>
-	
 	<!-- Content Header (Page header) -->
 	<section class="content-header no-padding">
 		<div class="col-xs-7">
@@ -99,7 +98,6 @@ else if(isset($_GET['msg']) && $_GET['msg'] == 4){
 		</div>
 		<div class="col-sm-5 col-xs-12"><h3><a href="LocationManage" title="Add Location"><i class="fa fa-plus-circle"></i> Add Location</a></h3></div>
 	</section>
-	
 	 <!-- Main content -->
 	<section class="content">
 		<div class="row">
@@ -108,31 +106,30 @@ else if(isset($_GET['msg']) && $_GET['msg'] == 4){
 				<div class="box box-primary">
 					<div class="box-body no-padding" >				
 						<div class="col-sm-3 form-group">
-							<label>Location code</label>
+							<label>Location Code</label>
 							<input type="text" class="form-control" name="LocationCode" id="LocationCode"  value="<?php  if(isset($_SESSION['tuplit_sess_Location_code']) && $_SESSION['tuplit_sess_Location_code'] != '') echo unEscapeSpecialCharacters($_SESSION['tuplit_sess_Location_code']);  ?>" >
 						</div>
 						<div class="col-sm-3 form-group">
 							<label>Location Name</label>
 							<input type="text" class="form-control" name="LocationName" id="LocationName"  value="<?php  if(isset($_SESSION['tuplit_sess_Location_name']) && $_SESSION['tuplit_sess_Location_name'] != '') echo unEscapeSpecialCharacters($_SESSION['tuplit_sess_Location_name']);  ?>" >
 						</div>
-						<!--<div class="col-sm-3 form-group">
+						<div class="col-sm-3 form-group">
 							<label>Status</label>
 							<select name="Status" id="Status"  class="form-control col-sm-4">
 								<option value="">Select</option>
 								<option value="1" <?php  if(isset($_SESSION['tuplit_sess_Location_status']) && $_SESSION['tuplit_sess_Location_status'] != '' && $_SESSION['tuplit_sess_Location_status'] == '1') echo 'Selected';  ?> >Active</option>
-								<option value="0" <?php  if(isset($_SESSION['tuplit_sess_Location_status']) && $_SESSION['tuplit_sess_Location_status'] != '' && $_SESSION['tuplit_sess_Location_status'] == '0') echo 'Selected';  ?>>Inactive</option>
+								<option value="2" <?php  if(isset($_SESSION['tuplit_sess_Location_status']) && $_SESSION['tuplit_sess_Location_status'] != '' && $_SESSION['tuplit_sess_Location_status'] == '2') echo 'Selected';  ?>>Inactive</option>
 							</select>
-						</div>-->
-						<div class="col-sm-3 form-group">
+						</div>
+						<div class="col-sm-3 col-xs-12 form-group">
 							<label>Created Date</label>
 							<div class="col-xs-6 no-padding"> <input type="text"  maxlength="10" class="form-control  fleft" name="SearchDate" id="SearchDate" title="Select Date" value="<?php if(isset($_SESSION['tuplit_sess_Location_registerdate']) && $_SESSION['tuplit_sess_Location_registerdate'] != '') echo date('m/d/Y',strtotime($_SESSION['tuplit_sess_Location_registerdate'])); else echo '';?>" ></div>
 							<div class="col-xs-6 LH30">(mm/dd/yyyy)</div>
 						</div>
 					</div>
-					<div class="box-footer col-xs-12" align="center">
+					<div class="box-footer col-xs-12 clear" align="center">
 						<input type="submit" class="btn btn-success" name="Search" id="Search" value="Search">
 					</div>
-					
 				</div>
 				</form>
 			</div>
@@ -187,13 +184,13 @@ else if(isset($_GET['msg']) && $_GET['msg'] == 4){
 									<td align="center" nowrap><?php echo (($_SESSION['curpage'] - 1) * ($_SESSION['perpage']))+$key+1;?></td>												
 									<td>
 										<div class="mb_wrap">											
-											<div class="col-xs-10">
+											<div class="col-xs-10 no-padding">
 												<b>Code &nbsp;: </b><?php if(isset($value->Code) && $value->Code != '') echo $value->Code; else echo '-';   ?></br>
 												<b>Name : </b><?php if(isset($value->Location) && $value->Location != '') echo ucfirst($value->Location);  else echo '-'; ?></br>
 												<i class="fa fa-fw fa-calendar"></i> <?php if(isset($value->DateCreated) && $value->DateCreated != '0000-00-00 00:00:00'){ echo date('m/d/Y',strtotime($value->DateCreated)); }else echo '-';?>
 											</div> 
 											<div class="row-actions col-xs-12">
-												<?php if($value->Status == 1) { ?><a class="active_icon" onclick="javascript:return confirm('Are you sure want to change the status?')" href="LocationList?status=2&editId=<?php if(isset($value->id) && $value->id != '') echo $value->id;?>" title="Click to Inactive"><i class="fa fa-user "></i></a><?php } else { ?><a class="inactive_icon" onclick="javascript:return confirm('Are you sure you want to change the status?')" title="Click to Active" href="LocationList?status=1&editId=<?php if(isset($value->id) && $value->id != '') echo $value->id;?>"><i class="fa fa-user "></i></a><?php } ?>
+												<?php if($value->Status == 1) { ?><a class="active_icon" onclick="javascript:return confirm('Are you sure want to change the status?')" href="LocationList?status=2&editId=<?php if(isset($value->id) && $value->id != '') echo $value->id;?>" title="Click to Inactive"><i class="fa fa-map-marker "></i></a><?php } else { ?><a class="inactive_icon" onclick="javascript:return confirm('Are you sure you want to change the status?')" title="Click to Active" href="LocationList?status=1&editId=<?php if(isset($value->id) && $value->id != '') echo $value->id;?>"><i class="fa fa-map-marker"></i></a><?php } ?>
 																						
 												<a href="LocationManage?editId=<?php if(isset($value->id) && $value->id != '') echo $value->id; ?>" title="Edit" data-toggle="tooltip" alt="Edit" class="edit"><i class="fa fa-edit "></i></a>
 												<a onclick="javascript:return confirm('Are you sure to delete?') " href="LocationList?delId=<?php if(isset($value->id) && $value->id != '') echo $value->id;?>" title="Delete" data-toggle="tooltip" alt="Delete" class="delete"><i class="fa fa-trash-o "></i></a>
@@ -209,13 +206,13 @@ else if(isset($_GET['msg']) && $_GET['msg'] == 4){
 									<td align="center" nowrap><?php echo (($_SESSION['curpage'] - 1) * ($_SESSION['perpage']))+$key+1;?></td>												
 									<td>
 									<div class="mb_wrap_sm">
-										<div class="col-xs-10"> 
+										<div class="col-xs-10 no-padding"> 
 											<b>Code &nbsp;: </b><?php if(isset($value->Code) && $value->Code != '') echo $value->Code; else echo '-';   ?></br>
 											<b>Name : </b><?php if(isset($value->Location) && $value->Location != '') echo ucfirst($value->Location);  else echo '-'; ?></br>
 											<i class="fa fa-fw fa-calendar"></i> <?php if(isset($value->DateCreated) && $value->DateCreated != '0000-00-00 00:00:00'){ echo date('m/d/Y',strtotime($value->DateCreated)); }else echo '-';?>
 										</div> 
 										<div class="row-actions col-xs-12">
-											<?php if($value->Status == 1) { ?><a class="active_icon" onclick="javascript:return confirm('Are you sure want to change the status?')" href="LocationList?status=2&editId=<?php if(isset($value->id) && $value->id != '') echo $value->id;?>" title="Click to Inactive"><i class="fa fa-user "></i></a><?php } else { ?><a class="inactive_icon" onclick="javascript:return confirm('Are you sure you want to change the status?')" title="Click to Active" href="LocationList?status=1&editId=<?php if(isset($value->id) && $value->id != '') echo $value->id;?>"><i class="fa fa-user "></i></a><?php } ?>
+											<?php if($value->Status == 1) { ?><a class="active_icon" onclick="javascript:return confirm('Are you sure want to change the status?')" href="LocationList?status=2&editId=<?php if(isset($value->id) && $value->id != '') echo $value->id;?>" title="Click to Inactive"><i class="fa fa-map-marker "></i></a><?php } else { ?><a class="inactive_icon" onclick="javascript:return confirm('Are you sure you want to change the status?')" title="Click to Active" href="LocationList?status=1&editId=<?php if(isset($value->id) && $value->id != '') echo $value->id;?>"><i class="fa fa-map-marker "></i></a><?php } ?>
 																						
 											<a href="LocationManage?editId=<?php if(isset($value->id) && $value->id != '') echo $value->id; ?>" title="Edit" data-toggle="tooltip" class="edit"><i class="fa fa-edit "></i></a>
 											<a onclick="javascript:return confirm('Are you sure to delete?') " href="LocationList?delId=<?php if(isset($value->id) && $value->id != '') echo $value->id;?>" title="Delete" data-toggle="tooltip" class="delete"><i class="fa fa-trash-o "></i></a>
@@ -240,7 +237,7 @@ else if(isset($_GET['msg']) && $_GET['msg'] == 4){
                </div>
 			   
 			   <?php } else { ?>	
-						<div class="alert alert-danger alert-dismissable col-sm-5  "><i class="fa fa-warning"></i> No Location found</div> 
+						<div class="alert alert-danger alert-dismissable col-sm-5  col-xs-11 "><i class="fa fa-warning"></i> No Location found</div> 
 					<?php } ?>	
            </div>
 	</section><!-- /.content -->	

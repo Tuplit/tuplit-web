@@ -282,9 +282,13 @@ else if(isset($_GET['msg']) && $_GET['msg'] == 5){
 								<td>
 								<?php if(isset($image_path) && $image_path != ''){ ?>
 									<div class="col-xs-2 col-md-1 no-padding">
-										<a <?php if(isset($image_path) && basename($image_path) != "no_user.jpeg") { ?>href="<?php echo $original_path; ?>" class="fancybox" title="<?php echo  ucfirst($value->FirstName).' '.ucfirst($value->LastName);?>" <?php } ?> > 
+										<?php if(isset($image_path) && basename($image_path) != "no_user.jpeg") { ?>
+										<a href="<?php echo $original_path; ?>" class="fancybox" title="<?php echo  ucfirst($value->FirstName).' '.ucfirst($value->LastName);?>"  > 
 											<img id="<?php echo $value->id ;?>"  width="36" height="36" align="top" class="img_border" src="<?php echo $image_path;?>" >
 										</a>
+										<?php } else { ?>
+										<div class="no_photo img36"><i class="fa fa-user"></i></div>
+										<? } ?>
 									</div>
 								<?php } ?>
 									<div class="col-xs-10 col-md-11 "> 								
@@ -357,7 +361,7 @@ else if(isset($_GET['msg']) && $_GET['msg'] == 5){
 					</form>
 					
 					<?php } else { ?>	
-						<div class="alert alert-danger alert-dismissable col-xs-4 "><i class="fa fa-warning"></i> No Customer found</div> 
+						<div class="alert alert-danger alert-dismissable col-sm-4 col-xs-12 "><i class="fa fa-warning"></i> No Customer found</div> 
 					<?php } ?>	
                </div>
            </div>

@@ -6,7 +6,15 @@ if(isset($_SESSION['tuplit_merchant_user_name'])){
 	//header('location:UserList?cs=1');
 	//die();
 }
-$error = '';
+//echo "<pre>"; echo print_r($_SESSION['merchantDetailsInfo']); echo "</pre>";
+
+
+$error 		= 	'';
+$subuser	=	0;
+if(isset($_SESSION['merchantSubuser']) && !empty($_SESSION['merchantSubuser']) && $_SESSION['merchantSubuser'] == 1) {
+	$subuser	=	1;
+}
+
 if(isset($_POST['merchant_login_submit']) && $_POST['merchant_login_submit'] == 'Submit'){
 	$_POST          =   unEscapeSpecialCharacters($_POST);
    	$_POST          =   escapeSpecialCharacters($_POST);
@@ -36,25 +44,25 @@ commonHead();
 		<section class="content dashboard">
 		<div class="row ">
 			<div class="col-lg-8 box-center"> 
-				<div class="col-sm-4 col-md-6 col-xs-12">
+				
+				<div class="col-md-3 col-sm-6 col-xs-6" onclick="location.href='CreateOrder?cs=1'" style="cursor:pointer" title="Create Order">
                    <!-- small box -->
-					<div class="small-box bg-teal" onclick="location.href='CreateOrder?cs=1'" style="cursor:pointer" title="Create Order">
-						<div class="inner">
-							<h3 class="text-center">
+                   <div class="small-box bg-teal">
+                       <div class="inner">
+                           <h3 class="text-center">
 								<i class="fa fa-plus"></i>  <br>                  
 								Create Order
-							</h3>
-						</div>
-						<div class="icon">
-							<i class="ion ion-bag"></i>
-						</div>
-						<a class="small-box-footer" href="CreateOrder?cs=1">
+                           </h3>
+                       </div>
+                       <div class="icon">
+                           <i class="ion ion-stats-bars"></i>
+                       </div>
+                      <a class="small-box-footer" href="CreateOrder?cs=1">
 							More info <i class="fa fa-arrow-circle-right"></i>
 						</a>
-					</div>
-				</div><!-- ./col -->
-							
-				<div class="col-md-3 col-sm-4 col-xs-12" style="cursor:pointer" onclick="location.href='Orders?cs=1'" title=" Manage Orders">
+                   </div>
+               </div><!-- ./col -->			
+				<div class="col-md-3 col-sm-6 col-xs-6" style="cursor:pointer" onclick="location.href='Orders?cs=1'" title=" Manage Orders">
                    <!-- small box -->
                    <div class="small-box bg-teal">
                        <div class="inner">
@@ -71,9 +79,8 @@ commonHead();
                        </a>
                    </div>
                </div><!-- ./col -->
-			   <?php //if ($_SERVER['HTTP_HOST'] == '172.21.4.104') $transaction = 'TransactionList?cs=1'; else $transaction = "#"; ?>
 			   <?php $transaction = 'TransactionList?cs=1'; ?>
-               <div class="col-md-3 col-sm-4 col-xs-12" style="cursor:pointer" onclick="location.href='<?php echo $transaction;?>'"  title="Transactions">
+               <div class="col-md-3 col-sm-4 col-xs-6" style="cursor:pointer" onclick="location.href='<?php echo $transaction;?>'"  title="Transactions">
                    <!-- small box -->
                    <div class="small-box bg-teal">
                        <div class="inner">
@@ -91,33 +98,7 @@ commonHead();
                        </a>
                    </div>
                </div><!-- ./col -->
-				
-			 </div>
-		</div>
-				
-			  <div class="row">
-			  
-			  <div class="col-lg-8 box-center" >
-				<?php //if ($_SERVER['HTTP_HOST'] == '172.21.4.104') $Analyticshref = 'CustomerList?cs=1'; else $Analyticshref = "#"; ?>
-				<?php $Analyticshref = 'CustomerList?cs=1'; ?>
-               	<div class="col-md-3 col-sm-6 col-xs-12" style="cursor:pointer" <?php if(!empty($Analyticshref)) echo 'onclick="location.href=\''.$Analyticshref.'\'"'; ?>  title="Analytics">
-                   <!-- small box -->
-                   <div class="small-box bg-teal">
-                       <div class="inner">
-                           <h3 class="text-center">
-								<i class="fa fa-bar-chart-o"></i> <br>
-								Analytics
-                           </h3>
-                       </div>
-                       <div class="icon">
-                           <i class="ion ion-person-add"></i>
-                       </div>
-                       <a class="small-box-footer" href="<?php if(!empty($Analyticshref)) echo $Analyticshref; ?>">
-                           More info <i class="fa fa-arrow-circle-right"></i>
-                       </a>
-                   </div>
-               </div><!-- ./col -->
-               <div class="col-md-3 col-sm-6 col-xs-12" onclick="location.href='ProductList'" style="cursor:pointer"  title="Products">
+				  <div class="col-md-3 col-sm-4 col-xs-6" onclick="location.href='ProductList'" style="cursor:pointer"  title="Products">
                    <!-- small box -->
                    <div class="small-box bg-teal" >
                        <div class="inner">
@@ -134,8 +115,30 @@ commonHead();
                        </a>
                    </div>
                </div><!-- ./col -->
-			   <?php if ($_SERVER['HTTP_HOST'] == '172.21.4.104') $MyStorehref = 'MyStore'; else $MyStorehref = "#"; ?>
-               <div class="col-md-3  col-sm-6 col-xs-12" style="cursor:pointer" <?php if(!empty($MyStorehref)) echo 'onclick="location.href=\''.$MyStorehref.'\'"'; ?> title=" My Store">
+			 </div>
+				
+			
+			  <div class="col-lg-8 box-center" >
+				<?php if($subuser == 0) { $Analyticshref = 'CustomerList?cs=1'; ?>
+               	<div class="col-md-3 col-sm-4 col-xs-6" style="cursor:pointer" <?php if(!empty($Analyticshref)) echo 'onclick="location.href=\''.$Analyticshref.'\'"'; ?>  title="Analytics">
+                   <!-- small box -->
+                   <div class="small-box bg-teal">
+                       <div class="inner">
+                           <h3 class="text-center">
+								<i class="fa fa-bar-chart-o"></i> <br>
+								Analytics
+                           </h3>
+                       </div>
+                       <div class="icon">
+                           <i class="ion ion-person-add"></i>
+                       </div>
+                       <a class="small-box-footer" href="<?php if(!empty($Analyticshref)) echo $Analyticshref; ?>">
+                           More info <i class="fa fa-arrow-circle-right"></i>
+                       </a>
+                   </div>
+               </div><!-- ./col -->			   
+			   <?php $MyStorehref = 'MyStore'; ?>
+               <div class="col-md-3  col-sm-4 col-xs-6" style="cursor:pointer" <?php if(!empty($MyStorehref)) echo 'onclick="location.href=\''.$MyStorehref.'\'"'; ?> title=" My Store">
                    <!-- small box -->
                    <div class="small-box bg-teal">
                        <div class="inner">
@@ -153,7 +156,7 @@ commonHead();
                    </div>
                </div><!-- ./col -->
 			 
-               <div class="col-md-3 col-sm-6 col-xs-12" style="cursor:pointer" onclick="location.href='Myaccount'" title="Settings">
+               <div class="col-md-3 col-sm-4 col-xs-6" style="cursor:pointer" onclick="location.href='Myaccount'" title="Settings">
                    <!-- small box -->
                    <div class="small-box bg-teal">
                        <div class="inner">
@@ -170,6 +173,29 @@ commonHead();
                        </a>
                    </div>
                </div><!-- ./col -->
+			 
+               <div class="col-md-3 col-sm-4 col-xs-6" style="cursor:pointer" onclick="location.href='SalesPersonList'" title="SalesPersons">
+                   <!-- small box -->
+                   <div class="small-box bg-teal">
+                       <div class="inner">
+                           <h3 class="text-center">
+						   <div class="salesman_icons">	
+						   		<i class="fa fa-male one"></i>
+								<i class="fa fa-male two"></i>
+								<i class="fa fa-male three"></i>
+							</div>
+                              Salespersons
+                           </h3>
+                       </div>
+                       <div class="icon">
+                           <i class="ion ion-pie-graph"></i>
+                       </div>
+                       <a class="small-box-footer" href="SalesPersonList">
+                           More info <i class="fa fa-arrow-circle-right"></i>
+                       </a>
+                   </div>
+               </div><!-- ./col -->
+			   <?php } ?>
 			   </div>
            </div><!-- /.row -->
 		</section>

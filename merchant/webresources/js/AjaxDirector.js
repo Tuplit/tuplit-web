@@ -140,19 +140,51 @@ function settabindex(index) {
 }
 
 function ajaxAdminFileUploadProcess(process_pram)
-{	
+{
 	var loadingIMG  =  '<span class="photo_load load_upimg"><i class="fa fa-circle-o-notch fa-spin fa-lg text-olive "></i></span>';	
 	$(loadingIMG).insertAfter($("#"+process_pram+"_img"));
     $("#"+process_pram+"_img").hide();	
 	var hiddenVal = $("#empty_"+process_pram).val();
+	if(process_pram == 'myStore') {
+		
+		//total image uploaded
+		oldtotalImage	=	parseInt($('#oldtotalImage').val());
+		
+		//new images
+		imagecount		=	$('#imagecount').val();
+		if(imagecount != '') {
+			imagecountarray	=	imagecount.split(',');
+			newimagelength	=	imagecountarray.length;	
+		} else {
+			newimagelength	=	0;
+		}
+		
+		DeleteIds		=	$('#DeleteIds').val();
+		if(DeleteIds != '') {
+			DeleteIdsarray	=	DeleteIds.split(',');
+			DeleteIdslength	=	DeleteIdsarray.length;
+			oldtotalImage	=	oldtotalImage - DeleteIdslength;
+		}
+		
+		totalimagesin	=	oldtotalImage + newimagelength + 1;
+		orgtotalImage	=	parseInt($('#totalImage').val());
+		totalImage		=	orgtotalImage + 1;
+		url 			= 	actionPath+'models/DoAjaxAdminFileUpload.php?imagetot='+totalImage;
+		
+		if(imagecount != '') 
+			$('#imagecount').val(imagecount+','+totalImage)
+		else
+			$('#imagecount').val(totalImage)
+	}
+	else
+		url = actionPath+'models/DoAjaxAdminFileUpload.php';
     $.ajaxFileUpload
     ({
-        url:actionPath+'models/DoAjaxAdminFileUpload.php',
+        url:url,
         secureuri:false,
         fileElementId:process_pram,
         dataType: 'json',
-        data:{
-			
+        data:{			
             process:process_pram
         },
 		success: function (data)
@@ -172,35 +204,70 @@ function ajaxAdminFileUploadProcess(process_pram)
 					if(hiddenVal=='') {
 						$("#empty_"+process_pram).val(1);
 					}
-					var result	=	data.msg.split("####");
+					var result	=	data.msg.split("####");					
 					if(process_pram == 'cover_photo'){
-						var img	='<img  src="'+path+'/webresources/uploads/temp/'+result[0] +'.'+ result[1]+'?rnd='+Math.random()+'" width="200"  />\n\
-                                        <input type="hidden" name="'+process_pram+'_upload" id="'+process_pram+'_upload" value="'+result[0] +'.'+ result[1]+'" />';
+						var img	='<img  src="'+path+'webresources/uploads/temp/'+result[0] +'.'+ result[1]+'?rnd='+Math.random()+'" width="200"  />\n\
+                                    <input type="hidden" name="'+process_pram+'_upload" id="'+process_pram+'_upload" value="'+result[0] +'.'+ result[1]+'" />';
 					}
 					else if(process_pram == 'merchant_photo'){			
-						var img	='<img  src="'+path+'/webresources/uploads/temp/'+result[0] +'.'+ result[1]+'?rnd='+Math.random()+'" width="200"  />\n\
-                                        <input type="hidden" name="'+process_pram+'_upload" id="'+process_pram+'_upload" value="'+result[0] +'.'+ result[1]+'" />'; 	
+						var img	='<img  src="'+path+'webresources/uploads/temp/'+result[0] +'.'+ result[1]+'?rnd='+Math.random()+'" width="200"  />\n\
+                                    <input type="hidden" name="'+process_pram+'_upload" id="'+process_pram+'_upload" value="'+result[0] +'.'+ result[1]+'" />'; 	
 					}
 					else if(process_pram == 'icon_photo'){
-						var img	='<img  src="'+path+'/webresources/uploads/temp/'+result[0] +'.'+ result[1]+'?rnd='+Math.random()+'" width="75" height="75" />\n\
-                                        <input type="hidden" name="'+process_pram+'_upload" id="'+process_pram+'_upload" value="'+result[0] +'.'+ result[1]+'" />';
+						var img	='<img  src="'+path+'webresources/uploads/temp/'+result[0] +'.'+ result[1]+'?rnd='+Math.random()+'" width="75" height="75" />\n\
+                                    <input type="hidden" name="'+process_pram+'_upload" id="'+process_pram+'_upload" value="'+result[0] +'.'+ result[1]+'" />';
+					}
+					else if(process_pram == 'myStore'){
+						var img	='<img  src="'+path+'webresources/uploads/temp/'+result[0] +'.'+ result[1]+'?rnd='+Math.random()+'" width="75" height="75" />\n\
+                                    <input type="hidden" name="'+process_pram+'_upload" id="'+process_pram+'_upload" value="'+result[0] +'.'+ result[1]+'" />';
+									
+						// Push the data URI into an array		
+						$('#totalImage').val(totalImage);
+						imgcount	=	totalimagesin + 1;					
+						
+						ImageExt	=	$('#ImageExt').val();
+						if(ImageExt != '') 
+							$('#ImageExt').val(ImageExt+','+result[1]);
+						else
+							$('#ImageExt').val(result[1]);
+						
+						totalImageNow	=	parseInt($('#totalImageNow').val());
+						totalImageNow	=	totalImageNow + 1;
+						$('#totalImageNow').val(totalImageNow)
+						
+						imgcontent	=	'<div class="col-sm-6 col-xs-12 form-group" id="temp'+totalImage+'"><div class="col-xs-1 no-padding" id="imgStore_'+totalImage+'">'+totalimagesin+'.</div><div class="col-xs-11 no-padding" align="center">';
+						imgcontent	+=	'<div  class="photo_gray_bg"><img style="vertical-align:top" class="" width="330" src="'+path+'webresources/uploads/temp/'+result[0] +'.'+ result[1]+'?rnd='+Math.random()+'" height="160" alt=""></div></div>';
+						if(totalimagesin == 10) {
+							imgcontent	+=	'<div class="col-xs-12">&nbsp;</div><div class="col-xs-2 col-md-1 clear">&nbsp;</div>';
+							imgcontent	+=	'<div class="col-xs-10 col-md-11" align="center"><input type="button" name="Delete" id="Delete" class="box-center btn btn-danger  col-xs-10" value="Delete" title="Delete" onclick="return deleteBefore('+totalImage+',\''+ result[1]+'\');"></div></div>';
+							$(imgcontent).insertBefore('#temp0');
+							$('#temp0').hide();
+						} else {
+							imgcontent	+=	'<div class="col-xs-12">&nbsp;</div><div class="col-xs-2 col-md-1 clear">&nbsp;</div>';
+							imgcontent	+=	'<div class="col-xs-10 col-md-11" align="center"><input type="button" name="Delete" id="Delete" class="box-center btn btn-danger  col-xs-10" value="Delete" title="Delete" onclick="return deleteBefore('+totalImage+',\''+ result[1]+'\');"></div></div>';
+							$(imgcontent).insertBefore('#temp0');	
+							$('#imgcount').html(imgcount+'.');
+							$('#imgdrag').attr('src',path+'webresources/images/no_photo_my_store.png');
+						}
 					}
 					else{
-						var img	='<img  src="'+path+'/webresources/uploads/temp/'+result[0] +'.'+ result[1]+'?rnd='+Math.random()+'" width="75" height="75" />\n\
-                                        <input type="hidden" name="'+process_pram+'_upload" id="'+process_pram+'_upload" value="'+result[0] +'.'+ result[1]+'" />';
+						var img	='<img  src="'+path+'webresources/uploads/temp/'+result[0] +'.'+ result[1]+'?rnd='+Math.random()+'" width="75" height="75" />\n\
+                                    <input type="hidden" name="'+process_pram+'_upload" id="'+process_pram+'_upload" value="'+result[0] +'.'+ result[1]+'" />';
 					}
-					
-					$("#"+process_pram+"_img").html(img);
+					//alert(img)
+					if(process_pram != 'myStore')
+						$("#"+process_pram+"_img").html(img);
 	                $("#no_"+process_pram).remove();
 				}
                 $(".photo_load").remove();
-                $("#"+process_pram+"_img").show();
+				if(process_pram != 'myStore')
+					$("#"+process_pram+"_img").show();
             }
         },
         error: function (data, status, e)
         {
            alert(e);
-        }
+        }		
     });
     return false;
 }
@@ -613,7 +680,7 @@ function hideAllDays() {
 	}
 }
 
-function setTime(id) {	
+/*function setTime(id) {	
 	fromhr = $('#fromhours_list'+id).val();
 	frommin = $('#fromminute_list'+id).val();
 	fromampm = $('#fromampm_list'+id).val();
@@ -627,12 +694,12 @@ function setTime(id) {
 	}
 	else {
 		$('#row_'+id).val('1');
-		from		=	fromhr+':'+frommin+' '+fromampm;
-		to			=	tohr+':'+tomin+' '+toampm;
+		from	=	fromhr+':'+frommin+' '+fromampm;
+		to		=	tohr+':'+tomin+' '+toampm;
 		$("#from1_"+id).val(from)
 		$("#to1_"+id).val(to)
 	}
-}
+}*/
 
 function showAllItems(tag) {
 	if($('#link'+tag).html() == 'Show all items'){
@@ -844,7 +911,7 @@ function hideShowUsers(id,photo,name,CurrentBalance) {
 			$('#Oders_Merchant').slideDown('slow');
 			$("#userImage").attr('src', photo);
 			$("#username").html(name);
-			$("#bottom").html('Change customer');
+			$("#bottom").html('Change Customer');
 			$("#userImageValue").val('1');
 			$("#CurrentUserId").val(id);
 			$("#OrderUserImage").val(photo);
@@ -859,7 +926,8 @@ function hideShowUsers(id,photo,name,CurrentBalance) {
 
 function clearOrders() {
 	$('#showmessage').slideUp('slow');
-	if(confirm('Are you sure to clear orders?')) {		
+	if(confirm('Are you sure to clear order?')) {
+		currentUserID =	$('#CurrentUserId').val();
 		var prodIds = $('#OrderProductIds').val();
 		idsArray = prodIds.split(',');
 		for(i=0;i<idsArray.length;i++) {
@@ -884,6 +952,7 @@ function clearOrders() {
 			type: "GET",
 			url : "./CreateOrder?cs=1&ajax=true",	
 			success: function(result){
+				$('#user'+currentUserID).removeClass('userselected');
 			}
 		});	
 	}
@@ -921,12 +990,30 @@ function sortTable(idval){
 	var order = $("#ordertype").val();
 	if( order == 'desc'){
 		$("#ordertype").val('asc');
+		if(idval == 'Name')
+			$("#name_bg").attr('src', path+'webresources/images/asc.gif');
+		else if(idval == 'TotalPrice')
+			$("#sales_bg").attr('src', path+'webresources/images/asc.gif');
+		else if(idval == 'TotalQuantity')
+			$("#quantity_bg").attr('src', path+'webresources/images/asc.gif');
 	}
 	else if(order == 'asc'){
 		$("#ordertype").val('desc');
+		if(idval == 'Name')
+			$("#name_bg").attr('src', path+'webresources/images/desc.gif');
+		else if(idval == 'TotalPrice')
+			$("#sales_bg").attr('src', path+'webresources/images/desc.gif');
+		else if(idval == 'TotalQuantity')
+			$("#quantity_bg").attr('src', path+'webresources/images/desc.gif');
 	}
 	else{
 		$("#ordertype").val('desc');
+		if(idval == 'Name')
+			$("#name_bg").attr('src', path+'webresources/images/desc.gif');
+		else if(idval == 'TotalPrice')
+			$("#sales_bg").attr('src', path+'webresources/images/desc.gif');
+		else if(idval == 'TotalQuantity')
+			$("#quantity_bg").attr('src', path+'webresources/images/desc.gif');
 	}
 	var fieldVal	=  $("#orderby").val();
 	var sortVal 	=  $("#ordertype").val();
@@ -944,9 +1031,7 @@ function loadGraph(search,graghType,sortVal,fieldVal)
 	}
      else
         queryString		=	"cs=1";
-	if(graghType=='3') {
-		var chart_url = 'AjaxLineChart';//AjaxPieChart
-	}else if(graghType=='2') {
+	if(graghType=='2') {
 		var chart_url = 'ProductChart';//AjaxBarChart
 	} 
 	else {
@@ -1073,7 +1158,7 @@ function newSpecialRow(type,ele) {
 		if(Productid != '' && qty != '') {
 		
 			//adding new row
-			if(confirm('Are you sure to Add another product?')) {	
+			//if(confirm('Are you sure to Add another product?')) {	
 				Totalrows 	= 	parseInt($('#Totalrows').val());
 				Totalrows	=	Totalrows	+	1;
 				var $clone 	= 	$("#copydiv").clone();
@@ -1120,7 +1205,7 @@ function newSpecialRow(type,ele) {
 				
 				//updating total row				
 				$('#Totalrows').val(Totalrows);
-			}
+			//}
 		}
 		else {
 			alert("Please fill the current product.")
@@ -1271,9 +1356,9 @@ function validateSpecialdata() {
 	$('#specialerror').hide();	
 	
 	//Price must me less then total Price
-	Totalprice	=	$('#TotalPrice').val();
-	price		=	$('#Price').val();
-	if(Totalprice < price) {
+	Totalprice	=	parseInt($('#TotalPrice').val());
+	price		=	parseInt($('#Price').val());
+	if(price >= Totalprice) {
 		$('#specialpriceerror').show();
 		return false;
 	}
@@ -1284,4 +1369,157 @@ function validateSpecialdata() {
 function noProducts(){
 	alert('Add items to process with specials');
 	return false;
+}
+
+function refundBox(){
+	$("#refund_msg_but").hide();
+	$("#refund_msg_box").fadeIn('slow');
+	return false;
+}
+
+function refundSubmit(type,id){
+	if(type == 1)
+		$('#RefundForm').submit();
+	else {
+		$('#RefundProduct'+id).submit();
+	}
+}
+function deleteMyStoreImage(id,name){
+	if(confirm("Are you sure to delete ?")) {
+		
+		//Storing delete ids
+		var DeleteIds	=	$('#DeleteIds').val();
+		if(DeleteIds	==	'')
+			DeleteIds	=	id;
+		else 
+			DeleteIds	+=	','+id;
+		$('#DeleteIds').val(DeleteIds);	
+		
+		//Storing delete image names
+		var DeleteImg	=	$('#DeleteImg').val();
+		if(DeleteImg	==	'')
+			DeleteImg	=	name;
+		else 
+			DeleteImg	+=	','+name;
+		$('#DeleteImg').val(DeleteImg);	
+		
+		//reordering the images in the screen
+		var mystoreidstot	=	$('#mystoreidstot').val();
+		result				=	mystoreidstot.split(",");
+		var restoreId		=	'';
+		if(result.length > 0){
+			var j = 1;
+			for(i=0;i<result.length;i++) {
+				if(result[i] != id) {					
+					$('#imgStoreCount_'+result[i]).html(j+'.');
+					j	=	j + 1;
+					if(restoreId	==	'')
+						restoreId	=	result[i];
+					else 
+						restoreId	+=	','+result[i];
+				}
+			}
+		}
+		$('#mystoreidstot').val(restoreId);	
+		$('#imgcount').html(result.length+'.');
+		
+		
+		//new images		
+		oldtotalImage	=	parseInt($('#oldtotalImage').val());
+		
+		//reordering the images in the screen
+		totalImage		=	$('#totalImage').val();
+		for(jk = oldtotalImage + 1; jk<= totalImage; jk++) {
+			if ($('#temp'+jk).length > 0) {
+				$('#imgStore_'+jk).html(j+'.');
+				j	=	j 	+	1;
+			}
+		}
+		$('#imgcount').html(j+'.');
+		
+		totalImageNow	=	parseInt($('#totalImageNow').val());
+		totalImageNow	=	totalImageNow - 1;
+		$('#totalImageNow').val(totalImageNow);
+		
+		//show drag/drop
+		$('#temp0').show();
+			
+		//removing selected image
+		$('#myStore_'+id).remove();
+	}
+}
+
+function deleteBefore(id,ext){
+	if(confirm("Are you sure to delete?")) {
+		imagecount	=	$('#imagecount').val();
+		ImageExt	=	$('#ImageExt').val();
+		
+		resultimgcount	=	imagecount.split(",");
+		resultimgext	=	ImageExt.split(",");
+		if(resultimgcount.length > 0){
+			var newimagecount	=	newimageext	=	'';
+			for(i=0;i<resultimgcount.length;i++) {
+				if(id != resultimgcount[i]) {
+					if(newimagecount == '' && newimageext == '') {
+						newimagecount	=	resultimgcount[i];
+						newimageext		=	resultimgext[i];
+					}
+					else {
+						newimagecount	+=	','+resultimgcount[i];
+						newimageext		+=	','+resultimgext[i];
+					}
+				} else {
+				
+				}
+			}
+		}
+		$('#imagecount').val(newimagecount);
+		$('#ImageExt').val(newimageext);
+		
+		//new images		
+		oldtotalImage	=	parseInt($('#oldtotalImage').val());		
+		inc			=	oldtotalImage;
+		newimagelength	=	resultimgcount.length;		
+		totalimagesin	=	oldtotalImage + newimagelength;
+		
+		deleteImage		=	$('#DeleteIds').val();
+		if(deleteImage != '') {
+			resultdeleteImage	=	deleteImage.split(",");
+			deletelength		=	resultdeleteImage.length;
+			oldtotalImage		=	oldtotalImage	-	deletelength;
+			inc					=	oldtotalImage + 1;
+		} else {
+			deletelength		=	0;
+		}
+		if(oldtotalImage == 0 && inc == 0)
+			inc		=	1;
+		//reordering the images in the screen
+		totalImage		=	$('#totalImage').val();
+		for(j = oldtotalImage + 1; j<= totalImage; j++) {
+			if ($('#temp'+j).length > 0 && id != j) {
+				$('#imgStore_'+j).html(inc+'.');
+				inc		=	inc 	+	1;
+			}
+		}
+		$('#imgcount').html(inc+'.');
+		
+		//unlink image from temp path
+		$.ajax({
+	        type: "GET",
+	        url: actionPath+"MyStore?imgid="+id+"&ext="+ext,
+	        success: function (result){
+				
+	        }			
+	    });
+		
+		totalImageNow	=	parseInt($('#totalImageNow').val());
+		totalImageNow	=	totalImageNow - 1;
+		$('#totalImageNow').val(totalImageNow);
+		
+		//show drag/drop
+		$('#temp0').show();
+			
+		//removing selected image
+		$('#temp'+id).remove();
+	}
 }

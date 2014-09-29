@@ -123,7 +123,7 @@ commonHead();
 							<tr>
 								<td align="center"><?php echo $key+1;?></td>												
 								<td>
-									<div class="col-xs-3 col-sm-1 col-md-1 no-padding">
+									<div class="col-xs-2 col-sm-1 col-md-1 no-padding">
 									<?php if(isset($value["Photo"]) && $value["Photo"] != ''){ 
 											?>
 									
@@ -154,26 +154,28 @@ commonHead();
 		</div>
 	
 		<?php } else {?>
+		
+		
 		<?php  top_header(); ?>
-		<section class="content no-padding">
-		<div class="col-lg-10 box-center">	
-				<?php  AnalyticsTab(); ?>
-		<div class="row">
-		<div class="btn-top left-padding">
-		<div class="col-sm-3 btn-inline space_top pull-right no-margin">
-			<?php if(isset($customerList) && !empty($customerList)) { ?>
-				<a href="CustomerList?Show=1" class="newWindow col-xs-12 btn btn-success"><i class="fa fa-users"></i> View top 5 customers</a>
-			<?php } ?>
-		</div>
-		</div>
-		</div>
+		<section class="content row">
+			<div class=" col-lg-10  box-center">	
+				<div class="col-sm-8 no-padding"><?php  AnalyticsTab(); ?></div>
+				<div class="col-sm-4 no-padding">
+					<div class="btn-inline space_top pull-right no-margin">
+						<?php if(isset($customerList) && !empty($customerList)) { ?>
+							<a href="CustomerList?Show=1" class="topCustomer col-xs-12 btn btn-success"><i class="fa fa-users"></i> View top 5 customers</a>
+						<?php } ?>
+					</div>
+				</div>
+			</div>
 		</section>
-		<section class="content no-top-padding">
-		<div class="col-lg-10" style="margin:auto;float:none;" >	
-			<section class="row content-header">
-                <h1 class="no-top-margin pull-left">Customer Analytics</h1>
-            </section>
-				<div class="row">
+		
+		<section class="content no-top-padding clear">
+		<div class="col-lg-10 no-padding box-center">	
+				<section class=" content-header">
+	                <h1 class="no-top-margin pull-left">Customer Analytics</h1>
+	            </section>
+				<div class="clear">
 				<div class="product_list">
 					<form name="search_merchant" action="CustomerList?cs=1" method="post">
 					<div class="box box-primary">
@@ -214,9 +216,10 @@ commonHead();
 					</form>
 				</div>
 			</div>
-			<div class="row product_list paging">
+			<div class="product_list paging">
+				<div class="row">
 					<?php if(isset($customerList) && is_array($customerList) && count($customerList) > 0){ ?>
-					<div class="col-xs-12 col-sm-3 no-padding">
+					<div class="col-xs-12 col-sm-3">
 						<span class="totl_txt">Total Customer(s) : <b><?php echo $tot_rec; ?></b>
 							
 						</span>
@@ -227,8 +230,9 @@ commonHead();
 						</div>
 					</div>
 					<?php } ?>
+					</div>
 			</div>
-			<div class="row">
+			<div class="clear">
             	<div class="col-xs-12 no-padding">
 				   <?php if(isset($customerList) && !empty($customerList)) { ?>
 		              <div class="box">
@@ -300,7 +304,19 @@ commonHead();
 				width: '800',
 				maxWidth: '100%',
 				fitToView: false,
+					 title: null,
 			});
+			$(".topCustomer").fancybox({
+				scrolling: 'auto',			
+				type: 'iframe',
+				width: '500',
+				maxWidth: '100%',
+				fitToView: false,
+					 title: null,
+			});
+			
+			
+			
 			$(".userWindow").fancybox({
 					scrolling: 'none',			
 					type: 'iframe',

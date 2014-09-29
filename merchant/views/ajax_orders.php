@@ -44,44 +44,47 @@ if(isset($_GET['orders']) && !empty($_GET['orders'])) {
 								<a class="newWindow" title="View Products" href="OrderProductDetail?cs=1&orderId=<?php echo  $value['OrderId']; ?>"><i class="fa fa-search fa-lg" style=" font-size: 0.99em;vertical-align: 3%;" ></i></a>
 							<?php } ?>					
 						</div>					
-						<div class="col-xs-9">
+						<div class="col-xs-9 min-height90">
 							<span data-toggle="tooltip" title="<?php echo $name; ?>"><?php echo displayText($name,17); ?></span>
 							<span class="help-block no-margin"><?php echo $value['Email']?></span>
 							<span class="help-block no-margin"><?php echo $value['UserId']?></span>
 							<span class="help-block no-margin"> <?php	echo time_ago($value['OrderDate']); ?> </span>
 							
 						</div>
-						<div class="col-xs-12 no-padding list_height <?php echo $ordersClass; ?>">
+						<div class="col-xs-12 no-padding list_height clear <?php echo $ordersClass; ?>">
 							<!-- <div class="help-block text-center col-xs-12 no-padding "><?php echo $value['Email']?></div> -->
 							<?php if(!empty($value['Products'])) {											
 									foreach($value['Products'] as $key1=>$pro_val) {
 									if($key1 < 2) { ?>
 									
-									<div class="col-xs-8 no-padding" style="width: 56.667%;"><?php echo  $pro_val['ItemName']?> </div>
-									<div class="col-xs-4 no-padding text-right"><?php echo $pro_val['ProductsQuantity'].'&nbsp;&nbsp;&nbsp;'.price_fomat($pro_val['TotalPrice']); ?></div>
+									<div class="col-xs-6 no-padding clear"><?php echo  $pro_val['ItemName']?> </div>
+									<div class="col-xs-2 no-padding text-right price_cal"><span>x</span> <?php echo $pro_val['ProductsQuantity']; ?></div>
+									<div class="col-xs-4 no-padding text-right"><?php echo price_fomat($pro_val['TotalPrice']); ?></div>
+									
 										
 									<?php } else {  ?> 
-									
 									<div class="col-xs-12 no-padding otherItemsNew<?php echo $key;?>" style="display:none;">
-										<div class="col-xs-8 no-padding" style="width: 56.667%;"><?php echo  $pro_val['ItemName']?> </div>
-										<div class="col-xs-4 no-padding text-right"><?php echo $pro_val['ProductsQuantity'].'&nbsp;&nbsp;&nbsp;'.price_fomat($pro_val['TotalPrice']); ?></div>
+										<div class="col-xs-6 no-padding"><?php echo  $pro_val['ItemName']?> </div>
+										<div class="col-xs-2 no-padding text-right price_cal"><span>x</span> <?php echo $pro_val['ProductsQuantity']; ?></div>
+										<div class="col-xs-4 no-padding text-right"><?php echo price_fomat($pro_val['TotalPrice']); ?></div>
 									</div>
+									
 							<?php } } ?>
 								<div class="text-center col-xs-12 no-padding " <?php if(count($value['Products']) <= 2) {  ?>style="visibility:hidden;"<?php } ?>><a style="cursor:pointer" id="linkNew<?php echo $key; ?>" onclick="return showAllItems('New<?php echo $key; ?>');">Show all items</a></div>
 							<?php } ?>
 						</div>
 						
 						<div class="col-xs-12 no-padding"><hr></div>	
-							
 						<div class="col-xs-8 no-padding"><strong>Total</strong> </div>
 						<div class="col-xs-4 no-padding text-right"><strong><?php echo ' $'.number_format($value['TotalPrice'],2,'.',','); ?></strong></div>		
-												
-						<!-- <div class="col-md-12 no-padding"><hr></div> -->
-						<div class="col-xs-12" style="padding-top:7px;"></div>
-						<div class="col-xs-4 no-padding"><a class="text-red" href="?Reject=<?php echo  $value['OrderId']; ?>" onclick="return approveReject('reject');" ><i class="fa fa-trash-o"></i> Reject</a></div>
-						<?php if($value['OrderDoneBy'] == 1) { ?>
-							<div class="col-xs-8 no-padding text-right"><a href="?Approve=<?php echo  $value['OrderId']; ?>"  id="submit" class="btn btn-success" title="Approve" onclick="return approveReject('approve');"><i class="fa fa-check"></i>  Approve</a></div>		
-						<?php } ?>
+						<div class="col-xs-12 no-padding"><hr></div>	
+						
+						<div class="col-xs-12 no-padding min-height40" >
+							<div class="col-xs-4 no-padding"><a class="text-red" href="?Reject=<?php echo  $value['OrderId']; ?>" onclick="return approveReject('reject');" ><i class="fa fa-trash-o"></i> Reject</a></div>
+							<?php if($value['OrderDoneBy'] == 1) { ?>
+								<div class="col-xs-8 no-padding text-right"><a href="?Approve=<?php echo  $value['OrderId']; ?>"  id="submit" class="btn btn-success" title="Approve" onclick="return approveReject('approve');"><i class="fa fa-check"></i>  Approve</a></div>		
+							<?php } ?>
+						</div>
 					</div>
 				</div> 				
 			<?php } } else if($TotalNewOrders > 0 ) { ?>

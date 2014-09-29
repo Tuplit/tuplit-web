@@ -94,7 +94,7 @@ function isNumberKey_price(evt) {
 	var keyCode = (evt.which?evt.which:(evt.keyCode?evt.keyCode:0))
 	//alert('----------------'+keyCode);
 	// backspace, delete, left arrow, right arrow, tab keys
-	if ((keyCode == 8) || (keyCode == 37) || (keyCode == 9) || (keyCode == 46)) return true;
+	if ((keyCode == 8) || (keyCode == 37) || (keyCode == 9) || (keyCode == 46)|| (keyCode == 13)) return true;
 	if ((keyCode < 48) || (keyCode > 57)) return false;
 	return true;
 }
@@ -1293,8 +1293,9 @@ function setPagingValue(perpage)
  }
 function exportExcelSubmit(formName)
 {
-    $("#"+formName).append('<input type="hidden" name="export-excel" value="1" />');
+    $("#"+formName).append('<input type="hidden" name="export-excel" id="export-excel" value="1" />');
     $("#"+formName).submit();
+    $("#export-excel").remove();
 }
 $('.Ques_left,.quest').click(function(){
 		var text_val = $.trim($('.text_tooltip').html());

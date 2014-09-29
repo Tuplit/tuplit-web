@@ -47,8 +47,8 @@ require_once 'MangoPaySDK/mangoPayApi.inc';
 	
 	//$merchantWalletId = createWallet($userDetails['merchantAccountId'],$userDetails['userCurrency']);
 	$merchantWalletId = 2692796;
-	if($_SERVER['REMOTE_ADDR']=='172.21.4.81') {
-	refundTransfer($userDetails);}
+	/*if($_SERVER['REMOTE_ADDR']=='172.21.4.81') {
+	refundTransfer($userDetails);}*/
 	//« EUR »,« USD »,« GBP »,« PLN »,« CHF ».
 	//http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#US
 	//http://en.wikipedia.org/wiki/ISO_4217
@@ -181,32 +181,21 @@ function addCreditCard($userDetails){
 		$cardRegister->Currency 			= 	$userDetails['userCurrency'];
 		$cardRegister						= 	$mangoPayApi->CardRegistrations->Create($cardRegister);
 		$cardRegister->RegistrationData 	= 	getPaylineCorrectRegistartionData($cardRegister,$userDetails);
-		
-        $cardRegister 						= 	$mangoPayApi->CardRegistrations->Update($cardRegister);
+	    $cardRegister 						= 	$mangoPayApi->CardRegistrations->Update($cardRegister);
 		if($cardRegister->Status != 'ERROR'){
      	   $card 							= 	$mangoPayApi->Cards->Get($cardRegister->CardId);
 		}
-		/*if(isset($card->Id) && $card->Id != '') {
-			$wallet 						= 	new \MangoPay\Wallet();
-			$wallet->Owners 				= 	array( $cardRegister->UserId );
-			$wallet->Currency 				= 	$cardRegister->Currency;
-			$wallet->Description 			= 	'wallet for payment';
-			$createdWallet 					= 	$mangoPayApi->Wallets->Create($wallet);
-			$walletid						= 	$createdWallet->Id;
-		}
 		if($userDetails['amount'] > 0){
-	
 			$payIn 								= 	new \MangoPay\PayIn();
-			$payIn->CreditedWalletId 			= 	$walletid;
+			$payIn->CreditedWalletId 			= 	$userDetails['walletId'];
 			$payIn->AuthorId 					= 	$cardRegister->UserId;
-		
 			$payIn->DebitedFunds 				= 	new \MangoPay\Money();
-			$payIn->DebitedFunds->Amount 		= 	$userDetails['amount'];
+			$payIn->DebitedFunds->Amount 		= 	getCents($userDetails['amount']);
 			$payIn->DebitedFunds->Currency 		= 	$userDetails['userCurrency'];
 		
 			$payIn->Fees 						= 	new \MangoPay\Money();
 			$payIn->Fees->Amount 				= 	0;
-			$payIn->Fees->Currency 				= 	'USD';
+			$payIn->Fees->Currency 				= 	$userDetails['userCurrency'];
 
 	    // payment type as CARD
 			$payIn->PaymentDetails 				= 	new \MangoPay\PayInPaymentDetailsCard();
@@ -222,7 +211,8 @@ function addCreditCard($userDetails){
 		
 	    // create Pay-In
 			$createdPayIn 						= 	$mangoPayApi->PayIns->Create($payIn);
-		}*/
+		//	echo "<pre>"; print_r( $createdPayIn); echo "</pre>";
+		}
 		return $cardRegister;
 	}
 	catch(Exception $e) {
@@ -263,7 +253,7 @@ function getPaylineCorrectRegistartionData($cardRegistration,$userDetails) {
               '&cardNumber='.$cardNumber.'' .
               '&cardExpirationDate='.$cardExpirationDate.'' .
               '&cardCvx='.$cardCvx.'';
-
+			  
       $curlHandle = curl_init($cardRegistration->CardRegistrationURL);
       curl_setopt($curlHandle, CURLOPT_RETURNTRANSFER, true);
       curl_setopt($curlHandle, CURLOPT_SSL_VERIFYPEER, false);
@@ -274,7 +264,6 @@ function getPaylineCorrectRegistartionData($cardRegistration,$userDetails) {
           throw new \Exception('cURL error: ' . curl_error($curlHandle));
 
       curl_close($curlHandle);
-
       return $response;
 }
 		
@@ -325,7 +314,7 @@ function transfer($userDetails) {
 	
        $transfer->DebitedFunds 					= 	new \MangoPay\Money();
        $transfer->DebitedFunds->Currency 		= 	$userDetails['Currency'];
-       $transfer->DebitedFunds->Amount 			= 	$userDetails['Amount'];
+       $transfer->DebitedFunds->Amount 			= 	getCents($userDetails['Amount']);
 	
        $transfer->Fees 							= 	new \MangoPay\Money();
        $transfer->Fees->Currency 				= 	$userDetails['Currency'];
@@ -356,7 +345,7 @@ function topupWallet($userDetails){
         $payIn->CreditedWalletId 		= $userDetails['userWalletId']	;
         $payIn->AuthorId 				= $userDetails['userAccountId'];
         $payIn->DebitedFunds 			= new \MangoPay\Money();
-        $payIn->DebitedFunds->Amount 	= $userDetails['amount'];
+        $payIn->DebitedFunds->Amount 	= getCents($userDetails['amount']);
         $payIn->DebitedFunds->Currency 	= $userDetails['userCurrency'];
         $payIn->Fees 					= new \MangoPay\Money();
         $payIn->Fees->Amount 			= 0;
@@ -365,7 +354,6 @@ function topupWallet($userDetails){
         $payIn->PaymentDetails 			= new \MangoPay\PayInPaymentDetailsCard();
         $payIn->PaymentDetails->CardId 	= $userDetails['cardId'];
 		$card 							= $mangoPayApi->Cards->Get($userDetails['cardId']);
-		
         if ($card->CardType == 'CB' || $card->CardType == 'VISA' || $card->CardType == 'MASTERCARD')
             $payIn->PaymentDetails->CardType = 'CB_VISA_MASTERCARD';
         elseif ($card->CardType == 'AMEX')
@@ -376,12 +364,7 @@ function topupWallet($userDetails){
         $payIn->ExecutionDetails 		= new \MangoPay\PayInExecutionDetailsDirect();
         $payIn->ExecutionDetails->SecureModeReturnURL = 'http://test.com';
         $result =  $mangoPayApi->PayIns->Create($payIn);
-		if ($result->Status == 'SUCCEEDED') {
-			return  $result;
-		}
-		else {
-			return 0;
-		}
+		return  $result;
 	}
 	catch(Exception $e) {
 		return $e;//error in field values
@@ -401,29 +384,28 @@ function payment($userDetails){
         $transfer->AuthorId 					= 	$userDetails['AuthorId'];
 		$transfer->CreditedUserId  				= 	$userDetails['CreditedUserId'];
 		
+		$amt = getCents($userDetails['Amount']);
         $transfer->DebitedFunds 				= 	new \MangoPay\Money();
         $transfer->DebitedFunds->Currency 		= 	$userDetails['Currency'];
-        $transfer->DebitedFunds->Amount 		= 	$userDetails['Amount'];
+        $transfer->DebitedFunds->Amount 		= 	$amt;
 		
+		$fees = ($userDetails['FeesAmount']/100)*$amt;
         $transfer->Fees 						= 	new \MangoPay\Money();
         $transfer->Fees->Currency 				= 	$userDetails['Currency'];
-        $transfer->Fees->Amount 				= 	$userDetails['FeesAmount'];
-        $transfer->DebitedWalletId 				= 	$userDetails['DebitedWalletId'];//'2712674';
-        $transfer->CreditedWalletId 			= 	$userDetails['CreditedWalletId'];//'2754968';
-		//echo "<pre>"; echo print_r($transfer); echo "</pre>"; die();
+        $transfer->Fees->Amount 				= 	$fees;
+        $transfer->DebitedWalletId 				= 	$userDetails['DebitedWalletId'];
+        $transfer->CreditedWalletId 			= 	$userDetails['CreditedWalletId'];
 		//Send the request
 		$result 								= 	$mangoPayApi->Transfers->Create($transfer);
-		//$wallet		=	getWalletDetails(  $transfer->CreditedWalletId );
-		//echo "<pre>"; print_r($wallet	 ); echo "</pre>";
 		return $result;
 	}
 	catch(Exception $e) {
 		return $e;//error in field values
 	}
 }
-function deleteCard($userDetails){
+function deleteCard($cardId){
 
- //Create an instance of MangoPayApi SDK
+ 	//Create an instance of MangoPayApi SDK
 	$mangoPayApi 							= 	new \MangoPay\MangoPayApi();
 	$mangoPayApi->Config->ClientId 			= 	MangoPayDemo_ClientId;
 	$mangoPayApi->Config->ClientPassword 	= 	MangoPayDemo_ClientPassword;		
@@ -431,14 +413,19 @@ function deleteCard($userDetails){
 	
 	try{
 		//Build the parameters for the request
-		$getCard    		= $mangoPayApi->Cards->Get('2752373');
+		$getCard    		= $mangoPayApi->Cards->Get($cardId);
 		if( $getCard->Active != ''){
 			$getCard->Active	= 'false';
 			//Send the request
 			$result = $mangoPayApi->Cards->Update($getCard);
 			return $result;
 		}
-		else{
+		else if($getCard->Active == ''){		
+			$result			=	new stdClass;
+			$result->Id		=	$getCard->Id;
+			$result->msg	=	'Card already deleted';
+			return $result;
+		} else {
 			return 0;
 		}
 	}
@@ -449,7 +436,6 @@ function deleteCard($userDetails){
 }
 
 function GetTransactionsNew($inputarray){
-
  //Create an instance of MangoPayApi SDK
 	$mangoPayApi 							= 	new \MangoPay\MangoPayApi();
 	$mangoPayApi->Config->ClientId 			= 	MangoPayDemo_ClientId;
@@ -461,18 +447,18 @@ function GetTransactionsNew($inputarray){
 		$ID									=	$inputarray['Id'];
 		
 		$Pagination 						= 	new \MangoPay\Pagination();
+		//$Pagination->Page 				= 	1;
 		$Pagination->ItemsPerPage 			= 	100;
-		// echo "<pre>"; print_r($Pagination ); echo "</pre>";die();
 		
-		$Filter 							= 	new \MangoPay\FilterTransactions();
-		
+		$Filter 							= 	new \MangoPay\FilterTransactions();		
 		if(isset($inputarray['Start']) && !empty($inputarray['Start']))	
 			$Filter->AfterDate 				= 	$inputarray['Start'];
 		if(isset($inputarray['End']) && !empty($inputarray['End']))		
 			$Filter->BeforeDate 			= 	$inputarray['End'];
 		if(isset($inputarray['Status']) && !empty($inputarray['Status']))		
 			$Filter->Status 				= 	$inputarray['Status'];
-		
+		if(isset($inputarray['Nature']) && !empty($inputarray['Nature']))		
+			$Filter->Nature 				= 	$inputarray['Nature'];
 		//$Filter->Type 					= 	"TRANSFER";
 		//$Filter->Status 					= 	"SUCCEEDED";
 		//$Filter->Nature 					= 	"REGULAR";
@@ -480,10 +466,7 @@ function GetTransactionsNew($inputarray){
 		//$result								=	array();
 		
 		//Send the request
-		//$result 							= 	$mangoPayApi->Users->GetTransactions($ID, $Pagination, $Filter);
 		$result 							= 	$mangoPayApi->Wallets->GetTransactions($ID, $Pagination, $Filter);
-		
-		//echo "<pre>"; echo print_r($result); echo "</pre>"; die();
 		return $result;
 	}
 	catch(Exception $e) {
@@ -497,25 +480,23 @@ function refundTransfer($userDetails){
 	$mangoPayApi 							= 	new \MangoPay\MangoPayApi();
 	$mangoPayApi->Config->ClientId 			= 	MangoPayDemo_ClientId;
 	$mangoPayApi->Config->ClientPassword 	= 	MangoPayDemo_ClientPassword;		
-	//$mangoPayApi->Config->TemporaryFolder 	= 	ABS_PATH.'/admin/includes/mangopay/temp/';
+	$mangoPayApi->Config->TemporaryFolder 	= 	ABS_PATH.'/admin/includes/mangopay/temp/';
 	
 	try{
-		$TransferID = 2842273;
-		$Refund = new \MangoPay\Refund();
-		$Refund->AuthorId = 2712673;
-		$Refund->DebitedFunds = new \MangoPay\Money();
-		$Refund->DebitedFunds->Currency = "USD";
-		$Refund->DebitedFunds->Amount = 998;
-		$Refund->Fees = new \MangoPay\Money();
-		$Refund->Fees->Currency = "USD";
-		$Refund->Fees->Amount = 2;
-		 
-		 
+		$fees = ($userDetails['FeeAmount']/100)*$userDetails['Amount'];
+		
+		$TransferID 						= 	$userDetails['TransferID'];
+		$Refund 							= 	new \MangoPay\Refund();
+		$Refund->AuthorId 					= 	$userDetails['AuthorId'];
+		$Refund->DebitedFunds 				= 	new \MangoPay\Money();
+		$Refund->DebitedFunds->Currency 	= 	"USD";
+		$Refund->DebitedFunds->Amount 		= 	$userDetails['Amount'];
+		$Refund->Fees 						= 	new \MangoPay\Money();
+		$Refund->Fees->Currency 			= 	"USD";
+		$Refund->Fees->Amount 				= 	$fees;
 		//Send the request
-		$result = $mangoPayApi->Transfers->CreateRefund($TransferID, $Refund);
-		 echo "<pre>"; print_r($result ); echo "</pre>";die();
-		//Analyse the request
-		var_dump($result);
+		$result 							= 	$mangoPayApi->Transfers->CreateRefund($TransferID, $Refund);
+		return $result;
 	}
 	catch(Exception $e) {
 		return $e;//error in field values
