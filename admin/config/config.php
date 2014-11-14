@@ -5,7 +5,7 @@
  * This file has constants and global variable used throughout the application.
  *
  */
-define("TITLE","tuplit");
+define("TITLE","Tuplit");
 if (isset($_SERVER['HTTPS']) && ($_SERVER["HTTPS"] == 'on' ) )
 	$site = 'https://';
 else
@@ -39,7 +39,7 @@ else{
 }
 //dl2k2hrieev.cloudfront.net
 //script ans style path
-define('SITE_TITLE', 'tuplit');
+define('SITE_TITLE', 'Tuplit');
 define('ADMIN_SCRIPT_PATH', ADMIN_SITE_PATH.'/webresources/js/');
 define('ADMIN_STYLE_PATH', ADMIN_SITE_PATH.'/webresources/css/');
 define('ADMIN_IMAGE_PATH', ADMIN_SITE_PATH.'/webresources/images/');
@@ -60,9 +60,14 @@ define('UPLOAD_SLIDER_THUMB_PATH_REL', ABS_PATH.'/admin/webresources/uploads/sli
 
 define('UPLOAD_MERCHANT_IMAGE_PATH_REL', ABS_PATH.'/merchant/webresources/uploads/merchants/');
 define('UPLOAD_MERCHANT_ICONS_IMAGE_PATH_REL', ABS_PATH.'/merchant/webresources/uploads/merchants/icons/');
+define('UPLOAD_BACKGROUND_IMAGE_PATH_REL', ABS_PATH.'/merchant/webresources/uploads/merchants/backgrounds/');
+
+define('UPLOAD_SALESPERSON_REL', ABS_PATH.'/merchant/webresources/uploads/salespersons/');
+
 
 define('UPLOAD_PRODUCT_IMAGE_PATH_REL', ABS_PATH.'/merchant/webresources/uploads/products/');
 
+define('UPLOAD_ADMIN_LOGO_REL', ABS_PATH.'/admin/webresources/uploads/adminlogo/');
 
 define('REGION','us-west-2');
 
@@ -78,13 +83,13 @@ if($_SERVER['HTTP_HOST']=='172.21.4.104')
 	define('MERCHANT_ABS_PATH_UPLOAD',ABS_PATH.'/merchant/webresources/uploads/');
 }
 else{
-	// common path
+	// common path //http://'.BUCKET_NAME.'.s3.amazonaws.com/
 	//admin
-	define('SITE_PATH_UPLOAD','http://'.BUCKET_NAME.'.s3.amazonaws.com/');
-	define('ABS_PATH_UPLOAD','http://'.BUCKET_NAME.'.s3.amazonaws.com/');
+	define('SITE_PATH_UPLOAD','http://dru4vhpkosqqc.cloudfront.net/');
+	define('ABS_PATH_UPLOAD','http://dru4vhpkosqqc.cloudfront.net/');
 	//merchant
-	define('MERCHANT_SITE_PATH_UPLOAD','http://'.BUCKET_NAME.'.s3.amazonaws.com/');
-	define('MERCHANT_ABS_PATH_UPLOAD','http://'.BUCKET_NAME.'.s3.amazonaws.com/');
+	define('MERCHANT_SITE_PATH_UPLOAD','http://dru4vhpkosqqc.cloudfront.net/');
+	define('MERCHANT_ABS_PATH_UPLOAD','http://dru4vhpkosqqc.cloudfront.net/');
 }
 define('MERCHANT_SITE_IMAGE_PATH',SITE_PATH.'/merchant/webresources/images/');	
 define('MERCHANT_SITE_IMAGE_PATH_REL', SITE_PATH.'/merchant/webresources/images/');
@@ -111,8 +116,17 @@ define('MERCHANT_IMAGE_PATH_REL', MERCHANT_ABS_PATH_UPLOAD.'merchants/');
 define('MERCHANT_ICONS_IMAGE_PATH', MERCHANT_SITE_PATH_UPLOAD.'merchants/icons/');	
 define('MERCHANT_ICONS_IMAGE_PATH_REL', MERCHANT_ABS_PATH_UPLOAD.'merchants/icons/');
 
+define('MERCHANT_BACKGROUND_IMAGE_PATH', MERCHANT_SITE_PATH_UPLOAD.'merchants/backgrounds/');	
+define('MERCHANT_BACKGROUND_IMAGE_PATH_REL', MERCHANT_ABS_PATH_UPLOAD.'merchants/backgrounds/');
+
 define('PRODUCT_IMAGE_PATH',MERCHANT_SITE_PATH_UPLOAD.'products/');	
 define('PRODUCT_IMAGE_PATH_REL', MERCHANT_ABS_PATH_UPLOAD.'products/');
+
+define('SALESPEOPLE_IMAGE_PATH', MERCHANT_SITE_PATH_UPLOAD.'salespersons/');	
+define('SALESPEOPLE_IMAGE_PATH_REL', MERCHANT_ABS_PATH_UPLOAD.'salespersons/');
+
+define('ADMIN_LOGO_PATH',SITE_PATH_UPLOAD.'adminlogo/');	
+define('ADMIN_LOGO_PATH_REL', ABS_PATH_UPLOAD.'adminlogo/');
 
 define('TEMP_PRODUCT_IMAGE_PATH_UPLOAD',ABS_PATH.'/merchant/webresources/uploads/temp/');
 define('LIMIT',100);
@@ -464,4 +478,20 @@ $country_currency_array = array(
 								'Yemen' => 'YER',
 								'Zambia' => 'ZMK',
 								'Zimbabwe' => 'ZWD');
+								
+define('DEFAULT_CURRENCY','GBP');
+define('DEFAULT_COUNTRY','GB');
+
+global $AutoLock;
+$AutoLock = array('1'=>'3','2'=>'5','3'=>'10','4'=>'60');
+
+global $ProductVAT;
+$ProductVAT = array('0'=>'0','5'=>'5','20'=>'20');
+
+define('FRIEND_INVITE_MESSAGE','Hi.......
+Welcome to tuplit....');
+define('ITUNES_URL','http://tuplit.elasticbeanstalk.com');
+
+global $GenderArray;
+$GenderArray = array('0'=>'Unspecified','1'=>'Male','2'=>'Female');
 ?>

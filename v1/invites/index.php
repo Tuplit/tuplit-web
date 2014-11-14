@@ -56,12 +56,14 @@ $app->post('/',tuplitApi::checkToken(),function () use ($app) {
 		if($req->params('GoogleId'))
 			$invites->GoogleId			= $req->params('GoogleId');
 		if($req->params('CellNumber'))
-			$invites->CellNumber	= $req->params('CellNumber');
-		 $inviteId 					= $invites->inviteFriend();
+			$invites->CellNumber		= $req->params('CellNumber');
+		if($req->params('Email'))
+			$invites->Email				= $req->params('Email');
+		 $inviteId 						= $invites->inviteFriend();
 		if($inviteId){
      		$response->setStatus(HttpStatusCode::Created);
       		$response->meta->dataPropertyName = 'invites';
-			$response->addNotification('Invitation has been tracked successfully');
+			$response->addNotification('Invitation has been sent successfully');
        		echo $response;
 		}
     }

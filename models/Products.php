@@ -132,7 +132,7 @@ class Products extends RedBean_SimpleModel implements ModelBaseInterface {
 		$result2		=	array();		
 		if($type == '') {
 			$sql2 			= 	"SELECT p.id as ProductId,p.ItemName,p.fkCategoryId,p.Photo,p.DiscountApplied,p.Price,p.OriginalPrice,p.ItemType,p.Status,p.Ordering from products as p							
-								where p.fkMerchantsId = $merchantId and p.Photo!='' and p.Status in (1,2) and p.ItemType in (2,3) ".$condition." order by p.Ordering asc";
+								where p.fkMerchantsId = $merchantId and p.Photo!='' and p.Status in (1,2) and p.ItemType in (3) ".$condition." order by p.Ordering asc";
 			$result2 		= 	R::getAll($sql2);
 			foreach($result2 as $key=>$cat) {
 				$result2[$key]['CategoryName'] = '';
@@ -459,7 +459,7 @@ class Products extends RedBean_SimpleModel implements ModelBaseInterface {
 		$fields 	=   "c.fkProductsId,count(c.fkProductsId) as total,p.ItemName,p.Photo,p.DiscountApplied,p.Price";
 		$join		=	"left join products p on (c.fkProductsId = p.id)";
 		$condition 	=	"and p.Status=1 and p.fkMerchantsId='".$merchantId."' and c.fkMerchantsId='".$merchantId."'";
-		$sql 		= 	"SELECT ".$fields." FROM `carts` c ".$join." WHERE 1 ".$condition." group by c.fkProductsId order by total desc limit 0,6";
+		$sql 		= 	"SELECT ".$fields." FROM `carts` c ".$join." WHERE 1 ".$condition." group by c.fkProductsId order by total desc limit 0,15";
 		$result 	= R::getAll($sql);
 		if($result){		
 			//getting merchant discountTier
@@ -589,6 +589,7 @@ class Products extends RedBean_SimpleModel implements ModelBaseInterface {
 			
 			$bean->fkCategoryId = $bean->CategoryId;
 			unset($bean->CategoryId);
+			unset($bean->fkMerchantsId);
 			  
 			unset($bean->ImageAlreadyExists);
 			$bean->DateModified = $DateModified;
@@ -666,7 +667,8 @@ class Products extends RedBean_SimpleModel implements ModelBaseInterface {
 		}
 		
 		if(isset($bean->ItemName)) {
-			if(isset($bean->id) && !empty($bean->id) && $bean->id != 0) {		
+			
+			if(isset($bean->id) && !empty($bean->id) && $bean->id != 0) {
 				$modifiedName = R::findOne('products', 'ItemName = ? and id != ? and fkMerchantsId = ? and Status = ?',array($bean->ItemName,$bean->id,$bean->fkMerchantsId,StatusType::ActiveStatus));
 			}
 			else {
@@ -700,8 +702,42 @@ class Products extends RedBean_SimpleModel implements ModelBaseInterface {
 		*/
         $bean = $this->bean;
 		
-		$sql 			= 	"select fkCategoryId as CategoryId,DiscountApplied,ItemType from products where Status = 1 and fkMerchantsId  = ".$bean->merchantId;
-		$countResult 	=	R::getAll($sql);
+		$countResult = Array();
+		//$sql 			= 	"select fkCategoryId as CategoryId,DiscountApplied,ItemType from products where Status = 1 and fkMerchantsId  = ".$bean->merchantId;
+		$sql 			= 	"SELECT pc.id as CategoryId,p.DiscountApplied,p.ItemType from productcategories  as pc 
+								left join products as p on (p.fkCategoryId = pc.id  and p.fkMerchantsId ='".$bean->merchantId."' and p.Photo!='' and p.Status in (1,2))
+								where pc.fkMerchantId IN(".$bean->merchantId.") and  pc.Status=1  order by pc.id asc, p.id desc";
+		$countResult1 	=	R::getAll($sql);
+		
+		$sql 			= 	"SELECT p.id as CategoryId,p.DiscountApplied,p.ItemType from products as p							
+								where p.fkMerchantsId = ".$bean->merchantId." and p.Photo!='' and p.Status in (1,2) and p.ItemType in (3)  order by p.Ordering asc";
+		$countResult2 	=	R::getAll($sql);
+		
+		if($countResult1 || $countResult2)
+			$countResult	=	array_merge($countResult1,$countResult2);
 		return $countResult;
+	}
+	
+	/**
+	* get delete products
+	*/
+	public function deleteProducts($deleteId)
+    {
+		/**
+		* Get the bean
+		* @var $bean Products
+		*/
+        $bean = $this->bean;
+		
+		//Deleting products in product table
+		$sql = "update products set Status ='3', DateModified='".date('Y-m-d H:i:s')."' where id in (".$deleteId.")";
+		R::exec($sql);
+		
+		//deleting products from specialproducts table
+		if(isset($bean->ItemType) && !empty($bean->ItemType) && $bean->ItemType =3) {
+			$sql = "update specialproducts set Status ='3' where fkSpecialId in (".$deleteId.")";
+			R::exec($sql);
+		}
+		
 	}
 }

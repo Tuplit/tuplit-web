@@ -27,11 +27,13 @@ class LogModel extends Model
 		
 		if(isset($_SESSION['sess_logtrack_searchIP']) && $_SESSION['sess_logtrack_searchIP'] != '')
 			$where .= " and l.ip_address LIKE '%".$_SESSION['sess_logtrack_searchIP']."%' ";
-		if(isset($_SESSION['sess_logtrack_urlString']) && $_SESSION['sess_logtrack_urlString'] != '')
-			$where .= " and l.url LIKE '%".$_SESSION['sess_logtrack_urlString']."%' ";
+		if(isset($_SESSION['sess_logtrack_searchUrl']) && $_SESSION['sess_logtrack_searchUrl'] != '')
+			$where .= " and l.url LIKE '%".$_SESSION['sess_logtrack_searchUrl']."%' ";
 		if(isset($_SESSION['sess_logtrack_log_method']) && $_SESSION['sess_logtrack_log_method'] != ''){
 			$where .= " and l.method = '".$_SESSION['sess_logtrack_log_method']."' ";
 		}
+		if(isset($_SESSION['sess_logtrack_searchResponse']) && $_SESSION['sess_logtrack_searchResponse'] != '')
+			$where .= " and l.response LIKE '%".$_SESSION['sess_logtrack_searchResponse']."%' ";
 		$sql	=	"SELECT SQL_CALC_FOUND_ROWS l.id as logId,l.*
 					FROM {$this->logTable} as l 
 					WHERE 1 ".$where." ORDER BY ".$sorting_clause.$limit_clause;

@@ -149,10 +149,13 @@ $topmerchantlist = $StatisticsObj->getTopMerchantsList($fields,$condition);
 ?>
 <body class="skin-blue">
 <?php top_header(); ?>
+	<?php 
+	$activeTab = 1;
+	?>
 	<!-- Content Header (Page header) -->
 	<section class="content-header">
-		<div class="row col-xs-10">
-			<h1><i class="fa fa-list"></i> Statistics </h1>			
+		<div class="row col-xs-10 head-title">
+			<h1>Statistics </h1>			
 		</div>
 	</section>
 	<!-- Main content -->
@@ -160,20 +163,20 @@ $topmerchantlist = $StatisticsObj->getTopMerchantsList($fields,$condition);
 		<div class="row">
 			<div class="col-xs-12">
 				<form name="search_statistics" action="Statistics" method="post">
-				<div class="box box-primary">					
+				<div class="box box-primary box-padding report">					
 					
 					<div class="col-sm-3 form-group">
-						<label>Start Date</label>
-							<input  type="text" id = "from_date" class="form-control datepicker" autocomplete="off" title="Select Date" name="from_date" value="<?php if(isset($_SESSION['sess_statistics_from_date'])) echo $_SESSION['sess_statistics_from_date']; ?>" onchange="return emptyDates(this);">
+						<!--<label>Start Date</label>-->
+							<input  type="text" id = "from_date" class="form-control datepicker" autocomplete="off" title="Start Date" name="from_date" value="<?php if(isset($_SESSION['sess_statistics_from_date'])) echo $_SESSION['sess_statistics_from_date']; ?>" onchange="return emptyDates(this);">
 					</div>
 					<div class="col-sm-3 form-group">
-						<label>End Date</label>
-							<input type="text" id = "to_date" class="form-control datepicker" autocomplete="off"  title="Select Date" name="to_date" value="<?php if(isset($_SESSION['sess_statistics_to_date'])) echo $_SESSION['sess_statistics_to_date']; ?>" onchange="return emptyDates(this);">
+						<!--<label>End Date</label>-->
+							<input type="text" id = "to_date" class="form-control datepicker" autocomplete="off"  title="End Date" name="to_date" value="<?php if(isset($_SESSION['sess_statistics_to_date'])) echo $_SESSION['sess_statistics_to_date']; ?>" onchange="return emptyDates(this);">
 					</div>
 					<div class="col-sm-3 form-group">
-						<label>Month</label>
+						<!--<label>Month</label>-->
 						<select name="month" id ="month" class="form-control" onchange="return emptyDates(this);">
-						<option value="">Select</option>
+						<option value="">Month</option>
 						<?php if(isset($month_name) && is_array($month_name) && count($month_name) > 0 ) { 
 								foreach($month_name as $monthkey=>$monthval){
 						?>
@@ -182,16 +185,16 @@ $topmerchantlist = $StatisticsObj->getTopMerchantsList($fields,$condition);
 						</select>
 					</div>
 					<div class="col-sm-3 form-group">
-						<label>Year</label>
+						<!--<label>Year</label>-->
 						<select name="year" id ="year" class="form-control" onchange="return emptyDates(this);">
-							<option value="">Select</option>
+							<option value="">Year</option>
 							<?php for($i = $start_year;$i<=$end_year;$i++){ ?>
 								<option value="<?php echo $i; ?>" <?php if(isset($_SESSION['sess_statistics_search_year']) && $_SESSION['sess_statistics_search_year'] == $i) echo "selected"; ?>  ><?php echo $i; ?></option>
 							<?php } ?>
 						</select>
 					</div>
 					
-					<div class="col-sm-12 box-footer clear" align="center">
+					<div class="col-sm-12 clear" align="center">
 						<label>&nbsp;</label>
 						<input type="submit" class="btn btn-success" name="Search" id="Search" value="Search">
 					</div>
@@ -199,12 +202,13 @@ $topmerchantlist = $StatisticsObj->getTopMerchantsList($fields,$condition);
 				</form>
 			</div>			
 		</div>
-		<div>
+		<?php require_once('StatisticsTabs.php');;?>
+		<div class="paging-margin">
 			<div><h1></h1></div>
 			<div class="box">
-			  <div class="box-body table-responsive no-padding no-margin">
+			  <div class="box-body table-responsive no-padding no-margin process-table">
 				 <table class="table table-hover">
- 					<tr><th width="35%">Process </th><th width="65%">Total</th></tr>
+ 					<tr><th width="60%">Process </th><th>Total</th></tr>
 					<tr><td>No. of Customers Registered</td><td><?php echo $Totalnoof_users; ?></td></tr>
 					<tr><td>No. of Merchants Registered</td><td><?php echo $Totalnoof_merchants; ?></td></tr>
 					<tr><td>No. of Customers login  </td><td><?php echo $totaluserlogin ; ?></td></tr>		
@@ -220,12 +224,12 @@ $topmerchantlist = $StatisticsObj->getTopMerchantsList($fields,$condition);
 		
 		<div>
 		<?php if(isset($topmerchantlist) && is_array($topmerchantlist) && count($topmerchantlist) > 0){?>
-		<div><h1>Merchant List</h1></div>
+		<div class="head-title"><h2>Merchant List</h2></div>
 		<div class="box">
                        <div class="box-body table-responsive no-padding no-margin">
                            <table class="table table-hover">
                                <tr> 							
-									<th width="25%">Merchant Details</th>
+									<th width="25%"  class="td-thleft">Merchant Details</th>
 									<th width="10%">Order Price</th>	
 									<th width="10%">Order Total</th>	
 									<?php
@@ -233,7 +237,7 @@ $topmerchantlist = $StatisticsObj->getTopMerchantsList($fields,$condition);
 											foreach($topmerchantlist as $merchantkey=>$merchantvalue){	
 										?>	
 							   <tr>
-							  		<td>
+							  		<td class="td-thleft">
 										<?
 										$icon_image_path = '';
 										$merchant_image = $merchantvalue->Icon;
@@ -273,14 +277,14 @@ $topmerchantlist = $StatisticsObj->getTopMerchantsList($fields,$condition);
 		<?php }?> 
 		</div>	
 		
-		<div>
+		<div class="paging-margin">
 		<?php if(isset($topuserlist) && is_array($topuserlist) && count($topuserlist) > 0){?>
-		<div><h1>Customers List</h1></div>
+		<div class="head-title"><h2>Customers List</h2></div>
 		<div class="box">
                        <div class="box-body table-responsive no-padding no-margin">
                            <table class="table table-hover">
                                <tr> 							
-									<th width="25%">User Details</th>
+									<th width="25%" class="td-thleft">User Details</th>
 									<th width="10%">Order Price</th>	
 									<th width="10%">Order Total</th>	
 									<?php
@@ -308,7 +312,7 @@ $topmerchantlist = $StatisticsObj->getTopMerchantsList($fields,$condition);
 										}
 										?>	
 							   <tr>
-							  		<td>	
+							  		<td class="td-thleft">	
 									<div>			
 										<?php if(isset($image_path) && $image_path != ''){ ?>
 												<img id="<?php echo $uservalue->id ;?>"  width="36" height="36" align="top" class="img_border" src="<?php echo $image_path;?>" >	

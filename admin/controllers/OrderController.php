@@ -8,12 +8,12 @@ class OrderController extends Controller
 		if ($this->OrderModelObj)
 			return $this->OrderModelObj->getTotalRecordCount();
 	}
-	function getOrderList($fields,$condition)
+	function getOrderList($fields,$leftjoin,$condition,$sort,$limit)
 	{
 		if (!isset($this->OrderModelObj))
 			$this->loadModel('OrderModel', 'OrderModelObj');
 		if ($this->OrderModelObj)
-			return $this->OrderModelObj->getOrderList($fields,$condition);
+			return $this->OrderModelObj->getOrderList($fields,$leftjoin,$condition,$sort,$limit);
 	}
 	function selectOrderDetail($id)
 	{
@@ -91,6 +91,48 @@ class OrderController extends Controller
 			$this->loadModel('OrderModel', 'OrderModelObj');
 		if ($this->OrderModelObj)
 			return $this->OrderModelObj->getUserTransactions($fields,$conditions);
+	}
+	function getTotalRevenue($field,$condition)
+	{
+		if (!isset($this->OrderModelObj))
+			$this->loadModel('OrderModel', 'OrderModelObj');
+		if ($this->OrderModelObj)
+			return $this->OrderModelObj->getTotalRevenue($field,$condition);
+	}
+	function getProductList($field,$condition)
+	{
+		if (!isset($this->OrderModelObj))
+			$this->loadModel('OrderModel', 'OrderModelObj');
+		if ($this->OrderModelObj)
+			return $this->OrderModelObj->getProductList($field,$condition);
+	}
+	function MerchantTransactionList($field,$condition,$searchCond,$limit)
+	{
+		if (!isset($this->OrderModelObj))
+			$this->loadModel('OrderModel', 'OrderModelObj');
+		if ($this->OrderModelObj)
+			return $this->OrderModelObj->MerchantTransactionList($field,$condition,$searchCond,$limit);
+	}
+	function getPopularProducts($fields,$condition)
+	{
+		if (!isset($this->OrderModelObj))
+			$this->loadModel('OrderModel', 'OrderModelObj');
+		if ($this->OrderModelObj)
+			return $this->OrderModelObj->getPopularProducts($fields,$condition);
+	}
+	function merchantCustomerList($fields,$condition,$groupby)
+	{
+		if (!isset($this->OrderModelObj))
+			$this->loadModel('OrderModel', 'OrderModelObj');
+		if ($this->OrderModelObj)
+			return $this->OrderModelObj->merchantCustomerList($fields,$condition,$groupby);
+	}
+	function getTransactionDetails($fields,$leftjoin,$condition,$sortby,$limit,$type)
+	{
+		if (!isset($this->OrderModelObj))
+			$this->loadModel('OrderModel', 'OrderModelObj');
+		if ($this->OrderModelObj)
+			return $this->OrderModelObj->getTransactionDetails($fields,$leftjoin,$condition,$sortby,$limit,$type);
 	}
 }
 ?>

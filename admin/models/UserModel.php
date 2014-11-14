@@ -113,6 +113,9 @@ class UserModel extends Model
 														  PaymentPreference	= 1,
 														  RememberMe		= 1,
 														  Platform			= 0,
+														  Gender 			= '".$register_values['Gender']."',
+														  DOB 				= '".$register_values['DOB']."',
+														  Age 				= '".$register_values['Age']."',
 														  DateCreated 		= '".date('Y-m-d H:i:s')."',
 														  DateModified		= '".date('Y-m-d H:i:s')."'";
 		$this->result = $this->insertInto($sql);
@@ -129,6 +132,7 @@ class UserModel extends Model
 	function getUserDetails($fields, $condition)
 	{
 		$sql	 =	"SELECT ".$fields." FROM {$this->userTable} WHERE ".$condition;
+		echo "================>".$sql."</br>";
 		$result = 	$this->sqlQueryArray($sql);
 			if($result) return $result;
 			else false;
@@ -211,6 +215,67 @@ class UserModel extends Model
 	function updateBadge($token){
 		$sql	 =	"update {$this->devicetokenTable} set BadgeCount = BadgeCount + 1 where DeviceToken = '".$token."'";
 		$result = 	$this->updateInto($sql);
+	}
+	/*-------Customers------*/
+	function getCustomerList($fields,$condition,$limit)
+	{
+		$limit_clause	=	$join	=	$joincon	=	$lcondition	=	'';
+		if(isset($limit) && !empty($limit)){
+			$limit_clause	= "limit ".$limit.",30";
+		}else{
+			$limit_clause	= "limit 0,30";
+		}
+		$sorting_clause = ' u.id desc';
+		$sql 	= "select SQL_CALC_FOUND_ROWS ".$fields." from {$this->userTable} as u	
+				WHERE 1".$condition." ORDER BY ".$sorting_clause." ".$limit_clause;
+		$result	=	$this->sqlQueryArray($sql);
+		//echo $sql;
+		if(count($result) == 0) return false;
+		else return $result;
+	}
+	function getCustomerTransaction($field,$condition)
+	{
+		$sql 	= 	"SELECT  count(o.id) as TotalOrders,SUM(TotalPrice) as TotalPrice ".$field." from orders as o 
+					LEFT JOIN users as u on (u.id = o.fkUsersId)
+					where 1 and  o.OrderStatus IN (1) ".$condition;	
+		//echo '-->'. $sql .'<br>';
+		$result	=	$this->sqlQueryArray($sql);
+		if(count($result) == 0) return false;
+		else return $result;	
+	}
+	function getTransactionDetails($fields,$condition)
+	{
+		$sql 	= 	"SELECT ".$fields." FROM `orders` as o
+					LEFT JOIN merchants as m on (m.id = o.fkMerchantsId)
+					where 1 and  o.OrderStatus IN (1) ".$condition." group by fkMerchantsId
+					order by Total desc limit 0,5";	
+		//echo '-->'. $sql .'<br>';
+		$result	=	$this->sqlQueryArray($sql);
+		if(count($result) == 0) return false;
+		else return $result;	
+	}
+	function getUserDemographics($fields,$condition)
+	{
+		$search_condition = $left_join	= '';
+		
+		if(isset($_SESSION['loc_mer_name']) && $_SESSION['loc_mer_name'] != '')
+			$search_condition .= " and o.fkMerchantsId  = ".$_SESSION['loc_mer_name'];
+		if(isset($_SESSION['loc_mer_category']) && $_SESSION['loc_mer_category'] != ''){
+			$left_join		   = "left join merchantcategories as mc on (mc.fkMerchantId = o.fkMerchantsId )";
+			$search_condition .= " and mc.fkCategoriesId  = ".$_SESSION['loc_mer_category'];
+		}
+		if(isset($_SESSION['loc_mer_city']) && $_SESSION['loc_mer_city'] != '')
+			$search_condition .= " and m.City LIKE '".$_SESSION['loc_mer_city']."%' ";
+		if(isset($_SESSION['loc_mer_price']) && $_SESSION['loc_mer_price'] != '')
+			$search_condition .= " and o.TotalPrice = '".$_SESSION['loc_mer_price']."' ";
+		$sql 	= 	"Select ".$fields." from users as u
+					left join `orders` as o ON (o.fkUsersId = u.id and  o.OrderStatus IN (1))
+					left join merchants as m on (m.id = o.fkMerchantsId)
+					".$left_join."
+					where 1 ".$search_condition." ".$condition." ";
+		$result	=	$this->sqlQueryArray($sql);
+		if(count($result) == 0) return false;
+		else return $result;	
 	}
 }
 ?>

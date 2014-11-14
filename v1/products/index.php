@@ -197,27 +197,13 @@ $app->delete('/:deleteId', tuplitApi::checkToken(), function ($deleteId) use ($a
 
     try {
 		 // Create a http request
-        $req 				= $app->request();
-		if($req->params('Type'))			$ItemType	=	$req->params('Type');
-		if($req->params('ProductIds'))		$ProductIds	=	$req->params('ProductIds');
+        $req 		= $app->request();	
 		
-		$product 			= R::dispense('products');
-		$product->id 		= $deleteId;
-		$product->Status 	= '3';
-		R::store($product);
-		
-		if(isset($ItemType) && !empty($ItemType) && $ItemType =3 && isset($ProductIds) && !empty($ProductIds)) {
-			$pro_ids				= 	explode(',',$ProductIds);
-			foreach($pro_ids as $key=>$val) {
-				$specialproduct 				= 	R::dispense('specialproducts');
-				$specialproduct->id				=	$val;
-				$specialproduct->Status			=	3;
-				R::store($specialproduct);
-			}				
-		
-		}
-		
-		$response 	   = new tuplitApiResponse();
+		$product 	= R::dispense('products');
+		if($req->params('Type') != '')			$product->ItemType		=	$req->params('Type');
+		$product	=	$product->deleteProducts($deleteId);
+				
+		$response 	= 	new tuplitApiResponse();
 		$response->setStatus(HttpStatusCode::Created);
 		$response->meta->dataPropertyName = 'ProductDeleted';			
 		/**
@@ -261,29 +247,29 @@ $app->post('/',tuplitApi::checkToken(), function () use ($app) {
          * Insert new product Values
          */		
         $products 						= 	R::dispense('products');
-		$products->fkMerchantsId 		= 	$merchantId;		
+		$products->fkMerchantsId 		= 	$merchantId;
 		$products->CategoryId			= 	$req->params('CategoryId');
 		$products->ItemName 			= 	$req->params('ItemName');
 		$products->ItemDescription		= 	$req->params('ItemDescription');
-		$products->Price 				= 	$req->params('Price');		
-		$products->Status 				= 	$req->params('Status');		
-		$products->ItemType 			= 	$req->params('ItemType');		
-		$ItemType 						= 	$req->params('ItemType');		
-		$SpecialIds 					= 	$req->params('SpecialIds');		
-		$SpecialQty 					= 	$req->params('SpecialQty');		
+		$products->Price 				= 	$req->params('Price');
+		$products->Status 				= 	$req->params('Status');
+		$products->ItemType 			= 	$req->params('ItemType');
+		$ItemType 						= 	$req->params('ItemType');
+		$SpecialIds 					= 	$req->params('SpecialIds');
+		$SpecialQty 					= 	$req->params('SpecialQty');
 		if($req->params('OriginalPrice') != '')
-			$products->OriginalPrice	= 	$req->params('OriginalPrice');		
+			$products->OriginalPrice	= 	$req->params('OriginalPrice');
 		if($req->params('Discount'))
-			$products->Discount 		= 	$req->params('Discount');		
+			$products->Discount 		= 	$req->params('Discount');
 		else
 			$products->Discount 		= 	0;
 			
 		if($req->params('Photo') || (isset($_FILES['Photo']['tmp_name']) && $_FILES['Photo']['tmp_name'] != ''))
 			$products->Photo 			= 	1;
 		
-		$flag 	= 	$coverFlag 			= 	0;		
+		$flag 	= 	$coverFlag 			= 	0;
 		if (isset($_FILES['Photo']['tmp_name']) && $_FILES['Photo']['tmp_name'] != '') {
-			$flag 						= 	checkImage($_FILES['Photo'],1);				
+			$flag 						= 	checkImage($_FILES['Photo'],1);
 		} else {
 			$tempImageName 				= 	$req->params('Photo');
 		}
@@ -302,7 +288,7 @@ $app->post('/',tuplitApi::checkToken(), function () use ($app) {
 				copy($_FILES['Photo']['tmp_name'],$temppath);
 			}
 			else
-				$temppath 				= 	TEMP_PRODUCT_IMAGE_PATH_UPLOAD.$tempImageName;				
+				$temppath 				= 	TEMP_PRODUCT_IMAGE_PATH_UPLOAD.$tempImageName;
 			
 			imagethumb_addbg($temppath, $imagePath,'','',300,300);
 			if(SERVER) {
@@ -372,7 +358,7 @@ $app->put('/:ProductId', tuplitApi::checkToken(),function ($ProductId) use ($app
     	$body 		= $request->getBody();
     	$input 		= json_decode($body);
 		$ItemType	= '1';
-		
+		$fkMerchantsId 					= 	tuplitApi::$resourceServer->getOwnerId();
         /**       
          * @var Products $Products
          */
@@ -383,6 +369,7 @@ $app->put('/:ProductId', tuplitApi::checkToken(),function ($ProductId) use ($app
 			$product->Photo			= $input->Photo;
 			$tempImageName			= $input->Photo;
 		}
+		$product->fkMerchantsId 		= $fkMerchantsId;
 		if(isset($input->CategoryId)) 			$product->CategoryId 		= $input->CategoryId;
 		if(isset($input->ItemName))				$product->ItemName 			= $input->ItemName;
 		if(isset($input->ItemDescription))		$product->ItemDescription	= $input->ItemDescription;

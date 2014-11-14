@@ -1,0 +1,84 @@
+.jcarousel-wrapper {    position: relative;}
+.jcarousel {
+    position: relative;
+    overflow: hidden;
+    width: 100%;
+}
+.jcarousel ul {
+    width: 20000em;
+    position: relative;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+.jcarousel li {
+    float: left;
+    margin-bottom: 10px;
+}
+
+.jcarousel img {
+}
+.jcarousel input { display : block; }
+/** Carousel Controls **/
+.jcarousel-control-prev, .jcarousel-control-next {
+    position: absolute;
+    top:  120px;
+    margin-top: 0;
+    width: 20px;
+    height: 27px;
+	background:url(../images/prev.png) no-repeat;
+	text-indent:-9999px;
+	margin-left:38px;
+	margin-right:38px;
+	z-index:1;
+}
+.jcarousel-control-prev:hover, .jcarousel-control-next:hover{  opacity:1;  }
+.jcarousel-control-prev { left:0; right :inherit; }
+.jcarousel-control-next { right: 0;background:url(../images/next.png) no-repeat;}
+
+
+
+/* Mobile  */
+@media only screen and (min-device-width : 320px) and (max-device-width : 480px) and (orientation : landscape) {
+	.product_list .jcarousel ul li {width:206px !important;}
+}
+@media only screen and (min-device-width : 481px) and (max-device-width : 533px) and (orientation : landscape) {
+	.product_list .jcarousel ul li {width:154px !important;}
+	.jcarousel-control-prev, .jcarousel-control-next {margin-left: 8px !important;margin-right: 12px !important;}	
+}
+@media only screen and (min-device-width : 320px) and (max-device-width : 568px) and (orientation : landscape) {
+	.product_list .jcarousel ul li {/*width:165px !important;*/}
+}
+@media only screen and (min-device-width : 360px) and (max-device-width : 640px) and (orientation : landscape) {
+	.jcarousel li {width:186px !important;}
+	.jcarousel-control-prev, .jcarousel-control-next {margin-left:20px;margin-right:20px;}
+}
+@media screen and (min-width: 400px) and (max-width: 539px) {
+	.jcarousel li {width:175px !important;}
+	.jcarousel-control-prev, .jcarousel-control-next {margin-left: 8px;margin-right: 12px;}
+}
+@media screen and (min-device-width: 540px) and (max-device-width: 767px) and (orientation : portrait) {
+	.jcarousel li {width:152px !important;}
+	.jcarousel-control-prev, .jcarousel-control-next {margin-left:10px;margin-right:18px;}
+}
+@media screen and (min-width: 541px) and (max-width: 639px) {
+	.jcarousel li {width:165px !important}
+	.jcarousel-control-prev, .jcarousel-control-next {margin-left:10px;margin-right:14px;}
+}
+
+@media
+    (max-device-width: 800px) and (orientation: portrait) and (min-resolution: 169dpi),
+    (max-device-width: 800px) and (orientation: portrait) and {body {border:0px solid yellow !important} }
+
+/** Ipad **/
+
+@media only screen and (min-device-width : 768px) and (max-device-width : 1024px) and (orientation : portrait) {
+	.jcarousel-control-prev, .jcarousel-control-next {margin-right:20px !important;}
+}
+@media only screen and (min-device-width : 768px) and (max-device-width : 1024px) and (orientation : landscape) {
+	.jcarousel-control-prev, .jcarousel-control-next {margin-left:8px !important;margin-right:12px !important;}
+}
+
+@media screen and (min-width: 600px) and (max-width: 639px) {
+	.jcarousel li {width:175px !important;}
+}

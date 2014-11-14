@@ -4,10 +4,10 @@ class CurrencyModel extends Model
 	function getCurrencyList() {
 		$limit_clause	=	$condition	=	'';
 		$sorting_clause = ' c.id desc';
-		if(!empty($_SESSION['ordertype']))
+		/*if(!empty($_SESSION['ordertype']))
 			$sorting_clause = $_SESSION['orderby'] . ' ' . $_SESSION['ordertype'];
 		if(isset($_SESSION['sortBy']) && isset($_SESSION['orderType']))
-			$sorting_clause	= $_SESSION['sortBy']. ' ' .$_SESSION['orderType'];
+			$sorting_clause	= $_SESSION['sortBy']. ' ' .$_SESSION['orderType'];*/
 		if(isset($_SESSION['curpage']))
 			$limit_clause = ' LIMIT '.(($_SESSION['curpage'] - 1) * ($_SESSION['perpage'])) . ', '. $_SESSION['perpage'];
 		if(isset($_SESSION['tuplit_sess_Location_code']) && $_SESSION['tuplit_sess_Location_code'] != '')
@@ -32,6 +32,7 @@ class CurrencyModel extends Model
 	
 	function getLocationList() {
 		$sql	 	= 	"select SQL_CALC_FOUND_ROWS * from {$this->locationTable} l where 1 and Status in (1) ORDER BY Location asc";
+		//echo $sql;
 		$result		=	$this->sqlQueryArray($sql);
 		if(count($result) == 0) return false;
 		else return $result;		
@@ -81,6 +82,7 @@ class CurrencyModel extends Model
 														DateModified 	=	'".date('Y-m-d H:i:s')."' 
 														where id in (".$ids.")";
 		$res	=	$this->updateInto($sql);
+		//echo $sql;
 		if($res) {
 			$sql	 =	"update  {$this->locationTable}  set fkCurrencyId  	= 	'',
 														DateModified 	=	'".date('Y-m-d H:i:s')."' 

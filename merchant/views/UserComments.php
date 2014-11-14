@@ -54,11 +54,13 @@ if(!isset($_SESSION['tuplit_ses_from_timeZone']) || $_SESSION['tuplit_ses_from_t
 commonHead();
 ?>
 
-<body class="skin-blue fixed">
-		<div class="col-xs-12 no-padding">	
+<body class="skin-blue fixed popup_bg">
+<div class="popup_white">
+		<div class="col-xs-12">	
 			<section class="content-header">
-                <h1 class="no-margin space_bottom">Comment List</h1>
+                <h1 class="space_bottom">Comment List</h1>
             </section>
+		<div class="box box-primary" style="padding-left:0px;padding-top:0px;margin-bottom:15px;">
 			<div class="row no-margin space_bottom">
 					<?php if(isset($commentList) && is_array($commentList) && count($commentList) > 0){ ?>
 					<span class="totl_txt">Total Comments(s) : <b><?php echo $tot_rec; ?></b></span>
@@ -69,7 +71,7 @@ commonHead();
 				</div>
 			<div class="product_list">
 				<?php if(isset($commentList) && !empty($commentList)) { ?>
-				<div class="box box-primary no-padding no-margin">
+				<div class="box box-primary no-padding no-margin commentlist">
 					<div class="box-body table-responsive no-padding no-margin">
 						
 						<table class="table table-hover">
@@ -101,7 +103,9 @@ commonHead();
 								 <div align="center" class="alert alert-danger alert-dismissable col-lg-4 col-sm-5 col-xs-10"><i class="fa fa-warning"></i> <?php echo $errorMessage;?></div>							
 							</div>							
 						<?php } ?>				
+			</div>
 			</div>	
+		 </div>
 		 </div>
 		<?php //footerLogin(); ?>
 	<?php commonFooter(); ?>

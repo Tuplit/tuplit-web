@@ -8,9 +8,7 @@
 	if(isset($all_series['order']) && $all_series['order'] != ''){
 		$value_arrays = explode(',',$all_series['order']);
 	}
-	
 ?>
-
 <?php if(isset($error_div) && $error_div==0 && !empty($product_array)) {?>
  <div>
  	<div align="right"><a id="view_list" href="#view_list"><strong><i class="fa fa-list"></i> View Product List</strong></a></div>
@@ -25,6 +23,9 @@
 	 </div>		
 	 <div class="box-body chart-responsive">
 	     <div class="chart" id="bar-chart3" style="height: 300px;"></div>
+	 </div>
+	 <div class="box-body chart-responsive">
+	     <div class="chart" id="transactionChart" style="height: 300px;"></div>
 	 </div>
 </div> 
 <?php } ?>
@@ -69,7 +70,6 @@ $(document).ready(function() {
 		 else if(orderby == 'TotalQuantity' && ordertype == 'asc')
 			$("#quantity_bg").attr('src', '../merchant/webresources/images/asc.gif');
   });
-
 <?php } ?>
 <?php if(isset($error_div) && $error_div==0 && !empty($pie_chart_array)) {
 ?>
@@ -134,8 +134,8 @@ $(document).ready(function() {
 			
 			<tr>
 				<td align="left"><?php if(isset($value->Name) && $value->Name != '' ){ echo $value->Name;} else echo '-';?></td>
-				<td align="center"><?php if(isset($total_price) && $total_price>0){ echo '$'.$total_price;}?></td>
-				<td align="center"><?php if(isset($average) && $average>0){ echo '$'.$average;}?></td>
+				<td align="center"><?php if(isset($total_price) && $total_price>0){ echo price_fomat($total_price);}?></td>
+				<td align="center"><?php if(isset($average) && $average>0){ echo price_fomat($average);}?></td>
 				<td align="center"><?php if(isset($total_quantity) && $total_quantity> 0){ echo $total_quantity;}?></td>
 				
 			</tr>

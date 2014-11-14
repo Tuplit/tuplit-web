@@ -68,6 +68,7 @@ $app->post('/',tuplitApi::checkToken(), function () use ($app) {
          */
 		$comments 		 		= R::dispense('comments');
 		$comments->MerchantId 	= $req->params('MerchantId');
+		$comments->OrderId 		= $req->params('OrderId');
 		$comments->UserId 		= $userId;
 		$comments->Action 		= 1;
 		$comments->Platform 	= $platform ;
@@ -193,6 +194,79 @@ $app->get('/', function () use ($app) {
 		$comments->Type 				= $type;
 		$commentsList           		= $comments->commentsLists();
 		
+		if($commentsList){
+			$response = new tuplitApiResponse();
+       	 	$response->setStatus(HttpStatusCode::Created);
+        	$response->meta->dataPropertyName 	= 'comments';
+			$response->meta->totalCount 		= $commentsList['Total'];
+			$response->meta->listedCount 		= count($commentsList['List']);
+			$response->returnedObject 			= $commentsList['List'];
+			$response->meta->currentDate 		= date('Y-m-d H:i:s');
+        	$response->addNotification('Comments has been listed successfully');
+       		echo $response;
+		}
+		else{
+			 /**
+	         * throwing error when static data
+	         */
+			  throw new ApiException("No comments Found", ErrorCodeType::NoResultFound);
+		}
+    }
+    catch (ApiException $e){
+        // If occurs any error message then goes here
+        tuplitApi::showError(
+            $e,
+            $e->getHttpStatusCode(),
+            $e->getErrors()
+        );
+    }
+    catch (\Slim\Exception\Stop $e){
+        // If occurs any error message for slim framework then goes here
+    }
+    catch (Exception $e) {
+        // If occurs any error message then goes here
+        tuplitApi::showError($e);
+    }
+});
+
+/**
+* Get Product  - comments for analytics
+* GET /v1/
+*/
+$app->get('/productcomments',tuplitApi::checkToken(), function () use ($app) {
+	try {
+		 // Create a http request
+		$merchantId = $userId = $dataType = '';
+        $req 			= 	$app->request();
+		$merchantId 	= 	tuplitApi::$resourceServer->getOwnerId();
+		
+		// Create a json response object
+        $response 		= 	new tuplitApiResponse();
+		$start 			= $type = 0;
+		$limit			= 20;
+		if($req->params('Platform')){
+			$platformText 	= $req->params('Platform');
+		}
+		else{
+			$platformText 	= 'web';
+		}
+		if($req->params('Start')){
+			$start 			= $req->params('Start');
+		}
+		if($req->params('Limit'))
+			$limit		 	= $req->params('Limit');
+		if($req->params('DataType'))
+			$dataType		= $req->params('DataType');
+		/**
+         * @var Comments $comments
+         */
+		$comments 		 				= R::dispense('comments');
+		$comments->MerchantId 			= $merchantId;
+		$comments->Platform 			= $platformText;
+		$comments->Start 				= $start;
+		$comments->Limit 				= $limit;
+		$comments->DataType				= $dataType;
+		$commentsList           		= $comments->productCommentsLists();
 		if($commentsList){
 			$response = new tuplitApiResponse();
        	 	$response->setStatus(HttpStatusCode::Created);

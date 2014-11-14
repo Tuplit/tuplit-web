@@ -110,7 +110,7 @@ $(function() {
             $(".left-side, html, body").css("min-height", content + "px");
         else {
             //Otherwise, set the sidebar to the height of the window
-            $(".left-side, html, body").css("min-height", height + "px");
+            $(".left-side, html, body").css("min-height", height + "50");
         }
     }
     //Fire upon load

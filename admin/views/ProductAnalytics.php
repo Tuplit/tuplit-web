@@ -98,7 +98,7 @@ commonHead();
 						</div>
 					</div>
 				</section>
-				<section class="content">
+				<section class="content box fleft paging-margin">
 					<div class="box box-primary">
 						<div class="col-xs-12">	
 		 					<div class="main_graph"><div class="graph"></div></div>

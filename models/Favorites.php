@@ -87,11 +87,32 @@ class Favorites extends RedBean_SimpleModel implements ModelBaseInterface {
 		
 		if(isset($bean->Search) && !empty($bean->Search))
 			$condition	=	" and m.CompanyName like '%".$bean->Search."%'";
-			
+		
+		//Check for total products   - 27/10/2014
+		$merchantsIdNot	=	'';
+		$sql		=	"SELECT `fkMerchantsId`,count(*) as totcount FROM `products` WHERE 1 and `ItemType` in (1,3) and `Status` in (1,2) group by `fkMerchantsId` HAVING totcount > 20 ";
+		$producttot = 	R::getAll($sql);
+		if($producttot) {
+			$merchantsIdNotArray = Array();
+			foreach($producttot as $val) {
+				$merchantsIdNotArray[]		=	$val['fkMerchantsId'];
+			}
+			if(count($merchantsIdNotArray) > 0)
+				$merchantsIdNot = implode(',',$merchantsIdNotArray);
+		} else {
+			/**
+			* throwing error when no data found
+			*/
+			throw new ApiException("No Merchants Found", ErrorCodeType::NoResultFound);
+		}
+		if(!empty($merchantsIdNot))
+			$merchantsIdNot = " and m.id in (".$merchantsIdNot.") ";
+		//Check for total products   - 27/10/2014
+		
 		//getting user favorite merchantIds
 		$sql 			= 	"select f.fkMerchantsId from favorites f
 								left join merchants m on (f.fkMerchantsId = m.id) 
-								where f.FavouriteType = 1 and m.Status = 1 and f.fkUsersId ='".$bean->UsersId."' ".$condition." ORDER BY f.id desc";
+								where f.FavouriteType = 1 and m.Status = 1 and f.fkUsersId ='".$bean->UsersId."' ".$condition." ".$merchantsIdNot." ORDER BY f.id desc";
 		//echo $sql;
 		$result 		= 	R::getAll($sql);
 		

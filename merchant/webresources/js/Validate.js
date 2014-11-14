@@ -4,14 +4,15 @@ else
     var protocolPath  = 'http://';
 
 if (window.location.hostname == '172.21.4.104') {
-    var  path = protocolPath + '172.21.4.104/simplyshredded/admin/';
-    var actionPath	= protocolPath + '172.21.4.104/simplyshredded/admin/';
+    var  path = protocolPath + '172.21.4.104/tuplit/admin/';
+    var actionPath	= protocolPath + '172.21.4.104/tuplit/admin/';
 }
 else {
 	var  path = protocolPath+''+window.location.hostname+'/admin/';
     var actionPath	= protocolPath+''+window.location.hostname+'/admin/';
 
 }*/
+var email_f		=	/^((\w+([-+.]\w+)*@\w+([-.]\w+)*\.\w+([-.]\w+)*)*([,])*)*$/;
 $(document).ready(function(){
 
  $.validator.addMethod("nameRegexp", function(value, element) {
@@ -110,10 +111,10 @@ $("#add_category_form").validate({
 //--------------Add Category----------------End
 });
 //-------------- My Store---------------start
-$("#mystore_form").validate({	
+/*$("#mystore_form").validate({	
 		rules:{
-			ShopName          			:	{ required:true},			
-            ShopDescription			  	:	{ required:true},			
+			ShopName          			:	{ required:true },			
+            ShopDescription			  	:	{ required:true },			
 			categorySelected			:	{ required:true },		
 			PriceRange		  			:	{ required:true },		
 			MoreInfo		  			:	{ required:true },	
@@ -129,7 +130,8 @@ $("#mystore_form").validate({
 			ZipCode			  			:	{ required:true },	
 			priceValidation				:	{ required:true,min_val:true},
 			empty_icon_photo			: 	{ required:true},
-			empty_merchant_photo		: 	{ required:true}
+			empty_merchant_photo		: 	{ required:true},
+			empty_background_photo		: 	{ required:true}
 		},
 		messages:{
 			ShopName      	 			:	{ required:'Shop Name is required'},
@@ -147,8 +149,9 @@ $("#mystore_form").validate({
 			//Twitter			  			:	{ required:'Twitter is required',url:'Please enter valid twitter url' },		
 			ZipCode			  			:	{ required:'ZipCode is required' },		
 			priceValidation				:	{ required:'Price Range is required',min_val:'Please enter valid price range'},
-			empty_icon_photo			: 	{ required:'Icon is required'},
-			empty_merchant_photo		: 	{ required:'Image is required'}
+			empty_icon_photo			: 	{ required:'Logo is required'},
+			empty_merchant_photo		: 	{ required:'Image is required'},
+			empty_background_photo		: 	{ required:'Background is required'}
 		}		
 	});	
 	$.validator.addMethod("min_val", function(value, element) {
@@ -160,11 +163,11 @@ $("#mystore_form").validate({
 	   		 return false;
 		 else
 		  	return true
-	});
+	});*/
 //--------------My Store----------------End
 
 //--------------------My store - Opening Hours ------------------Start
-$("#mystore_form").submit(function() {
+/*$("#mystore_form").submit(function() {
 	var validatetime = '1';
 	var myregex = new RegExp("");
 	var checksame = 6;
@@ -200,7 +203,7 @@ $("#mystore_form").submit(function() {
 						$('#error_'+i).html('From time and To time should not be same');
 						validatetime = '0';
 					}
-					/*//Start time
+					/*Start time
 					var startsplit 		= start.split(" ");
 					var startarray 		= startsplit[0].split(":").map(Number);
 					if(startsplit[1] == 'pm') {
@@ -219,7 +222,7 @@ $("#mystore_form").submit(function() {
 						$('#error_'+i).html('To time must be greater then From time');
 						validatetime = '0';
 					}	*/				
-				}				
+				/*}				
 			}
 		}
 	}	
@@ -228,12 +231,14 @@ $("#mystore_form").submit(function() {
 		return true;
 	else
 		return false;
-});
+});*/
 //--------------------My store - Opening Hours ------------------end
 
 //--------------Add Mangopay---------------start
 $("#add_mangopay_account").validate({
 		rules:{
+			CompanyName        :	{ required:true},
+			Email		       :	{ required:true,email:true},
 			FirstName          :	{ required:true},
 			LastName           :	{ required:true},
 			Address	       	   :    { required:true},
@@ -242,6 +247,8 @@ $("#add_mangopay_account").validate({
 			DOB				   :	{ required:true }
 		},
 		messages:{
+			CompanyName       	:	{ required:'Company Name is required'},
+			Email		       	:	{ required:'Email is required',email:'Please enter a valid email address.'},
 			FirstName       	:	{ required:'First Name is required'},
 			LastName       		:	{ required:'Last Name is required'},
 			Address				:	{ required:'Address is required'},
@@ -255,46 +262,32 @@ $("#add_mangopay_account").validate({
 //--------------Add Merchant---------------start
 $("#add_merchant_form_new").validate({
 		rules:{
-			FirstName          :	{ required:true},
-			LastName           :	{ required:true},
-			Email        	   :	{ required:true,email:true},
-			Password	       :    { required:true,minlength:6},
-			MobileNumber	   :	{ required:true,minlength:10 },
-			BusinessName	   :	{ required:true },
-			BusinessType	   :	{ required:true },
-			CompanyNumber	   :	{ required:true },
-			Address	   			:	{ required:true },
-			Country	   			:	{ required:true },
-			Postcode   			:	{ required:true },
-			Currency   			:	{ required:true },
-			ReferedBy  			:	{ required:true },
-            C_Password		   :	{ required:true,minlength:6, equalTo:'#Password'},
-			CompanyName		   :	{ required:true },
-			Terms		   		:	{ required:true }	
+			FirstName	    :	{ required:true},
+			LastName	    :	{ required:true},
+			BusinessName    :	{ required:true},
+			Email       	:	{ required:true,email:true},
+			MobileNumber	:	{ required:true },
+			Password		:   { required:true,minlength:6},
+			CPassword		:   { required:true,minlength:6,equalTo:'#Password'},
+			Terms			:	{ required:true },
+			Website			:	{ url:true }	
 		},
 		messages:{
-			FirstName       	:	{ required:'First Name is required'},
-			LastName       		:	{ required:'Last Name is required'},
-			Email				:	{ required:'Email is required',email:'Please enter a valid email address.'},
-			CompanyName			:	{ required:'Company Name is required' },
-			MobileNumber		:	{ required:'Mobile Number is required',minlength:'Mobile Number should have atleast 10 numbers' },
-			BusinessName		:	{ required:'Business Name is required' },
-			BusinessType		:	{ required:'Business Type is required' },
-			CompanyNumber		:	{ required:'Registered Company Number is required' },
-			Address				:	{ required:'Address is required' },
-			Country				:	{ required:'Country is required' },
-			Postcode			:	{ required:'Postcode is required' },
-			Currency			:	{ required:'Currency is required' },
-			ReferedBy			:	{ required:'Referer is required' },
-			Password			:	{ required:'Password is required',minlength:'Password should have atleast 6 characters'},
-			C_Password		    :   { required:'Confirm Password is required',minlength:'Confirm Password should have atleast 6 characters',equalTo:'Password mismatch' },
-			Terms			   :	{ required:'Terms & Conditions is required' }
+			FirstName    	:	{ required:'First Name is required'},
+			LastName    	:	{ required:'Last Name is required'},
+			BusinessName	:	{ required:'Business Name is required'},
+			Email			:	{ required:'Email is required',email:'Please enter a valid email address.'},
+			MobileNumber	:	{ required:'Mobile Number is required'},
+			Password		:	{ required:'Password is required',minlength:'Password should have atleast 6 characters'},
+			CPassword		:	{ required:'Confirm Password is required',minlength:'Password should have atleast 6 characters',equalTo:'Password mismatch'},
+			Terms			:	{ required:'Terms & Conditions is required' },
+			Website			:	{ url:'Please enter valid website url'}
 		}
 	});
 //--------------Add Merchant---------------End
 
 //-------------- Merchant Settings ---------------start
-$("#merchant_setting_form").validate({
+/*$("#merchant_setting_form").validate({
 		rules:{
 			FirstName          :	{ required:true},
 			LastName           :	{ required:true},
@@ -325,7 +318,7 @@ $("#merchant_setting_form").validate({
 			Currency			:	{ required:'Currency is required' },
 			DiscountTier		:	{ required:'Discount Scheme is required' },
 		}
-	});
+	});*/
 //-------------- Merchant Settings ---------------End
 
 //--------------Add Sub user---------------start
@@ -333,6 +326,7 @@ $("#subuser_form").validate({
 		rules:{
 			FirstName          :	{ required:true},
 			LastName           :	{ required:true},
+			empty_salesperson  :	{ required:true},
 			Email        	   :	{ required:true,email:true},
 			Password	       :    { required:true,minlength:6},			
             C_Password		   :	{ required:true,minlength:6, equalTo:'#Password'}
@@ -340,6 +334,7 @@ $("#subuser_form").validate({
 		messages:{
 			FirstName       	:	{ required:'First Name is required'},
 			LastName       		:	{ required:'Last Name is required'},
+			empty_salesperson	:	{ required:'Salesperson image is required'},
 			Email				:	{ required:'Email is required',email:'Please enter a valid email address.'},
 			Password			:	{ required:'Password is required',minlength:'Password should have atleast 6 characters'},
 			C_Password		    :   { required:'Confirm Password is required',minlength:'Confirm Password should have atleast 6 characters',equalTo:'Password mismatch' }
@@ -352,12 +347,125 @@ $("#edit_subuser_form").validate({
 		rules:{
 			FirstName          :	{ required:true},
 			LastName           :	{ required:true},
+			empty_salesperson  :	{ required:true},
 			Email        	   :	{ required:true,email:true}
 		},
 		messages:{
 			FirstName       	:	{ required:'First Name is required'},
 			LastName       		:	{ required:'Last Name is required'},
+			empty_salesperson	:	{ required:'Salesperson image is required'},
 			Email				:	{ required:'Email is required',email:'Please enter a valid email address.'}
 		}
 	});
 //--------------edit Sub user---------------End
+
+//-------------- Settings ---------------start
+$("#Settings_form").validate({	
+		rules:{
+			ShopName          			:	{ required:true },			
+            ShopDescription			  	:	{ required:true },			
+			categorySelected			:	{ required:true },		
+			PriceRange		  			:	{ required:true },		
+			MoreInfo		  			:	{ required:true },	
+			Street		  				:	{ required:true },	
+			City		  				:	{ required:true },	
+			State		  				:	{ required:true },	
+			Country		  				:	{ required:true },	
+			Phone		  				:	{ required:true },	
+			Email		  				:	{ required:true },	
+			Website		  				:	{ required:true,url:true },	
+			ZipCode			  			:	{ required:true },	
+			priceValidation				:	{ required:true, min_val:true},
+			empty_icon_photo			: 	{ required:true},
+			empty_merchant_photo		: 	{ required:true},
+			empty_background_photo		: 	{ required:true},
+			Security					: 	{ required:true, email:true},
+			//AutoLock					: 	{ required:true},
+			PriceScheme					: 	{ required:true},
+			ProductVAT					: 	{ required:true},
+			PanelFeatures				: 	{ required:true},
+			Emails						: 	{ required:true,email_format:true},
+			Pincode	     				:   { Pincode_check:true},
+			CPincode	     			:   { equalTo:'#Pincode'},
+			CPassword	     			:   { equalTo:'#Password'}
+		},
+		messages:{
+			ShopName      	 			:	{ required:'Shop Name is required'},
+			ShopDescription			    :   { required:'Shop Description is required'},			
+			categorySelected			:	{ required:'Category is required' },		
+			MoreInfo		  			:	{ required:'More Info is required' },			
+			Street		  				:	{ required:'Street is required' },			
+			City		  				:	{ required:'City is required' },			
+			State		  				:	{ required:'State is required' },			
+			Country		  				:	{ required:'Country is required' },			
+			Phone		  				:	{ required:'Phone is required' },			
+			Email		  				:	{ required:'Email is required' },			
+			Website		  				:	{ required:'Website is required',url:'Please enter valid website url'  },			
+			ZipCode			  			:	{ required:'ZipCode is required' },		
+			priceValidation				:	{ required:'Price Range is required',min_val:'Please enter valid price range'},
+			empty_icon_photo			: 	{ required:'Logo is required'},
+			empty_merchant_photo		: 	{ required:'Image is required'},
+			empty_background_photo		: 	{ required:'Background is required'},
+			Security					: 	{ required:'Security is required', email:'enter valid email'},
+			//AutoLock					: 	{ required:'Auto-Lock is required'},
+			PriceScheme					: 	{ required:'PriceScheme is required'},
+			ProductVAT					: 	{ required:'ProductVAT is required'},
+			PanelFeatures				: 	{ required:'PanelFeatures is required'},
+			Emails						: 	{ required:'Emails is required', email_format:'enter valid email'},
+			Pincode	     				:   { Pincode_check:'Pincode is required'},
+			CPincode	     			:   { equalTo:'Pincode mismatch'},
+			CPassword	     			:   { equalTo:'Password mismatch'}
+		}		
+	});	
+	$.validator.addMethod("min_val", function(value, element) {
+		 if(parseInt($('#max_price').val()) == 0)
+	   		 return false;
+		 else if(parseInt($('#min_price').val()) == 0)
+	   		 return false;
+		 else if(parseInt($('#min_price').val()) > parseInt($('#max_price').val()))
+	   		 return false;
+		 else
+		  	return true;
+	});
+	$.validator.addMethod("email_format", function(value, element) {
+		 if($('#Emails').val().match(email_f))  
+	   		 return true;
+		 else
+		  	return false;
+	});
+	$.validator.addMethod("Pincode_check", function(value, element) {
+		 if($('#AutoLock').val() == '')
+	   		 return true;
+		 else if(($('#AutoLock').val() > 0) && ($('#hidden_pin').val() == '') && ($('#Pincode').val() == ''))
+	   		 return false;
+		 else
+		  	return true;
+	});
+//-------------- Settings ----------------End
+
+$("#ask_pin_popup").validate({
+		rules:{
+			Pincode   	:	{ required:true}
+		},
+		messages:{
+			Pincode		:	{ required:'Pincode is required'}
+		}
+	});
+//--------------Add Mangopay Bank---------------start
+$("#add_mangopay_bank_account").validate({
+		rules:{
+			FirstName          :	{ required:true},
+			LastName           :	{ required:true},
+			Address	       	   :    { required:true},
+            BankAccount		   :	{ required:true},
+			SortOrder		   :	{ required:true }
+		},
+		messages:{
+			FirstName       	:	{ required:'First Name is required'},
+			LastName       		:	{ required:'Last Name is required'},
+			Address				:	{ required:'Address is required'},
+			BankAccount			:	{ required:'Account Number is required'},
+			SortOrder		    :   { required:'Sort Order is required'}
+		}
+	});
+//--------------Add Mangopay Bank-----------End

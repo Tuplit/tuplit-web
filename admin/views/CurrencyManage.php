@@ -4,10 +4,10 @@ admin_login_check();
 
 require_once('controllers/CurrencyController.php');
 $currencyObj   		=   new CurrencyController();
-
+$delType = 0;
 $code	=	$name	=	$location	=	$id = '';
 $status	=	1;
-
+//echo'<pre>';print_r($_POST);echo'</pre>';
 if(isset($_GET['ajax']) && $_GET['ajax'] != ''){
 	$result		=	$currencyObj->checkExist($_POST);
 	if($result) {		
@@ -39,6 +39,9 @@ if(isset($_GET['editId']) && $_GET['editId'] != ''){
 	}
 }
 
+/*if(isset($_GET['more']) || $_GET['more'] !=''){
+	unset($_SESSION['perpage']);
+}*/
 if(isset($_POST)  && !empty($_POST) && $_POST['Currency_id'] != ''){
 	$_POST     		= 	unEscapeSpecialCharacters($_POST);
     $_POST     		= 	escapeSpecialCharacters($_POST);
@@ -53,8 +56,15 @@ if(isset($_POST)  && !empty($_POST) && $_POST['Currency_id'] != ''){
 		$status		=	$_POST['Status'];
 		
 	$result			=	$currencyObj->updateCurrencyDetails($_POST);
-	if($result)
-		header("location:CurrencyList?msg=2");
+	if($result){
+		if(isset($_GET['more']) || $_GET['more'] !=''){?>
+			<script>
+				window.parent.location.href = "CommonSettings?msg=9";
+			</script>
+<?php		}else{
+			header("location:LocationList?msg=2");
+		}
+	}
 }
 if(isset($_POST)  && !empty($_POST) && $_POST['Currency_id'] == ''){
 	$_POST     		= 	unEscapeSpecialCharacters($_POST);
@@ -82,11 +92,28 @@ if(isset($_POST)  && !empty($_POST) && $_POST['Currency_id'] == ''){
 		$class 		= 	"alert-danger";
 		$class_icon = 	"fa-warning";
 	}		
-}	
-commonHead();
+}
+
+
+if(isset($_GET['curDelId']) && $_GET['curDelId'] != ''){
+	echo $_GET['curDelId'];
+	//die();
+	$result = $currencyObj->deleteCurrency($_GET['curDelId']);
+	//echo ($_GET['curDelId']);
+	
+	if($result){ 
+	$delType = 0;?>
+			<script>
+				window.parent.location.href = "CommonSettings?msg=12";
+				//$("#deleteStatus").val('0');
+			</script>
+<?php }
+	
+}
+popup_head();
 ?>
-<body class="skin-blue" onload="return fieldfocus('CurrencyCode');">
-	<?php top_header(); ?>		
+<body class="skin-blue fancy-popup" onload="return fieldfocus('CurrencyCode');">
+	<?php if(!isset($_GET['more'])){ top_header(); ?>			
 	<!-- Content Header (Page header) -->
 	<section class="content-header no-padding">
 		<div class="col-xs-7">
@@ -94,12 +121,16 @@ commonHead();
 		</div>
 		<!--<div class="col-sm-5 col-xs-12"><h3><a href="CurrencyList?cs=1" title="Currency List"><i class="fa fa-list"></i></i> Currency List</a></h3></div>-->
 	</section>
+	<?php }?>
 	 <!-- Main content -->
-	<section class="content">		
+		
 		<div class="row">
 			
 			<div class="col-xs-12 col-lg-6"> 
 				<div class="box box-primary"> 
+					<?php if(isset($_GET['more']) || $_GET['more'] !=''){?>
+						<h1 style="color:#000;" align="center"><?php if(isset($_GET['editId']) && $_GET['editId'] != '' ) echo "Edit "; else echo 'Add ';?>Currency</h1>
+					<?php }?>
 					<div  class="alert alert-danger alert-dismissable col-sm-5 col-xs-10 " id="error1" style="display:none;"><i class="fa fa-warning"></i><span id="error2"></span> </div> 
 					<?php if(isset($msg) && !empty($msg)) { ?>	
 						<div class="alert <?php echo $class; ?> alert-dismissable col-sm-5 col-xs-10 " id="success1"><i class="fa <?php echo $class_icon; ?>"></i> <?php echo $msg; ?></div> 
@@ -136,31 +167,36 @@ commonHead();
 							<input type="text" class="form-control" id="CurrencyName" name="CurrencyName" maxlength="100" value="<?php  echo $name; ?>"/>
 						</div>
 						<div class="form-group col-xs-12">
-							<label class="notification col-xs-6 no-padding">Currency Status</label>
-							<div class=" col-xs-12 no-padding">
-								<label class="col-xs-3 no-padding">
+							<label class="notification col-xs-12 no-padding">Currency Status</label>
+							<div class=" col-xs-12 no-padding radio-label">
+								<label>
 									<input id="Status" type="Radio" name="Status" value="1" <?php if(isset($status) && $status == 1 ) echo 'checked'; else echo 'checked'; ?>>&nbsp;&nbsp;Active
 								</label>
-								<label class="col-xs-5 no-padding">
+								<label>
 									<input id="Status" type="Radio" name="Status" value="2" <?php if(isset($status) && $status == 0) echo 'checked'; ?>>&nbsp;&nbsp;Inactive
 								</label>
 							</div>
 						</div>
 						<input type="hidden" name="type" id="type" value=""/>
-						<div class="box-footer col-xs-12" align="center">
+						<input type="Hidden" name="deleteStatus" id="deleteStatus" value="<?php echo $delType; ?>">
+						<div align="center" class="clear">
 							<?php if(isset($_GET['editId']) && $_GET['editId'] != ''){ ?>
-								<input type="submit" class="btn btn-success" name="Save" id="Save" value="Save" title="Save" alt="Save">&nbsp;&nbsp;&nbsp;&nbsp;
-							<?php } else { ?>
-								<input type="submit" class="btn btn-success" name="Add" id="Add" value="Save" title="Save" alt="Save">&nbsp;&nbsp;&nbsp;&nbsp;
-								<input type="submit" class="btn btn-success" name="AddNew" id="AddNew" value="Save & Add new" title="Save & Add new" alt="Save & Add new" onclick="return typeSubmit();">&nbsp;&nbsp;&nbsp;&nbsp;
-							<?php } ?>
+								<input type="submit" class="btn cancle col-xs-3" onclick="deleteCurrency();" name="Delete" id="Delete" value="Delete" title="DELETE" alt="DELETE"> 
+								<input type="submit" class="btn btn-success col-xs-9" name="Save" id="Save" value="Save" title="Save" alt="Save">
+							<?php } else { 
+										if(!isset($_GET['more']) || $_GET['more'] == ''){?>
+								<input type="submit" class="btn btn-success" name="Add" id="Add" value="Save" title="Save" alt="Save">
+							<?php 		}?>
+								<input type="submit" class="btn btn-success" name="AddNew" id="AddNew" value="Save & Add new" title="Save & Add new" alt="Save & Add new" onclick="return typeSubmit();">
+							<?php }if(!isset($_GET['more']) || $_GET['more'] == ''){ ?>
 							<a href="CurrencyList<?php if(isset($_GET['editId']) && $_GET['editId'] != '') echo ""; else echo "?cs=1"; ?>" class="btn btn-default" name="Back" id="Back" title="Back" alt="Back" >Back </a>	
+							<?php  }?>
 						</div>
 					</form>	
 				</div><!-- /.box -->
 			</div>			
 		</div><!-- /.row -->
-	</section><!-- /.content -->	
+	
 <?php commonFooter(); ?>
 <script type="text/javascript">
 $(document).ready(function() {
@@ -168,5 +204,11 @@ $(document).ready(function() {
         $(this).val($(this).val().toUpperCase());
     });
 });
+function deleteCurrency(){
+	var delId = $("#Currency_id").val();
+	$("#deleteStatus").val('1');
+	//alert(delId);
+	//window.location.href = actionPath+'CurrencyManage?curDelId='+delId;
+}
 </script>
 </html>

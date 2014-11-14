@@ -51,13 +51,13 @@ if(isset($userDetails) && is_array($userDetails) && count($userDetails) > 0){
 }
 commonHead();
 ?>
-<body class="skin-blue fixed">
-	
+<body class="skin-blue fixed popup_bg">
+	<div class="popup_white">
 	<!-- <section class="content"> -->
 		<div class="row">	
-					<div class="col-xs-12 no-padding user_details">
+					<div class="col-xs-12 user_details" style="padding-top:12px;">
 						<?php if(isset($image_path) && $image_path != ''){ ?>
-						<div class="col-xs-3 col-sm-4 col-md-5">
+						<div class="col-xs-4 col-sm-4 col-md-5">
 							<a <?php if(isset($image_path) && basename($image_path) != "no_user.jpeg") { ?>href="<?php echo $original_image_path; ?>" class="fancybox" title="<?php echo  ucfirst($FirstName).' '.ucfirst($LastName);?>" <?php } ?> > 
 								<img width="80" height="80" align="top" class="img_border" src="<?php echo $image_path;?>" >
 							</a>
@@ -74,6 +74,7 @@ commonHead();
 						</div>
 			</div>		
 		</div><!-- /.row -->
+		</div>
 	<!-- </section> --><!-- /.content -->				  	
 <?php commonFooter(); ?>
 <script type="text/javascript">	

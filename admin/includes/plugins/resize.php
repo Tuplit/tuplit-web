@@ -36,7 +36,6 @@ class phMagick_resize{
         //if any of them is sent as 0 resize will fail because we are trying to resize to 0 px
         $width  = $width  == 0 ? '' : $width ;
         $height = $height == 0 ? '' : $height ;
-
         $cmd = $p->getBinary('convert');
         $cmd .=  ' -scale "'. $width .'x'. $height . $modifier ;
         $cmd .= '" -quality '. $p->getImageQuality() ;

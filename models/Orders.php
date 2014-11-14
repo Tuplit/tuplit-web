@@ -5,6 +5,7 @@
  *
  * @author 
  */
+ini_set('default_encoding','utf-8');
 use RedBean_Facade as R;
 use Helpers\PasswordHelper as PasswordHelper;
 use Enumerations\HttpStatusCode as HttpStatusCode;
@@ -41,6 +42,8 @@ class Orders extends RedBean_SimpleModel implements ModelBaseInterface {
 		$type						=	$bean->OrderDoneBy;
 		$userDetails				=	$bean->userDetails;
 		$transId					=	'';
+		$VATPercentage				=	$commision = 0;
+		global	$ProductVAT;
 		unset($bean->userDetails);
 		
 		// validate the model parameters
@@ -53,9 +56,17 @@ class Orders extends RedBean_SimpleModel implements ModelBaseInterface {
 			$user					=	$userInfo['fromuser'];
 			$merchant				=	$userInfo['touser'];
 			$admin					=	$userInfo['admin'];
-			
+			$productVAT				=	$merchant->ProductVAT;
+			if($productVAT > 0 && isset($ProductVAT[$productVAT])){
+				$VatAmount			=	$ProductVAT[$productVAT];
+				$VATPercentage			=	$bean->TotalPrice*($VatAmount/100);
+			}
+			$VAT					=	$VATPercentage;
+			$TotalPrice				=	$bean->TotalPrice+$VATPercentage;
+			$mangoPayFees			=	$admin->MangoPayFees;
+			$commision				=	$TotalPrice*($mangoPayFees/100);
 			//Getting cart details		
-			$input					= 	$bean->CartDetails;		
+			$input					= 	$bean->CartDetails;	
 			$temp					= 	json_decode($input,1);
 			if(!empty($temp)) {
 				if(!is_array($temp))
@@ -79,21 +90,20 @@ class Orders extends RedBean_SimpleModel implements ModelBaseInterface {
 				else
 					$productIds		.=	','.$val['ProductId'];
 			}
-
 			$sql1 		= 	"SELECT * from products where id in (".$productIds.") and Status = 1";
 			$result1 	= 	R::getAll($sql1);
 			if(count($result1) == $productcount) {
 				if($bean->OrderDoneBy == 1) {
 					//validate amount
 						//$this->validateAmount($bean->TotalPrice);
-						
+					//when user done order
 					$walletDetails								=	getWalletDetails($user->WalletId);
 					if($walletDetails) {
-						if(isset($walletDetails->Balance->Amount) && ($walletDetails->Balance->Amount >= getCents($bean->TotalPrice))) {
+						if(isset($walletDetails->Balance->Amount) && ($walletDetails->Balance->Amount >= getCents($TotalPrice))) {
 							$userDetails1['AuthorId']			=	$user->MangoPayUniqueId;
 							$userDetails1['CreditedUserId']		=	$merchant->MangoPayUniqueId;
-							$userDetails1['Currency']			=	'USD';
-							$userDetails1['Amount']				=	$bean->TotalPrice;
+							$userDetails1['Currency']			=	DEFAULT_CURRENCY;
+							$userDetails1['Amount']				=	$TotalPrice;
 							$userDetails1['DebitedWalletId']	=	$user->WalletId;
 							$userDetails1['CreditedWalletId']	=	$merchant->WalletId;
 							$userDetails1['FeesAmount']			=	$admin->MangoPayFees;
@@ -133,7 +143,6 @@ class Orders extends RedBean_SimpleModel implements ModelBaseInterface {
 						R::store($carts);
 					}
 				}
-				
 				//Storing Order
 				$bean->fkCartId					= 	$CartId;
 				$bean->fkUsersId				= 	$bean->UserId;		
@@ -142,10 +151,18 @@ class Orders extends RedBean_SimpleModel implements ModelBaseInterface {
 				$bean->OrderDate 				= 	date('Y-m-d H:i:s');
 				$bean->OrderStatus 				= 	'0';        
 				$bean->Status 					= 	'1';
-				if($bean->OrderDoneBy == 1 && !empty($transId))
+				$bean->SubTotal 				= 	number_format((float)$bean->TotalPrice, 2, '.', '');
+				$bean->TotalPrice				= 	number_format((float)$TotalPrice, 2, '.', '');
+				$bean->VAT	 					= 	number_format((float)$VAT, 2, '.', '');
+				if($bean->OrderDoneBy == 1 && !empty($transId)){
 					$bean->RefundStatus			= 	'1';
-				else
+					$bean->Commision			= 	number_format((float)$commision, 2, '.', '');
+				}
+				else{
 					$bean->RefundStatus			= 	'0';
+					$bean->Commision			= 	'0';
+				}
+				
 				
 				unset($bean->UserId);
 				unset($bean->MerchantId);
@@ -169,6 +186,9 @@ class Orders extends RedBean_SimpleModel implements ModelBaseInterface {
 				$resultArray['CartDetails'] 	= 	$CartDetails;
 				$resultArray['CartId'] 			= 	$CartId;
 				$resultArray['TransactionId'] 	= 	$transId;
+				$resultArray['SubTotal'] 		= 	$bean->SubTotal;
+				$resultArray['VAT'] 			= 	$VAT;
+				$resultArray['Total'] 			= 	$TotalPrice;
 				return $resultArray;
 			} else {
 				 /**
@@ -185,8 +205,8 @@ class Orders extends RedBean_SimpleModel implements ModelBaseInterface {
     */
     public function validateAmount($amount)
     {
-		if ($amount <= 0 || $amount >= 100) {           
-            throw new ApiException("Sorry you can't process this amount value. Try with less amount below $99" , ErrorCodeType::NoResultFound);
+		if ($amount <= 0 || $amount >= 80) {           
+            throw new ApiException("Sorry you can't process this amount value. Try with less amount below ".utf8_encode('£')."80" , ErrorCodeType::NoResultFound);
         }
     }
 	
@@ -240,12 +260,12 @@ class Orders extends RedBean_SimpleModel implements ModelBaseInterface {
 		$Start				=	$bean->Start;
 		$End				=	$bean->End;
 		if($type == 0) {
-			$fields			=	"ord.id as OrderId,u.FirstName,u.LastName, ord.TotalPrice,OrderDoneBy";
+			$fields			=	"SQL_CALC_FOUND_ROWS ord.id as OrderId,ord.OrderDoneBy,ord.OrderDate as OrderDate";
 			$joincondition	= 	"left join users u on (ord.fkUsersId = u.id)";
 			$condition		= 	"ord.OrderStatus = 0 and u.Status = 1";
-			$limit			=	"limit 0,2 ";
+			$limit			=	"";
 		} else {
-			$fields			= 	"SQL_CALC_FOUND_ROWS u.UniqueId as UserId,u.FirstName,u.LastName,u.Email,u.Photo,ord.id as OrderId,ord.fkCartId as CartId,ord.TotalItems,ord.TotalPrice,ord.TransactionId,ord.OrderStatus,ord.OrderDate as OrderDate,ord.OrderDoneBy";
+			$fields			= 	"SQL_CALC_FOUND_ROWS u.UniqueId as UserId,u.FirstName,u.LastName,u.Email,u.Photo,ord.id as OrderId,ord.fkCartId as CartId,ord.TotalItems,ord.TotalPrice,ord.VAT,ord.SubTotal,ord.TransactionId,ord.OrderStatus,ord.OrderDate as OrderDate,ord.OrderDoneBy";
 			$joincondition	= 	"left join users u on (ord.fkUsersId = u.id)";
 			$condition		= 	"ord.OrderStatus = 0 and u.Status = 1";
 			$limit			=	"limit ".$Start.",".$End;
@@ -260,12 +280,30 @@ class Orders extends RedBean_SimpleModel implements ModelBaseInterface {
 			/**
 			* The result were found
 			*/
-			 if($type == 0)
-				return $result;
+			$totalRec 		= 	R::getAll('SELECT FOUND_ROWS() as count ');
+			$total 			= 	(integer)$totalRec[0]['count'];
+			$listedCount	= 	count($result);
+				
+			 if($type == 0) {
+				/**
+				* The result were found
+				*/	
+				$twoHour	=	$otherHour = 0;
+				$TwoHoursAgo 	= 	strtotime("-2 hours");
+				foreach($result as $key=>$value) {
+					$orderdate 		= 	strtotime($value['OrderDate']);
+					if ($orderdate >= $TwoHoursAgo)
+						$twoHour++;// less than 2 hours ago
+					else
+						$otherHour++;// more than 2 hours ago
+				}
+				$result['total'] 		= count($result);
+				$result['twoHour'] 		= $twoHour;
+				$result['otherHour'] 	= $otherHour;
+				return $result;				
+			}
 			else {
-				$totalRec 		= 	R::getAll('SELECT FOUND_ROWS() as count ');
-				$total 			= 	(integer)$totalRec[0]['count'];
-				$listedCount	= 	count($result);
+				
 				/**
 				* The result were found
 				*/	
@@ -341,7 +379,7 @@ class Orders extends RedBean_SimpleModel implements ModelBaseInterface {
 		if(isset($bean->Price))
 			$Price	=	(integer)$bean->Price;			
 			
-		$fields			= 	"u.id as PUserId,u.UniqueId as UserId,u.FirstName,u.LastName,u.Email,u.Photo,ord.id as OrderId,ord.fkCartId as CartId,ord.TotalItems,ord.TotalPrice,ord.TransactionId,ord.RefundStatus,ord.OrderStatus,ord.OrderDate as OrderDate,ord.OrderDoneBy";
+		$fields			= 	"u.id as PUserId,u.UniqueId as UserId,u.FirstName,u.LastName,u.Email,u.Photo,ord.id as OrderId,ord.fkCartId as CartId,ord.TotalItems,ord.TotalPrice,ord.SubTotal,ord.VAT,ord.TransactionId,ord.RefundStatus,ord.OrderStatus,ord.OrderDate as OrderDate,ord.OrderDoneBy";
 		$joincondition	= 	"left join users u on (ord.fkUsersId = u.id)";
 				
 		if($Type == 0) {			
@@ -438,7 +476,8 @@ class Orders extends RedBean_SimpleModel implements ModelBaseInterface {
 		$bean 			= 	$this->bean;
 		$userid 		= 	$bean->userId;
 		$merchnatid 	= 	$bean->MerchantId;
-		$trans			=	$transId	=	$re_status	=	'';
+		$trans			=	$transId	=	$re_status	=	$commisions = '';
+		$userType		=	$bean->userType;
 		
 		//validate
 		$this->validateModifyParams();
@@ -446,19 +485,23 @@ class Orders extends RedBean_SimpleModel implements ModelBaseInterface {
 		//validate Order exists or not
 		$orderdetails 	=	$this->validateCreate();
 		
+		unset($bean->userType);
 		unset($bean->userId);
 		unset($bean->MerchantId);
 		
 		if($orderdetails) {
+			$admin		= R::findOne('admins');
+			$adminFees	= $admin->MangoPayFees;
 			if(!empty($userid) && $bean->OrderStatus == 1) {				
-				
 				//doing payment process if user accepts the order done by merchant
 				$bean->UserId		=	$orderdetails->fkUsersId;
 				$bean->MerchantId	=	$orderdetails->fkMerchantsId;
 				$bean->Amount		=	$orderdetails->TotalPrice;
-				$bean->Currency		=	'USD';			
-				$paymentDetails 	= $this->doPayment();
+				$bean->Currency		=	DEFAULT_CURRENCY;
+				$paymentDetails 	= 	$this->doPayment();
+				//echo "<pre>"; print_r($paymentDetails); echo "</pre>";die();
 				if($paymentDetails && isset($paymentDetails->Id) && !empty($paymentDetails->Id)) {
+					$commision		= 	$bean->Amount*($adminFees/100);
 					$transId		= 	$paymentDetails->Id;
 					$payment		=	$paymentDetails;
 					$re_status		=	'1';
@@ -483,10 +526,11 @@ class Orders extends RedBean_SimpleModel implements ModelBaseInterface {
 					R::exec($sql1);
 				} else {
 					// Error occurred during transaction
-					throw new ApiException("Error occurred during refund", ErrorCodeType::CheckBalanceError);
+					throw new ApiException("Error occurred during refunding old order", ErrorCodeType::CheckBalanceError);
 				}	
 			} 
-			
+			if(isset($commision) && !empty($commision)) 
+				$commisions	=	", Commision ='".$commision."' ";
 			if(isset($transId) && !empty($transId)) 
 				$trans	=	", TransactionId ='".$transId."' ";
 			if(!empty($re_status)) {
@@ -497,18 +541,17 @@ class Orders extends RedBean_SimpleModel implements ModelBaseInterface {
 				}
 			
 			// updating the orders
-			$sql 		=	"update orders set  OrderStatus =".$bean->OrderStatus.", OrderDate='".date('Y-m-d H:i:s')."'".$trans." ".$re_status." where id=".$bean->OrderId;
+			$sql 		=	"update orders set  OrderStatus =".$bean->OrderStatus.", OrderDate='".date('Y-m-d H:i:s')."' ".$commisions." ".$trans." ".$re_status." where id=".$bean->OrderId;
 			R::exec($sql);
 			
 			//push notification while approve/reject an order							
-			$users 	= 	R::find("users", " id = ? and Status=1",[$orderdetails->fkUsersId]);				
+			$users 	= 	R::find("users", " id = ? and Status=1",[$orderdetails->fkUsersId]);	
 			if($users && $users[$orderdetails->fkUsersId]->PushNotification == 1 && $users[$orderdetails->fkUsersId]->BuySomething == 1) {
-				if($orderdetails->OrderDoneBy == 1 || ($orderdetails->OrderDoneBy == 2 && $bean->OrderStatus == 2)) {
+				if($orderdetails->OrderDoneBy == 1 || ($orderdetails->OrderDoneBy == 2 && $bean->OrderStatus == 2 && $userType == 'merchant')) {
 					$notification 						= 	R::dispense('notifications');
 					$notification->orderId 				= 	$bean->OrderId;
 					$notification->userId 				= 	$orderdetails->fkUsersId;
 					$notification->merchantId 			= 	$orderdetails->fkMerchantsId;
-					
 					if($bean->OrderStatus == 1)
 						$notification->sendNotification(3);// if Approved
 					else if($bean->OrderStatus == 2)
@@ -608,7 +651,7 @@ class Orders extends RedBean_SimpleModel implements ModelBaseInterface {
 		else
 			$condition	=	" AND ord.id = '".$orderId."'";
 		
-		$sql			=	"SELECT ord.id as OrderId, ord.fkCartId AS CartId, ord.fkUsersId AS UserId, ord.fkMerchantsId AS MerchantId, ord.TotalPrice, ord.RefundStatus,ord.TransactionId, m.CompanyName, m.Address, m.Location,u.Photo,u.FirstName,u.LastName,u.Email,ord.OrderDate,ord.OrderDoneBy,u.UniqueId FROM `orders` AS ord
+		$sql			=	"SELECT ord.id as OrderId, ord.fkCartId AS CartId, ord.fkUsersId AS UserId,m.Street,m.City,m.PostCode,m.State,m.Country, ord.fkMerchantsId AS MerchantId, ord.TotalPrice,ord.VAT,ord.SubTotal, ord.RefundStatus,ord.TransactionId, m.CompanyName, m.Location,u.Photo,u.FirstName,u.LastName,u.Email,ord.OrderDate,ord.OrderDoneBy,u.UniqueId FROM `orders` AS ord
 								LEFT JOIN merchants AS m ON ( ord.fkMerchantsId = m.id )
 								LEFT JOIN users AS u ON ( u.id = ord.fkUsersId )
 								WHERE 1 ".$condition;
@@ -619,7 +662,29 @@ class Orders extends RedBean_SimpleModel implements ModelBaseInterface {
 			}
 			else{
 				$result[0]['Photo']=  ADMIN_IMAGE_PATH."no_user.jpeg";
-			}
+			}			
+			
+			$result[0]['Address'] = '';
+			if(!empty($result[0]['Street']))
+				$result[0]['Address']	.=	$result[0]['Street'];
+			if(!empty($result[0]['City']))
+				$result[0]['Address']	.=	', '.$result[0]['City'];
+			
+			if(!empty($result[0]['State']) && !empty($result[0]['PostCode']))
+				$result[0]['Address']	.=	', '.$result[0]['State'].' - '.$result[0]['PostCode'];
+			else if(!empty($result[0]['State']) && empty($result[0]['PostCode']))
+				$result[0]['Address']	.=	', '.$result[0]['State'];
+			else if(empty($result[0]['State']) && !empty($result[0]['PostCode']))
+				$result[0]['Address']	.=	', '.$result[0]['PostCode'];
+			
+			if(!empty($result[0]['Country']))
+				$result[0]['Address']	.=	', '.$result[0]['Country'];
+			unset($result[0]['Street']);
+			unset($result[0]['City']);
+			unset($result[0]['PostCode']);
+			unset($result[0]['State']);
+			unset($result[0]['Country']);
+			
 			$sql1		=	"SELECT  c.fkProductsId as ProductID, p.ItemName,p.Photo, c.ProductsQuantity, c.ProductsCost, c.DiscountPrice, c.TotalPrice  FROM carts c
 								left join products p on (c.fkProductsId = p.id)
 								where c.CartId='".$result[0]['CartId']."'";
@@ -1002,7 +1067,6 @@ class Orders extends RedBean_SimpleModel implements ModelBaseInterface {
 					$userDetails['CreditedWalletId']	=	$merchant->WalletId;
 					$userDetails['FeesAmount']			=	$admin->MangoPayFees;
 					$result								=	payment($userDetails);					
-					//echo "<pre>"; echo print_r($result); echo "</pre>";
 					return $result;
 				} else {
 					// low balance
@@ -1037,14 +1101,13 @@ class Orders extends RedBean_SimpleModel implements ModelBaseInterface {
     public function validatePaymentUsers()
     {
 		$bean 		= 	$this->bean;
-		
-		$admin		= R::findOne('admins');
-		$adminFees	= $admin->MangoPayFees;
-		//echo "===>".$bean->Amount;
+		$admin		= 	R::findOne('admins');
+		//$adminFees	= $admin->MangoPayFees;
+		/*//echo "===>".$bean->Amount;
 		//echo "====>".$adminFees;
 		if($bean->Amount < $adminFees){
 			throw new ApiException("The amount should be greater than fees.", ErrorCodeType::PaymentAccountError);
-		}		
+		}		*/
 		
 		//User
 		$fromuser = R::findOne('users', 'id = ? and Status=1', array($bean->UserId));
@@ -1099,12 +1162,14 @@ class Orders extends RedBean_SimpleModel implements ModelBaseInterface {
 			$details['FeeAmount']		=	$admin->MangoPayFees;
 			$details['TransferID']		=	$orders['TransactionId'];	
 			$details['CartId']			=	$orders['fkCartId'];	
-			$details['AuthorId']		=	$users['MangoPayUniqueId'];			
+			$details['AuthorId']		=	$users['MangoPayUniqueId'];		
+			$details['Currency']		=	DEFAULT_CURRENCY;		
+				
 			if(isset($type) && $type == 2  && isset($bean->ProductId) && !empty($bean->ProductId)) {
 				//cart Details
 				$cart 	= 	R::findOne('carts', 'fkProductsId = ? and CartId = ?', array($bean->ProductId,$orders['fkCartId']));
 				if($cart)
-					$details['Amount']			=	$cart['TotalPrice'];
+					$details['Amount']		=	$cart['TotalPrice'];
 				else {
 					//throwing error when error in refund
 					throw new ApiException("Product not found in cart", ErrorCodeType::NoResultFound);
@@ -1112,8 +1177,7 @@ class Orders extends RedBean_SimpleModel implements ModelBaseInterface {
 			} else {
 				$details['Amount']			=	$orders['TotalPrice'];			
 			}
-
-			$result					=	refundTransfer($details);
+			$result		=	refundTransfer($details);
 			if($result && isset($result->Id) && !empty($result->Id)) {
 				if($type == '')
 					return $result;	
@@ -1126,7 +1190,6 @@ class Orders extends RedBean_SimpleModel implements ModelBaseInterface {
 					if(!empty($orders['fkCartId'])) {
 						$sql1 			=	"update carts set  Refund = '2' where CartId='".$orders['fkCartId']."' ".$productcon;
 						R::exec($sql1);
-					
 					//$cartOrder 	= 	R::findOne('carts', 'CartId = ? and Refund=2', array($orders['fkCartId']));
 					//if(is_array($cartOrder) && count($cartOrder) == $orders['TotalItems']) {
 						//order table
@@ -1141,7 +1204,7 @@ class Orders extends RedBean_SimpleModel implements ModelBaseInterface {
 				}
 			} else {
 				// Error occurred during payment/transaction
-				throw new ApiException("Error occurred during refund", ErrorCodeType::CheckBalanceError);
+				throw new ApiException("Error occurred during refunding old order", ErrorCodeType::CheckBalanceError);
 			}			
 		}
 	}
@@ -1383,5 +1446,138 @@ class Orders extends RedBean_SimpleModel implements ModelBaseInterface {
 			return $walletDetails->Balance->Amount;
 		else 
 			return 0;
+	}
+	
+	/**
+    * get getTopsales List
+    */
+    public function getTopsales($merchantId)
+    {
+		$condition 		= $field = '';
+		$TransactionArray = array();
+		$bean 			= 	$this->bean;
+		$this->validateMerchants($merchantId,1);
+		if(!isset($_SESSION['tuplit_ses_from_timeZone']) || $_SESSION['tuplit_ses_from_timeZone'] == ''){
+			$time_zone 	= 	getTimeZone();
+			$_SESSION['tuplit_ses_from_timeZone'] = strval($time_zone);
+		} else {
+			$time_zone 	= 	$_SESSION['tuplit_ses_from_timeZone'];
+		}
+		$dataType 		= 	$bean->DataType;
+		$curr_date 		= 	date('d-m-Y');
+		$cur_month 		= 	date('m');
+		$cur_year 		= 	date('Y');
+		if($dataType=='day') {
+			$field 		= 	" , HOUR(DATE_ADD(OrderDate,INTERVAL '".$_SESSION['tuplit_ses_from_timeZone']."' HOUR_MINUTE)) AS hour";
+			$condition .= 	" and date(DATE_ADD(OrderDate,INTERVAL '".$_SESSION['tuplit_ses_from_timeZone']."' HOUR_MINUTE))='".date('Y-m-d',strtotime($curr_date))."' group by hour";
+		}
+		 else if($dataType=='7days') {
+			$field 			 = 	" , DATE_FORMAT(DATE_ADD(OrderDate,INTERVAL '".$_SESSION['tuplit_ses_from_timeZone']."' HOUR_MINUTE), '%m/%d/%Y') AS day";
+			$condition 		.= 	"and (DATE_FORMAT(OrderDate,'%Y-%m-%d') <= '".date('Y-m-d',strtotime($curr_date))."' and DATE_FORMAT(OrderDate,'%Y-%m-%d') > '".date('Y-m-d',strtotime("-7 days"))."')  group by day";
+		}else if($dataType=='month') {
+			$field 		= 	" , DATE_FORMAT(DATE_ADD(OrderDate,INTERVAL '".$_SESSION['tuplit_ses_from_timeZone']."' HOUR_MINUTE), '%m/%d/%Y') AS day";
+			$condition .= 	"and DATE_FORMAT(OrderDate,'%m') = ".$cur_month." and DATE_FORMAT(OrderDate,'%Y') = ".$cur_year." group by day";
+		}
+		else if($dataType=='year') {
+			$field 		= 	" , MONTH(DATE_ADD(OrderDate,INTERVAL '".$_SESSION['tuplit_ses_from_timeZone']."' HOUR_MINUTE)) AS month";
+			$condition 	.=	 "  and DATE_FORMAT(OrderDate,'%Y') = ".$cur_year." group by month";
+		}
+		/*else if($dataType=='timeofday') {
+			$field 			= 	" , HOUR(DATE_ADD(OrderDate,INTERVAL '".$_SESSION['tuplit_ses_from_timeZone']."' HOUR_MINUTE)) AS hour";
+			$condition 		.= 	" and date(DATE_ADD(OrderDate,INTERVAL '".$_SESSION['tuplit_ses_from_timeZone']."' HOUR_MINUTE))='".date('Y-m-d',strtotime($curr_date))."' group by hour";
+		}*/
+		
+		$sql 				= 	"SELECT  SUM(o.TotalPrice) as TotalPrice,SUM(o.SubTotal) as SubTotal,SUM(o.VAT) as VATTotal ".$field." from orders as o 
+								
+								where 1 and  o.OrderStatus IN (1) and o.fkMerchantsId = ".$merchantId."  ".$condition."";	
+		$TransactionList 	=	R::getAll($sql);
+		$sql 				= 	"SELECT  SUM(c.DiscountPrice) as DiscountPrice  ".$field." from carts as c left join orders as o on(c.CartId = o.fkCartId) where 1 and  o.OrderStatus IN (1) and o.fkMerchantsId = ".$merchantId." and c.fkMerchantsId = ".$merchantId." ".$condition."";	
+		$Discounts	 	=	R::getAll($sql);
+		$DiscountAmount = 0 ;
+		if($Discounts ){
+			foreach($Discounts as $d_key=>$d_value){
+				$DiscountPrice						=	$d_value["DiscountPrice"];
+				$DiscountAmount						+=  $DiscountPrice;
+			}
+		}
+		if($TransactionList ){
+			$SubTotalAmount =  $VATAmount = $TotalAmount =  0;
+			foreach($TransactionList as $key=>$value){
+				$TotalPrice							=	$value["TotalPrice"];
+				$SubTotal							=	$value["SubTotal"];
+				$VATTotal							=	$value["VATTotal"];
+				$value["TotalPrice"]				=	number_format((float)$TotalPrice, 2, '.', '');
+				$value["SubTotal"]					=	number_format((float)$SubTotal, 2, '.', '');
+				$value["VATTotal"]					=	number_format((float)$VATTotal, 2, '.', '');
+				$TransactionListArray[] 			= 	$value;
+				$TotalAmount						+=  $TotalPrice;
+				$SubTotalAmount						+=  $SubTotal;
+				$VATAmount							+=  $VATTotal;
+			}
+			$TransactionArray['GrossSale']        	=  	number_format((float)$TotalAmount, 2, '.', '');
+			$TransactionArray['SubTotal']        	=   number_format((float)$SubTotalAmount, 2, '.', '');
+			$TransactionArray['DiscountPrice']    	=	number_format((float)$DiscountAmount, 2, '.', '');
+			$TransactionArray['VATTotal']           =  	number_format((float)$VATAmount, 2, '.', '');
+			$TransactionArray['result']            	=  	$TransactionListArray;
+			return $TransactionArray;
+		}
+		else{
+			/**
+	        * throwing error when no data found
+	        */
+			throw new ApiException("No results Found", ErrorCodeType::NoResultFound);
+		}
+	}
+	
+	/**
+    * get top products
+    */
+    public function getTopProducts($merchantId)
+    {
+		$condition 		=	$field = '';
+		$dataType		=	'day';
+		$bean 			= 	$this->bean;
+		$this->validateMerchants($merchantId,1);
+		if(!isset($_SESSION['tuplit_ses_from_timeZone']) || $_SESSION['tuplit_ses_from_timeZone'] == ''){
+			$time_zone 	= 	getTimeZone();
+			$_SESSION['tuplit_ses_from_timeZone'] = strval($time_zone);
+		} else {
+			$time_zone 	= 	$_SESSION['tuplit_ses_from_timeZone'];
+		}
+		if(isset($bean->DataType))
+		$dataType 			= 	$bean->DataType;
+		$curr_date 			= 	date('d-m-Y');
+		$cur_month 			= 	date('m');
+		$cur_year 			= 	date('Y');
+		$group_condition	= ' group by p.id';
+		if($dataType=='year') {
+			$condition 	.=	 "  and DATE_FORMAT(OrderDate,'%Y') = ".$cur_year."";
+		} else if($dataType=='month') {
+			$condition .= 	"and DATE_FORMAT(OrderDate,'%m') = ".$cur_month." and DATE_FORMAT(OrderDate,'%Y') = ".$cur_year." ";
+		} else if($dataType=='day') {
+			$condition .= 	" and  DATE_FORMAT( OrderDate, '%Y-%m-%d' ) ='".date('Y-m-d',strtotime($curr_date))."'";
+		} else if($dataType=='7days') {
+			$condition 		.= 	"and (DATE_FORMAT(OrderDate,'%Y-%m-%d') <= '".date('Y-m-d',strtotime($curr_date))."' and DATE_FORMAT(OrderDate,'%Y-%m-%d') > '".date('Y-m-d',strtotime("-7 days"))."')";
+		}
+		$sql 			= 	"SELECT  p.ItemName as Name,SUM(p.Price) as TotalPrice from orders as o 
+							left join carts as c ON (c.CartId = o.fkCartId)
+                         	left join products as p on(p.id = c.fkProductsId)
+							where 1   and  o.OrderStatus IN (1) and o.fkMerchantsId = ".$merchantId." and  c.fkMerchantsId = ".$merchantId." and p.fkMerchantsId =  ".$merchantId."  ".$condition." group by p.id order by TotalPrice desc limit 0,10 ";
+		$productAnalysis 	=	R::getAll($sql);
+		if($productAnalysis ){
+			foreach($productAnalysis as $key=>$value){
+				$totalPrice							=	$value["TotalPrice"];
+				$value["TotalPrice"]				=	number_format((float)$totalPrice, 2, '.', ',');
+				$ProductListArray[] 				= 	$value;
+			}
+			$ProductArray['result']            		=  	$ProductListArray;
+			return $ProductArray;
+		}
+		else{
+			/**
+	        * throwing error when no data found
+	        */
+			throw new ApiException("No results Found", ErrorCodeType::NoResultFound);
+		}
 	}
 }

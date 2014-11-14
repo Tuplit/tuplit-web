@@ -42,10 +42,24 @@ if(isset($_POST) && !empty($_POST) && $_POST['location_id'] != ''){
 		$name		=	$_POST['LocationName'];
 	if(isset($_POST['Status']))
 		$status		=	$_POST['Status'];
-		
 	$result			=	$locationObj->updateLocationDetails($_POST);
-	if($result)
-		header("location:LocationList?msg=2");
+	if($result){
+		if(isset($_GET['more']) || $_GET['more'] !=''){?>
+			<script>
+				window.parent.location.href = "CommonSettings?msg=8";
+			</script>
+<?php		}else{
+			header("location:LocationList?msg=2");
+		}
+	}	
+}
+if(isset($_POST['Delete']) && $_POST['Delete'] != ''){
+	$result = $locationObj->deleteLocation($_GET['editId']);
+	if($result){ ?>
+			<script>
+				window.parent.location.href = "CommonSettings?msg=10";
+			</script>
+<?php }
 }
 if(isset($_POST) && !empty($_POST) && $_POST['location_id'] == ''){
 	$_POST     		= 	unEscapeSpecialCharacters($_POST);
@@ -56,7 +70,7 @@ if(isset($_POST) && !empty($_POST) && $_POST['location_id'] == ''){
 		$name		=	$_POST['LocationName'];
 	if(isset($_POST['Status']))
 		$status		=	$_POST['Status'];
-		
+	//print_r($_POST);
 	$id				=	$locationObj->insertLocationDetails($_POST);
 	if(!empty($id)) {
 		$msg 		= 	"Location added successfully";
@@ -65,32 +79,37 @@ if(isset($_POST) && !empty($_POST) && $_POST['location_id'] == ''){
 		$class_icon = 	"fa-check";
 		$code		=	$name	=	$id = '';
 		$status		=	1;
-		if(empty($_POST['type']))
+		if(empty($_POST['type'])){
 			header("location:LocationList?cs=1&msg=1");
+		}
 	} else {		
 		$msg 		= 	"Error in adding location";
 		$display	=	"block";
 		$class 		= 	"alert-danger";
 		$class_icon = 	"fa-warning";
-	}		
+	}	
 }	
-commonHead();
+popup_head();
 ?>
-<body class="skin-blue" onload="return fieldfocus('LocationCode');">
-	<?php top_header(); ?>		
+<body class="skin-blue fancy-popup" onload="return fieldfocus('LocationCode');">
+	<?php if(!isset($_GET['more'])){ top_header(); ?>		
 	<!-- Content Header (Page header) -->
 	<section class="content-header no-padding">
 		<div class="col-xs-7">
-			<h1><i class="fa <?php if(isset($_GET['editId']) && $_GET['editId'] != '' ) echo "fa-edit "; else echo 'fa-plus-circle ';?>"></i> <?php if(isset($_GET['editId']) && $_GET['editId'] != '' ) echo "Edit "; else echo 'Add ';?>Location</h1>
+			 <h1><i class="fa <?php if(isset($_GET['editId']) && $_GET['editId'] != '' ) echo "fa-edit "; else echo 'fa-plus-circle ';?>"></i> <?php if(isset($_GET['editId']) && $_GET['editId'] != '' ) echo "Edit "; else echo 'Add ';?>Location</h1>
 		</div>
 		<!--<div class="col-sm-5 col-xs-12"><h3><a href="LocationList?cs=1" title="Location List"><i class="fa fa-list"></i></i> Location List</a></h3></div>-->
 	</section>
+	<?php }?>
 	 <!-- Main content -->
-	<section class="content">		
+	
 		<div class="row">
 			
 			<div class="col-md-12 col-lg-6"> 
 				<div class="box box-primary"> 
+					<?php if(isset($_GET['more']) || $_GET['more'] !=''){?>
+						<h1 style="color:#000;" align="center"><?php if(isset($_GET['editId']) && $_GET['editId'] != '' ) echo "Edit "; else echo 'Add ';?>Location</h1>
+					<?php }?>
 					<div  class="alert alert-danger alert-dismissable col-sm-5 col-xs-10 " id="error1" style="display:none;"><i class="fa fa-warning"></i><span id="error2"></span> </div> 
 					<?php if(isset($msg) && !empty($msg)) { ?>	
 						<div  class="alert <?php echo $class; ?> alert-dismissable col-sm-5 col-xs-10 " id="success1"><i class="fa <?php echo $class_icon; ?>"></i> <?php echo $msg; ?></div> 
@@ -106,40 +125,55 @@ commonHead();
 						</div>
 						<div class="form-group col-xs-12">
 							<label>Location Name</label>
-							<input type="text" class="form-control" id="LocationName" name="LocationName" maxlength="100" value="<?php  echo $name; ?>"/>
+							<input type="text" class="form-control capital" id="LocationName" name="LocationName" maxlength="100" value="<?php echo $name; ?>"/> 
+							<!-- <label><?php echo $name;?></label> -->
 						</div>
 						<div class="form-group col-xs-12">
-							<label class="notification col-xs-6 no-padding">Location Status</label>
-							<div class=" col-xs-12 no-padding">
-								<label class="col-xs-3 no-padding">
-									<input id="Status" type="Radio" name="Status" value="1" <?php if(isset($status) && $status == 1 ) echo 'checked'; else echo 'checked'; ?> style="vertical-align:middle">&nbsp;&nbsp;Active
+							<label class="notification col-xs-12 no-padding">Location Status</label>
+							<div class="col-xs-12 no-padding radio-label">
+								<label class="">
+									<input id="Status" style="margin-top: 0" type="Radio" name="Status" value="1" <?php if(isset($status) && $status == 1 ) echo 'checked'; else echo 'checked'; ?> style="vertical-align:middle">&nbsp;&nbsp;Active
 								</label>
-								<label class="col-xs-5 no-padding">
-									<input id="Status" type="Radio" name="Status" value="2" <?php if(isset($status) && $status == 0) echo 'checked'; ?> style="vertical-align:middle">&nbsp;&nbsp;Inactive
+								<label class="">
+									<input id="Status" style="margin-top: 0" type="Radio" name="Status" value="2" <?php if(isset($status) && $status == 0) echo 'checked'; ?> style="vertical-align:middle">&nbsp;&nbsp;Inactive
 								</label>
 							</div>
 						</div>
 						<input type="hidden" name="type" id="type" value=""/>
-						<div class="box-footer col-xs-12" align="center">
+						<div>
 							<?php if(isset($_GET['editId']) && $_GET['editId'] != ''){ ?>
-								<input type="submit" class="btn btn-success" name="Save" id="Save" value="Save" title="Save" alt="Save">&nbsp;&nbsp;&nbsp;&nbsp;
-							<?php } else { ?>
-								<input type="submit" class="btn btn-success" name="Add" id="Add" value="Save" title="Save" alt="Save">&nbsp;&nbsp;&nbsp;&nbsp;
-								<input type="submit" class="btn btn-success" name="AddNew" id="AddNew" value="Save & Add new" title="Save & Add new" alt="Save & Add new" onclick="return typeSubmit();">&nbsp;&nbsp;&nbsp;&nbsp;
-							<?php } ?>
+								<input type="submit" onclick="deleteLocation();" class="btn cancle col-xs-3" name="Delete" id="Delete" value="Delete" title="DELETE" alt="DELETE"> 
+								<input type="submit" class="btn btn-success   col-xs-9" name="Save" id="Save" value="Save" title="SAVE" alt="SAVE">
+								
+							<?php } else { 
+										if(!isset($_GET['more']) || $_GET['more'] == ''){?>
+								<input type="submit" class="btn btn-success" name="Add" id="Add" value="Save" title="Save" alt="Save">
+										<?php }?>
+								<input type="submit" class="btn btn-success" name="AddNew" id="AddNew" value="Save & Add new" title="Save & Add new" alt="Save & Add new" onclick="return typeSubmit();">
+							<?php }if(!isset($_GET['more']) || $_GET['more'] == '') {?>
 							<a href="LocationList" class="btn btn-default" name="Back" id="Back" title="Back" alt="Back" >Back </a>	
+							<?php }?>
 						</div>
 					</form>	
 				</div><!-- /.box -->
 			</div>			
 		</div><!-- /.row -->
-	</section><!-- /.content -->	
+	
 <?php commonFooter(); ?>
+<style type="text/css">
+.capital{
+	text-transform: capitalize;
+}
+</style>
 <script type="text/javascript">
 $(document).ready(function() {
 	 $('#LocationCode').keyup(function() {
         $(this).val($(this).val().toUpperCase());
     });
 });
+function deleteLocation(){
+	var delId = $("#location_id").val();
+	window.location.href = actionPath+'CommonSettings?locDelId='+delId;
+}
 </script>
 </html>

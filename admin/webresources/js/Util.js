@@ -1283,7 +1283,7 @@ function setPagingValue(perpage)
  }
 function exportExcelSubmit(formName)
 {
-    $("#"+formName).append('<input type="hidden" name="export-excel" value="1" />');
+    $("#"+formName).append('<input type="hidden" name="export-excel" id="export-excel" value="1" />');
     $("#"+formName).submit();
 	$("#export-excel").remove();
 }

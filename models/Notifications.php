@@ -4,6 +4,7 @@
  *
  * @author 
  */
+ini_set('default_encoding','utf-8');
 use RedBean_Facade as R;
 use Helpers\PasswordHelper as PasswordHelper;
 use Enumerations\HttpStatusCode as HttpStatusCode;
@@ -84,17 +85,17 @@ class Notifications extends RedBean_SimpleModel implements ModelBaseInterface {
 			 	}				
 				if($fromName != '' && $toId != '')
 				{
-					//if(!empty($bean->Notes))
-						//$message 		= 	ucfirst($fromName).' : '.$bean->Notes;					
-					//else
-						$message 		= 	ucfirst($fromName).' has transferred $'.$bean->Amount.' to your account balance';
+					$notes	=	'';
+					if(!empty($bean->Notes))
+						$notes 	= 	'Message : '.$bean->Notes;
+					$amount			=	number_format($bean->Amount,2,'.',',');
+					$message 		= 	ucfirst($fromName).' has transferred '.utf8_encode('£').$amount.' to your account balance';
 					$endpointsArn 	= 	R::find('devicetokens','fkUsersId = ? and Status = 1',[$toId]);
-					//echo "<pre>"; print_r($endpointsArn  ); echo "</pre>";die();
 					if($endpointsArn)
 					{
 						foreach($endpointsArn as $key=>$value){
 							$this->updateBadgeForToken($value['DeviceToken'],1);
-							$success = sendNotificationAWS($message,$value['EndpointARN'],$value['Platform'],$value['BadgeCount'],$type,$bean->toUserId,$bean->userId,$sounds);
+							$success = sendNotificationAWS($message,$value['EndpointARN'],$value['Platform'],$value['BadgeCount'],$type,$bean->toUserId,$bean->userId,$sounds,'','',$notes);
 							if($success == '1')
 								$log_content .= "\r\n To user(".$toId.") : ".$message." - Success ";
 							else
@@ -124,15 +125,15 @@ class Notifications extends RedBean_SimpleModel implements ModelBaseInterface {
 			 	{
 					foreach ($merchants as $val) 
 					{
-						$companyName 	= 	$val['CompanyName'];
+						$companyName 	= 	ucfirst($val['CompanyName']);
 					}
-					$message 		= 	'Merchant "'.ucfirst($companyName).'"  has created a New Order for you.';					
+					$message 		= 	'Merchant "'.$companyName.'"  has created a New Order for you.';					
 					$endpointsArn 	= 	R::find('devicetokens','fkUsersId = ? and Status = 1',[$bean->userId]);
 					if($endpointsArn)
 					{
 						foreach($endpointsArn as $key=>$value){
 							$this->updateBadgeForToken($value['DeviceToken'],1);
-							$success = sendNotificationAWS($message,$value['EndpointARN'],$value['Platform'],$value['BadgeCount'],$type,$bean->orderId,$bean->userId,$sounds);
+							$success = sendNotificationAWS($message,$value['EndpointARN'],$value['Platform'],$value['BadgeCount'],$type,$bean->orderId,$bean->userId,$sounds,$bean->merchantId,$companyName,'');
 							if($success == '1')
 								$log_content .= "\r\n To user(".$bean->userId.") : ".$message." - Success ";
 							else
@@ -159,21 +160,21 @@ class Notifications extends RedBean_SimpleModel implements ModelBaseInterface {
 			 	{
 					foreach ($merchants as $val) 
 					{
-						$companyName 	= 	$val['CompanyName'];
+						$companyName 	= 	ucfirst($val['CompanyName']);
 					}
 					if($type == 3) {
 						$log_content 	= 	"\r\n APPROVE ORDER (".date('H:i:s A').")\r\n";
-						$message 	 	= 	'Merchant "'.ucfirst($companyName).'"  has approved your order.';
+						$message 	 	= 	'Merchant "'.$companyName.'"  has approved your order.';
 					}
 					if($type ==	4) {
 						$log_content 	= 	"\r\n REJECT ORDER (".date('H:i:s A').")\r\n";
-						$message 		= 	'Merchant "'.ucfirst($companyName).'"  has rejected your order.';
+						$message 		= 	'Merchant "'.$companyName.'"  has rejected your order.';
 					}	
 					$endpointsArn 		= 	R::find('devicetokens','fkUsersId = ? and Status = 1',[$bean->userId]);
 					if($endpointsArn) {
 						foreach($endpointsArn as $key=>$value){
 							$this->updateBadgeForToken($value['DeviceToken'],1);
-							$success = sendNotificationAWS($message,$value['EndpointARN'],$value['Platform'],$value['BadgeCount'],$type,$bean->merchantId,$bean->userId,$sounds);
+							$success = sendNotificationAWS($message,$value['EndpointARN'],$value['Platform'],$value['BadgeCount'],$type,$bean->orderId,$bean->userId,$sounds,$bean->merchantId,$companyName,'');
 							if($success == '1')
 								$log_content .= "\r\n To user(".$bean->userId.") : ".$message." - Success ";
 							else

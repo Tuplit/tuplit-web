@@ -22,6 +22,7 @@ try
 	        // ... repeated
 	    ),
 	));
+	//echo'<pre>';print_r($result);echo'</pre>';
 	return $result['EndpointArn'];
 		
   }

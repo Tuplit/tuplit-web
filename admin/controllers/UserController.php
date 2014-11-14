@@ -113,5 +113,33 @@ class UserController extends Controller
 		if ($this->UserModelObj)
 			return $this->UserModelObj->updateBadge($token);
 	}
+	function getCustomerList($fields,$condition,$limit)
+	{
+		if (!isset($this->UserModelObj))
+			$this->loadModel('UserModel', 'UserModelObj');
+		if ($this->UserModelObj)
+			return $this->UserModelObj->getCustomerList($fields,$condition,$limit);
+	}
+	function getCustomerTransaction($field,$condition)
+	{
+		if (!isset($this->UserModelObj))
+			$this->loadModel('UserModel', 'UserModelObj');
+		if ($this->UserModelObj)
+			return $this->UserModelObj->getCustomerTransaction($field,$condition);
+	}
+	function getTransactionDetails($fields,$condition)
+	{
+		if (!isset($this->UserModelObj))
+			$this->loadModel('UserModel', 'UserModelObj');
+		if ($this->UserModelObj)
+			return $this->UserModelObj->getTransactionDetails($fields,$condition);
+	}
+	function getUserDemographics($fields,$condition)
+	{
+		if (!isset($this->UserModelObj))
+			$this->loadModel('UserModel', 'UserModelObj');
+		if ($this->UserModelObj)
+			return $this->UserModelObj->getUserDemographics($fields,$condition);
+	}
 }
 ?>

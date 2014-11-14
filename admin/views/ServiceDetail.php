@@ -37,7 +37,10 @@ if(isset($_GET['id']) && $_GET['id'] != '' ){
 
 ?>
 <body class="skin-blue">
-	<?php top_header(); ?>
+	<?php top_header();
+	$activeTab = 4;
+	require_once('StatisticsTabs.php');
+	?>
 	
 	<!-- Content Header (Page header) -->
 	<section class="content-header no-padding">
@@ -50,7 +53,7 @@ if(isset($_GET['id']) && $_GET['id'] != '' ){
 		<div class="row">
 			<div class="col-md-12 view-page"> 
 			 <form name="search_category" action="" method="post">
-				<div class="box box-primary"> 
+				<div class="box box-primary box-padding"> 
 					<div class="form-group col-sm-6 row">
 						<label class=" col-sm-5   col-xs-5   col-md-4" >Purpose</label>
 						<div  class="col-sm-7 col-xs-7  col-md-8">

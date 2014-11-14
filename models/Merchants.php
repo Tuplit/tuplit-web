@@ -112,22 +112,6 @@ class Merchants extends RedBean_SimpleModel implements ModelBaseInterface {
 		$bean->IpAddress 			= 	$ip;
 		$bean->Status 				= 	0;
 		
-		if(isset($bean->Address) && !empty($bean->Address)) {
-			$latlong = $lat = $lng = '';
-			$latlong = getLatLngFromAddress($bean->Address) ;
-			if($latlong != ''){
-				$latlngArray = explode('###',$latlong);
-				if(isset($latlngArray) && is_array($latlngArray) && count($latlngArray) > 0){
-					if(isset($latlngArray[0]))
-						$lat = $latlngArray[0];
-					if(isset($latlngArray[1]))
-						$lng = $latlngArray[1];
-				}
-			}
-			$bean->Latitude = $lat;
-			$bean->Longitude = $lng;
-		}
-		
 		// save the bean to the database
 		$merchantsId 				= 	R::store($this);
 	  	return $merchantsId;
@@ -143,7 +127,7 @@ class Merchants extends RedBean_SimpleModel implements ModelBaseInterface {
 		$bean = $this->bean;
 		$rules = [
 			'required' => [
-				 ['FirstName'],['LastName'],['Email'],['PhoneNumber'],['BusinessName'],['BusinessType'],['CompanyName'],['RegisterCompanyNumber'],['Address'],['Country'],['PostCode'],['Password'],['HowHeared']
+				 ['FirstName'],['LastName'],['Email'],['CompanyName'],['PhoneNumber'],['Password']
 			],
 			'Email' => 'Email',
 		];
@@ -152,7 +136,7 @@ class Merchants extends RedBean_SimpleModel implements ModelBaseInterface {
         $v->rules($rules);
         if (!$v->validate()) {
             $errors = $v->errors();
-            throw new ApiException("Please check the merchant's properties. Fill FirstName,LastName,Email,Password,CompanyName with correct values" ,  ErrorCodeType::SomeFieldsRequired, $errors);
+            throw new ApiException("Please check the merchant's properties. Fill Name,Email,Password with correct values" ,  ErrorCodeType::SomeFieldsRequired, $errors);
         }
     }
 	
@@ -180,23 +164,43 @@ class Merchants extends RedBean_SimpleModel implements ModelBaseInterface {
 	/**
 	* @param Modify the user entity
 	*/
-    public function modify($merchantsId = null,$iconExist='',$merchantExist=''){
+    public function modify($merchantsId = null,$iconExist='',$merchantExist='',$backgroundExist = ''){
 
 		/**
 		* Get the bean
 		*/
 		$bean = $this->bean;
 		// validate the model
-        $this->validateModifyMerchant($iconExist,$merchantExist);
+        $this->validateModifyMerchant($iconExist,$merchantExist,$backgroundExist);
 		
         // validate the modification
         $this->validateModify($merchantsId);
 
         $bean->DateModified = date('Y-m-d H:i:s');
+		if($bean->Password){
+        	$bean->Password 		= 	PasswordHelper::encrypt($bean->Password);
+		}
 		
-		if(isset($bean->Address) && !empty($bean->Address)) {
+		$Address = '';
+		if(!empty($bean->Street))
+			$Address	.=	$bean->Street;
+		if(!empty($bean->City))
+			$Address	.=	', '.$bean->City;
+			
+		if(!empty($bean->State) && !empty($bean->PostCode))
+			$Address	.=	', '.$bean->State.' - '.$bean->PostCode;
+		else if(!empty($bean->State) && empty($bean->PostCode))
+			$Address	.=	', '.$bean->State;
+		else if(empty($bean->State) && !empty($bean->PostCode))
+			$Address	.=	', '.$bean->PostCode;
+		
+		if(!empty($bean->Country))
+			$Address	.=	', '.$bean->Country;
+		
+		
+		if(isset($Address) && !empty($Address)) {
 			$latlong = $lat = $lng = '';
-			$latlong = getLatLngFromAddress($bean->Address) ;
+			$latlong = getLatLngFromAddress($Address) ;
 			if($latlong != ''){
 				$latlngArray = explode('###',$latlong);
 				if(isset($latlngArray) && is_array($latlngArray) && count($latlngArray) > 0){
@@ -219,23 +223,23 @@ class Merchants extends RedBean_SimpleModel implements ModelBaseInterface {
 	* Validate the model
 	* @throws ApiException if the models fails to validate required fields
 	*/
-    public function validateModifyMerchant($iconExist,$merchantExist)
+    public function validateModifyMerchant($iconExist,$merchantExist,$backgroundExist)
     {
 		$bean 		= 	$this->bean;
 		$temp 		= 	array(
 								array('CompanyName'),
 								array('Email'),
 								array('ShortDescription'),
-								array('Description'),
-								array('Street'),
+								array('Description'),								
 								array('PhoneNumber'),
 								array('WebsiteUrl'),
-								array('DiscountTier'),
-								array('City'),
 								array('PriceRange'),
-								array('State'),
-								array('PostCode'),
-								array('LocationCountry'),
+								array('DiscountTier'),
+								array('Street'),
+								array('City'),
+								array('PostCode'),								
+								array('State'),								
+								array('Country'),
 								array('PriceRange')
 							);
 		if($iconExist == '' && $merchantExist == '' ){
@@ -247,20 +251,22 @@ class Merchants extends RedBean_SimpleModel implements ModelBaseInterface {
 		}
 		else if($merchantExist == ''){
 			$temp[] = 	array('MerchantPhoto');
+		}else if($backgroundExist == ''){
+			$temp[] = 	array('BackgroundPhoto');
 		}
 			
 		$rules = [
 	            'required' => $temp,
 				'Url' => 'WebsiteUrl',
-				'in' =>[
+				/*'in' =>[
 						['DiscountTier',['1','2','3','4','5','6']]
-					]
+					]*/
 	        ];		
         $v = new Validator($this->bean);
         $v->rules($rules);
         if (!$v->validate()) {
             $errors = $v->errors();
-            throw new ApiException("Please check the merchant's properties. Fill Company Name,Address,Phone Number,WebsiteUrl,Discount Tier,Price Range,Icon Photo,Merchant Photo with correct values" ,  ErrorCodeType::SomeFieldsRequired, $errors);//Email,
+            throw new ApiException("Please check the merchant's properties. Fill Company Name,Phone Number,WebsiteUrl,Discount Tier,Price Range,Icon Photo,Merchant Photo with correct values" ,  ErrorCodeType::SomeFieldsRequired, $errors);//Email,
         }
     }
 		
@@ -396,12 +402,19 @@ class Merchants extends RedBean_SimpleModel implements ModelBaseInterface {
 		if(!empty($latitude) && !empty($longitude))
 			$fields	 = ",(((acos(sin((".$latitude."*pi()/180)) * sin((m.`Latitude`*pi()/180))+cos((".$latitude."*pi()/180)) * cos((m.`Latitude`*pi()/180)) * cos(((".$longitude."- m.`Longitude`)*pi()/180))))*180/pi())*60*1.1515)*1.6093 as distance";
 		
+		//validate merchant
+		$this->validateMerchants($merchantId,3);
+				
 		if($from == 1){
+			//Check for total products   - 27/10/2014
+			$sql		=	"SELECT `fkMerchantsId`,count(*) as totcount FROM `products` WHERE 1 and fkMerchantsId ='".$merchantId."' and `ItemType` in (1,3) and `Status` in (1,2) group by `fkMerchantsId` HAVING totcount > 20 ";
+			$producttot = 	R::getAll($sql);
+			if(!$producttot) {
+				throw new ApiException("The Merchant you requested was not published.", ErrorCodeType::MerchantNotPublished);
+			}
+			
 			//Validate latitude and longitude	
-			$this->validateLatLong();		
-		
-			//validate merchant
-			$this->validateMerchants($merchantId,3);
+			$this->validateLatLong();				
 
 			//Already Favourited
 			if(!empty($userId) && !empty($latitude) && !empty($longitude)){
@@ -409,7 +422,7 @@ class Merchants extends RedBean_SimpleModel implements ModelBaseInterface {
 				$this->validateUser($userId);				
 				$fields			.= ",FavouriteType as AlreadyFavourited";
 				$joinCondition	= "LEFT JOIN favorites as f ON(m.id = f.fkMerchantsId and f.fkMerchantsId = ".$merchantId." and f.fkUsersId = ".$userId." and FavouriteType = 1) ";
- 			}			
+			}			
 		}	
 		
 		// Merchant details		
@@ -418,12 +431,33 @@ class Merchants extends RedBean_SimpleModel implements ModelBaseInterface {
 
 		$merchants 		= R::getAll($sql);
 		$merchants 		= $merchants[0];		
-        if (!$merchants) {
-            // the Merchants was not found
-            throw new ApiException("Your status is not in active state", ErrorCodeType::MerchantsNotInActiveStatus);
-        }
+		if (!$merchants) {
+			// the Merchants was not found
+			throw new ApiException("Your status is not in active state", ErrorCodeType::MerchantsNotInActiveStatus);
+		}
 		else
-		{	
+		{
+			$merchants['Address'] = '';
+			if(!empty($merchants['Street']))
+				$merchants['Address']	.=	$merchants['Street'];
+			if(!empty($merchants['City']))
+				$merchants['Address']	.=	', '.$merchants['City'];
+			
+			if(!empty($merchants['State']) && !empty($merchants['PostCode']))
+				$merchants['Address']	.=	', '.$merchants['State'].' - '.$merchants['PostCode'];
+			else if(!empty($merchants['State']) && empty($merchants['PostCode']))
+				$merchants['Address']	.=	', '.$merchants['State'];
+			else if(empty($merchants['State']) && !empty($merchants['PostCode']))
+				$merchants['Address']	.=	', '.$merchants['PostCode'];
+			
+			if(!empty($merchants['Country']))
+				$merchants['Address']	.=	', '.$merchants['Country'];
+			$merchants['Country']	=	$merchants['Country'];
+			
+			if(isset($merchants['BrowserDetails']) && !empty($merchants['BrowserDetails']))
+				$merchants['BrowserDetails'] = $merchants['BrowserDetails'];
+			else 
+				$merchants['BrowserDetails'] =	'';
 			//condition to check whether we can allow cart to be enabled
 			if(!empty($latitude) && !empty($longitude)){
 				if($merchants['distance'] != '') {					
@@ -442,9 +476,9 @@ class Merchants extends RedBean_SimpleModel implements ModelBaseInterface {
 				$merchants['AlreadyFavourited'] 	= 	'0';
 			/*else
 				$merchants['AlreadyFavourited']  	= 	'';*/
-				 
+			 
 			//Merchants Discount Tier
-		    if($merchants['DiscountTier']  > 0)
+			if($merchants['DiscountTier']  > 0)
 				$merchants['DiscountTier'] 			= 	$discountTierArray[$merchants['DiscountTier']].'%';
 			
 			//Total Special Products scold
@@ -460,10 +494,10 @@ class Merchants extends RedBean_SimpleModel implements ModelBaseInterface {
 		   
 			// Merchant OpeningHours		   
 			$merchantsDetails['OpeningHours']		= 	$this->getMerchantOpeningHours($merchantId,$from);
-			
-			// Merchant slideshow		   
+						
+			// Merchant slideshow			
 			$merchantsDetails['slideshow']			= 	$this->getMerchantSlideshowImages($merchantId);
-
+					
 			//Merchant Categories
 			$merchantCategories						=	$this->getMerchantCategories($merchantId,$from);
 			$merchantsDetails['Category']			=	$merchantCategories['Categoryids'];
@@ -481,37 +515,8 @@ class Merchants extends RedBean_SimpleModel implements ModelBaseInterface {
 				$countProducts['TotalCount'] 		= 	$totalProduct;
 				$countProducts['DiscountApplied'] 	= 	$discountedProduct;
 			}
-
-			/*$merchantsDetails['IsGoldenTag'] 		= 	"0";
-			$discountFlag 			= 	0;
-		   	if($merchants['DiscountType'] == 1)
-			{
-				if(isset($merchants['DiscountProductId']) && $merchants['DiscountProductId'] == 'all')
-					$discountFlag 	= 	1;
-				else{
-					$tot_product_ids = $this->validateMerchantProduct($merchants['DiscountProductId']);
-					if(isset($countProducts) && is_array($countProducts) && count($countProducts) > 0 ){
-						if($tot_product_ids >= $countProducts['DiscountApplied'] ){
-							$totalProduct 	= 	$tot_product_ids;
-							$disapplied	  	= 	$countProducts['DiscountApplied'];
-							if($disapplied == $totalProduct)
-								$merchantsDetails['IsGoldenTag'] 	= "1";
-						}
-					}
-				}
-			}
-			else
-				$discountFlag 			= 	1;
-			if($discountFlag == 1){
-				if(isset($countProducts) && is_array($countProducts) && count($countProducts) > 0 ){
-			  		$totalProduct 		= 	$countProducts['TotalCount'];
-					$disapplied	  		= 	$countProducts['DiscountApplied'];
-					if($disapplied == $totalProduct)
-						$merchantsDetails['IsGoldenTag'] 	= "1";
-			     }
-		    }	   */
-		   if($from == 1){
-		   		
+			if($from == 1){
+				
 				//category details
 				$merchantsDetails['CategoryList']			=	$merchantCategories['categoryDeatil'];
 							
@@ -520,7 +525,14 @@ class Merchants extends RedBean_SimpleModel implements ModelBaseInterface {
 				$comments->MerchantId						= 	$merchantId;
 				$comments->Start 							= 	0;
 				$comments->Limit 							= 	3;
-				$merchantsDetails['Comments'] 				= 	$comments->getMerchantCommentList();
+				//$merchantsDetails['Comments'] 				= 	$comments->getMerchantCommentList();
+				$merchantsDetails['TotalComments'] 			= 	0;
+				$merchantsDetails['Comments'] 				= 	Array();
+				$merchantsComments			 				= 	$comments->getMerchantCommentList();
+				if(!empty($merchantsComments) && isset($merchantsComments['totalcomments']) && $merchantsComments['totalcomments'] > 0) {
+					$merchantsDetails['TotalComments'] 		= 	$merchantsComments['totalcomments'];
+					$merchantsDetails['Comments'] 			= 	$merchantsComments['comments'];
+				}
 				
 				//Total users shopped
 				$totalShopped 								= 	R::dispense('orders');
@@ -534,7 +546,11 @@ class Merchants extends RedBean_SimpleModel implements ModelBaseInterface {
 				$ProductList								= 	$productDetail->getProductListWithCategory($merchantId,null,1);//1-mobile
 				$merchantsDetails['ProductList'] 			=  	$ProductList;
 
-			}	
+			} else {
+				//SalespersonList 
+				$merchantsDetails['SalespersonList']	= 	$this->getSalespersonList($merchantId,1);
+			}
+			
 			//Tag Type
 			$merchantsDetails['TagType'] 					=  	$this->getTagType($merchantId);
 			
@@ -542,7 +558,7 @@ class Merchants extends RedBean_SimpleModel implements ModelBaseInterface {
 			//if(isset($AllowCart))
 			$merchantsDetailsOut['AllowCart'] 				= 	$AllowCart;				
 			return $merchantsDetailsOut;
-		}
+		}		
     }
 	
 	/*
@@ -618,7 +634,7 @@ class Merchants extends RedBean_SimpleModel implements ModelBaseInterface {
 		/**
 		* Get the identity of the person requesting the details
 		*/
-		$sql		 = "select id,FirstName,LastName,Email,Status from merchants where id = '".$merchantsId."' and Status != 3";
+		$sql		 = "select id,FirstName,LastName,Email,Status,MangoPayUniqueId from merchants where id = '".$merchantsId."' and Status != 3";
 		$merchants	 = R::getAll($sql);
 		
         if (!$merchants) {
@@ -629,7 +645,7 @@ class Merchants extends RedBean_SimpleModel implements ModelBaseInterface {
 			else {
 				// the Merchants was not found
 				throw new ApiException("Your status is not in active state", ErrorCodeType::MerchantsNotInActiveStatus);
-			}
+			}			
         }
 		else{
 			if($type == 1){
@@ -638,7 +654,7 @@ class Merchants extends RedBean_SimpleModel implements ModelBaseInterface {
 	            	throw new ApiException("Sorry! you cannot do this process", ErrorCodeType::NotAccessToDoProcess);
 				}
 			}
-			if($merchants[0]['Status'] == 2){
+			if($merchants[0]['Status'] == 2 || $merchants[0]['Status'] == 0){
 				// the Merchants was not found
             	throw new ApiException("Your status is not in active state", ErrorCodeType::MerchantsNotInActiveStatus);
 			}
@@ -891,6 +907,29 @@ class Merchants extends RedBean_SimpleModel implements ModelBaseInterface {
 			$searchCondition	.=	" and m.DiscountTier = ".$tierVal." ";
 		}
 		
+		//Check for total products   - 27/10/2014
+		$merchantsIdNot	=	'';
+		$sql		=	"SELECT `fkMerchantsId`,count(*) as totcount FROM `products` WHERE 1 and `ItemType` in (1,3) and `Status` in (1,2) group by `fkMerchantsId` HAVING totcount > 20 ";
+		$producttot = 	R::getAll($sql);
+		if($producttot) {
+			$merchantsIdNotArray = Array();
+			foreach($producttot as $val) {
+				$merchantsIdNotArray[]		=	$val['fkMerchantsId'];
+			}
+			if(count($merchantsIdNotArray) > 0)
+				$merchantsIdNot = implode(',',$merchantsIdNotArray);
+		} else {
+			/**
+			* throwing error when no data found
+			*/
+			throw new ApiException("No Merchants Found", ErrorCodeType::NoResultFound);
+		}
+		if(!empty($merchantsIdNot))
+			$merchantsIdNot = " and m.id in (".$merchantsIdNot.") ";
+		//Check for total products   - 27/10/2014
+		
+		
+		
 		/**
 		* Query to get merchant details
 		*/
@@ -898,7 +937,7 @@ class Merchants extends RedBean_SimpleModel implements ModelBaseInterface {
 			$searchCondition	.=	" and (m.CompanyName like '%".$bean->SearchKey."%' or  m.ShortDescription like '%".$bean->SearchKey."%')";
 			
 		if($category != ''){
-			$fields				 =	" m.id,m.id as MerchantId,DiscountType,m.Icon,m.Image,m.DiscountTier,m.CompanyName,m.ShortDescription,m.Address,mc.fkCategoriesId as Category,m.ItemsSold,m.Latitude,m.Longitude,DiscountProductId";
+			$fields				 =	" m.id,m.id as MerchantId,DiscountType,m.Icon,m.Image,m.DiscountTier,m.CompanyName,m.ShortDescription,mc.fkCategoriesId as Category,m.ItemsSold,m.Latitude,m.Longitude,m.Street,m.City,m.State,m.PostCode,m.Country,DiscountProductId";
 			$join_condition 	 = 	" LEFT JOIN  merchantcategories as mc ON (mc.fkMerchantId = m.id) ";
 			if($type == 2){
 			$fields				 .= ',count(DISTINCT(o.fkUsersId)) as TotalUsersShopped';
@@ -907,7 +946,7 @@ class Merchants extends RedBean_SimpleModel implements ModelBaseInterface {
 			$searchCondition	.=	" and mc.fkCategoriesId ='".$category."'";
 		}
 		else{
-			$fields				=	"m.id,m.id as MerchantId,DiscountType,m.Icon,m.Image,m.DiscountTier,m.CompanyName,m.ShortDescription,m.Address,m.ItemsSold,m.Latitude,m.Longitude,DiscountType,DiscountProductId, group_concat(DISTINCT(mc.fkCategoriesId)) as Category,count(DISTINCT(o.fkUsersId)) as TotalUsersShopped";
+			$fields				=	"m.id,m.id as MerchantId,DiscountType,m.Icon,m.Image,m.DiscountTier,m.CompanyName,m.ShortDescription,m.ItemsSold,m.Latitude,m.Longitude,m.Street,m.City,m.State,m.PostCode,m.Country,DiscountType,DiscountProductId, group_concat(DISTINCT(mc.fkCategoriesId)) as Category,count(DISTINCT(o.fkUsersId)) as TotalUsersShopped";
 			$join_condition 	= 	" LEFT JOIN  merchantcategories as mc ON (mc.fkMerchantId = m.id) ";
 			$join_condition 	.= " left join  orders as o ON (o.fkMerchantsId = m.id) ";
 		}
@@ -922,47 +961,48 @@ class Merchants extends RedBean_SimpleModel implements ModelBaseInterface {
 		if(!empty($merchantIds)) { 
 			$condition 			= 	" and m.id in (".$merchantIds.")";
 		}
-		$group_condition	  =  " group by m.id";
-		$sql 	= "SELECT SQL_CALC_FOUND_ROWS ".$fields.",date(m.DateCreated) as DateCreated,(((acos(sin((".$latitude."*pi()/180)) * sin((m.`Latitude`*pi()/180))+cos((".$latitude."*pi()/180)) * cos((m.`Latitude`*pi()/180)) * cos(((".$longitude."- m.`Longitude`)*pi()/180))))*180/pi())*60*1.1515)*1.6093 as distance  from merchants as m ".$join_condition." where  m.Status = 1 and m.UserType = 1 ".$searchCondition." ".$condition." and m.Address != '' and m.Image != '' ".$group_condition." ORDER BY ".$orderby." limit $Start,10";	
-		//if($_SERVER['REMOTE_ADDR'] == '172.21.4.130')
-			//echo $sql;
+		$group_condition	=  " group by m.id";
+		$sql 				= 	"SELECT SQL_CALC_FOUND_ROWS ".$fields.",date(m.DateCreated) as DateCreated,(((acos(sin((".$latitude."*pi()/180)) * sin((m.`Latitude`*pi()/180))+cos((".$latitude."*pi()/180)) * cos((m.`Latitude`*pi()/180)) * cos(((".$longitude."- m.`Longitude`)*pi()/180))))*180/pi())*60*1.1515)*1.6093 as distance  from merchants as m ".$join_condition." 
+								where  m.Status = 1 and m.UserType = 1 ".$searchCondition." ".$condition." and m.Image != '' ".$merchantsIdNot." ".$group_condition." 								
+								 ORDER BY ".$orderby." limit $Start,10";	
+		//echo $sql;
 		$result 			= 	R::getAll($sql);
 		$totalRec 			= 	R::getAll('SELECT FOUND_ROWS() as count ');
 		$total 				= 	(integer)$totalRec[0]['count'];
 		$listedCount		= 	count($result);
-		$countProducts 		= 	array();
 		$discountedProduct 	= 	0;
 		
 		if($result){
 			foreach($result as $key=>$value)
 			{
-				$totalProduct 				= 	0;
-				$merchantid					= 	$value['MerchantId'];
-				
-				//Product Details
-				$productDetail 				= 	R::dispense('products');
-				$countResult				= 	$productDetail->getProductsDiscounttype($merchantid);				
-				foreach($countResult as $kk=>$vv)
-				{
-					if($vv['DiscountApplied'] == 1){
-						$discountedProduct 	= 	$vv['productCount'];
-						$totalProduct 		= 	$totalProduct + $vv['productCount'];
-					}
-					else{
-						$totalProduct 		= 	$totalProduct + $vv['productCount'];
-					}
-					$countProducts[$merchantid]['TotalCount'] 		= 	$totalProduct;
-					$countProducts[$merchantid]['DiscountApplied'] 	= 	$discountedProduct;
-				}
-			}
-			foreach($result as $key=>$value)
-			{
 				$imagePath = $iconPath	= 	'' ;
+				
+				$value['Address'] = '';
+				if(!empty($value['Street']))
+					$value['Address']	.=	$value['Street'];
+				if(!empty($value['City']))
+					$value['Address']	.=	', '.$value['City'];
+				
+				if(!empty($value['State']) && !empty($value['PostCode']))
+					$value['Address']	.=	', '.$value['State'].' - '.$value['PostCode'];
+				else if(!empty($value['State']) && empty($value['PostCode']))
+					$value['Address']	.=	', '.$value['State'];
+				else if(empty($value['State']) && !empty($value['PostCode']))
+					$value['Address']	.=	', '.$value['PostCode'];
+				
+				if(!empty($value['Country']))
+					$value['Address']	.=	', '.$value['Country'];
+				$value['Country']	=	$value['Country'];
+				unset($value['Street']);
+				unset($value['City']);
+				unset($value['PostCode']);
+				unset($value['State']);
+				unset($value['Country']);
+				
 				$iconPath  				= 	MERCHANT_ICONS_IMAGE_PATH.$value['Icon'];
 				$imagePath 				= 	MERCHANT_IMAGE_PATH.$value['Image'];
 				$value['Image'] 		= 	$imagePath;
 				$value['Icon'] 			= 	$iconPath;
-				//$value['IsSpecial'] 	= 	$value['IsGoldenTag'] 	= 	$discountFlag 	= 	0;
 				
 				//new tag for merchant
 				$before30days			=	date('Y-m-d', strtotime('-30 days'));
@@ -972,47 +1012,13 @@ class Merchants extends RedBean_SimpleModel implements ModelBaseInterface {
 				else
 					$value['NewTag'] 	= 	'0';
 				unset($value['DateCreated']);
-					
-				/*if($value['DiscountType'] == 1)
-				{
-					if(isset($value['DiscountProductId']) && $value['DiscountProductId'] == 'all')
-						$discountFlag 	= 	1;
-					else{
-						$tot_product_ids = $this->validateMerchantProduct($value['DiscountProductId']);
-						if(isset($countProducts[$value['MerchantId']]) && is_array($countProducts[$value['MerchantId']]) && count($countProducts[$value['MerchantId']]) > 0 ){
-							if($tot_product_ids >= $countProducts[$value['MerchantId']]['DiscountApplied'] ){
-								$totalProduct 	= 	$tot_product_ids;
-								$disapplied	  	= 	$countProducts[$value['MerchantId']]['DiscountApplied'];
-								$totaldiscount 	= 	($disapplied/$totalProduct)*100;
-								if($totaldiscount >= 75)
-									$value['IsSpecial'] 	= "1";
-								if($disapplied == $totalProduct)
-									$value['IsGoldenTag'] 	= "1";
-							}
-						}
-					}
-				}
-				else
-					$discountFlag 			= 	1;
-				if($discountFlag == 1){
-					if(isset($countProducts[$value['MerchantId']]) && is_array($countProducts[$value['MerchantId']]) && count($countProducts[$value['MerchantId']]) > 0 ){
-				  		$totalProduct 		= 	$countProducts[$value['MerchantId']]['TotalCount'];
-						$disapplied	  		= 	$countProducts[$value['MerchantId']]['DiscountApplied'];
-						$totaldiscount 		= 	($disapplied/$totalProduct)*100;
-						if($totaldiscount >= 75)
-							$value['IsSpecial'] 	= "1";
-						if($disapplied == $totalProduct)
-							$value['IsGoldenTag'] 	= "1";
-				     }
-			    }*/
+				
 				if($value['DiscountTier']  != '')
 					$value['DiscountTier'] 	= $discountTierArray[$value['DiscountTier']].'%';
 				
 				$value['TagType']			=	$this->getTagType($value['id']);
 				$MerchantListArray[] 		= 	$value;
 			}
-			/*if($_SERVER['REMOTE_ADDR'] == '172.21.4.130')
-				echo "<pre>"; echo print_r($result); echo "</pre>";*/
 			$MerchantArray['totalCount']	= $total;
 			$MerchantArray['listedCount']	= $listedCount;
 			$MerchantArray['result']		= $MerchantListArray;
@@ -1289,17 +1295,27 @@ class Merchants extends RedBean_SimpleModel implements ModelBaseInterface {
 		$merchantArray['Country']		=	$bean->Country;
 		$merchantArray['Currency']		=	$bean->Currency;
 		$merchantArray['Birthday']		=	$bean->Birthday;
-		
 		$mangopayDetails 				=   merchantRegister($merchantArray);
 		if(isset($mangopayDetails) && count($mangopayDetails) > 0 && isset($mangopayDetails->Id)){
+			$merchants 								= 	R::dispense('merchants');
 			$uniqueId								=	$mangopayDetails->Id;
 			$walletId								=	createWallet($uniqueId,$merchantArray['Currency']);
-			$merchants 								= 	R::dispense('merchants');
-			$merchants->id 							= 	$merchantsId;
-			$merchants->MangoPayTransactionDetails 	= 	serialize($mangopayDetails);
 			$merchants->MangoPayUniqueId 			= 	$uniqueId;
 			$merchants->WalletId 					= 	$walletId;
+			$merchants->MangoPayTransactionDetails 	= 	serialize($mangopayDetails);
+			$merchants->id 							= 	$merchantsId;
 			$merchantsUpdate 						= 	R::store($merchants);
+			$mangopayDetails						= 	R::dispense('mangopaydetails');
+			$mangopayDetails->fkMerchantId			=	$merchantsId;
+			$mangopayDetails->CompanyName			=	$merchantArray['CompanyName'];
+			$mangopayDetails->Email 				= 	$merchantArray['Email'];
+			$mangopayDetails->FirstName 			=   $merchantArray['FirstName'];
+			$mangopayDetails->LastName 				= 	$merchantArray['LastName'];
+			$mangopayDetails->DOB					=	changeDate_DBformat($merchantArray['Birthday']);
+			$mangopayDetails->Address 				= 	$merchantArray['Address'];
+			$mangopayDetails->Country				=	$merchantArray['Country'];
+			$mangopayDetails->Currency				=	$merchantArray['Currency'];
+			$mangopayDetailsAdd 					= 	R::store($mangopayDetails);
 			return $mangopayDetails;
 		} else {
 			throw new ApiException("Error with mangopay/functions" ,  ErrorCodeType::SomeFieldsRequired);
@@ -1413,7 +1429,7 @@ class Merchants extends RedBean_SimpleModel implements ModelBaseInterface {
         $bean = $this->bean;
 		
 		//assigning variable
-		$deals	=	$specials	= $regular	=	$counts 	=	array();
+		$specials	= $regular	=	$counts 	=	array();
 		$applied	= $unapplied	=	0;
 		
 		//getting product details
@@ -1431,26 +1447,24 @@ class Merchants extends RedBean_SimpleModel implements ModelBaseInterface {
 						$unapplied	=	$unapplied	+ 1;
 					$regular[]		=	$val;
 				}
-				if($val['ItemType'] == 2)
-					$deals[]		=	$val;
 				if($val['ItemType'] == 3)
 					$specials[]		=	$val;
 			}
-			$counts['Totalproducts']				=	count($countResult);
+			$counts['Totalproducts']				=	count($regular) + count($specials);
 			$counts['Regular']						=	count($regular);
-			$counts['Deals']						=	count($deals);
 			$counts['Specials']						=	count($specials);
+			
+			//getting how products to be discounted
+			$discountMust	=	floor(((1/3) * $counts['Totalproducts']));
+			$counts['DiscountProductMustBe']		=	$discountMust;
+			
 			$counts['RegularDiscountApplied']		=	$applied;
 			if(isset($bean->Discount) && $bean->Discount == 0)
 				$counts['RegularDiscountApplied']	=	$applied	-	1;
-			$counts['RegularDiscountNotApplied']	=	$unapplied;
-			
-			//getting how products to be discounted
-			$discountMust	=	floor(((1/3) * count($countResult)));
-			$counts['DiscountProductMustBe']		=	$discountMust;
+			$counts['RegularDiscountNotApplied']	=	$unapplied;		
 			
 			//getting total discounted products
-			$disapplied		=	$counts['Deals'] + $counts['Specials'] + $counts['RegularDiscountApplied'];
+			$disapplied		=	$counts['Specials'] + $counts['RegularDiscountApplied'];
 			$counts['TotalDiscountApplied']			=	$disapplied;
 						
 			//checking the rule 1 (1/3 of product discount)
@@ -1464,13 +1478,15 @@ class Merchants extends RedBean_SimpleModel implements ModelBaseInterface {
 					$counts['ProductPlusDiscount']		=	floor(((1/3) * ($counts['Totalproducts']  + 1)));
 			}
 			else {
-				/**
-				 * throwing error when Merchant not having 1/3 of products discounted
-				 */
-				 throw new ApiException("Sorry! 1/3 of your products should be with discount", ErrorCodeType::ProductDiscountMust);
+				if(isset($bean->Type) && $bean->Type == 3) { } else {				
+					/**
+					 * throwing error when Merchant not having 1/3 of products discounted
+					 */
+					 throw new ApiException("Sorry! 1/3 of your products should be with discount", ErrorCodeType::ProductDiscountMust);
+				 }
 			}
 			return  $counts;				
-		} else {
+		} else {		
 				/**
 				* throwing error when no Products found
 				*/
@@ -1604,7 +1620,10 @@ class Merchants extends RedBean_SimpleModel implements ModelBaseInterface {
 		* Email Id must be unique
 		*/
        //$existingAccount = R::findOne('merchants', 'Email = ? and Status <> ? and UserType = ? and MerchantId = ? order by DateModified desc', array($bean->Email,StatusType::DeleteStatus,2,$bean->MerchantId));
-        $existingAccount = R::findOne('merchants', 'Email = ? and Status <> ? order by DateModified desc', array($bean->Email,StatusType::DeleteStatus));
+		if(isset($bean->id))
+      	  $existingAccount = R::findOne('merchants', 'Email = ? and id <> ? and Status <> ? order by DateModified desc', array($bean->Email,$bean->id,StatusType::DeleteStatus));
+		else
+		  $existingAccount = R::findOne('merchants', 'Email = ? and Status <> ? order by DateModified desc', array($bean->Email,StatusType::DeleteStatus));
         if ($existingAccount) {
             // an account with that email already exists in the system - don't create account
             throw new ApiException("This Email Address is already associated with another account", ErrorCodeType::EmailAlreadyExists);
@@ -1614,31 +1633,44 @@ class Merchants extends RedBean_SimpleModel implements ModelBaseInterface {
 	/*
 	* get salesperson List
 	*/
-	public function getSalespersonList()
+	public function getSalespersonList($merchantId,$type = '')
     {
+		$salespersonlistarray	=	Array();
 		/**
 		* Get the bean
 		* @var $bean merchants
 		*/
         $bean 		= 	$this->bean;
-		$sql 		=	"SELECT * FROM `merchants` m WHERE 1 and m.UserType = 2 and m.Status = 1 and m.MainMerchantId ='".$bean->merchantId."' order by id desc";					
+		$sql 		=	"SELECT id,FirstName,LastName,Email,Image,DateCreated FROM `merchants` m WHERE 1 and m.UserType = 2 and m.Status = 1 and m.MainMerchantId ='".$merchantId."' order by id desc";					
 		$result 	=	R::getAll($sql);
 		if($result) {
 			foreach($result as $key=>$val){
-				$salespersonlist[$key]['id']	=	$val['id'];
-				$salespersonlist[$key]['Name']	=	ucfirst($val['FirstName'].' '.$val['FirstName']);
-				$salespersonlist[$key]['Email']	=	$val['Email'];
+				$imagePath	=	'';
+				$salespersonlist[$key]['id']			=	$val['id'];
+				$salespersonlist[$key]['Name']			=	ucfirst($val['FirstName'].' '.$val['LastName']);
+				$salespersonlist[$key]['Email']			=	$val['Email'];
+				if($val["Image"] !=''){
+					if(SERVER){
+						$imagePath 		= SALESPEOPLE_IMAGE_PATH.$merchantId.'/'.$val["Image"];
+					}
+					else{
+						if(file_exists(SALESPEOPLE_IMAGE_PATH_REL.$merchantId.'/'.$val["Image"]))
+							$imagePath = SALESPEOPLE_IMAGE_PATH.$merchantId.'/'.$val["Image"];
+					}
+				}
+				$salespersonlist[$key]['Image']			=	$imagePath;
 				$salespersonlist[$key]['DateCreated']	=	$val['DateCreated'];
 			}
-			
-			$salespersonlistarray['result'] 	= 	$salespersonlist;
-			$salespersonlistarray['totalCount']	= 	count($salespersonlist);
+			$salespersonlistarray['totalCount']		= 	count($salespersonlist);
+			$salespersonlistarray['salesperson'] 	= 	$salespersonlist;
 			return $salespersonlistarray;
-		} else {		
+		} else if($type == ''){		
 			/**
 			* throwing error when no salesperson found
 			*/
 			throw new ApiException("No salesperson found", ErrorCodeType::NoResultFound);
+		} else {
+			return $salespersonlistarray;
 		}
 	}
 	
@@ -1652,8 +1684,20 @@ class Merchants extends RedBean_SimpleModel implements ModelBaseInterface {
 		* @var $bean merchants
 		*/
         $bean 		= 	$this->bean;
-		$result 	=	R::getRow('select id,FirstName,LastName,Email from merchants where id = ? and MainMerchantId = ? and UserType = ? and Status = ?', array($bean->userId,$bean->merchantId,2,1));
+		$result 	=	R::getRow('select id,FirstName,LastName,Email,Image from merchants where id = ? and MainMerchantId = ? and UserType = ? and Status = ?', array($bean->userId,$bean->merchantId,2,1));
 		if($result) {
+			$image 		= 	$result['Image'];
+			$imagePath	=	'';
+			if($image !=''){
+				if(SERVER){
+					$imagePath 		=	SALESPEOPLE_IMAGE_PATH.$bean->merchantId.'/'.$image;
+				}
+				else{
+					if(file_exists(SALESPEOPLE_IMAGE_PATH_REL.$bean->merchantId.'/'.$image));
+						$imagePath 	= 	SALESPEOPLE_IMAGE_PATH.$bean->merchantId.'/'.$image;
+				}
+			}
+			$result['Image']			=	$imagePath;
 			return $result;
 		} else {		
 			/**
@@ -1697,7 +1741,8 @@ class Merchants extends RedBean_SimpleModel implements ModelBaseInterface {
 		echo
 		// validate the model
         $this->validateSalesPerson(1);
-		
+		 // validate the email
+        $this->validateCreateSalesperson();
 		// encrypt the password
 		if($bean->Password)
         	$bean->Password 		= 	PasswordHelper::encrypt($bean->Password);
@@ -1760,8 +1805,8 @@ class Merchants extends RedBean_SimpleModel implements ModelBaseInterface {
 					$tagType	=	1;
 			} else
 				return 0;
-			if($_SERVER['REMOTE_ADDR'] == '172.21.4.130'){
-				/*$counts["Totalproducts"]		=	$Totalproducts;
+			/*if($_SERVER['REMOTE_ADDR'] == '172.21.4.130'){
+				$counts["Totalproducts"]		=	$Totalproducts;
 				$counts["regular"]     			=  	$regular;
 				$counts["deals"]     			=  	$deals;
 				$counts["specials"]     		=   $specials;
@@ -1773,12 +1818,215 @@ class Merchants extends RedBean_SimpleModel implements ModelBaseInterface {
 				$counts["3/3"]					=	$ProductMustBe3;
 
 				echo "<pre>"; echo print_r($counts); echo "</pre>";	
-				echo "----------------------->".$tagType;*/
-			}
+				echo "----------------------->".$tagType;
+			}*/
 			
 			return $tagType;
 			
 		} else
 			return 0;
+	}
+	
+	/*
+	* get mangopay details
+	*/
+	public function getMangopayDetails()
+    {
+		/**
+		* Get the bean
+		* @var $bean merchants
+		*/
+        $bean = $this->bean;
+		
+		$sql 				=	"SELECT * FROM `mangopaydetails` WHERE 1 AND fkMerchantId ='".$bean->merchantId."'";					
+		$mangopayDetails 	=	R::getAll($sql);
+		if($mangopayDetails) {
+			return $mangopayDetails[0];
+		}		
+	}
+	/*
+	* Edit MangoPay Details
+	*/
+	public function editMangoPayDetails($merchantsId)
+    {
+		$bean 			=	 $this->bean;
+		$merchantArray 	= array();
+		//Validate MangoPay params
+		$this->validateMangoPay();
+		$merchantArray['CompanyName']	=	$bean->CompanyName;
+		$merchantArray['FirstName']		=	$bean->FirstName;
+		$merchantArray['LastName']		=	$bean->LastName;
+		$merchantArray['Email']			=	$bean->Email;
+		$merchantArray['Address']		=	$bean->Address;
+		$merchantArray['Country']		=	$bean->Country;
+		$merchantArray['Currency']		=	$bean->Currency;
+		$merchantArray['Birthday']		=	$bean->Birthday;
+		$merchantArray['MangoPayId']	=	$bean->MangoPayId;
+		$mangopayDetails 				=   merchantEdit($merchantArray);
+		if(isset($mangopayDetails) && count($mangopayDetails) > 0 && isset($mangopayDetails->Id)){
+			$mangopayDetails 				= 	R::dispense('mangopaydetails');
+			$sql 					=	"SELECT id FROM `mangopaydetails` WHERE 1 AND fkMerchantId ='".$merchantsId."'";					
+			$getMangopayDetails 	=	R::getAll($sql);
+			if(!empty($getMangopayDetails )){
+				$mangopayDetailsId	=	$getMangopayDetails[0]['id'];
+				$mangopayDetails->id			=	$mangopayDetailsId;
+			}
+			$mangopayDetails->fkMerchantId	=	$merchantsId;
+			$mangopayDetails->CompanyName	=	$merchantArray['CompanyName'];
+			$mangopayDetails->Email 		= 	$merchantArray['Email'];
+			$mangopayDetails->FirstName 	=   $merchantArray['FirstName'];
+			$mangopayDetails->LastName 		= 	$merchantArray['LastName'];
+			$mangopayDetails->DOB			=	changeDate_DBformat($merchantArray['Birthday']);
+			$mangopayDetails->Address 		= 	$merchantArray['Address'];
+			$mangopayDetails->Country		=	$merchantArray['Country'];
+			$mangopayDetails->Currency		=	$merchantArray['Currency'];
+			$mangopayDetailsEdit 			= 	R::store($mangopayDetails);
+			return $mangopayDetails;
+		} else {
+			throw new ApiException("Error with mangopay/functions" ,  ErrorCodeType::SomeFieldsRequired);
+		}
+	}
+	/*
+	* Add MangoPay Bank Account
+	*/
+	public function addMangoPayBankAccount($merchantsId)
+    {
+		$bean 			=	 $this->bean;
+		$merchantArray 	= 	 array();
+		
+		//Validate MangoPay params
+		$this->validateMangoPayBank();
+		$merchantArray['UserName']		=	$bean->FirstName.' '.$bean->LastName;
+		$merchantArray['Address']		=	$bean->Address;
+		$merchantArray['BankAccount']	=	$bean->BankAccount;
+		$merchantArray['SortCode']		=	$bean->SortCode;
+		$merchantArray['MangoPayId']	=	$bean->MangoPayId;
+		$mangopayDetails 				=   createBankAccount($merchantArray);
+		if(isset($mangopayDetails) && count($mangopayDetails) > 0 && isset($mangopayDetails->Id)){
+			$bankAccountDetails			= 	R::dispense('bankaccountdetails');
+			$bankAccountDetails->fkMerchantsId		= 	$merchantsId;
+			$bankAccountDetails->fkMangopayId		=	$mangopayDetails->UserId;
+			$bankAccountDetails->BankType			=	$mangopayDetails->Type;
+			$bankAccountDetails->OwnerName			=	$mangopayDetails->OwnerName;
+			$bankAccountDetails->OwnerAddress		=	$mangopayDetails->OwnerAddress;
+			$bankAccountDetails->AccountNumber		=	$mangopayDetails->Details->AccountNumber;
+			$bankAccountDetails->SortCode			=	$mangopayDetails->Details->SortCode;
+			$bankAccountDetails->AccountId			=	$mangopayDetails->Id;
+			$bankAccountDetails->DateCreated		=	date('Y-m-d h:i:s',$mangopayDetails->CreationDate);
+			$merchantsUpdate						= 	R::store($bankAccountDetails);
+			return $mangopayDetails;
+		} else {
+			throw new ApiException("Error with mangopay/functions" ,  ErrorCodeType::SomeFieldsRequired);
+		}
+	}
+		/**
+    * Validate MangoPay params
+    * @throws ApiException if the models fails to validate
+    */
+	public function validateMangoPayBank($type='')
+    {
+		$bean = $this->bean;
+		if($type==1){
+			$rules = [
+	            'required' => [
+	                 ['BankAccountId'],['WalletId'],['MangoPayId'],['Amount']
+	            ],
+				
+	        ];
+		}else{
+		  	$rules = [
+	            'required' => [
+	                 ['FirstName'],['LastName'],['Address'],['BankAccount'],['SortCode'],['MangoPayId']
+	            ],
+				
+	        ];
+		}
+        $v = new Validator($this->bean);
+        $v->rules($rules);
+        if (!$v->validate()) {
+            $errors = $v->errors();
+			// the action was not found
+            throw new ApiException("Please check the mango pay bank properties. Fill the properties with correct values" ,  ErrorCodeType::SomeFieldsRequired, $errors);
+        }
+    }
+	/*
+	* Transfer money from wallet to bank
+	*/
+	public function transferMoneyToBank($merchantsId)
+    {
+		$bean 			=	 $this->bean;
+		$merchantArray 	= 	 array();
+		
+		//Validate MangoPay params
+		$this->validateMangoPayBank(1);
+		$admin	= 	R::findOne('admins');
+		$merchantArray['FeeAmount']			=	$admin->MangoPayFees;
+		$merchantArray['MangoPayId']		=	$bean->MangoPayId;
+		$merchantArray['BankAccountId']		=	$bean->BankAccountId;
+		$merchantArray['WalletId']			=	$bean->WalletId;
+		$merchantArray['Amount']			=	$bean->Amount;
+		$mangopayDetails 					=   payAmountToBank($merchantArray);
+		if(isset($mangopayDetails) && count($mangopayDetails) > 0 && isset($mangopayDetails->Id) && ($mangopayDetails->Status == 'CREATED')){
+			return $mangopayDetails;
+		} else {
+			throw new ApiException("Error with in transfer amount from wallet to bank account" ,  ErrorCodeType::SomeFieldsRequired);
+		}
+	}
+	/**
+    * get demographics
+    */
+    public function getDemographics($merchantId)
+    {
+		$condition 		= $field = '';
+		$bean 			= 	$this->bean;
+		$this->validateMerchants($merchantId,1);
+		if(!isset($_SESSION['tuplit_ses_from_timeZone']) || $_SESSION['tuplit_ses_from_timeZone'] == ''){
+			$time_zone 	= 	getTimeZone();
+			$_SESSION['tuplit_ses_from_timeZone'] = strval($time_zone);
+		} else {
+			$time_zone 	= 	$_SESSION['tuplit_ses_from_timeZone'];
+		}
+		$dataType 		= 	$bean->DateType;
+		$curr_date 		= 	date('d-m-Y');
+		$cur_month 		= 	date('m');
+		$cur_year 		= 	date('Y');
+		if($dataType=='day') {
+			$condition .= 	" and date(DATE_ADD(OrderDate,INTERVAL '".$_SESSION['tuplit_ses_from_timeZone']."' HOUR_MINUTE))='".date('Y-m-d',strtotime($curr_date))."'";
+		}
+		 else if($dataType=='7days') {
+			$condition 		.= 	"and (DATE_FORMAT(OrderDate,'%Y-%m-%d') <= '".date('Y-m-d',strtotime($curr_date))."' and DATE_FORMAT(OrderDate,'%Y-%m-%d') > '".date('Y-m-d',strtotime("-7 days"))."')";
+		}else if($dataType=='month') {
+			$condition .= 	"and DATE_FORMAT(OrderDate,'%m') = ".$cur_month." and DATE_FORMAT(OrderDate,'%Y') = ".$cur_year."";
+		}
+		else if($dataType=='year') {
+			$condition 	.=	 "  and DATE_FORMAT(OrderDate,'%Y') = ".$cur_year."";
+		}
+		$gender_sql 				= 	"Select CASE WHEN Gender = 0 THEN '0' WHEN Gender = 1 THEN '1' WHEN Gender = 2 THEN '2' END AS Gendergroup, count( Gender ) AS total 
+								 from users as u 
+								 left join `orders` as o ON (o.fkUsersId = u.id and o.OrderStatus IN (1)) 
+								 left join merchants as m on (m.id = o.fkMerchantsId) where 1 and o.fkMerchantsId = ".$merchantId." ".$condition."
+								 group by Gendergroup order by Gendergroup desc ";
+	    $GenderList 		=	R::getAll($gender_sql);
+		$age_sql					=	"Select CASE WHEN Age <= 18 THEN '1' WHEN Age BETWEEN 19 AND 24 THEN '2' WHEN Age BETWEEN 25 AND 34 THEN '3' 
+		   							WHEN Age BETWEEN 35 AND 44 THEN '4' WHEN Age >44 THEN '5' END AS Agegroup, count( Age ) AS total 
+									from users as u 
+									left join `orders` as o ON (o.fkUsersId = u.id and o.OrderStatus IN (1)) 
+									left join merchants as m on (m.id = o.fkMerchantsId) where 1 and o.fkMerchantsId =  ".$merchantId." ".$condition." group by Agegroup order by Agegroup asc ";
+		$AgeList 		=	R::getAll($age_sql);
+		if($GenderList ){
+			$DemographicsList['GenderList'] = $GenderList;
+		}
+		if($AgeList ){
+			$DemographicsList['AgeList']    = $AgeList;
+		}
+		if(!empty($DemographicsList)){
+			return $DemographicsList;
+		}
+		else{
+			/**
+	        * throwing error when no data found
+	        */
+			throw new ApiException("No results Found", ErrorCodeType::NoResultFound);
+		}
 	}
 }

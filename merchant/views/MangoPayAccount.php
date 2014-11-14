@@ -3,11 +3,11 @@ require_once('includes/CommonIncludes.php');
 //cookies check
 merchant_login_check();
 $merchantId					= 	$_SESSION['merchantInfo']['MerchantId'];
-$url						=	WEB_SERVICE.'v1/merchants/'.$merchantId."?From=0";
+$url						=	WEB_SERVICE.'v1/merchants/connect/'.$merchantId;
 $curlMerchantResponse 		= 	curlRequest($url, 'GET', null, $_SESSION['merchantInfo']['AccessToken']);
-if(isset($curlMerchantResponse) && is_array($curlMerchantResponse) && $curlMerchantResponse['meta']['code'] == 201 && $curlMerchantResponse['merchant']['MerchantId'] != '' ) 
- {
-	$merchantInfo  			= 	$_SESSION['merchantDetailsInfo']   =	$curlMerchantResponse['merchant'];
+if(isset($curlMerchantResponse) && is_array($curlMerchantResponse) && $curlMerchantResponse['meta']['code'] == 201 && $curlMerchantResponse['mangopay']['id'] != '' ) 
+{
+	$merchantInfo  			= 	$curlMerchantResponse['mangopay'];
 }
 
 $msg_class 					= 	"alert alert-danger alert-dismissable col-xs-12";
@@ -31,6 +31,7 @@ if(isset($_POST['mangopay_submit']) && $_POST['mangopay_submit'] == 'SUBMIT'){
 					'Birthday' 			=> $_POST['DOB'],
 					'Country' 			=> $_POST['Country'],
 					'Currency' 			=> $_POST['Currency'],
+					'MangoPayId' 		=> $_POST['MangopayId']
 				);
 	$url					=	WEB_SERVICE.'v1/merchants/connect';
 	$method					=	'POST';
@@ -48,9 +49,10 @@ if(isset($_POST['mangopay_submit']) && $_POST['mangopay_submit'] == 'SUBMIT'){
 }
 commonHead();
 ?>
-<body class="skin-blue fixed" onload="fieldfocus('user_name');">
+<body class="skin-blue fixed body_height popup_bg" onload="fieldfocus('user_name');">
+<div class="popup_white">
 		<section class="content-header col-xs-12 no-padding">
-			<h1 class=" no-margin"><?php if($show == 1)  echo '&nbsp;&nbsp;';  else  echo "Mangopay"; ?></h1>
+			<h1 class=" "><?php if($show == 1)  echo '&nbsp;&nbsp;';  else  echo "Mangopay"; ?></h1>
 		</section>
 		
 		<div class="col-xs-12 no-padding" id="mangopay-box">
@@ -60,26 +62,27 @@ commonHead();
 				</div>
 			<?php  } 	if($show == 0) {	?>
 			<form action="" name="add_mangopay_account" id="add_mangopay_account"  method="post">
-				<div class="col-xs-12 no-padding">						
+				<input type="hidden" name="MangopayId"  id="MangopayId" value="<?php if(isset($_GET['MId']) && !empty($_GET['MId'])) echo base64_decode($_GET['MId']); else echo '';?>">
+				<div class="col-xs-12">						
 					<div class="form-group  col-xs-12 no-padding">
 						<label>Company Name</label>
-						<input class="form-control" type="text" name="CompanyName"  id="CompanyName"  readonly="" value="<?php if(isset($merchantInfo['CompanyName']) && !empty($merchantInfo['CompanyName'])) echo $merchantInfo['CompanyName'];?>">
+						<input class="form-control" type="text" name="CompanyName"  id="CompanyName"  value="<?php if(isset($merchantInfo['CompanyName']) && !empty($merchantInfo['CompanyName'])) echo $merchantInfo['CompanyName'];?>">
 					</div>
 					<div class="form-group  col-xs-12 no-padding">
 						<label>Email</label>
-						<input class="form-control" type="text" readonly="" name="Email"  id="Email" value="<?php if(isset($merchantInfo['Email']) && !empty($merchantInfo['Email'])) echo $merchantInfo['Email'];?>">
+						<input class="form-control" type="text"  name="Email"  id="Email" value="<?php if(isset($merchantInfo['Email']) && !empty($merchantInfo['Email'])) echo $merchantInfo['Email'];?>">
 					</div>
 					<div class="form-group  col-xs-12 no-padding">
 						<label>First Name</label>
-						<input class="form-control" type="text" name="FirstName"  id="FirstName" value="<?php if(isset($merchantInfo['FirstName']) && !empty($merchantInfo['FirstName'])) echo $merchantInfo['FirstName'];?>" required="">
+						<input class="form-control" type="text" name="FirstName" id="FirstName" value="<?php if(isset($merchantInfo['FirstName']) && !empty($merchantInfo['FirstName'])) echo $merchantInfo['FirstName'];?>"   required="">
 					</div>
 					<div class="form-group  col-xs-12 no-padding">
 						<label>Last Name</label>
-						<input class="form-control" type="text" name="LastName"  id="LastName" value="<?php if(isset($merchantInfo['LastName']) && !empty($merchantInfo['LastName'])) echo $merchantInfo['LastName'];?>" required="">
+						<input class="form-control" type="text" name="LastName"  id="LastName" value="<?php if(isset($merchantInfo['LastName']) && !empty($merchantInfo['LastName'])) echo $merchantInfo['LastName'];?>"  required="">
 					</div>
 					<div class="form-group  col-xs-12 no-padding">
 						<label>Birth Date</label>
-						<input class="form-control datepicker" type="text" name="DOB"  id="DOB" value="<?php if(isset($_POST['DOB']) && !empty($_POST['DOB'])) echo $_POST['DOB'];?>" required="">
+						<input class="form-control datepicker" type="text" name="DOB"  id="DOB" value="<?php if(isset($merchantInfo['DOB']) && !empty($merchantInfo['DOB'])) echo dateDisplayFormat($merchantInfo['DOB']);?>" required="">
 					</div>
 					<div class="form-group  col-xs-12 no-padding">
 						<label>Address</label>
@@ -89,35 +92,38 @@ commonHead();
 					<div class="row">
 						<div class="form-group col-xs-6 ">
 							<label>Country</label>
-							<select name="Country" id="Country" class="form-control col-xs-6">
+							<!--<select name="Country" id="Country" class="form-control col-xs-6">
 							<option value="">Select</option>	
 							<?php if(isset($countryArray) && !empty($countryArray)) {
 								foreach($countryArray as $key=>$val) {
 							?>
-							<option value="<?php echo $val;?>" <?php if(isset($_POST['Country']) && $_POST['Country'] == $val) echo 'selected';?> ><?php echo ucfirst($val);?></option>
+							<option value="<?php echo $val;?>" <?php if(isset($merchantInfo['Country']) && $merchantInfo['Country'] == $val) echo 'selected';?> ><?php echo ucfirst($val);?></option>
 							<?php } }  ?>
-							</select>		
+							</select>-->	
+							<input name="Country" id="Country" class="form-control" type="text" readonly value="GB">
 						</div>
 						<div class="form-group col-xs-6">
 							<label>Currency</label>
-							<select name="Currency" id="Currency" class="form-control col-xs-6">
+							<!--<select name="Currency" id="Currency" class="form-control col-xs-6">
 								<option value="">Select</option>	
 								<?php if(isset($currencyArray) && !empty($currencyArray)) {
 									foreach($currencyArray as $key=>$val) {
 								?>
-								<option value="<?php echo $val;?>" <?php if(isset($_POST['Currency']) && $_POST['Currency'] == $val) echo 'selected';?> ><?php echo ucfirst($val);?></option>
+								<option value="<?php echo $val;?>" <?php if(isset($merchantInfo['Currency']) && $merchantInfo['Currency'] == $val) echo 'selected';?> ><?php echo ucfirst($val);?></option>
 								<?php } }  ?>
-							</select>			
+							</select>-->	
+							<input name="Currency" id="Currency" class="form-control" type="text" readonly value="GBP">		
 						</div>
 					</div>
 				</div>
-				<div class="footer col-xs-12 no-padding text-center"> 
+				<div class="footer col-xs-12 no-padding text-center approve_class"> 
 					<input type="hidden" name="MerchantId" id="MerchantId" value="<?php if(isset($merchantInfo['id']) && !empty($merchantInfo['id'])) echo $merchantInfo['id'];?>"/>
-					<input type="submit" name="mangopay_submit" id="mangopay_submit" title="SUBMIT" value="SUBMIT" class="btn btn-success col-xs-12">
+					<input type="submit" name="mangopay_submit" id="mangopay_submit" title="SUBMIT" value="SUBMIT" class="btn btn-success col-xs-12" style="color:#fff;">
 				</div>
 			</form>
 			<?php } ?>
 		</div>
+	</div>
 	<?php commonFooter(); ?>
 </html>
 <script type="text/javascript">

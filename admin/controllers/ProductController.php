@@ -8,12 +8,12 @@ class ProductController extends Controller
 		if ($this->ProductModelObj)
 			return $this->ProductModelObj->getTotalRecordCount();
 	}
-	function getProductList($fields,$condition)
+	function getProductList($fields,$condition,$startLimit)
 	{
 		if (!isset($this->ProductModelObj))
 			$this->loadModel('ProductModel', 'ProductModelObj');
 		if ($this->ProductModelObj)
-			return $this->ProductModelObj->getProductList($fields,$condition);
+			return $this->ProductModelObj->getProductList($fields,$condition,$startLimit);
 	}
 	function selectProductDetail($id)
 	{

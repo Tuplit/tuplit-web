@@ -2,6 +2,9 @@
 require_once 'config.php';
 require_once 'MangoPaySDK/mangoPayApi.inc';
 require_once 'MangoPaySDK/mangoPayApi.inc';
+
+
+
 /**/
 	//demo things
 	$userDetails['CompanyName']	=	'Burger';
@@ -26,13 +29,17 @@ require_once 'MangoPaySDK/mangoPayApi.inc';
 	$normalUserDetails['Email']			=	'user@gmail.com';
 	$normalUserDetails['Address']		=	'newyork';
 	$normalUserDetails['Birthday']		=	'02-01-1986';
-	$normalUserDetails['Nationality'] 	=	'US';
-	$normalUserDetails['CountryOfResidence'] 	=	'US';
+	$normalUserDetails['Nationality'] 	=	'GB';
+	$normalUserDetails['CountryOfResidence'] 	=	'GB';
 	$normalUserDetails['Occupation'] 	=	'';
 	$normalUserDetails['IncomeRange'] 	=	'';
 	
 	//register as user
-	//$normalRegister = userRegister($normalUserDetails);
+	if($_SERVER['REMOTE_ADDR'] == '172.21.4.215'){
+		/*define('ABS_PATH','C:/wamp/www/tuplit');
+		$normalRegister = userRegister($normalUserDetails);
+		echo'<pre>';print_r($normalRegister);echo'</pre>';die();*/
+	}
 	$userAccountId = 2754966;//2689185;
 	
 	$userDetails['merchantAccountId'] 	= $merchantAccountId;
@@ -389,7 +396,7 @@ function payment($userDetails){
         $transfer->DebitedFunds->Currency 		= 	$userDetails['Currency'];
         $transfer->DebitedFunds->Amount 		= 	$amt;
 		
-		$fees = ($userDetails['FeesAmount']/100)*$amt;
+		$fees = $amt*($userDetails['FeesAmount']/100);
         $transfer->Fees 						= 	new \MangoPay\Money();
         $transfer->Fees->Currency 				= 	$userDetails['Currency'];
         $transfer->Fees->Amount 				= 	$fees;
@@ -481,18 +488,17 @@ function refundTransfer($userDetails){
 	$mangoPayApi->Config->ClientId 			= 	MangoPayDemo_ClientId;
 	$mangoPayApi->Config->ClientPassword 	= 	MangoPayDemo_ClientPassword;		
 	$mangoPayApi->Config->TemporaryFolder 	= 	ABS_PATH.'/admin/includes/mangopay/temp/';
-	
 	try{
-		$fees = ($userDetails['FeeAmount']/100)*$userDetails['Amount'];
-		
+		$amt  =  getCents($userDetails['Amount']);
+		$fees = ($userDetails['FeeAmount']/100) * $amt;
 		$TransferID 						= 	$userDetails['TransferID'];
 		$Refund 							= 	new \MangoPay\Refund();
 		$Refund->AuthorId 					= 	$userDetails['AuthorId'];
 		$Refund->DebitedFunds 				= 	new \MangoPay\Money();
-		$Refund->DebitedFunds->Currency 	= 	"USD";
-		$Refund->DebitedFunds->Amount 		= 	$userDetails['Amount'];
+		$Refund->DebitedFunds->Currency 	= 	$userDetails['Currency'];
+		$Refund->DebitedFunds->Amount 		= 	$amt;
 		$Refund->Fees 						= 	new \MangoPay\Money();
-		$Refund->Fees->Currency 			= 	"USD";
+		$Refund->Fees->Currency 			= 	$userDetails['Currency'];
 		$Refund->Fees->Amount 				= 	$fees;
 		//Send the request
 		$result 							= 	$mangoPayApi->Transfers->CreateRefund($TransferID, $Refund);
@@ -503,4 +509,78 @@ function refundTransfer($userDetails){
 	}
 }
 
+/*
+* function to update Mangopay user
+*/
+function userUpdate($userDetails){
+	require_once 'mangopayAPI.php';
+	$mangoPayApi = new \MangoPay\MangoPayApi();
+	$mangoPayApi->Config->ClientId = MangoPayDemo_ClientId;
+	$mangoPayApi->Config->ClientPassword = MangoPayDemo_ClientPassword;
+	$mangoPayApi->Config->TemporaryFolder = ABS_PATH.'/admin/includes/mangopay/temp/';
 
+	try {
+		$user = new MangoPay\UserNatural();
+		$user->PersonType 			= $userDetails['PersonType'];//NATURAL;BUSINESS;ORGANIZATION
+		$user->FirstName 			= $userDetails['FirstName'];
+		$user->LastName 			= $userDetails['LastName'];
+		$user->Email 				= $userDetails['Email'];
+		$user->Address 				= $userDetails['Address'];
+		$user->Birthday 			= strtotime($userDetails['Birthday']);
+		$user->Nationality 			= $userDetails['Nationality'];
+		$user->CountryOfResidence 	= $userDetails['CountryOfResidence'];
+		$user->Occupation 			= $userDetails['Occupation'];
+		$user->IncomeRange 			= $userDetails['IncomeRange'];
+		//call create function
+		$updateUser 				= $mangoPayApi->Users->Update($user);
+		if(isset($updateUser)) {
+			return $updateUser;
+		}
+		else {
+			return 0;
+		}
+	}
+	catch(Exception $e) {
+		return $e;//error in field values
+		
+	}
+}
+/*
+* function to edit Mangopay  merchant account
+*/
+function merchantEdit($userDetails){
+	
+	require_once 'mangopayAPI.php';
+	$mangoPayApi = new \MangoPay\MangoPayApi();
+	$mangoPayApi->Config->ClientId = MangoPayDemo_ClientId;
+	$mangoPayApi->Config->ClientPassword = MangoPayDemo_ClientPassword;
+	$mangoPayApi->Config->TemporaryFolder = ABS_PATH.'/admin/includes/mangopay/temp/';
+	
+	try {
+		$user = new MangoPay\UserLegal();
+		$user->Id 										= $userDetails['MangoPayId'];
+		$user->Name 									= $userDetails['CompanyName'];
+		$user->Email 									= $userDetails['Email'];
+		$user->LegalPersonType 							= "BUSINESS";
+		$user->LegalRepresentativeFirstName				= $userDetails['FirstName'];
+		$user->LegalRepresentativeLastName 				= $userDetails['LastName'];
+		$user->LegalRepresentativeEmail					= $userDetails['Email'];
+		$user->HeadquartersAddress						= $userDetails['Address'];
+		$user->LegalRepresentativeBirthday 				= strtotime($userDetails['Birthday']);
+		$user->LegalRepresentativeNationality			= $userDetails['Country'];
+		$user->LegalRepresentativeCountryOfResidence	= $userDetails['Country'];
+		$user->Tag										= 'Merchant - ' . $userDetails['CompanyName'];
+		//call create function
+		$createdUser = $mangoPayApi->Users->Update($user);
+		
+		if(isset($createdUser)) {
+			return $createdUser;
+		}
+		else {
+			return 0;
+		}
+	}
+	catch(Exception $e) {
+		return $e;//error in field values
+	}
+}

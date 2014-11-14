@@ -13,7 +13,7 @@ $searchUserIdsArray = array();
 global $link_type_array;
 $display	=	"none";
 $today		=	date('m-d-Y');
-$where		=	' ';
+$where		=	$userName = ' ';
 
 if(isset($_GET['cs']) && $_GET['cs']=='1') {
 	destroyPagingControlsVariables();
@@ -22,8 +22,9 @@ if(isset($_GET['cs']) && $_GET['cs']=='1') {
 	unset($_SESSION['sess_logtrack_process']);
 	unset($_SESSION['sess_logtrack_searchUserName']);
 	unset($_SESSION['sess_logtrack_searchIP']);
-	unset($_SESSION['sess_logtrack_urlString']);
+	unset($_SESSION['sess_logtrack_searchResponse']);
 	unset($_SESSION['sess_logtrack_log_method']);
+	unset($_SESSION['sess_logtrack_searchUrl']);
 }
 if(isset($_POST['Search']) && $_POST['Search'] != ''){
 	destroyPagingControlsVariables();
@@ -34,8 +35,9 @@ if(isset($_POST['Search']) && $_POST['Search'] != ''){
 	//$_SESSION['sess_logtrack_process']       	= $_POST['process_type'];
 	$_SESSION['sess_logtrack_searchUserName']	= trim($_POST['searchUserName']);
 	$_SESSION['sess_logtrack_searchIP']      	= trim($_POST['searchIP']);
-	$_SESSION['sess_logtrack_urlString']      	= trim($_POST['urlString']);
+	$_SESSION['sess_logtrack_searchResponse']   = trim($_POST['searchResponse']);
 	$_SESSION['sess_logtrack_log_method']      	= $_POST['log_method'];
+	$_SESSION['sess_logtrack_searchUrl']      	= $_POST['searchUrl'];
 	//action_type
 }
 
@@ -110,9 +112,13 @@ if(isset($logtracksResult) && is_array($logtracksResult) && count($logtracksResu
 	}
 }
 //echo '<pre>';print_r($logtracksResult);echo '</pre>';
+//die();
 ?>
 <body class="skin-blue">
 <?php top_header(); ?>
+<?php 
+	$activeTab = 2;
+	?>
 	<!-- Content Header (Page header) -->
 	<section class="content-header">
 		<div class="row col-xs-10">
@@ -124,55 +130,60 @@ if(isset($logtracksResult) && is_array($logtracksResult) && count($logtracksResu
 		<div class="row">
 			<div class="col-xs-12">
 				<form name="search_category" action="LogTracking" method="post">
-				<div class="box box-primary">
+				<div class="box box-primary box-padding report">
 					<div class="col-sm-4 form-group">
-						<label>Name</label>
-						<input  type="text" class="form-control " title="Name" name="searchUserName" value="<?php if(isset($_SESSION['sess_logtrack_searchUserName']) && $_SESSION['sess_logtrack_searchUserName'] != '') echo $_SESSION['sess_logtrack_searchUserName'];?>">
+						<!--<label>Name</label>-->
+						<input  type="text" class="form-control " title="Name" name="searchUserName" placeholder="Name" value="<?php if(isset($_SESSION['sess_logtrack_searchUserName']) && $_SESSION['sess_logtrack_searchUserName'] != '') echo $_SESSION['sess_logtrack_searchUserName'];?>">
 					</div>
 					<div class="col-sm-4 form-group">
-						<label>IP Address</label>
-						<input type="text" class="form-control"  title="IP Address" name="searchIP" value="<?php if(isset($_SESSION['sess_logtrack_searchIP']) && $_SESSION['sess_logtrack_searchIP'] != '') echo $_SESSION['sess_logtrack_searchIP'];?>">
+						<!--<label>IP Address</label>-->
+						<input type="text" class="form-control"  title="IP Address" name="searchIP" placeholder="IP Address" value="<?php if(isset($_SESSION['sess_logtrack_searchIP']) && $_SESSION['sess_logtrack_searchIP'] != '') echo $_SESSION['sess_logtrack_searchIP'];?>">
 					</div>
 					<div class="col-sm-4 form-group">
-						<label>String</label>
-						<input type="text" class="form-control"   title="" name="urlString" value="<?php if(isset($_SESSION['sess_logtrack_urlString']) && $_SESSION['sess_logtrack_urlString'] != '') echo unEscapeSpecialCharacters($_SESSION['sess_logtrack_urlString']);?>">
+						<!--<label>Response</label>-->
+						<input type="text" class="form-control"   title="Response" name="searchResponse" placeholder="Response" value="<?php if(isset($_SESSION['sess_logtrack_searchResponse']) && $_SESSION['sess_logtrack_searchResponse'] != '') echo unEscapeSpecialCharacters($_SESSION['sess_logtrack_searchResponse']);?>">
 					</div>
-					<div class="col-sm-4 form-group">
-						<label>Start Date</label>
-						<div class="col-lg-6 no-padding">
-							<input  type="text" class="form-control datepicker" autocomplete="off" title="Select Date" name="from_date" value="<?php if(isset($_SESSION['sess_logtrack_from_date']) && $_SESSION['sess_logtrack_from_date'] != '') echo date('m/d/Y',strtotime($_SESSION['sess_logtrack_from_date']));?>">
+					<div class="col-sm-2 form-group">
+						<!--<label>Start Date</label>-->
+						<div class="col-lg-12 no-padding">
+							<input  type="text" class="form-control datepicker" autocomplete="off" title="Start Date" name="from_date" value="<?php if(isset($_SESSION['sess_logtrack_from_date']) && $_SESSION['sess_logtrack_from_date'] != '') echo date('m/d/Y',strtotime($_SESSION['sess_logtrack_from_date']));?>">
 						</div>
 					</div>
-					<div class="col-sm-4 form-group">
-						<label>End Date</label>
-						<div class="col-lg-6 no-padding">
-							<input type="text" class="form-control datepicker" autocomplete="off"  title="Select Date" name="to_date" value="<?php if(isset($_SESSION['sess_logtrack_to_date']) && $_SESSION['sess_logtrack_to_date'] != '') echo date('m/d/Y',strtotime($_SESSION['sess_logtrack_to_date']));?>">
+					<div class="col-sm-2 form-group">
+						<!--<label>End Date</label>-->
+						<div class="col-lg-12 no-padding">
+							<input type="text" class="form-control datepicker" autocomplete="off"  title="End Date" name="to_date" value="<?php if(isset($_SESSION['sess_logtrack_to_date']) && $_SESSION['sess_logtrack_to_date'] != '') echo date('m/d/Y',strtotime($_SESSION['sess_logtrack_to_date']));?>">
 						</div>
 					</div>
-					<div class="col-sm-4 form-group">
-						<label>Method</label>
-						<div class="col-lg-6 no-padding">
+					<div class="col-sm-2 form-group">
+						<!--<label>Method</label>-->
+						<div class="col-lg-12 no-padding">
 							<select name="log_method" id="log_method" class="form-control">
-								<option value="">Select</option>
+								<option value="">Method</option>
 								<?php foreach($methodArray as $key=>$value){?>
 								<option value="<?php echo $value;?>" <?php if(isset($_SESSION['sess_logtrack_log_method']) && ($_SESSION['sess_logtrack_log_method']== $value	)) echo 'selected';?>><?php echo $value;?></option>
 								<?php }?>
 							</select>
 						</div>
 					</div>
+					<div class="col-sm-6 form-group">
+						<!--<label>Url</label>-->
+						<input  type="text" class="form-control " title="Url" name="searchUrl" placeholder="Url" value="<?php if(isset($_SESSION['sess_logtrack_searchUrl']) && $_SESSION['sess_logtrack_searchUrl'] != '') echo $_SESSION['sess_logtrack_searchUrl'];?>">
+					</div>
 					
-					<div class="col-sm-12 box-footer clear" align="center">
-						<label>&nbsp;</label>
+					<div class="col-sm-12 clear" align="center">
+						<!--<label>&nbsp;</label>-->
 						<input type="submit" class="btn btn-success" name="Search" id="Search" value="Search">
 					</div>
 				</div>
 				</form>
 			</div>
 		</div>
-		<div class="row paging">
-			<div class="col-xs-12 col-sm-2">
+		<?php require_once('StatisticsTabs.php');?>
+		<div class="row paging paging-margin">
+			<div class="col-xs-12 col-sm-2 no-padding">
 				<?php if(isset($logtracksResult) && is_array($logtracksResult) && count($logtracksResult) > 0){ ?>
-				<div class="dataTables_info">No. of Log(s)&nbsp:&nbsp;<strong><?php echo $tot_rec; ?></strong> </div>
+				<div class="dataTables_info"><span class="white_txt">No. of Log(s)&nbsp:&nbsp;<strong><?php echo $tot_rec; ?></strong></span> </div>
 				<?php } ?>
 			</div>
 			<div class="col-xs-12 col-sm-10">
@@ -255,10 +266,19 @@ if(isset($logtracksResult) && is_array($logtracksResult) && count($logtracksResu
 								echo '-';
 							} else {?>
 							<p class="brk_wrd brk_wrd_cell"><b class="head_color">Request : </b><?php if(isset($value->content)	&&	$value->content !='') echo ''.$value->content.'<br><br>'; else echo '-<br><br>';?></p>
-							<div class="brk_wrd brk_wrd_cell response_msg" ><b class="head_color">Response : </b><?php if(isset($value->response)	&&	$value->response !='') 
-							echo strip_tags($value->response);
-							//  echo $value->response;
-							  else echo '-';?></div>
+							<div class="brk_wrd brk_wrd_cell response_msg" ><b class="head_color">Response : </b>
+							<?php if(isset($value->response)	&&	$value->response !='') { ?>
+									<div class="more_content">
+										<?php echo substr($value->response,0,1000); if(strlen($value->response)>1000) echo '...'; ?>
+									</div> 
+									<?php if(strlen($value->response)>1000) { ?>
+										<a href="javascript:void(0);" class="more" style="float: right" title="More..">More..</a>
+										<div class="hide_content" style="display:none">
+											<?php echo $value->response; ?><br/>
+											<a href="javascript:void(0);" class="hide_tag" style="float: right;" title="Hide">Hide</a>
+										</div> 
+								   <?php 	}
+							  } else echo '-';?></div>
 							<?php } ?>
 			<!--										<textarea class="cledito"  name="description" id="description"><?php //if(isset($value->response) && $value->response != '') echo $value->response;?></textarea>
 			-->				</div>
@@ -336,5 +356,17 @@ $(".datepicker").datepicker({
 	yearRange		:	"c-30:c",
 	closeText		:   "Close"
    });
+   
+   $(".more").click(function() {
+     $(this).hide();
+	 $(this).prev(".more_content").hide();
+	 $(this).next(".hide_content").show();
+   });
+ 
+	$(".hide_tag").click(function() {
+	  $(this).parent().prev(".more").show();
+	  $(this).parent().prev(".more").prev(".more_content").show();
+	  $(this).parent().hide();
+    });
    </script>
 </html>

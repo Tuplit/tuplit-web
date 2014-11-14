@@ -502,11 +502,22 @@
         if ((_ref2 = this.options.axes) === true || _ref2 === 'both' || _ref2 === 'y') {
           this.drawYAxisLabel(this.left - this.options.padding / 2, y, this.yAxisFormat(lineY));
         }
-        if (this.options.grid) {
+        /*if (this.options.grid) {
           _results.push(this.drawGridLine("M" + this.left + "," + y + "H" + (this.left + this.width)));
         } else {
           _results.push(void 0);
-        }
+        }*/
+      }
+	  if (this.options.grid) {
+        var _data = this.data;
+        //for (_i = 1, _len = _data.length; _i < _len; _i++) {
+          lineX = _ref1[0];
+          x = this.transX(lineX);
+          _results.push(this.drawGridLine("M" + x + "," + this.top + "V" + (this.top + this.height)));
+		  lineY = _ref1[0];
+          y = this.transY(lineY);
+		  _results.push(this.drawGridLine("M" + this.left + "," + y + "H" + (this.left + this.width)));
+        //}
       }
       return _results;
     };
@@ -1383,15 +1394,25 @@
     __extends(Bar, _super);
 
     function Bar(options) {
-      this.onHoverOut = __bind(this.onHoverOut, this);
-      this.onHoverMove = __bind(this.onHoverMove, this);
-      this.onGridClick = __bind(this.onGridClick, this);
+      this.onHoverOut 		= __bind(this.onHoverOut, this);
+      this.onHoverMove 		= __bind(this.onHoverMove, this);
+      this.onGridClick 		= __bind(this.onGridClick, this);
+	  this.resizeHandler 	= __bind(this.resizeHandler, this);
+	  var _this				= this;
       if (!(this instanceof Morris.Bar)) {
         return new Morris.Bar(options);
       }
       Bar.__super__.constructor.call(this, $.extend({}, options, {
         parseTime: false
       }));
+	  if (this.options.resize) {
+        $(window).bind('resize', function(evt) {
+          if (_this.timeoutId != null) {
+            window.clearTimeout(_this.timeoutId);
+          }
+          return _this.timeoutId = window.setTimeout(_this.resizeHandler, 100);
+        });
+      }
     }
 
     Bar.prototype.init = function() {
@@ -1479,9 +1500,9 @@
             prevAngleMargin = labelBox.x - margin;
           }
           _results.push(prevLabelMargin = labelBox.x - this.options.xLabelMargin);
-        } else {
+        } /*else {
           _results.push(label.remove());
-        }
+        }*/
       }
       return _results;
     };
@@ -1882,6 +1903,185 @@
     };
 
     return DonutSegment;
+
+  })(Morris.EventEmitter);
+
+//}).call(this);//modified by Jaffer on 10/27/2014
+// ********Morris Pie Chart*********Updated by Jaffer on 10/27/2014*** 
+Morris.Pie = (function() {
+	//__extends(Pie, _super);
+    Pie.prototype.defaults = {
+      colors: ['#0B62A4', '#3980B5', '#679DC6', '#95BBD7', '#B0CCE1', '#095791', '#095085', '#083E67', '#052C48', '#042135'],
+      enhanceMax: false,
+	  formatter: Morris.commas,
+	  resize: false
+    };
+
+    function Pie(options) {
+      this.select = __bind(this.select, this);
+	  this.click = __bind(this.click, this);
+	  var _this = this;
+      if (!(this instanceof Morris.Pie)) {
+        return new Morris.Pie(options);
+      }
+      if (typeof options.element === 'string') {
+        this.el = $(document.getElementById(options.element));
+      } else {
+        this.el = $(options.element);
+      }
+      if (this.el === null || this.el.length === 0) {
+        throw new Error("Graph placeholder not found.");
+      }
+      this.options = $.extend({}, this.defaults, options);
+      if (options.data === void 0 || options.data.length === 0) {
+        return false;
+      }
+      this.data = options.data;
+      this.el.addClass('graph-initialised');
+      this.paper = new Raphael(this.el[0]);
+      this.segments = [];
+      this.draw();
+    }
+	 Pie.prototype.setData = function(data) {
+ 		this.data = data;
+ 		return this.draw();
+ 	};
+    Pie.prototype.draw = function() {
+      var color, currentAngle, cx, cy, index, label, labelAndValue, max, pieSegment, r, step, total, value, x, _i, _j, _len, _len1, _ref, _ref1, _results;
+      this.paper.clear();
+      total = 0;
+      _ref = this.data;
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        x = _ref[_i];
+        total += x.value;
+      }
+      max = Math.max.apply(null, (function() {
+        var _j, _len1, _ref1, _results;
+        _ref1 = this.data;
+        _results = [];
+        for (_j = 0, _len1 = _ref1.length; _j < _len1; _j++) {
+          x = _ref1[_j];
+          _results.push(x.value);
+        }
+        return _results;
+      }).call(this));
+      currentAngle = 0;
+      cx = this.el.width()/ 2;
+      cy = this.el.height()/ 2;
+       r = (Math.min(cx, cy)-10) / 1.5;;
+      _ref1 = this.data;
+      _results = [];
+      for (index = _j = 0, _len1 = _ref1.length; _j < _len1; index = ++_j) {
+        labelAndValue = _ref1[index];
+        value = labelAndValue.value;
+        label = labelAndValue.label;
+        step = 360 * value / total;
+        color = this.options.colors[index % this.options.colors.length];
+        pieSegment = new Morris.PieSegment(this.paper, cx, cy, r, currentAngle, step, labelAndValue, color);
+        pieSegment.on("hover", this.select);
+        pieSegment.render();
+        if (labelAndValue.value === max && this.options.enhanceMax) {
+          pieSegment.select();
+        }
+        this.segments.push(pieSegment);
+        _results.push(currentAngle += step);
+      }
+      return _results;
+    };
+	Pie.prototype.click = function(segmentToSelect) {
+      return this.fire('click', segmentToSelect, this.data[segmentToSelect]);
+    };
+    Pie.prototype.select = function(segmentToSelect) {
+      var segment, _i, _len, _ref;
+      _ref = this.segments;
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        segment = _ref[_i];
+        segment.deselect();
+      }
+      return segmentToSelect.select();
+    };
+
+    return Pie;
+
+  })();
+
+  Morris.PieSegment = (function(_super) {
+
+    __extends(PieSegment, _super);
+
+    function PieSegment(paper, cx, cy, r, currentAngle, step, labelAndValue, color) {
+      this.paper = paper;
+      this.cx = cx;
+      this.cy = cy;
+      this.r = r;
+      this.currentAngle = currentAngle;
+      this.step = step;
+      this.labelAndValue = labelAndValue;
+      this.color = color;
+      this.deselect = __bind(this.deselect, this);
+
+      this.select = __bind(this.select, this);
+
+      this.rad = Math.PI / 180;
+      this.distanceFromEdge = 30;
+      this.labelAngle = this.currentAngle + (this.step / 2);
+      this.endAngle = this.currentAngle + this.step;
+	  if (this.endAngle - this.currentAngle === 360) {
+ 		this.initialPathMovement = "M";
+		this.endAngle -= 0.01;
+ 	} else {
+		 this.initialPathMovement = "L";
+	 }
+      this.x1 = this.cx + this.r * Math.cos(-this.currentAngle * this.rad);
+      this.x2 = this.cx + this.r * Math.cos(-this.endAngle * this.rad);
+      this.y1 = this.cy + this.r * Math.sin(-this.currentAngle * this.rad);
+      this.y2 = this.cy + this.r * Math.sin(-this.endAngle * this.rad);
+    }
+
+    PieSegment.prototype.render = function() {
+      var path,
+ 	_this = this;
+ 	path = ["M", this.cx, this.cy, this.initialPathMovement, this.x1, this.y1, "A", this.r, this.r, 0, +(this.endAngle - this.currentAngle > 180), 0, this.x2, this.y2, "z"];
+ 	this.segment = this.paper.path(path).attr({
+        fill: this.color,
+        stroke: "#FFFFFF",
+        "stroke-width": 2
+      }).hover(function() {
+        return _this.fire('hover', _this);
+      });
+      this.label = this.paper.text(this.cx + (this.r + this.distanceFromEdge) * Math.cos(-this.labelAngle * this.rad), this.cy + (this.r + this.distanceFromEdge) * Math.sin(-this.labelAngle * this.rad), this.labelAndValue.label).attr({
+        fill: "#000000",
+        "font-weight": "bold",
+        stroke: "none",
+        opacity: 1,
+        "font-size": 12
+      });
+      return this.value = this.paper.text(this.cx + (this.r + this.distanceFromEdge) * Math.cos(-this.labelAngle * this.rad), this.cy + (this.r + this.distanceFromEdge) * Math.sin(-this.labelAngle * this.rad) + 14, this.labelAndValue.value).attr({
+        fill: this.color,
+        stroke: "none",
+        opacity: 1,
+        "font-size": 12
+      });
+    };
+    PieSegment.prototype.select = function() {
+      if (!this.selected) {
+        this.segment.stop().animate({
+          transform: "s1.1 1.1 " + this.cx + " " + this.cy
+        }, 150, "<>");
+        return this.selected = true;
+      }
+    };
+
+    PieSegment.prototype.deselect = function() {
+      if (this.selected) {
+        this.segment.stop().animate({
+          transform: ""
+        }, 150, "<>");
+        return this.selected = false;
+      }
+    };
+
+    return PieSegment;
 
   })(Morris.EventEmitter);
 

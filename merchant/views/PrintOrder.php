@@ -1,8 +1,6 @@
 <?php
 require_once('includes/CommonIncludes.php');
 merchant_login_check();
-
-	
 if(isset($_SESSION['merchantInfo']['AccessToken'])){ 	
 	if(isset($_GET['printId']) && !empty($_GET['printId'])) {
 		$PrintId				=	$_GET['printId'];
@@ -12,6 +10,7 @@ if(isset($_SESSION['merchantInfo']['AccessToken'])){
 		if(isset($curlCategoryResponse) && is_array($curlCategoryResponse) && $curlCategoryResponse['meta']['code'] == 201 && is_array($curlCategoryResponse['OrderDetails']) ) {
 			if(isset($curlCategoryResponse['OrderDetails']))
 				$OrderList = $curlCategoryResponse['OrderDetails'];
+				//echo "<pre>";print_r($OrderList);echo "</pre>";
 		} 
 	}
 }
@@ -30,108 +29,93 @@ if(isset($errorMessage) && $errorMessage != ''){
 }
 commonHead();
 ?>
-<body onload="window.print()"><!--  "  -->
-		<div class="col-xs-12 no-padding">	 
-				<section class="content-header">
-	                <h1 class="no-margin space_bottom">Print Order</h1>
-	            </section>
-				<div class="box order_list" style="padding-left:0px">
-					<div class="space_top" >
-						<!-- Start New Orders List -->						
-							<?php if(isset($OrderList) && !empty($OrderList)) {							
+<form action="" name="your_order_form" id=""  method="post" >
+				<div class="popup" id="firstDiv">
+					<div class="order_border" style="border:1px solid #ccc">
+					<div class="form-group col-xs-12 no-padding" id="secondDiv" >
+						<!-- <label class="col-xs-12">Category Name</label> -->
+						<div class="col-xs-12 popup_title text-center"><h3>Your Order</h3></div>
+						<div class="col-xs-12" style="text-align:center;">
+								Order Placed on <?php 
+								if(isset($OrderList) && !empty($OrderList)){
+									if(isset($OrderList['OrderDate']) && $OrderList['OrderDate'] != '0000-00-00 00:00:00'){
+										$gmt_current_start_time = convertIntocheckinGmtSite($OrderList['OrderDate']);
+										$order_time	=  displayConversationDateTime($gmt_current_start_time,$_SESSION['tuplit_ses_from_timeZone']);
+										echo $order_time; 
+									}else echo ' ';
+								} 
 							?>
-								<div class="col-md-3 col-sm-12 col-lg-2 col-xs-12 no-padding"  style="padding-top:15px;>
-									<div class="">									
-										<div class="col-xs-6 col-sm-1" style="width:auto">
-												<img height="75" width="75" src="<?php echo $OrderList['Photo']?>" class="img_border" alt=""/>
-										</div>					
-										<div class="col-xs-6 col-sm-7 no-padding">
-										<?php echo ucfirst($OrderList['FirstName'])."&nbsp;".ucfirst($OrderList['LastName']); ?>	<br>
-										<span class="help-block no-margin"><?php echo $OrderList['Email']; ?></span>
-										<span class="help-block no-margin"><?php echo $OrderList['UniqueId']; ?></span>
-										<span class="help-block no-margin"><?php echo time_ago($OrderList['OrderDate']); ?></span>
-										</div>
-										<div class="clear"><br></div>
-										<div class="col-xs-12 table-responsive no-padding list_height no-margin">
-										<table class="table table-hover" style="align:center" >
-			                               <tr>
-												<th align="center" width="5%" class="text-center">#</th>				
-												<th width="30%"  class="text-left">Item Name</th>					
-												<th width="15%">Item Photo</th>
-												<th width="25%">Price Details</th>	
-												<th width="10%"  class="text-center">Quantity</th>	
-												<th width="15%"  class="text-right">Total Amount</th>		
-											</tr>
-											<?php if(!empty($OrderList['Products'])) {											
-													foreach($OrderList['Products'] as $key1=>$pro_val) {
-													?>
-													<tr>
-														<td align="center"><?php echo $key1+1;?></td>	
-														<td class="text-left">
-																<?php if(isset($pro_val["ItemName"]) && $pro_val["ItemName"] != ''){ ?>
-																<span title="Item Name">
-																	&nbsp;<?php echo $pro_val["ItemName"];  ?>
-																</span>
-																<?php }?>
-														</td>												
-														<td>
-															<?
-																$image_path = '';
-																$photo = $pro_val["Photo"];
-																$image_path = SITE_PATH.'/Refer/site_source/no_photo_product1.png';
-																if(isset($photo) && $photo != ''){
-																	$image_path = $photo;
-																}
-														?>
-															<img width="75" height="75" align="top" class="img_border" src="<?php echo $image_path;?>" >
-														</td>
-														<td>	
-															<div class="col-xs-12  no-padding"> 
-																<?php	
-																	if(isset($pro_val["ProductsCost"]) && $pro_val["ProductsCost"] > 0)
-																	{ 
-																	 	echo 'Price : '.price_fomat($pro_val["ProductsCost"]);
-																	} 
-																	$discountedAmount	=	$pro_val["ProductsCost"] - $pro_val["DiscountPrice"];
-																	/*echo '</br><b>Total Price</b> : $'.($pro_val["ProductsCost"]*$pro_val["ProductsQuantity"]); */
-																	if($discountedAmount > 0)
-																	{
-																		echo '</br>Discount Price : '.price_fomat($pro_val["ProductsCost"] - $pro_val["DiscountPrice"]); 
-																		echo '</br><strong>Amount</strong> : '.price_fomat($pro_val["DiscountPrice"]); 
-																	}
-																	else
-																		echo '</br><strong>Amount</strong> : '.price_fomat($pro_val["ProductsCost"]); 
-																?>
-															</div>						
-														</td>
-														<td align="center">	
-															<div class="col-xs-12  no-padding"> 
-																<?php if(isset($pro_val["ProductsQuantity"]) && $pro_val["ProductsQuantity"] > 0){ echo $pro_val["ProductsQuantity"]; } ?>
-															</div>						
-														</td>
-														<td class="text-right"><?php echo price_fomat($pro_val['TotalPrice']); ?></td>
-													</tr>
-											<?php } } 
-												?>
-												<tr>
-												 	<td colspan="5" class="text-right"><strong>Total</strong></td>
-													<td class="text-right"><strong><?php echo price_fomat($OrderList['TotalPrice']); ?></strong></td>
-												</tr>
-										</div>
-										
-										
-											
-												
+						</div>
+						<div class="col-xs-12">&nbsp;</div>
+						<div class="col-xs-12">
+						<?php if(isset($OrderList) && !empty($OrderList)){?>
+							<strong class="col-xs-4 no-padding HelveticaNeueBold">Order Number:</strong>
+							<span>
+								<?php echo (!empty($OrderList['TransactionId'])?$OrderList['TransactionId']:'&nbsp;');?>
+							</span>
+							<div class="clearfix">
+								<strong class="col-xs-4 no-padding HelveticaNeueBold">User Name:</strong>
+								<span>
+									<?php
+										echo (!empty($OrderList['FirstName'])?$OrderList['FirstName']:'').' ';
+										echo (!empty($OrderList['LastName'])?$OrderList['LastName']:'');?>
+								</span>
+							</div>
+							<div class="clearfix">
+								<strong class="col-xs-4 no-padding HelveticaNeueBold">User ID:</strong>
+								<span>
+									<?php echo (!empty($OrderList['UniqueId'])?$OrderList['UniqueId']:'');} ?>
+								</span>
+							</div>
+						</div>
+						<div class="col-xs-12 no-padding" style="border-bottom:1.5px dotted #DFDFDF;">&nbsp;</div>
+					</div>
+					<div class="col-xs-12 no-padding" style="box-shadow:none;border-bottom:0px solid #fff;">
+					<div class="col-xs-12 no-padding"  style="padding-top:15px;">
+						<!-- <div class="clear"><br></div> -->
+						<div class="col-xs-12 no-padding list_height no-margin" >
+							<div class="col-xs-12 clear" style="margin-bottom:8px;">
+                       			<?php if(!empty($OrderList['Products'])) {											
+									foreach($OrderList['Products'] as $key1=>$pro_val) {
+									?>
+									<div class="col-xs-9 no-padding" style="margin-bottom:8px;">
+									<span class="pull-left"><?php if(isset($pro_val["ProductsQuantity"]) && $pro_val["ProductsQuantity"] > 0){ echo $pro_val["ProductsQuantity"]; } ?>x&nbsp;&nbsp;</span>
+										<span title="Item Name" class="pull-left">
+											<?php echo $pro_val["ItemName"];  ?>
+										</span>
 									</div>
-								</div> 				
-							<?php }  else { ?>
-								<div class="alert alert-danger alert-dismissable col-xs-10 col-sm-5 col-lg-3" align="center"><i class="fa fa-warning"></i>&nbsp;&nbsp;No products found.</div>
-							<?php } ?>
-						<!-- End New Orders List -->						
-					</div><!-- /.box-body -->
-				</div>					
-		 </div>
-		 
-		 
-	
-</html>
+									<div class="col-xs-3 text-right no-padding" style="margin-bottom:8px;">
+										<strong class="HelveticaNeueBold"><?php echo price_fomat($pro_val['TotalPrice']); ?></strong>
+									</div>
+									<!-- <div class="clear "><br></div> -->	
+									<?php } ?>
+								</div>
+								<div class="col-xs-12" style="border-top:1px dotted #dbdbdb;padding:15px;">
+									 	<div class="col-xs-9 no-padding">
+											<strong class="HelveticaNeueBold">Sub Total</strong>
+										</div>
+										<div class="col-xs-3 text-right no-padding">
+											<strong class="HelveticaNeueBold"><?php echo price_fomat($OrderList['SubTotal']); ?></strong>
+										</div>
+										<div class="col-xs-9 no-padding margin-bottom">
+											<span class="vat">VAT</span>
+										</div>
+										<div class="col-xs-3 text-right no-padding margin-bottom">
+											<span class="vat text-right"><?php echo price_fomat($OrderList['VAT']); ?></strong>
+										</div>
+										<div class="col-xs-9 no-padding">
+											<strong class="HelveticaNeueBold">Total</strong>
+										</div>
+										<div class="col-xs-3 text-right no-padding">
+											<strong class="HelveticaNeueBold"><?php echo price_fomat($OrderList['TotalPrice']); ?></strong>
+										</div>
+								</div>
+						<?php } ?>
+				</div><!-- /.box-body -->
+			</div>
+		</div><!-- /row -->		
+		</div>
+	</form>
+
+<!-- print order new end -->
+

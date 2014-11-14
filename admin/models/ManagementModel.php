@@ -3,7 +3,7 @@ class ManagementModel extends Model
 {
    function getCategoryList($fields,$condition)
 	{
-		$limit_clause='';
+		$limit_clause= " ";
 		$sorting_clause = ' c.id desc';
 		if(!empty($_SESSION['ordertype']))
 			$sorting_clause = $_SESSION['orderby'] . ' ' . $_SESSION['ordertype'];
@@ -19,8 +19,8 @@ class ManagementModel extends Model
 			$condition .= " and date(c.DateCreated) >= '".$_SESSION['tuplit_sess_Category_registerdate']."'";	
 		$sql = "select SQL_CALC_FOUND_ROWS ".$fields." from {$this->categoryTable} as c	
 				WHERE 1".$condition." group by c.id ORDER BY ".$sorting_clause." ".$limit_clause;
-		//echo "<br/>======".$sql;
 		$result	=	$this->sqlQueryArray($sql);
+		//echo "<br/>======".$sql;
 		if(count($result) == 0) return false;
 		else return $result;
 	}
@@ -118,5 +118,25 @@ class ManagementModel extends Model
 		if(count($result) == 0) return false;
 		else return $result;
 	}
+	 function getCategoriesList($fields,$condition)
+	{
+		$limit_clause= " ";
+		$sorting_clause = ' ProductsCount desc';
+		if(isset($_SESSION['startlimit']))
+			$limit_clause .= ' LIMIT '.$_SESSION['startlimit']. ', 3';
+		else{
+			$limit_clause .= ' LIMIT 0,3';
+		}
+		$sql = "select SQL_CALC_FOUND_ROWS ".$fields.",c.id as CategoryId FROM categories as c 
+				left join merchantcategories as mc on (c.id = mc.fkCategoriesId)
+				left join merchants as m on (m.id = mc.fkMerchantId and m.Status = 1) 
+				left join products as p on (m.id = p.fkMerchantsId and p.Status = 1 ) 
+				WHERE 1".$condition." group by c.id ORDER BY ".$sorting_clause." ".$limit_clause;
+		$result	=	$this->sqlQueryArray($sql);
+		//echo "<br/>======".$sql;
+		if(count($result) == 0) return false;
+		else return $result;
+	}
+	
 }
 ?>

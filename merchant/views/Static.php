@@ -13,7 +13,7 @@
 	commonHead();
 ?>
 <body class="skin-blue fixed">
-	<?php top_header(); ?>
+	<?php top_header_before_login(); ?>
 	
 	<div class="col-lg-8 box-center">	
 		<section class="content-header">
@@ -28,6 +28,7 @@
 				</div>					
 			</div>	
 		</div>
+	</div>
 	</div>
 	<?php footerLogin(); 	commonFooter();  ?>
 </html>

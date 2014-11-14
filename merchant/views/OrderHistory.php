@@ -114,7 +114,7 @@ commonHead();
 top_header(); ?>
 
 
-<body class="skin-blue fixed">
+<body class="skin-blue fixed body_height">
 	<section>
 		<div class="col-lg-10 box-center">	
 			<!--<section class="content-header">
@@ -122,10 +122,10 @@ top_header(); ?>
 				<a href="OrderHistory?all=1" name="View All Orders" alt="View All Orders" title="View All Orders">View All Orders</a>
 			</section>-->
 				<section class="content-header" style="margin-top: 20px;">					
-	                <h1 class="col-sm-9 col-lg-10 no-padding no-margin text-left">Order History</h1>
-					<a href="OrderHistory?all=1" class="col-sm-3  col-lg-2  btn btn-success margin-bottom" title="View All Orders">View All Orders</a>
+	                <h1 class="col-sm-9 col-lg-10 no-padding text-left" style="margin-top:0px;">Order History</h1>
+					<a href="OrderHistory?all=1" class="col-sm-3  col-lg-2  btn btn-success margin-bottom padding10" title="View All Orders">View All Orders</a>
 				</section>
-				<div class="no-padding col-xs-12 text-left">
+				<div class="no-padding col-xs-12 text-left margin-bottom" style="margin-bottom:25px;">
 					<form name="search_Orders" action="OrderHistory?cs=1" method="post">
 					<div class="box box-primary">
 							<div class="col-sm-4 col-lg-3 form-group">
@@ -200,7 +200,7 @@ top_header(); ?>
 									<th width="7%" class="text-center">Total Items</th>
 									<th width="10%" class="text-right">Total Amount</th>
 									<th width="10%" class="text-center">Order Date</th>
-									<th width="7%">Order Status</th>
+									<th width="7%" class="text-center">Order Status</th>
 									<th width="3%" class="text-center">Action</th>
 								</tr>
 							  <?php
@@ -247,13 +247,14 @@ top_header(); ?>
 	<?php if(isset($orderList) && !empty($orderList)) { 
 		foreach($orderList as $key=>$value){
 	 ?>
-	<div class=" popup_width" id="<?php echo $value["CartId"]; ?>" style="display:none;">	
+	<div class=" popup_width fixed popup_bg" id="<?php echo $value["CartId"]; ?>" style="display:none;">	
+	<div class="popup_white">
 	<div class="col-sm-12 no-padding ">
 		<section class="content-header">
-			<h1 class="no-margin space_bottom">Product List</h1>
+			<h1 class="">Product List</h1>
 		</section>
 		<div class="row no-margin space_bottom">
-			<span class="totl_txt">Total Product(s) : <b><?php echo count($value['Products']); ?></b></span>										
+			<span class="totl_txt" style="margin-top:0px;">Total Product(s) : <b><?php echo count($value['Products']); ?></b></span>										
 			<span class="totl_txt pull-right">Total Amount : <b><?php echo price_fomat($value["TotalPrice"]); ?></b></span>										
 		</div>
 		<div class="product_list">
@@ -305,7 +306,7 @@ top_header(); ?>
 		</div>	
 		</div>
 	 </div>				
-							
+</div>							
 	<?php } } footerLogin(); ?>
 	<?php commonFooter(); ?>
 <script type="text/javascript">

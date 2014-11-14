@@ -2,7 +2,7 @@
 require_once('includes/CommonIncludes.php');
 //require_once('includes/php_image_magician.php');
 admin_login_check();
-commonHead();
+popup_head();
 require_once('controllers/ManagementController.php');
 $managementObj   =   new ManagementController();
 //require_once('controllers/AdminController.php');
@@ -73,12 +73,12 @@ if(isset($_POST['submit']) && $_POST['submit'] != ''){
 						}
 					}
 				}
-			$msg = 2;
+			$msg = '5&cs=1';
 			}
 		}
 		if($_POST['submit'] == 'Add'){
 			$insert_id   		    = $managementObj->insertcategoryDetails($_POST);
-			$msg = 1;
+			$msg = '4&cs=1';
 		}
 		$date_now = date('Y-m-d H:i:s');
 		if(isset($insert_id) && $insert_id != '' ){
@@ -108,8 +108,11 @@ if(isset($_POST['submit']) && $_POST['submit'] != ''){
 				$condition 			= "id = ".$insert_id;
 				$managementObj->updatecategoryDetails($photoUpdateString,$condition);
 			}			
-		}
-		header("location:CategoryList?msg=".$msg);
+		}?>
+		<script>
+			window.parent.location.href = "CommonSettings?msg=<?php echo $msg;?>";
+		</script>
+		<?php 
 	}
 	else {
 		if($Category_exists == 1){
@@ -123,18 +126,21 @@ if(isset($_POST['submit']) && $_POST['submit'] != ''){
 }
 		
 ?>
-<body class="skin-blue" onload="return fieldfocus('<?php echo $field_focus; ?>');">
-	<?php top_header(); ?>
-	<!-- Content Header (Page header) -->
+<body class="skin-blue fancy-popup" onload="return fieldfocus('<?php echo $field_focus; ?>');">
+	<?php //top_header();  ?>
+	<!-- Content Header (Page header) 
 	<section class="content-header no-padding">
 		<div class="col-xs-12"> 
 			<h1><i class="fa <?php if(isset($_GET['editId']) && $_GET['editId'] != '' ) echo "fa-edit "; else echo 'fa-plus-circle ';?>"></i> <?php if(isset($_GET['editId']) && $_GET['editId'] != '' ) echo "Edit "; else echo 'Add ';?>Category</h1>
 		</div>
-	</section>
+	</section>-->
+	<?php // echo "="; ?>
 	 <!-- Main content -->
-	<section class="content">
+	<section class="clear">
+		<h1><?php if(isset($_GET['editId']) && $_GET['editId'] != '' ) echo "Edit "; else echo 'Add ';?>Category</h1>
+	
 		<div class="row">
-			<div class="col-md-12 col-lg-6"> 
+			<div class="col-md-12 col-lg-6">
 			<div class="box box-primary"> 
 		<!-- left column -->
 			<form name="add_category_form" id="add_category_form" action="" method="post">
@@ -157,7 +163,7 @@ if(isset($_POST['submit']) && $_POST['submit'] != ''){
 						         <div id="category_photo_img">									
 									<?php  
 									if(isset($OriginalImagePath) && $OriginalImagePath != ''){  ?>
-						                 <a <?php if(isset($OriginalImagePath) && $OriginalImagePath != '') { ?> href="<?php echo $OriginalImagePath; ?>" class="category_photo_pop_up"<?php } else { ?> href="Javascript:void(0);"<?php } ?> title="Click here" alt="Click here" ><img class="img_border" src="<?php  echo $OriginalImagePath;  ?>" width="75" height="75" alt="Image" /></a>
+						                 <a onclick="return loaded;" <?php if(isset($OriginalImagePath) && $OriginalImagePath != '') { ?> href="<?php echo $OriginalImagePath; ?>" class="category_photo_pop_up"<?php } else { ?> href="Javascript:void(0);"<?php } ?> title="Click here" alt="Click here" ><img class="img_border" src="<?php  echo $OriginalImagePath;  ?>" width="75" height="75" alt="Image" /></a>
 									<?php  }  ?>
 						         </div>
 						     </div>
@@ -194,20 +200,19 @@ if(isset($_POST['submit']) && $_POST['submit'] != ''){
 					<?php } ?>
 					
 					
-					<div class="box-footer col-md-12" align="center">
+					<div align="center">
 					<?php if(isset($_GET['editId']) && $_GET['editId'] != ''){ ?>
-					<input type="submit" class="btn btn-success" name="submit" id="submit" value="Save" title="Save" alt="Save">&nbsp;&nbsp;&nbsp;&nbsp;
+					<input type="submit" class="btn btn-success" name="submit" id="submit" value="Save" title="Save" alt="Save">
 					<?php } else { ?>
-					<input type="submit" class="btn btn-success" name="submit" id="submit" value="Add" title="Add" alt="Add">&nbsp;&nbsp;&nbsp;&nbsp;
+					<input type="submit" class="btn btn-success" name="submit" id="submit" value="Add" title="Add" alt="Add">
 					<?php } ?>
-					<?php $href_page = "CategoryList"; 	?>		
-					<a href="<?php if(isset($href_page) && $href_page != '' ) echo $href_page; else echo 'CategoryList';?>" class="btn btn-default" name="Back" id="Back" title="Back" alt="Back" >Back </a>	
+					<?php $href_page = "CommonSettings"; 	?>		
+					<!--<a href="<?php if(isset($href_page) && $href_page != '' ) echo $href_page; else echo 'CommonSettings';?>" class="btn btn-default" name="Back" id="Back" title="Back" alt="Back" >Back </a>	-->
 					<!-- <a href="CategoryList"  class="submit" name="Back" id="Back"  value="Back" title="Back" alt="Back">Back </a> -->
 					</div>
 					</form>	
 				</div><!-- /.box -->
-				</div>
-			
+			</div>
 		</div><!-- /.row -->
 	</section><!-- /.content -->	
 						  	

@@ -118,7 +118,9 @@ if(isset($_POST['Add']) || isset($_POST['Save'])){
 }
 ?>
 <body class="skin-blue" onload="return fieldfocus('process');">
-	<?php top_header(); ?>
+	<?php top_header(); 
+	$activeTab = 4;
+	require_once('StatisticsTabs.php');?>
 	<!-- Content Header (Page header) -->
 	<section class="content-header no-padding">
 		<div class="col-xs-12"> 
@@ -130,7 +132,7 @@ if(isset($_POST['Add']) || isset($_POST['Save'])){
 		<div class="row">
 			<form name="add_service_form" id="add_service_form" action="" method="post" >
 				<div class="col-md-12"> 
-					<div class="box box-primary"> 
+					<div class="box box-padding box-primary"> 
 						<div class="col-md-12 no-padding">
 							<?php if(isset($error) && $error!='') {?> <div class="alert <?php echo $class;  ?> alert-dismissable col-lg-4  col-sm-5  col-xs-11 text-center"><i class="fa <?php echo $class_icon ;  ?>"></i>  <?php echo $error;  ?></div> <?php } ?>
 							<input type="Hidden" name="service_id" id="service_id" value="<?php if(isset($_GET['editId']) && $_GET['editId'] != '' ) echo $_GET['editId'];?>">
@@ -213,11 +215,11 @@ if(isset($_POST['Add']) || isset($_POST['Save'])){
 						</div>
 						<div class="box-footer  col-xs-12" align="center">
 							<?php if(isset($_GET['editId']) && $_GET['editId'] != '' ){ ?>
-							<input type="submit" value="Save" id="Save" name="Save" class="btn btn-success" title="Save" alt="Save" tabindex="13">
+							<input type="submit" value="Save" id="Save" name="Save" class="btn btn-success mR-button" title="Save" alt="Save" tabindex="13">
 							<?php } else { ?>
-							<input type="submit" value="Add" id="Add" name="Add" class="btn btn-success" title="Add" alt="Add" tabindex="14">
+							<input type="submit" value="Add" id="Add" name="Add" class="btn btn-success mR-button" title="Add" alt="Add" tabindex="14">
 							<?php } ?>
-							&nbsp;&nbsp;&nbsp;&nbsp;<a href="ServiceList" class="btn btn-default" name="Back" id="Back" title="Back" alt="Back" >Back</a>	
+							<a href="ServiceList" class="btn btn-default" name="Back" id="Back" title="Back" alt="Back" >Back</a>	
 						</div>						
 				</div><!-- /.box -->
 			</div><!-- /.col -->

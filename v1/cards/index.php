@@ -17,7 +17,7 @@ require_once '../../admin/includes/phmagick.php';
 * Load models
 */
 require_once '../../lib/ModelBaseInterface.php';         // base interface class for RedBean models
-require_once '../../models/Cards.php';                 	// Cards model
+require_once '../../models/Cards.php';                 	 // Cards model
 /**
 * Library objects
 */
@@ -48,12 +48,12 @@ $app->post('/',tuplitApi::checkToken(),function () use ($app) {
 
         $cards 						=  	R::dispense('cards');		
 		$cards->UserId				= 	$userId;	
-		$cards->Currency 			= 	$req->params('Currency');
-		
+		//$cards->Currency 			= 	$req->params('Currency');
+		$cards->Currency 			= 	DEFAULT_CURRENCY;
 		$cards->CardNumber	 		= 	$req->params('CardNumber');
 		$cards->CardExpirationDate	= 	$req->params('CardExpirationDate');
 		$cards->CVV		 			= 	$req->params('CVV');
-		if($req->params('Amount') != '')				$cards->Amount	 			= 	$req->params('Amount');
+		if($req->params('Amount') != '')		$cards->Amount	 		= 	$req->params('Amount');
 		if($req->params('WalletId') != '')		$cards->WalletId		= 	$req->params('WalletId');
 		if($req->params('MangoPayId') != '')	$cards->MangoPayId		= 	$req->params('MangoPayId');
 		$cardCreation				=	$cards->create();
@@ -62,7 +62,7 @@ $app->post('/',tuplitApi::checkToken(),function () use ($app) {
 			global $mangoPayError;
 			$errorCodeArray			=	 explode('=',$cardCreation->RegistrationData);
 			$errorCode				=	$errorCodeArray[1];
-			// Error occurred while registering card		
+			//Error occurred while registering card 
 			throw new ApiException($mangoPayError[$errorCode] ,  ErrorCodeType::ErrorInCardRegistration);
 		}
 		else if(isset($cardCreation->CardId) && $cardCreation->CardId != ''){
@@ -93,6 +93,7 @@ $app->post('/',tuplitApi::checkToken(),function () use ($app) {
         tuplitApi::showError($e);
     }
 });
+
 /**
  * Get Cards
  * GET /v1/cards/
@@ -155,7 +156,8 @@ $app->post('/topup',tuplitApi::checkToken(),function () use ($app) {
 		
         $cards 						=  	R::dispense('cards');		
 		$cards->UserId				= 	$userId;	
-		$cards->Currency 			= 	$req->params('Currency');
+		//$cards->Currency 			= 	$req->params('Currency');
+		$cards->Currency 			= 	DEFAULT_CURRENCY;
 		$cards->Amount	 			= 	$req->params('Amount');
 		$cards->CardId	 			= 	$req->params('CardId');
 		

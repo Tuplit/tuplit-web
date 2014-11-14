@@ -8,12 +8,12 @@ class CommentController extends Controller
 		if ($this->CommentModelObj)
 			return $this->CommentModelObj->getTotalRecordCount();
 	}
-	function getCommentList($fields,$condition)
+	function getCommentList($fields,$condition,$limit)
 	{
 		if (!isset($this->CommentModelObj))
 			$this->loadModel('CommentModel', 'CommentModelObj');
 		if ($this->CommentModelObj)
-			return $this->CommentModelObj->getCommentList($fields,$condition);
+			return $this->CommentModelObj->getCommentList($fields,$condition,$limit);
 	}
 	
 }

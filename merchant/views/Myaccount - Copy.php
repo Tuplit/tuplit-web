@@ -15,8 +15,8 @@ $url						=	WEB_SERVICE.'v1/merchants/'.$merchantId."?From=0";
 $curlMerchantResponse 		= 	curlRequest($url, 'GET', null, $_SESSION['merchantInfo']['AccessToken']);
 if(isset($curlMerchantResponse) && is_array($curlMerchantResponse) && $curlMerchantResponse['meta']['code'] == 201 && $curlMerchantResponse['merchant']['MerchantId'] != '' ) 
  {
-	$merchantInfo  = $_SESSION['merchantDetailsInfo']   =	$curlMerchantResponse['merchant'];
-	$newCategory		=	$merchantInfo['Category'];
+	$merchantInfo  			= 	$_SESSION['merchantDetailsInfo']   =	$curlMerchantResponse['merchant'];
+	$newCategory			=	$merchantInfo['Category'];
 }
 
 //echo'<pre>';print_r($merchantInfo);echo'</pre>';
@@ -44,64 +44,64 @@ if(isset($curlCategoryResponse) && is_array($curlCategoryResponse) && $curlCateg
 }
 
 
-$merchantId		= 	$_SESSION['merchantInfo']['MerchantId'];
-$url			=	WEB_SERVICE.'v1/products/';
-$curlMerchantResponse  = 	curlRequest($url, 'GET', null, $_SESSION['merchantInfo']['AccessToken']);
+$merchantId				= 	$_SESSION['merchantInfo']['MerchantId'];
+$url					=	WEB_SERVICE.'v1/products/';
+$curlMerchantResponse  	= 	curlRequest($url, 'GET', null, $_SESSION['merchantInfo']['AccessToken']);
 if(isset($curlMerchantResponse) && is_array($curlMerchantResponse) && $curlMerchantResponse['meta']['code'] == 201) {
-	$ProductsArray   =	$curlMerchantResponse['ProductList'];		
+	$ProductsArray   	=	$curlMerchantResponse['ProductList'];		
 }
 
 if(isset($_POST['merchant_account_submit']) && $_POST['merchant_account_submit'] == 'SAVE'){
 	if(isset($_POST['CompanyName']))
-		$merchantInfo['CompanyName']	=	$_POST['CompanyName'];
-	$merchantInfo['Email']	=	$_POST['Email'];
+		$merchantInfo['CompanyName']		=	$_POST['CompanyName'];
+	$merchantInfo['Email']					=	$_POST['Email'];
 	if(isset($_POST['Address']))
-		$merchantInfo['Address']	=	$_POST['Address'];
+		$merchantInfo['Address']			=	$_POST['Address'];
 	if(isset($_POST['PhoneNumber']))
-		$merchantInfo['PhoneNumber']	=	$_POST['PhoneNumber'];
+		$merchantInfo['PhoneNumber']		=	$_POST['PhoneNumber'];
 	if(isset($_POST['Website']))
-		$merchantInfo['WebsiteUrl']	=	$_POST['Website'];
+		$merchantInfo['WebsiteUrl']			=	$_POST['Website'];
 	if(isset($_POST['Description']))
-		$merchantInfo['Description']	=	$_POST['Description'];
+		$merchantInfo['Description']		=	$_POST['Description'];
 	if(isset($_POST['ShortDescription']))
 		$merchantInfo['ShortDescription']	=	$_POST['ShortDescription'];
 
 		
 	if(isset($_POST['categorySelected']))
-		$newCategory	=	$_POST['categorySelected'];
+		$newCategory						=	$_POST['categorySelected'];
 	if(isset($_POST['DiscountTier']))
-		$merchantInfo['DiscountTier']	=	$discountTierArray[$_POST['DiscountTier']].'%';
+		$merchantInfo['DiscountTier']		=	$discountTierArray[$_POST['DiscountTier']].'%';
 	
 	//Opening Hours
 	$openTiming = array();	
 	if(isset($_POST['samehours']) && $_POST['samehours'] == 'on'){
-		$openTiming[0]['id'] 			= $_POST['id_0'];
-		$openTiming[0]['OpeningDay'] 	= 0;
-		$openTiming[0]['DateCreated'] 	= $merchantInfo['OpeningHours'][0]['DateCreated'];
-		$openTiming[0]['fkMerchantId'] 	= $merchantInfo['OpeningHours'][0]['fkMerchantId'];
-		$openTiming[0]['Start'] 		= $_POST['from1_0'];
-		$openTiming[0]['End'] 			= $_POST['to1_0'];
-		$openTiming[0]['DateType'] 		= '1';
+		$openTiming[0]['id'] 				= 	$_POST['id_0'];
+		$openTiming[0]['OpeningDay'] 		= 	0;
+		$openTiming[0]['DateCreated'] 		= 	$merchantInfo['OpeningHours'][0]['DateCreated'];
+		$openTiming[0]['fkMerchantId'] 		= 	$merchantInfo['OpeningHours'][0]['fkMerchantId'];
+		$openTiming[0]['Start'] 			= 	$_POST['from1_0'];
+		$openTiming[0]['End'] 				= 	$_POST['to1_0'];
+		$openTiming[0]['DateType'] 			= 	'1';
 		for($t=1;$t<=6;$t++) {
-			$openTiming[$t]['id'] 			= $_POST['id_'.$t];
-			$openTiming[$t]['OpeningDay'] 	= $t;
-			$openTiming[$t]['DateCreated'] 	= $merchantInfo['OpeningHours'][$t]['DateCreated'];
-			$openTiming[$t]['fkMerchantId'] = $merchantInfo['OpeningHours'][$t]['fkMerchantId'];
-			$openTiming[$t]['id'] 			= $_POST['id_'.$t];
-			$openTiming[$t]['Start'] 		= $_POST['from1_'.$t];
-			$openTiming[$t]['End'] 			= $_POST['to1_'.$t];
-			$openTiming[$t]['DateType'] 	= '0';
+			$openTiming[$t]['id'] 			= 	$_POST['id_'.$t];
+			$openTiming[$t]['OpeningDay'] 	= 	$t;
+			$openTiming[$t]['DateCreated'] 	= 	$merchantInfo['OpeningHours'][$t]['DateCreated'];
+			$openTiming[$t]['fkMerchantId'] = 	$merchantInfo['OpeningHours'][$t]['fkMerchantId'];
+			$openTiming[$t]['id'] 			= 	$_POST['id_'.$t];
+			$openTiming[$t]['Start'] 		= 	$_POST['from1_'.$t];
+			$openTiming[$t]['End'] 			= 	$_POST['to1_'.$t];
+			$openTiming[$t]['DateType'] 	= 	'0';
 		}
 	}
 	else {
 		for($t=0;$t<=6;$t++) {
-			$openTiming[$t]['id'] 			= $_POST['id_'.$t];
-			$openTiming[$t]['OpeningDay'] 	= $t;
-			$openTiming[$t]['DateCreated'] 	= $merchantInfo['OpeningHours'][$t]['DateCreated'];
-			$openTiming[$t]['fkMerchantId'] = $merchantInfo['OpeningHours'][$t]['fkMerchantId'];
-			$openTiming[$t]['Start'] 		= $_POST['from1_'.$t];
-			$openTiming[$t]['End'] 			= $_POST['to1_'.$t];
-			$openTiming[$t]['DateType'] 	= '0';
+			$openTiming[$t]['id'] 			= 	$_POST['id_'.$t];
+			$openTiming[$t]['OpeningDay'] 	= 	$t;
+			$openTiming[$t]['DateCreated'] 	= 	$merchantInfo['OpeningHours'][$t]['DateCreated'];
+			$openTiming[$t]['fkMerchantId'] = 	$merchantInfo['OpeningHours'][$t]['fkMerchantId'];
+			$openTiming[$t]['Start'] 		= 	$_POST['from1_'.$t];
+			$openTiming[$t]['End'] 			= 	$_POST['to1_'.$t];
+			$openTiming[$t]['DateType'] 	= 	'0';
 		}
 	}
 	/*for($t=0;$t<=6;$t++) {
@@ -113,7 +113,7 @@ if(isset($_POST['merchant_account_submit']) && $_POST['merchant_account_submit']
 		else
 			$openTiming[$t]['DateType'] = '0';
 	*/
-	$merchantInfo['OpeningHours']	=	$openTiming;	
+	$merchantInfo['OpeningHours']			=	$openTiming;	
 		
 	/* product price scheme */
 	$product_list = '';

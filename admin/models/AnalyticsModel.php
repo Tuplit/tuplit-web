@@ -6,7 +6,7 @@ class AnalyticsModel extends Model
 		
 		$limit_clause='';
 		$having_condition = '';
-		$sorting_clause = ' o.OrderDate desc';
+		$sorting_clause = '	o.TotalPrice desc, o.OrderDate desc';
 		
 		if(isset($_SESSION['sortBy']) && isset($_SESSION['orderType']))
 			$sorting_clause	= $_SESSION['sortBy']. ' ' .$_SESSION['orderType'];
@@ -25,7 +25,7 @@ class AnalyticsModel extends Model
 		else if(isset($_SESSION['tuplit_sess_order_total_spend']) && $_SESSION['tuplit_sess_order_total_spend']  != '' )
 			$having_condition  	.= 	' Having TotalPrice = '.$_SESSION['tuplit_sess_order_total_spend'].' ';	
 		if($show == 1){
-			$sorting_clause = ' TotalOrders desc,o.OrderDate desc';	
+			$sorting_clause = ' o.TotalPrice desc,o.OrderDate desc';	
 			$limit_clause = ' LIMIT 0,5';
 		}
 		/*$sql = "select SQL_CALC_FOUND_ROWS u.id as user_id, ".$fields." from {$this->userTable} as u	
@@ -55,6 +55,42 @@ class AnalyticsModel extends Model
 		$result = 	$this->sqlQueryArray($sql);
 		if($result) return $result;
 		else false;
-	}	
+	}
+	function getCustomerReport($fields,$condition,$having,$limit,$type,$left_join)
+	{
+		if($type == 1) {
+			if($limit != '' ){
+				$limit_clause = 'limit '.$limit.',10';
+			}else{
+				$limit_clause = 'limit 0,10';
+			}
+		}else if($type == 2) {
+			$limit_clause = 'limit 0,3';
+		}
+		$sorting_clause 	= '	o.id desc';
+		$sql 	= "SELECT SQL_CALC_FOUND_ROWS u.id as userId,u.FirstName,u.LastName,u.Photo,MAX(o.OrderDate) as LastVisit,
+							MIN(o.OrderDate) as FirstVisit,COUNT(distinct o.id) as TotalOrders,SUM(TotalPrice) as TotalPrice,m.City from orders as o 
+							LEFT JOIN users as u ON(u.id = o.fkUsersId)
+							LEFT JOIN merchants as m ON (m.id = o.fkMerchantsId) ".$left_join."
+							where 1  and o.OrderStatus IN(0,1,2) and u.Status =1 ".$condition."
+							GROUP BY u.id ".$having." order by ".$sorting_clause."  ".$limit_clause."";
+		$result	=	$this->sqlQueryArray($sql);
+		if(count($result) == 0) return false;
+		else return $result;
+	}
+	function getLocationReport($fields,$condition,$having){
+		$sql	 =	"select ".$fields." from {$this->orderTable} as o
+					left join merchants as m on (m.id = o.fkMerchantsId)
+					left join merchantcategories as mc on (m.id = mc.fkMerchantId) 
+					left join categories as c on (c.id = mc.fkCategoriesId)
+					where 1 ".$condition." and m.City != ''
+					group by m.City ".$having."
+					order by TotalPrice desc
+					limit 0,3 ";
+		//echo "<br/>======".$sql;
+		$result 	= 	$this->sqlQueryArray($sql);
+		if($result) return $result;
+		else false;
+	}
 }
 ?>

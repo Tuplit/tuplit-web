@@ -31,8 +31,6 @@ class ContentModel extends Model
 			$sorting_clause	= $_SESSION['sortBy']. ' ' .$_SESSION['orderType'];
 		if(isset($_SESSION['curpage']))
 			$limit_clause = ' LIMIT '.(($_SESSION['curpage'] - 1) * ($_SESSION['perpage'])) . ', '. $_SESSION['perpage'];
-			
-			
 		$sql 		= 	"select SQL_CALC_FOUND_ROWS * from {$this->webContentTable} WHERE 1 ".$condition." and Status = 1 ORDER BY id desc".$limit_clause;
 		$result		=	$this->sqlQueryArray($sql);
 		if(count($result) == 0) return false;
@@ -44,8 +42,9 @@ class ContentModel extends Model
 		return $result;
 	}
 
-	function selectContentDetail($id){
-		$sql	 	=	"select * from {$this->webContentTable}  where id='".$id."'";
+	function selectContentDetail($value){
+		$sql	 	=	"select * from {$this->webContentTable}  where Status = ".$value;
+		//echo "============>".$sql;
 		$result		=	$this->sqlQueryArray($sql);
 		if($result) return $result;
 		else false;
@@ -63,12 +62,21 @@ class ContentModel extends Model
 
 		$sql	=	"update  {$this->webContentTable}  set 	PageName	    = 	'".$data['filename']."',
 															PageUrl			=	'".strtolower($data['ContentUrl'])."',															
-															Content			=	'".$data['Content']."',															
+															Content			=	'".trim($data['Content'])."',															
+															DateModified	=	'".date('Y-m-d H:i:s')."' where id='".$data['id']."'";
+		//echo $sql; 
+		$this->updateInto($sql);
+			//echo "3";
+	}
+	/*
+	function updateContent($data){
+
+		$sql	=	"update  {$this->webContentTable}  set	Content			=	'".$data['Content'].													"',															
 															DateModified	=	'".date('Y-m-d H:i:s')."' where id='".$data['id']."'";
 		//echo $sql;die();
 		$this->updateInto($sql);
 			echo "3";
 	}
-	
+*/
 }
 ?>

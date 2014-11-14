@@ -1,3 +1,4 @@
+<?php popup_head()?>
 <?php
 require_once('includes/CommonIncludes.php');
 merchant_login_check();
@@ -13,7 +14,6 @@ if(isset($_SESSION['merchantInfo']['AccessToken'])){
 			$transId			=	$_GET['transId'];
 			$url				=	WEB_SERVICE.'v1/orders/'.$transId.'?Type=1';
 		}
-		//echo $url;
 		$curlCategoryResponse 	= 	curlRequest($url, 'GET', null, $_SESSION['merchantInfo']['AccessToken']);
 		if(isset($curlCategoryResponse) && is_array($curlCategoryResponse) && $curlCategoryResponse['meta']['code'] == 201 && is_array($curlCategoryResponse['OrderDetails']) ) {
 			if(isset($curlCategoryResponse['OrderDetails']))
@@ -31,10 +31,10 @@ if(isset($_GET['OrderID']) && !empty($_GET['OrderID'])) {
 	if(isset($_GET['ProductId']) && !empty($_GET['ProductId']))
 		$url				=	WEB_SERVICE.'v1/orders/refund/'.$_GET['OrderID'].'?Type=2&ProductId='.$_GET['ProductId'];
 	else
-		$url				=	WEB_SERVICE.'v1/orders/refund/'.$_GET['OrderID'].'?Type=1&msg='.$_POST['refund_msg'];
+		$url				=	WEB_SERVICE.'v1/orders/refund/'.$_GET['OrderID'].'?Type=1&msg='. base64_encode($_POST['refund_msg']);
 	$method				=	'GET';
 	$curlResponse		=	curlRequest($url,$method,'',$_SESSION['merchantInfo']['AccessToken']);
-	if(isset($curlResponse) && is_array($curlResponse) && $curlResponse['meta']['code'] == 201 && $curlResponse['meta']['dataPropertyName'] == 'OrderRefund' ) {
+	if(isset($curlResponse) && is_array($curlResponse) && $curlResponse['meta']['code'] == 201) {
 		//$_SESSION['refund_successMessage'] = $curlResponse['notifications'][0];		
 		$_SESSION['refund_successMessage'] = 'Refund has been done successfully';
 		$OrderList['RefundStatus']	=	'2';
@@ -55,7 +55,7 @@ if(isset($_SESSION['refund_errorMessage']))
 if(isset($errorMessage) && $errorMessage != ''){
 	$msg			=	$errorMessage;
 	$display 		= 	"block";
-	$class   		= 	"alert-danger";
+	$class   		= 	"alert-success";
 	$class_icon 	= 	"fa-warning";
 	$errorMessage 	= 	'';
 }else if(isset($successMessage) && $successMessage != ''){
@@ -65,15 +65,18 @@ if(isset($errorMessage) && $errorMessage != ''){
 	$class_icon 	= 	"fa-check";
 	$successMessage = 	'';	
 }
-commonHead();
+//commonHead();
 ?>
-<body>
-<div class="col-xs-12 no-padding">
-<section class="content-header"><h1 class="no-margin space_bottom">Product List</h1></section>
+
+	
+<body class="skin-blue fixed popup_bg" >
+<div class="popup_white">
+<div style="padding:0 15px">
+<section class="content-header"><h1 class="space_bottom">Product List</h1></section>
 <?php if(isset($msg) && $msg != '') { ?>
-<div align="center" class="alert <?php  echo $class;  ?> alert-dismissable col-xs-10 col-sm-5 col-lg-3"><i class="fa <?php  echo $class_icon;  ?>"></i>  <?php echo $msg; ?></div>
+<div align="center" class="success <?php  echo $class;  ?> alert-dismissable col-xs-10 col-sm-5 col-lg-3 box-center"><i class="fa <?php  echo $class_icon;  ?>"></i>  <?php echo $msg; ?></div>
 <?php }  ?>	
-<div class="box box-primary order_list" style="padding-left:0px">
+<div class="box box-primary order_list" style="padding-left:0px;margin-bottom:15px;">
 		<!-- Start New Orders List -->						
 			<?php if(isset($OrderList) && !empty($OrderList)) {	?>
 						<div class="col-xs-6 col-sm-1" style="width:auto">
@@ -85,13 +88,14 @@ commonHead();
 							<span class="help-block no-margin"><?php echo $OrderList['UniqueId']; ?></span>
 							<span class="help-block no-margin"><?php echo time_ago($OrderList['OrderDate']); ?></span>
 						</div>
-						<div class="clear"><br></div>
+						<div class="clear"><br><hr class="no-margin"></div>
 						<?php if (!empty($OrderList['TransactionId']) && $OrderList['RefundStatus'] == 1){ ?>
-							<div class="" align="right" style="padding-right:5px;" id="refund_msg_but"><br/><br/>
-								<a class="btn btn-success margin-bottom" title="Refund Order" onclick="return refundBox();">
+							<div class="margintb20" align="right" style="padding-right:5px;" id="refund_msg_but">
+								<a class="btn btn-success" title="Refund Order" onclick="return refundBox();">
 									<i class="fa fa-reply"></i> Refund Order
 								</a>
-							</div>										
+							</div>		
+											
 							<div class="col-xs-12 table-responsive no-padding list_height no-margin" id="refund_msg_box" style="display:none;">	
 								<form method="post" action="OrderProductDetail?cs=1&OrderID=<?php echo $OrderList['OrderId']; ?>" id="RefundForm" name="RefundForm">
 									<table class="table">
@@ -101,7 +105,7 @@ commonHead();
 											<td width="2%">&nbsp;</td>
 											<td width="50%"><textarea class="form-control" name="refund_msg" id="refund_msg" rows="5" cols="400"></textarea></td>
 											<td width="2%">&nbsp;</td>
-											<td>
+											<td align="right">
 												<a class="btn btn-success margin-bottom" title="Refund Order" href="#" onclick="return refundSubmit(1,'1');">
 													<i class="fa  fa-reply"></i> Refund Order
 												</a>
@@ -112,6 +116,7 @@ commonHead();
 								</form>
 							</div>
 						<?php } ?>
+						<hr class="no-margin">				
 						<div class="col-xs-12 table-responsive no-padding list_height no-margin">
 						<table class="table  no-margin">
                               <tr>
@@ -183,17 +188,19 @@ commonHead();
 									</tr>
 							<?php } } ?>
 								<tr>
-								 	<td colspan="5"><div class="col-xs-8 no-padding"><strong>Total</strong> </div></td>
+								 	<td colspan="5"><div class="col-xs-12 no-padding text-right"><strong>Total</strong> </div></td>
 									<td class="text-right"><strong><?php echo price_fomat($OrderList['TotalPrice']); ?></strong></td>
 									
 								</tr>
 						</table>
 						</div>
 			<?php }  else { ?>
-				<div class="alert alert-danger alert-dismissable col-xs-10 col-sm-5 col-lg-3" align="center"><i class="fa fa-warning"></i>&nbsp;&nbsp;No products found.</div>
+				<div class="alert alert-danger alert-dismissable col-xs-10 col-sm-5 col-lg-3 box-center" align="center"><i class="fa fa-warning"></i>&nbsp;&nbsp;No products found.</div>
 			<?php } ?>
 		<!-- End New Orders List -->						
 	</div><!-- /.box-body -->
+</div>
 </div>					
 <?php commonFooter(); ?>
+</body>
 </html>

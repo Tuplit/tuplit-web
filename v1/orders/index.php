@@ -95,7 +95,6 @@ $app->post('/', tuplitApi::checkToken(),function () use ($app) {
 			$order->TotalPrice		= 	$req->params('TotalPrice');
 			$order->Amount			= 	$req->params('TotalPrice');
 			$order->CartDetails		= 	$req->params('CartDetails');
-			//echo "<pre>"; echo print_r($order); echo "</pre>";
 		}
 		
 		//getting user details
@@ -104,15 +103,29 @@ $app->post('/', tuplitApi::checkToken(),function () use ($app) {
 		/**
          * Place the new order
          */
-		$result						=	$order->create();	 
-		
+		$result						=	$order->create();	
 		if($result['orderId']) { 
-					
 			$merchantDetails 							=   R::findOne('merchants', 'id=?', [$MerchantId]);	
 			$adminDetails 								=   R::findOne('admins', 'id=?', ['1']);
-			if($merchantDetails && $userDetails && $adminDetails) {				
+			if($merchantDetails && $userDetails && $adminDetails) {
+
+				$Address = '';
+				if(!empty($merchantDetails['Street']))
+					$Address	.=	$merchantDetails['Street'];
+				if(!empty($merchantDetails['City']))
+					$Address	.=	', '.$merchantDetails['City'];
+				
+				if(!empty($merchantDetails['State']) && !empty($merchantDetails['PostCode']))
+					$Address	.=	', '.$merchantDetails['State'].' - '.$merchantDetails['PostCode'];
+				else if(!empty($merchantDetails['State']) && empty($merchantDetails['PostCode']))
+					$Address	.=	', '.$merchantDetails['State'];
+				else if(empty($merchantDetails['State']) && !empty($merchantDetails['PostCode']))
+					$Address	.=	', '.$merchantDetails['PostCode'];				
+				if(!empty($merchantDetails['Country']))
+					$Address	.=	', '.$merchantDetails['Country'];
+				
 				$merchantName							=	$merchantDetails->CompanyName;
-				$merchantAddress						=	$merchantDetails->Address;
+				$merchantAddress						=	$Address;
 				$merchantMailId							=	$merchantDetails->Email;
 				$userName								=	ucfirst($userDetails->FirstName.' '.$userDetails->LastName);
 				$useraddress							= 	$userDetails->Location.' '.$userDetails->Country;
@@ -121,7 +134,6 @@ $app->post('/', tuplitApi::checkToken(),function () use ($app) {
 				$adminMailId							=	$adminMail;
 				$orderId								=	$result['CartId'];
 				$TransactionId							=	$result['TransactionId'];
-
 				//Product Details
 				$CartDetails							=	$result['CartDetails'];
 				$mailContentArray['CartDetails']		=   $CartDetails;
@@ -130,8 +142,9 @@ $app->post('/', tuplitApi::checkToken(),function () use ($app) {
 				if($_SERVER['REMOTE_ADDR'] == '172.21.4.56')
 					$mailContentArray['TotalPrice']		=	'340';
 				else
-					$mailContentArray['TotalPrice']		=	number_format((float)$req->params('TotalPrice'), 2, '.', '');
-				
+					$mailContentArray['TotalPrice']		=	number_format((float)$result['Total'], 2, '.', '');
+				$mailContentArray['SubTotal']			=   number_format((float)$result['SubTotal'], 2, '.', '');
+				$mailContentArray['VAT']				=   number_format((float)$result['VAT'], 2, '.', '');
 				$mailContentArray['fileName']			=	'newordertouser.html';
 				if($type == 2) {
 					$mailContentArray['byname']			=	'Tuplit Team';
@@ -251,7 +264,9 @@ $app->get('/new', tuplitApi::checkToken(), function () use ($app) {
 			$response->setStatus(HttpStatusCode::Created);
 			$response->meta->dataPropertyName 	= 	'newOrderDetails';
 			if($type == 0) {				
-				$response->returnedObject 		= 	$newOrderDetails;
+				$response->meta->TotalCount 	= 	$newOrderDetails['total'];
+				$response->meta->TwoHourCount 	= 	$newOrderDetails['twoHour'];
+				$response->meta->OtherCount 	= 	$newOrderDetails['otherHour'];
 				echo $response;
 			} else {				
 				$response->meta->totalCount 	= 	$newOrderDetails['totalCount'];
@@ -433,6 +448,7 @@ $app->put('/', tuplitApi::checkToken(), function () use ($app) {
         $orders 					= 	R::dispense('orders');		
 		$orders->userId				=	$userId;
 		$orders->merchantId			=	$MerchantId;
+		$orders->userType			=	$userType;
 		
 		if(isset($input->OrderId)) 			
 			$orders->OrderId 		= $input->OrderId;
@@ -558,7 +574,7 @@ $app->get('/refund/:OrderId', tuplitApi::checkToken(), function ($OrderId) use (
 			$type			=	$request->params('Type');
 		}
 		if($request->params('msg') !='')
-			$orders->msg 	= 	$request->params('msg');
+			$orders->msg 	= 	base64_decode($request->params('msg'));
 		if($request->params('ProductId') !='')
 			$orders->ProductId 	= 	$request->params('ProductId');
 		

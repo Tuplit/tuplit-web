@@ -60,25 +60,20 @@ $app->post('/', function () use ($app) {
 		$user->LastName 		= 	$req->params('LastName');
 		$user->Email 			= 	$req->params('Email');
 		$user->Password 		= 	$req->params('Password');
-		if($req->params('CellNumber'))
-			$user->CellNumber 	= 	$req->params('CellNumber');
-		
-		if($req->params('FBId'))
-			$user->FBId 		= 	$req->params('FBId');
-		if($req->params('GooglePlusId'))
-			$user->GooglePlusId = 	$email = $req->params('GooglePlusId');
-		if($req->params('PinCode'))
-			$user->PinCode 		= 	$req->params('PinCode');
-		if($req->params('ZipCode'))
-			$user->ZipCode 		= 	$req->params('ZipCode');
-		
+		if($req->params('CellNumber')) 			$user->CellNumber 	= 	$req->params('CellNumber');
+		if($req->params('GooglePlusId'))		$user->GooglePlusId = 	$req->params('GooglePlusId');
+		if($req->params('FBId'))				$user->FBId 		= 	$req->params('FBId');
+		if($req->params('PinCode'))				$user->PinCode 		= 	$req->params('PinCode');
+		if($req->params('ZipCode'))				$user->ZipCode 		= 	$req->params('ZipCode');
+		if($req->params('Gender'))				$user->Gender 		= 	$req->params('Gender');
+		if($req->params('DOB'))					$user->DOB 			= 	$req->params('DOB');
 		if($req->params('Country')) {
 			$user->Country 		= 	$req->params('Country');
 			$Nationality 		= 	$req->params('Country');
 		}
 		else {
-			$user->Country 		= 	'US';
-			$Nationality 		= 	'US';
+			$user->Country 		= 	DEFAULT_COUNTRY;
+			$Nationality 		= 	DEFAULT_COUNTRY;
 		}
 			
 		if($req->params('Location')) {
@@ -86,8 +81,8 @@ $app->post('/', function () use ($app) {
 			$Address 			= 	$req->params('Location');
 		}
 		else  {
-			$user->Location 	= 	'US';
-			$Address 			= 	'US';
+			$user->Location 	= 	DEFAULT_COUNTRY;
+			$Address 			= 	DEFAULT_COUNTRY;
 		}
 			
 		if($req->params('Platform')){
@@ -103,14 +98,13 @@ $app->post('/', function () use ($app) {
 			$platform 			= 	0;
 		}
 		$user->Platform 		= 	$platform;
+		
 		$flag = $coverFlag 		= 	0;
 		if (isset($_FILES['Photo']['tmp_name']) && $_FILES['Photo']['tmp_name'] != '') {
 			$flag 				= 	checkImage($_FILES['Photo'],1);
 		}
 		
 	    $user->PhotoFlag 		= 	$flag;
-		
-		
 
 	    /**
          * Create the account
@@ -120,39 +114,37 @@ $app->post('/', function () use ($app) {
          * Saving user Photo
          */
 		 if(isset($userId) && $userId != ''){
-				$user->Nationality			=	$Nationality;
-				$user->Address				=	$Address; 
-				$user->Currency				=	'USD';
-				$user->Birthday				=	'1991-01-01';		 
-				$user->addMangoPayDetails($userId);
-				unset($user->Currency);
-				unset($user->Birthday);
-				unset($user->Nationality);
-				unset($user->Address);
+			$user->Nationality			=	$Nationality;
+			$user->Address				=	$Address; 
+			$user->Currency				=	DEFAULT_CURRENCY;
+			$user->Birthday				=	'1991-01-01';		 
+			$user->addMangoPayDetails($userId);
+			unset($user->Currency);
+			unset($user->Birthday);
+			unset($user->Nationality);
+			unset($user->Address);
+			
+			$user->Photo 				= 	'';
+			if (isset($_FILES['Photo']['tmp_name']) && $_FILES['Photo']['tmp_name'] != '') {
+				$imageName 				= 	$userId . '_' . time() . '.png';
+				$imageOriginalPath 		= 	UPLOAD_USER_PATH_REL.$imageName;
+				$imageThumbPath 		= 	UPLOAD_USER_THUMB_PATH_REL.$imageName;
+				copy($_FILES['Photo']['tmp_name'],$imageOriginalPath);
 				
-				$user->Photo 				= 	'';
-				if (isset($_FILES['Photo']['tmp_name']) && $_FILES['Photo']['tmp_name'] != '') {
-					$imageName 				= 	$userId . '_' . time() . '.png';
-					$imageOriginalPath 		= 	UPLOAD_USER_PATH_REL.$imageName;
-					$imageThumbPath 		= 	UPLOAD_USER_THUMB_PATH_REL.$imageName;
-					copy($_FILES['Photo']['tmp_name'],$imageOriginalPath);
-					
-					$phMagick 				= 	new phMagick($imageOriginalPath);
-					$phMagick->setDestination($imageThumbPath)->resize(100,100);
-					
-					if(SERVER){
-						uploadImageToS3($imageOriginalPath,1,$imageName);
-						uploadImageToS3($imageThumbPath,2,$imageName);
-						unlink($imageOriginalPath);
-						unlink($imageThumbPath);
-					}
-					$user->Photo 			= 	$imageName;
-					unlink($_FILES['Photo']['tmp_name']);
-					$user->PhotoFlag 		= 	5;//success
-					$user->modify($userId);
+				$phMagick 				= 	new phMagick($imageOriginalPath);
+				$phMagick->setDestination($imageThumbPath)->resize(200,200);
+				
+				if(SERVER){
+					uploadImageToS3($imageOriginalPath,1,$imageName);
+					uploadImageToS3($imageThumbPath,2,$imageName);
+					unlink($imageOriginalPath);
+					unlink($imageThumbPath);
 				}
-				
-				
+				$user->Photo 			= 	$imageName;
+				unlink($_FILES['Photo']['tmp_name']);
+				$user->PhotoFlag 		= 	5;//success
+				$user->modify($userId);
+			}			
 		 }
 		/**
          * After successful registration email was sent to registered user
@@ -589,6 +581,8 @@ $app->put('/',tuplitApi::checkToken(), function () use ($app) {
 		if(isset($input->Platform)) 	$user->Platform 		= $input->Platform;
 		if(isset($input->Location)) 	$user->Location 		= $input->Location;
 		if(isset($input->CellNumber)) 	$user->CellNumber 		= $input->CellNumber;
+		if(isset($input->Gender)) 		$user->Gender			= $input->Gender;
+		if(isset($input->DOB)) 			$user->DOB				= $input->DOB;
 		if(isset($input->Photo) && $input->Photo !=''){			
 			$imageName 				= 	$userId . '_' . time() . '.png';
 			$user->Photo 			= 	$imageName;
@@ -610,7 +604,7 @@ $app->put('/',tuplitApi::checkToken(), function () use ($app) {
 						imagepng($img, $imageOriginalPath);
 						
 						$phMagick = new phMagick($imageOriginalPath);
-						$phMagick->setDestination($imageThumbPath)->resize(100,100);
+						$phMagick->setDestination($imageThumbPath)->resize(200,200);
 						
 						$userImage = $userListResult[0]['Photo'];	
 						if(!SERVER){
@@ -1129,15 +1123,22 @@ $app->get('/:userId',tuplitApi::checkToken(), function ($userId) use ($app) {
          * Get a user account details
          * @var Users $user
          */
-        $user = R::dispense('users');
+       
 		$details = array();$type = 'all';
+		$friendStatus	=	2;
+		if($requestedById == $userId)
+			$friendStatus	=	1;
 		
-		 if($userId == 'self')
-		 	$userId = $requestedById;
-		 if($req->params('Type') != '') {
-		 		$type =	$req->params('Type');
-		 }
-		$user->Type = $type;
+		if($userId == 'self')
+			$userId = $requestedById;			
+
+		if($req->params('Type') != '')
+			$type =	$req->params('Type');
+		
+		$user = R::dispense('users');
+		$user->Type 		= $type;
+		$user->OwnerID 		= $requestedById;
+		$user->FriendStatus = $friendStatus;
         $userDetails 	= $user->getUserDetails($userId);	
 		if($userDetails){
 	        $response = new tuplitApiResponse();

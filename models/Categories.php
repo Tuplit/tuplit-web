@@ -32,8 +32,49 @@ class Categories extends RedBean_SimpleModel implements ModelBaseInterface {
 		/**
         * Query to get category list
         */
-		$sql 		= 	"SELECT SQL_CALC_FOUND_ROWS c.CategoryName,c.CategoryIcon,c.id as CategoryId,count(mc.fkMerchantId) as MerchantCount from categories as c
-						LEFT JOIN merchantcategories as mc ON(c.id = mc.fkCategoriesId) where c.Status = 1 GROUP BY c.id ORDER BY c.CategoryName asc";
+		$from = 0;
+		/**
+		* Get the bean
+		* @var $bean Categories
+		*/		 
+        $bean 			= 	$this->bean;	
+		if(isset($bean->From))
+			$from		= $bean->From;		
+		
+		
+		if($from == 1){
+			$sql 		= 	"SELECT SQL_CALC_FOUND_ROWS c.CategoryName,c.CategoryIcon,c.id as CategoryId,count(mc.fkMerchantId) as MerchantCount from categories as c
+							LEFT JOIN merchantcategories as mc ON(c.id = mc.fkCategoriesId)
+							LEFT JOIN merchants AS m ON ( mc.fkMerchantId = m.id and m.Status = 1)
+							where c.Status = 1 GROUP BY c.id ORDER BY c.CategoryName asc";
+		}
+		else{
+			//Check for total products   - 03/11/2014
+			$merchantsIdNot	=	'';
+			$sql		=	"SELECT `fkMerchantsId`,count(*) as totcount FROM `products` WHERE 1 and `ItemType` in (1,3) and `Status` in (1,2) group by `fkMerchantsId` HAVING totcount > 20 ";
+			$producttot = 	R::getAll($sql);
+			if($producttot) {
+				$merchantsIdNotArray = Array();
+				foreach($producttot as $val) {
+					$merchantsIdNotArray[]		=	$val['fkMerchantsId'];
+				}
+				if(count($merchantsIdNotArray) > 0)
+					$merchantsIdNot = implode(',',$merchantsIdNotArray);
+			} else{
+				/**
+				* throwing error when no data found
+				*/
+				throw new ApiException("No results Found", ErrorCodeType::NoResultFound);
+			}
+			if(!empty($merchantsIdNot))
+				$merchantsIdNot = " and m.id in (".$merchantsIdNot.") ";
+			//Check for total products   - 03/11/2014
+			
+			$sql 		= 	"SELECT SQL_CALC_FOUND_ROWS c.CategoryName,c.CategoryIcon,c.id as CategoryId,count(mc.fkMerchantId) as MerchantCount from categories as c
+							LEFT JOIN merchantcategories as mc ON(c.id = mc.fkCategoriesId)
+							LEFT JOIN merchants AS m ON ( mc.fkMerchantId = m.id )
+							where m.Status = 1 and c.Status = 1 ".$merchantsIdNot." GROUP BY c.id ORDER BY c.CategoryName asc";
+		}
    		$result 	=	R::getAll($sql);
 		$totalRec 	= 	R::getAll('SELECT FOUND_ROWS() as count ');
 		$total 		= 	(integer)$totalRec[0]['count'];
@@ -164,7 +205,7 @@ class Categories extends RedBean_SimpleModel implements ModelBaseInterface {
 			$condition	= 	" and id != ".$catId ."";
 		}
 		if($bean->CategoryName != ''){
-			$sql 		= "SELECT  c.id as CategoryId,c.CategoryName from productcategories as c where c.Status = 1 and c.fkMerchantId IN(".$bean->fkMerchantId.",0) ".$condition." and CategoryName = '".trim($bean->CategoryName)."' ";
+			$sql 		= "SELECT  c.id as CategoryId,c.CategoryName from productcategories as c where c.Status = 1 and c.fkMerchantId IN(".$bean->fkMerchantId.",0) ".$condition." and CategoryName = '".trim(addslashes($bean->CategoryName))."' ";
    			$existingCategory 	= R::getAll($sql);
 	        if ($existingCategory) {
 	            // if category name exist it wont insert
@@ -243,7 +284,10 @@ class Categories extends RedBean_SimpleModel implements ModelBaseInterface {
 		$this->validateMerchantId($merchantId);
 		
 		$comments	  	= 	R::dispense('productcategories');
-		$sql		  	=	"delete from productcategories where id = ".$categoryId."";
+		$sql		  	=	"update productcategories set Status ='3' where id = ".$categoryId."";
+		R::exec($sql);
+		
+		$sql = "update products set Status ='3' where fkCategoryId in (".$categoryId.")";
 		R::exec($sql);
 	}
 	
@@ -261,5 +305,21 @@ class Categories extends RedBean_SimpleModel implements ModelBaseInterface {
             throw new ApiException("Merchant status is not in active state", ErrorCodeType::MerchantsNotInActiveStatus);
         }
 		return $merchant;
+    }
+	
+	/**
+	* Category Product count
+	*/
+	public function getCategoryProductCount()
+    {
+		/**
+		* Get the identity of the merchant
+		*/
+		$sql 		= 	"SELECT  count(id) as total from products where Status != 3 and fkMerchantsId='".$this->merchantId."' and fkCategoryId='".$this->CategoryId."' ";
+   		$products 	= 	R::getAll($sql);
+        if ($products) {
+            return $products[0]['total'];
+        }
+		return '0';
     }
 }

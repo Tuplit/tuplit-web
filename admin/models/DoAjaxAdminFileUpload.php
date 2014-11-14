@@ -60,6 +60,9 @@ else {
 			if( $res[0] != '640' || $res[1] != '570' ) 
 				$error = 'Image dimension should be 640x570';
 		}
+		if($fileElementName == 'admin_logo' && ( $res[0] != '100' || $res[1] != '100' ) ){
+			$error = 'Image dimension should be 100x100';
+		}
 		/*if( $fileElementName == 'category_photo' && ( $res[0] > '80' || $res[1] > '80' ) ){
 			$error = 'Image dimension should be less than 100x100';
 		}*/

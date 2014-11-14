@@ -200,4 +200,37 @@ class General extends RedBean_SimpleModel implements ModelBaseInterface {
         $bean 	= 	$this->bean;
 		
 	}
+	/**
+	* get legal content
+	*/
+    public function getLegalContent()
+    {
+		/**
+		* Query to get legal contents
+		*/
+		$sql	 	=	"SELECT PageName,Content FROM webcontent where `PageUrl` IN('terms_of_service','privacy_policy','cookie_policy','merchant_agreement','user_agreement') and Status = 1 order by id ";
+		$result 	= 	R::getAll($sql);
+		$content = '';
+		if(is_array($result) && count($result) >0){
+			/**
+			* The result were found
+			*/
+			foreach($result as $key=>$value){
+				if($value['Content'] != ''){
+					//$str = str_replace("\r\n","<br>",trim($value['Content']));
+					$content  .= '<h1>'.ucfirst($value['PageName']).'</h1>';
+					//$content .= '<p>'.ucfirst(nl2br($str)).'</p>';
+					$content .= '<p>'.ucfirst($value['Content']).'</p>';
+					
+				}
+			}
+			return $content;
+		}
+		else{
+			/**
+			* throwing error when static data
+			*/
+			throw new ApiException("No results Found", ErrorCodeType::NoResultFound);
+		}
+	}
 }

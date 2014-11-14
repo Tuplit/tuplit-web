@@ -41,7 +41,7 @@ class StatisticsModel extends Model
 	function getRegisteredMerchants($fields,$condition = '')
 	{
 		$sql = "select ".$fields." from {$this->merchantTable} 
-		WHERE 1 ".$condition;
+		WHERE 1 and UserType = 1  ".$condition;
 		$result	=	$this->sqlQueryArray($sql);	
 		if(count($result) == 0) return false;
 		else return $result;	

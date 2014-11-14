@@ -229,7 +229,7 @@ $merchantInfo['OpeningHours']	=	formOpeningHours($merchantInfo['OpeningHours']);
 commonHead();
 ?>
 
-<body class="skin-blue fixed" onload="fieldfocus('CompanyName');">
+<body class="skin-blue fixed body_height" onload="fieldfocus('CompanyName');">
 		<?php top_header(); ?>
 		<section class="content">
 		<div class="col-lg-12">

@@ -118,6 +118,20 @@ class MerchantController extends Controller
 			$this->loadModel('MerchantModel', 'MerchantModelObj');
 		if ($this->MerchantModelObj)
 			return $this->MerchantModelObj->insertDetails($data);
-	}		
+	}
+	function getMerchantImagesList($fields,$condition,$searchtxt)
+	{
+		if (!isset($this->MerchantModelObj))
+			$this->loadModel('MerchantModel', 'MerchantModelObj');
+		if ($this->MerchantModelObj)
+			return $this->MerchantModelObj->getMerchantImagesList($fields,$condition,$searchtxt);
+	}	
+	function getMerchantLocation($fields,$cond,$join)
+	{
+		if (!isset($this->MerchantModelObj))
+			$this->loadModel('MerchantModel', 'MerchantModelObj');
+		if ($this->MerchantModelObj)
+			return $this->MerchantModelObj->getMerchantLocation($fields,$cond,$join);
+	}
 }
 ?>

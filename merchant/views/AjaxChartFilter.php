@@ -16,9 +16,9 @@ if(isset($_POST['filter_dashboard_date']) && $_POST['filter_dashboard_date']!=''
 }
 $url					=	WEB_SERVICE.'v1/merchants/transaction/?Start=0&Limit=0&DataType='.$date_type.'&StartDate='.$curr_date.'&EndDate='.$last_date.'';
 $curlTransactionResponse 	= 	curlRequest($url, 'GET', null, $_SESSION['merchantInfo']['AccessToken']);
-if(isset($curlTransactionResponse) && is_array($curlTransactionResponse) && $curlTransactionResponse['meta']['code'] == 201 && is_array($curlTransactionResponse['TransactionList']) ) {
-	if(isset($curlTransactionResponse['TransactionList'])){
-		$order_array	 = $curlTransactionResponse['TransactionList'];	
+if(isset($curlTransactionResponse) && is_array($curlTransactionResponse) && $curlTransactionResponse['meta']['code'] == 201 && is_array($curlTransactionResponse['Transaction']) ) {
+	if(isset($curlTransactionResponse['Transaction'])){
+		$order_array	 = $curlTransactionResponse['Transaction'];	
 	}
 } else if(isset($curlTransactionResponse['meta']['errorMessage']) && $curlTransactionResponse['meta']['errorMessage'] != '') {
 		$errorMessage	=	$curlTransactionResponse['meta']['errorMessage'];

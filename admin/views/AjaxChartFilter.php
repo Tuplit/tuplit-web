@@ -106,7 +106,7 @@ if($date_type=='month') {
 if(!isset($all_series) || count($all_series)<=0) {
 	$error_div = 1;
 } 
-
+?>
 
 
 

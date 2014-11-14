@@ -110,7 +110,7 @@ commonHead();
 		<div class="row">
 			<div class="col-xs-12">
 					<form name="search_transaction" id="search_transaction" action="TransactionList?cs=1" method="post">
-					<div class="box box-primary">
+					<div class="box box-primary box-padding">
 						<div class="box-body no-padding" >		
 							<div class="col-sm-4 form-group">
 									<label>Merchant</label>
@@ -157,7 +157,7 @@ commonHead();
 			</div>
 			<?php if(!SERVER){ 
 			if(isset($TransactionsList) && !empty($TransactionsList)) { ?>
-			<div class="box-footer pull-right" align="right" style="padding-bottom:20px;">
+			<div class="box-footer box-footer-padding pull-right" align="right">
 				<input type="Button" class="btn btn-success" name="export_csv" onclick="exportExcelSubmit('search_transaction');" id="export_csv" value="Export CSV" title="Export CSV">
 			</div>	
 			<?php } }?>
@@ -214,7 +214,7 @@ commonHead();
                            </table>
 							<!-- End product List -->						 
 						<?php } else { ?>
-							<div class="row clear">		
+							<div class="col-xs-12 paging-margin clear">		
 								 <div align="center" class="alert alert-danger alert-dismissable col-lg-4 col-sm-5 col-xs-10"><i class="fa fa-warning"></i> No transactions found	</div>							
 							</div>							
 						<?php } ?>						

@@ -8,6 +8,7 @@ if ((isset($_GET['page'])) && ($_GET['page'] != '') ){
 		require_once('views/'.$_GET['page'].'.php');
 	}
 	else {	
+		//echo"<br>see here===============".$_GET['page'];
 		header("location:Login");
 	}
 }else {

@@ -85,5 +85,12 @@ class ManagementController extends Controller
 		if ($this->ManagementModelObj)
 			return $this->ManagementModelObj->getProductCategoryList($fields,$condition,$join_condition);
 	}
+	function getCategoriesList($fields,$condition)
+	{
+		if (!isset($this->ManagementModelObj))
+			$this->loadModel('ManagementModel', 'ManagementModelObj');
+		if ($this->ManagementModelObj)
+			return $this->ManagementModelObj->getCategoriesList($fields,$condition);
+	}
 }
 ?>

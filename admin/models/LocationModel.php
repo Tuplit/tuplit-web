@@ -4,10 +4,10 @@ class LocationModel extends Model
 	function getLocationList() {
 		$limit_clause	=	$condition	=	'';
 		$sorting_clause = ' l.id desc';
-		if(!empty($_SESSION['ordertype']))
+		/*if(!empty($_SESSION['ordertype']))
 			$sorting_clause = $_SESSION['orderby'] . ' ' . $_SESSION['ordertype'];
 		if(isset($_SESSION['sortBy']) && isset($_SESSION['orderType']))
-			$sorting_clause	= $_SESSION['sortBy']. ' ' .$_SESSION['orderType'];
+			$sorting_clause	= $_SESSION['sortBy']. ' ' .$_SESSION['orderType'];*/
 		if(isset($_SESSION['curpage']))
 			$limit_clause = ' LIMIT '.(($_SESSION['curpage'] - 1) * ($_SESSION['perpage'])) . ', '. $_SESSION['perpage'];
 		if(isset($_SESSION['tuplit_sess_Location_code']) && $_SESSION['tuplit_sess_Location_code'] != '')
@@ -20,6 +20,7 @@ class LocationModel extends Model
 			$condition .= " and date(l.DateCreated)  = '".$_SESSION['tuplit_sess_Location_registerdate']."'";		
 		
 		$sql	 	= 	"select SQL_CALC_FOUND_ROWS * from {$this->locationTable} l where 1 ".$condition." and Status in (1,2) ORDER BY ".$sorting_clause." ".$limit_clause;
+		//echo $sql;
 		//$sql	 	= 	"select SQL_CALC_FOUND_ROWS * from {$this->locationTable} l where 1 ".$condition." and Status in (1,2) ORDER BY l.id desc ".$limit_clause;
 		$result		=	$this->sqlQueryArray($sql);
 		if(count($result) == 0) return false;

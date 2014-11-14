@@ -91,7 +91,7 @@ commonHead();
 							</div>
 						</div>
 					</section>
-					<section class="content">
+					<section class="content box fleft paging-margin">
 						<div class="box box-primary">
 							<div class="col-xs-12">	
 			 					<div class="main_graph"><div class="graph"></div></div>
@@ -104,6 +104,7 @@ commonHead();
 		</section>
 	<?php commonFooter(); ?>
 	 <script src="//cdnjs.cloudflare.com/ajax/libs/raphael/2.1.0/raphael-min.js"></script>
+	 <script src="<?php echo ADMIN_SCRIPT_PATH; ?>theme/plugins/morris/raphel.min.js" type="text/javascript"></script>
 	<script>
 	
 $(document).ready(function(){

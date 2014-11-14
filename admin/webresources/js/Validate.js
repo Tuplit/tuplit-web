@@ -60,12 +60,14 @@ $("#change_password_form").validate({
 //--------------General Settings---------------start
 $("#general_settings_form").validate({
 	rules:{			
-		email       :	{ required:true,email:true },
-		fees       :	{  fees_amount:true }
+		email       		:	{ required:true,email:true },
+		fees       			:	{  fees_amount:true },
+		empty_admin_logo	:	{ required:true}
 	},
 	messages:{
-		email       :	{ required:'Email address is required',email:'Please enter a valid email address.'},
-		fees       :	{ fees_amount:'MangoPay fees is required'}
+		email      			:	{ required:'Email address is required',email:'Please enter a valid email address.'},
+		fees       			:	{ fees_amount:'MangoPay fees is required'},
+		empty_admin_logo	:	{ required:'Admin logo is required'}
 	}
 });
 $.validator.addMethod("fees_amount", function(value, element) {
@@ -185,7 +187,9 @@ $("#merchant_edit_form").validate({
 		CompanyName        :	{ required:true },
 		Email        	   :	{ required:true,email:true},
 		PhoneNumber	       :    { required:true,minlength:10},
-        WebsiteUrl		   :	{ required:true,url:true},
+        Password	       :	{ minlength:6 },
+		C_Password		   :	{ minlength:6,equalTo:'#Password'},
+		WebsiteUrl		   :	{ required:true,url:true},
 		Location		   :	{ required:true },		
 		Address		   	   :	{ required:true },
 		Description		   :	{ required:true },
@@ -198,7 +202,7 @@ $("#merchant_edit_form").validate({
 		BusinessName	   :	{ required:true },
 		BusinessType	   :	{ required:true },
 		Country	   		   :	{ required:true },
-		Postcode	       :	{ required:true }
+		Postcode	       :	{ required:true },
 
 	},
 	messages:{
@@ -207,6 +211,8 @@ $("#merchant_edit_form").validate({
 		CompanyName         :	{ required:'Company Name is required'},
 		Email				:	{ required:'Email is required',email:'Please enter a valid Email address.'},
 		PhoneNumber			:	{ required:'Mobile Number is required',minlength:'Mobile Number should have atleast 10 numbers'},
+		Password			:	{ minlength:'Password should have atleast 6 characters'},
+		C_Password		    :   { minlength:'Confirm Password should have atleast 6 characters',equalTo:'Password mismatch' },
 		WebsiteUrl		    :   { required:'Website url is required',url:'Please enter valid url'},
 		Location			:	{ required:'Location is required'},		
 		Address				:	{ required:'Address is required'},
@@ -220,7 +226,8 @@ $("#merchant_edit_form").validate({
 		BusinessName		: 	{ required:'Business Name is required'},
 		BusinessType   		:	{ required:'Business Type is required' },
 		Country   			:	{ required:'Country is required' },
-		Postcode	   		:	{ required:'Postcode is required' }
+		Postcode	   		:	{ required:'Postcode is required' },
+		
 	}		
 });
 //--------------Add Merchant---------------start

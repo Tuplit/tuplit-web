@@ -1,16 +1,51 @@
 <?php
 ini_set('default_encoding','utf-8');
-function merchant_login_check()
-{
-    if(!isset($_SESSION['merchantInfo']['AccessToken'])){
+function merchant_login_check() {
+	global $AutoLock;
+    if(!isset($_SESSION['merchantInfo']['AccessToken']) || !isset($_SESSION['MerchantPortalAccessTime'])){
 		header('location:Login');
 		die();
     }
+	if(isset($_SESSION['MerchantPortalAccessTime']) && !empty($_SESSION['MerchantPortalAccessTime'])  && !empty($_SESSION['merchantDetailsInfo']['AutoLock']) && !empty($_SESSION['merchantDetailsInfo']['Pincode']) ) {
+		$LastAccess 			= 	$_SESSION['MerchantPortalAccessTime'];
+		if(!empty($_SESSION['merchantDetailsInfo'])){
+			$merchantDetails	=	$_SESSION['merchantDetailsInfo'];
+			$autoLock			=	$merchantDetails['AutoLock'];
+			if($autoLock > 0 ){
+				$autoTime	=	$AutoLock[$autoLock];
+				$_SESSION['tuplit_merchant_autolock']	=	$AutoLock[$autoLock];
+				if($_SERVER['REMOTE_ADDR'] == '172.21.4.50' || $_SERVER['REMOTE_ADDR'] == '172.21.4.102')
+					$CurrentAccess	= 	strtotime("-1 minutes");	
+				else
+					$CurrentAccess	= 	strtotime("-$autoTime minutes");		
+				if($LastAccess >= $CurrentAccess) {			
+					$_SESSION['MerchantPortalAskPin']   	=	0;
+					$_SESSION['MerchantPortalAccessTime']   =	time();
+				} else {
+					$_SESSION['MerchantPortalAskPin']   	=	1;
+				}
+			}
+			else{
+				$_SESSION['MerchantPortalAskPin']   =	0;
+			}
+		}
+	}
+	$Salesperson = array('Dashboard','Orders','OrderHistory','TransactionList','ProductList');
+	if(isset($_SESSION['merchantSubuser']) && !empty($_SESSION['merchantSubuser'])) {
+		$page	=	getCurrPage();
+		if(!in_array($page,$Salesperson)) {
+			header('location:Dashboard');
+			die();
+		}
+	}
 }
+
 function user_login_check(){
-	if(!isset($_SESSION["tuplit_ses_merchant_id"]) || $_SESSION["tuplit_ses_merchant_id"] == '')
-		{ header('location: home'); die();}
+	if(!isset($_SESSION["tuplit_ses_merchant_id"]) || $_SESSION["tuplit_ses_merchant_id"] == ''){ 	
+		header('location: home'); die();
+	}
 }
+
 function getCurrPage()
 {
 	$page = substr(strrchr($_SERVER['REQUEST_URI'], '/'), 1);
@@ -20,7 +55,7 @@ function getCurrPage()
 	return $page;
 }
 function displayText($text, $length) {
-	if (strlen($text) > $length) return strip_tags(substr($text, 0, $length)).' ...'; else return $text;
+	if (strlen($text) > $length) return strip_tags(substr($text, 0, $length)).'...'; else return $text;
 }
 
 /********************************************************
@@ -1733,10 +1768,14 @@ function time_ago($date,$granularity=2) {
 }
 function price_fomat($price_val){
 	$price = number_format($price_val,2,'.',',');
-	if(strstr($price,'$'))
+	if(strstr($price,'&pound;'))
 		return $price;
 	else
-		return '$'.$price;
+		return '&pound;&nbsp;'.$price;
+}
+function price_fomat_export($price_val){
+	$price = number_format($price_val,2,'.',',');
+	return chr(163).$price;
 }
 function getStringForDayProduct($dataArray,$start_date='',$end_date='',$type='') {
 	usort( $dataArray, function( $a, $b) {  
@@ -1818,5 +1857,29 @@ function detectLayout()
 }
 function convertCentstoDollar($amt){
 	
+}
+function changeDate_DBformat($date)
+{
+	if( ($date != ''))
+	{
+		$date 	= substr($date,0,10);
+		$day 	= substr($date,0,2);
+		$month 	= substr($date,3,2);
+		$year   = substr($date,6,4);
+		$date_db_format = $year.'-'.$month.'-'.$day;
+		return $date_db_format;
+	}
+}
+function dateDisplayFormat($date)
+{
+	if( ($date != ''))
+	{
+		$date 	= substr($date,0,10);
+		$year   = substr($date,0,4);
+		$month  = substr($date,5,2);
+		$day 	= substr($date,8,2);
+		$date_db_format = $day.'-'.$month.'-'.$year;
+		return $date_db_format;
+	}
 }
 ?>

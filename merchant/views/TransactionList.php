@@ -3,6 +3,10 @@ require_once('includes/CommonIncludes.php');
 merchant_login_check();
 $condition	=	'';
 
+if(isset($_GET['cs']) && $_GET['cs'] == 1) {
+	unset($_SESSION['tuplit_transactionlist_condition']);
+}
+
 //getting merchant details
 if(isset($_SESSION['merchantDetailsInfo']) && is_array($_SESSION['merchantDetailsInfo'])){
 	$merchantInfo  =	$_SESSION['merchantDetailsInfo'];	
@@ -46,8 +50,10 @@ if(isset($_POST['Nature']) && !empty($_POST['Nature'])) {
 		$condition		=	"?Nature=".$_POST['Nature'];
 	$nature	=	$_POST['Nature'];
 }
+$_SESSION['tuplit_transactionlist_condition']	=	$condition;
+
 //getting transaction list
-$url					=	WEB_SERVICE.'v1/merchants/getTransactionList/'.$condition;
+$url					=	WEB_SERVICE.'v1/merchants/transactionlist/'.$condition;
 $curlCustomerResponse 	= 	curlRequest($url, 'GET', null, $_SESSION['merchantInfo']['AccessToken']);
 if(isset($curlCustomerResponse) && is_array($curlCustomerResponse) && $curlCustomerResponse['meta']['code'] == 201 && is_array($curlCustomerResponse['TransactionsList']) ) {
 	if(isset($curlCustomerResponse['TransactionsList'])){
@@ -74,9 +80,9 @@ if(isset($_POST['export-excel']) && $_POST['export-excel'] == 1)
 			else 
 				$TransactionsExport[$key]['Customer Name']	=	"Test Transaction";
 			
-			$TransactionsExport[$key]['Amount Debited']		=	price_fomat($value['DebitedFunds']['Amount']);
-			$TransactionsExport[$key]['Amount Credited']	=	price_fomat($value['CreditedFunds']['Amount']);
-			$TransactionsExport[$key]['Transaction Fee']	=	price_fomat($value['Fees']['Amount']);
+			$TransactionsExport[$key]['Amount Debited']		=	price_fomat_export($value['DebitedFunds']['Amount']/100);
+			$TransactionsExport[$key]['Amount Credited']	=	price_fomat_export($value['CreditedFunds']['Amount']/100);
+			$TransactionsExport[$key]['Transaction Fee']	=	price_fomat_export($value['Fees']['Amount']/100);
 			$TransactionsExport[$key]['Nature']				=	$value['Nature'];
 			$TransactionsExport[$key]['Status']				=	$value['Status'];
 			$TransactionsExport[$key]['Status Message']		=	$value['ResultMessage'];
@@ -88,16 +94,16 @@ if(isset($_POST['export-excel']) && $_POST['export-excel'] == 1)
 commonHead();
 ?>
 
-<body class="skin-blue fixed">	
+<body class="skin-blue fixed body_height">	
 		<?php  top_header(); ?>
 		<?php if(isset($merchantInfo['MangoPayUniqueId']) && !empty($merchantInfo['MangoPayUniqueId'])) { ?>
-		<section class="content">
-		<div class="col-lg-10" style="margin:auto;float:none;" >	
-			<section class="row content-header">
+		<section class="content top-spacing">
+		<div class="col-md-12 col-lg-12 box-center row">	
+			<section class="row content-header col-xs-12">
                 <h1 class="no-top-margin pull-left">Transactions List</h1>
             </section>	
 			
-			<div class="row">
+			<div class="clear">
 				<div class="product_list">
 					<form name="search_transaction" id="search_transaction" action="TransactionList?cs=1" method="post">
 					<div class="box box-primary">
@@ -135,12 +141,13 @@ commonHead();
 				</div>
 			</div>
 			 <?php if(isset($TransactionsList) && !empty($TransactionsList) && count($TransactionsList) > 0) { ?>
-			<div class="box-footer col-sm-12 row no-padding pull-right" align="right">
+			<div class="box-footer col-sm-12 no-padding pull-right" align="right" style="margin-top:10px;">
 				<input type="Button" class="btn btn-success" name="export_csv" onclick="exportExcelSubmit('search_transaction');" id="export_csv" value="Export CSV" title="Export CSV">
+				&nbsp;&nbsp;&nbsp;<a href="PrintTransactionList" target="_blank"><input type="Button" class="btn btn-success" name="print" onclick="" id="print" value="Print" title="Print"></a>
 			</div>
 			<?php } ?>
-			<div class="row clear" style="padding-top:10px;">
-            	<div class="col-xs-12 no-padding">
+			<div class="clear" style="padding-top:10px;">
+            	<div class="col-xs-12 no-padding transcationlist">
 				   <?php if(isset($TransactionsList) && !empty($TransactionsList)) { 
 						$TransactionsList = subval_sort($TransactionsList,'Id',1);
 				   ?>
@@ -189,7 +196,7 @@ commonHead();
 									<td><?php echo $value['ResultMessage']; ?></td>
 										<td align="center">
 											<?php if($value['Nature'] != 'REFUND') { ?>
-											<a class="newWindow" title="View transaction details" href="OrderProductDetail?cs=1&transId=<?php echo  $value['Id']; ?>"><i class="fa fa-search fa-lg"></i></a>
+											<a class="fancybox fancybox.iframe" title="View transaction details" href="OrderProductDetail?cs=1&transId=<?php echo  $value['Id']; ?>"><i class="fa fa-search fa-lg"></i></a>
 											<?php } else echo '-'; ?>
 										</td>
 								</tr>
@@ -241,14 +248,26 @@ commonHead();
 			}
 		 }
 	$(document).ready(function() {
-			$(".newWindow").fancybox({
+			$('.fancybox').fancybox();
+			
+
+			/*$(".newWindow").click(function() {
+				$.fancybox.open({
+					href : 'iframe.html',
+					type : 'iframe',
+					padding : 5
+				});
+			});*/
+				
+			/*$(".newWindow").fancybox({
 				scrolling: 'auto',			
-				type: 'iframe',
+				'type' : 'inline',
 				width: '800',
+				height: '800',
 				maxWidth: '100%',	
-					title: null,			
+				title: null,			
 				fitToView: false
-			});	
+			});	*/
 		});
 </script>
 	

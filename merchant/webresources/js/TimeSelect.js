@@ -101,6 +101,7 @@
         hoursLabel:     'Hour',
         minutesLabel:   'Minutes',
         setButtonLabel: 'Done',
+		setClearButtonLabel: 'Clear',
         popupImage:     undefined,
         onFocusDisplay: true,
         zIndex:         10,
@@ -196,6 +197,15 @@
                         +    '            </div>'
                         +    '            <div style="clear: left;"></div>'
                         +    '        </div>'
+						+    '        <div id="ptTimeClearSetButton">'
+                        +    '            <a href="javascript: void(0);" onclick="jQuery.ptTimeSelect.clearTime()"'
+                        +    '                    onmouseover="jQuery(this).removeClass(\'ui-state-default\').addClass(\'ui-state-hover\');" '
+                        +    '                        onmouseout="jQuery(this).removeClass(\'ui-state-hover\').addClass(\'ui-state-default\');"'
+                        +    '                        class="ui-corner-all ui-state-default">'
+                        +    '                Clear'
+                        +    '            </a>'
+                        +    '        </div>'
+						//+    '           <div style="clear: right;"></div>'
                         +    '        <div id="ptTimeSelectSetButton">'
                         +    '            <a href="javascript: void(0);" onclick="jQuery.ptTimeSelect.setTime()"'
                         +    '                    onmouseover="jQuery(this).removeClass(\'ui-state-default\').addClass(\'ui-state-hover\');" '
@@ -291,6 +301,28 @@
         this.closeCntr();
         
     };// END setTime() function
+	jQuery.ptTimeSelect.clearTime = function() {
+        var tSel = jQuery('#ptTimeSelectUserSelHr').text()
+                    + ":"
+                    + jQuery('#ptTimeSelectUserSelMin').text()
+                    + " "
+                    + jQuery('#ptTimeSelectUserSelAmPm').text();
+        jQuery(".isPtTimeSelectActive").val(tSel);
+		
+		//clear button timepicker 
+		var id		= 	$(".isPtTimeSelectActive").attr('rowid');
+		var name	=	$(".isPtTimeSelectActive").attr('name');
+		//console.log(id+'<====>'+name)
+		$("#"+name).val('');
+		//console.log($("#from1_"+id).val()+'<====>'+$("#to1_"+id).val())
+		if($("#from1_"+id).val() != '' || $("#to1_"+id).val() != '')
+			$("#row_"+id	).val(1);
+		else
+			$("#row_"+id	).val('');
+		//console.log($("#id_"+id	).val())
+        //this.closeCntr();
+        
+    };// END clearTime() function
         
     /**
      * Displays the time definition area on the page, right below
@@ -341,6 +373,7 @@
         cntr.find(".ptTimeSelectTimeLabelsCntr .ptTimeSelectRightPane")
             .empty().append(opt.minutesLabel);
         cntr.find("#ptTimeSelectSetButton a").empty().append(opt.setButtonLabel);
+		cntr.find("#ptTimeClearSetButton a").empty().append(opt.setClearButtonLabel);
         if (opt.onBeforeShow) {
             opt.onBeforeShow(i, cntr);
         }

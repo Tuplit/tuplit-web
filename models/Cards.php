@@ -5,7 +5,7 @@
  *
  * @author 
  */
-
+ini_set('default_encoding','utf-8');
 use RedBean_Facade as R;
 use Helpers\PasswordHelper as PasswordHelper;
 use Enumerations\HttpStatusCode as HttpStatusCode;
@@ -205,7 +205,9 @@ class Cards extends RedBean_SimpleModel implements ModelBaseInterface {
 		  return $result;
 		} else if(isset($result)){
 			// error
-			throw new ApiException($result->ResultMessage, ErrorCodeType::NoResultFound);
+			//throw new ApiException($result->ResultMessage, ErrorCodeType::NoResultFound);
+				
+				throw new ApiException("Error in topup", ErrorCodeType::NoResultFound);
 		}
     }
 	 /**
@@ -234,8 +236,8 @@ class Cards extends RedBean_SimpleModel implements ModelBaseInterface {
     */
     public function validateAmount($amount)
     {
-		if ($amount <= 0 || $amount >= 100) {           
-            throw new ApiException("Sorry you can't process this amount value. Try with less amount below $99" , ErrorCodeType::NoResultFound);
+		if ($amount <= 0 || $amount >= 80) {           
+            throw new ApiException("Sorry you can't process this amount value. Try with less amount below ".utf8_encode('£')."80" , ErrorCodeType::NoResultFound);
         }
     }
 	

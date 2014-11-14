@@ -1,0 +1,496 @@
+@font-face {
+    font-family: 'HelveticaNeueLTStd45Light';
+    src: url('../fonts/HelveticaNeueLTStd-Lt/helveticaneueltstd-lt.eot');
+    src: url('../fonts/HelveticaNeueLTStd-Lt/helveticaneueltstd-lt.eot') format('embedded-opentype'),
+         url('../fonts/HelveticaNeueLTStd-Lt/helveticaneueltstd-lt.woff2') format('woff2'),
+         url('../fonts/HelveticaNeueLTStd-Lt/helveticaneueltstd-lt.woff') format('woff'),
+         url('../fonts/HelveticaNeueLTStd-Lt/helveticaneueltstd-lt.ttf') format('truetype'),
+         url('../fonts/HelveticaNeueLTStd-Lt/helveticaneueltstd-lt.svg#HelveticaNeueLTStd45Light') format('svg');
+}
+@font-face {
+    font-family: 'HelveticaNeueLTStd75Bold';
+    src: url('../fonts/HelveticaNeueLTStd-Bd/helveticaneueltstd-bd.eot');
+    src: url('../fonts/HelveticaNeueLTStd-Bd/helveticaneueltstd-bd.eot') format('embedded-opentype'),
+         url('../fonts/HelveticaNeueLTStd-Bd/helveticaneueltstd-bd.woff2') format('woff2'),
+         url('../fonts/HelveticaNeueLTStd-Bd/helveticaneueltstd-bd.woff') format('woff'),
+         url('../fonts/HelveticaNeueLTStd-Bd/helveticaneueltstd-bd.ttf') format('truetype'),
+         url('../fonts/HelveticaNeueLTStd-Bd/helveticaneueltstd-bd.svg#HelveticaNeueLTStd75Bold') format('svg');
+}
+
+@font-face {
+    font-family: 'HelveticaNeueLTStd65Medium';
+    src: url('../fonts/HelveticaNeueLTStd-Md/helveticaneueltstd-md.eot');
+    src: url('../fonts/HelveticaNeueLTStd-Md/helveticaneueltstd-md.eot') format('embedded-opentype'),
+         url('../fonts/HelveticaNeueLTStd-Md/helveticaneueltstd-md.woff2') format('woff2'),
+         url('../fonts/HelveticaNeueLTStd-Md/helveticaneueltstd-md.woff') format('woff'),
+         url('../fonts/HelveticaNeueLTStd-Md/helveticaneueltstd-md.ttf') format('truetype'),
+         url('../fonts/HelveticaNeueLTStd-Md/helveticaneueltstd-md.svg#HelveticaNeueLTStd65Medium') format('svg');
+}
+@font-face {
+    font-family: 'HelveticaNeueLTStd55Roman';
+    src: url('../fonts/HelveticaNeueLTStd-Roman/helveticaneueltstd-roman.eot');
+    src: url('../fonts/HelveticaNeueLTStd-Roman/helveticaneueltstd-roman.eot') format('embedded-opentype'),
+         url('../fonts/HelveticaNeueLTStd-Roman/helveticaneueltstd-roman.woff2') format('woff2'),
+         url('../fonts/HelveticaNeueLTStd-Roman/helveticaneueltstd-roman.woff') format('woff'),
+         url('../fonts/HelveticaNeueLTStd-Roman/helveticaneueltstd-roman.ttf') format('truetype'),
+         url('../fonts/HelveticaNeueLTStd-Roman/helveticaneueltstd-roman.svg#HelveticaNeueLTStd55Roman') format('svg');
+}
+@font-face {
+    font-family: 'HelveticaNeueLTStd35Thin';
+    src: url('../fonts/HelveticaNeueLTStd-Th/helveticaneueltstd-th.eot');
+    src: url('../fonts/HelveticaNeueLTStd-Th/helveticaneueltstd-th.eot') format('embedded-opentype'),
+         url('../fonts/HelveticaNeueLTStd-Th/helveticaneueltstd-th.woff2') format('woff2'),
+         url('../fonts/HelveticaNeueLTStd-Th/helveticaneueltstd-th.woff') format('woff'),
+         url('../fonts/HelveticaNeueLTStd-Th/helveticaneueltstd-th.ttf') format('truetype'),
+         url('../fonts/HelveticaNeueLTStd-Th/helveticaneueltstd-th.svg#HelveticaNeueLTStd35Thin') format('svg');
+}
+@font-face {
+    font-family: 'HelveticaNeueLTStd25UltraLight';
+    src: url('../fonts/HelveticaNeueLTStd-UltLt/helveticaneueltstd-ultlt.eot');
+    src: url('../fonts/HelveticaNeueLTStd-UltLt/helveticaneueltstd-ultlt.eot') format('embedded-opentype'),
+         url('../fonts/HelveticaNeueLTStd-UltLt/helveticaneueltstd-ultlt.woff2') format('woff2'),
+         url('../fonts/HelveticaNeueLTStd-UltLt/helveticaneueltstd-ultlt.woff') format('woff'),
+         url('../fonts/HelveticaNeueLTStd-UltLt/helveticaneueltstd-ultlt.ttf') format('truetype'),
+         url('../fonts/HelveticaNeueLTStd-UltLt/helveticaneueltstd-ultlt.svg#HelveticaNeueLTStd25UltraLight') format('svg');
+}
+
+html{
+	height: 100%;
+}
+body { background : #000; color :#68696b; padding : 0;margin : 0;position:relative;min-height:100%}
+b, strong {font-weight:700;font-family: 'Helvetica Neue LT Std 75 Bold', 'helvetica neue lt std 75 bold', 'HelveticaNeueLTStd75Bold', sans-serif, 'Arial';}
+p , h1, h2, h3, h4, h5 , form, input, img { padding : 0;margin : 0;}
+h1, h2, h3, h4, h5 ,h6 { font-weight : normal; }
+.box-center {
+	margin : auto;
+	float : none !important;
+}
+.box {
+  position: relative;
+  background: #ffffff;
+  width: 100%;
+  box-shadow: 0  1px 3px rgba(0, 0, 0, 0.1);
+  overflow : hidden
+}
+.box.box-primary {
+  border-top-color: #01b3a5;
+  padding-top : 15px
+}
+
+.page-wrap {
+ /* min-height: 100%;*/
+  /* equal to footer height */
+  /*margin-bottom: -45px; */  /* for footer sticky**/
+  position : relative;
+  z-index :10;
+  padding-bottom:45px;
+}
+.page-wrap:after {
+  content: "";
+  display: block;
+}
+h1 span{ display : none;}
+h1 { padding-top : 62px; padding-bottom : 22px; text-align : center; color :#fff; }
+h2 { text-align : center; font-size:64px; padding : 0 0 25px 0;margin : 0;
+	/*font-family: 'HelveticaNeueUltraLight', 'HelveticaNeue-Ultra-Light', 'Helvetica Neue Ultra Light', 'HelveticaNeue', 'Helvetica Neue', 'TeXGyreHerosRegular', 'Arial', sans-serif; font-weight:100; font-stretch:normal;*/
+	font-family: "HelveticaNeue-Light STd", "Helvetica Neue Lt STd", "HelveticaNeueLTStd25UltraLight",sans-serif,arial;font-weight:100; font-stretch:normal;
+	color :#fff; 
+}
+
+.box-center {
+	margin : auto;
+	float : none !important;
+}
+h3 { text-align : center; font-size:14px; padding : 0 0 25px 0;margin : 0; color :#fff;  }
+.select_other .describe{display:none;}
+a.signup-button {
+	background :rgba(255,255,255,0.1) ;
+	width : 164px;
+	height : 44px;
+	border : 1px solid rgba(255,255,255,0.5);
+	font:normal 12px/44px arial; /*  Helvetica Neue lt std 45 light */
+	color : #fff;
+	text-align : center;
+	display : block;
+	margin : 0 auto 30px  auto;
+	text-decoration : none;
+}
+.lfloat {float:left;}
+.rfloat {float:right;clear:both;}
+.login-bg {
+	clear  : both;
+	width : 100%;
+	background : #fff;
+	text-align:center;
+	margin : 0 auto 30px  auto;
+}
+.login-bg input.form-control::-webkit-input-placeholder,
+input::-webkit-input-placeholder,
+.signup-bg input.form-control::-webkit-input-placeholder ,
+.signup-bg select.form-control::-webkit-input-placeholder,
+.signup-bg textarea.form-control::-webkit-input-placeholder,
+.change_password input.form-control::-webkit-input-placeholder {color:#9c9c9c;}
+
+.login-bg input.form-controlL::-moz-placeholder,
+input::-moz-placeholder,
+.signup-bg input.form-control::-moz-placeholder ,
+.signup-bg select.form-control::-moz-placeholder,
+.signup-bg textarea.form-control::-moz-placeholder, 
+.change_password input.form-control::-moz-placeholder {color:#9c9c9c;}
+
+.login-bg input.form-control::-moz-placeholder,input::-moz-placeholder,
+.signup-bg input.form-control::-moz-placeholder,
+.signup-bg select.form-control::-moz-placeholder,
+.signup-bg textarea.form-control::-moz-placeholder,
+.change_password input.form-control::-moz-placeholder {color:#9c9c9c;}
+
+.login-bg input.form-control::-ms-input-placeholder,
+input::-ms-input-placeholder::-ms-input-placeholder,
+.signup-bg input.form-control::-ms-input-placeholder,
+.signup-bg select.form-control::-ms-input-placeholder,
+.signup-bg textarea.form-control::-ms-input-placeholder,
+.change_password input.form-control::-ms-input-placeholder{color:#9c9c9c;}
+
+.login-bg input.form-control ,.signup-bg input.form-control ,.signup-bg select.form-control,.signup-bg textarea.form-control, .change_password input.form-control{
+	border : 1px solid #ccc;
+	width : 210px;
+	height : 42px;
+	font:normal 13px arial;
+	color : #9c9c9c;
+	height : 40px;
+	text-align:center;
+}
+#merchant_login_form label {/*line-height:16px;vertical-align:middle;*/}
+#merchant_login_form input[type="checkbox"] {/*height: 20px;padding: 0;margin:0;vertical-align: middle;*/}
+.signup-bg select.form-control,.signup-bg input.form-control {  width: 198px;}
+.signup-bg input[type="radio"], .signup-bg input[type="checkbox"] {margin-top:0}
+.text-left {text-align:left !important;}
+.login-bg .error ,.signup-bg .error, .change_password .error {text-align:left;max-width:200px;margin:auto 0px}
+.login-bg input.form-control{width:100%}
+.signup-bg h3 {font-size:30px;color:#454545;font-family:"HelveticaNeue-Light STd","Helvetica Neue Lt STd","HelveticaNeueLTStd35Thin",sans-serif,arial;font-weight:100}
+.signup-bg select.form-control option {text-align:left;}
+
+.signup-bg textarea.form-control { height: 100px; }
+
+.login-bg input.btn ,.signup-bg input.btn {
+	background : #00b3a4;
+	border : 1px solid #00b3a4;
+	color : #fff;
+	cursor : pointer;
+	height : 42px;
+	font-family: 'Helvetica Neue LT Std 75 Bold', 'helvetica neue lt std 75 bold', 'HelveticaNeueLTStd75Bold', sans-serif, 'Arial'; 
+}
+.login-bg input.btn:hover ,.signup-bg input.btn:hover {background-color:#007e69}
+.form-col {
+	display : inline-block;
+	vertical-align: top;
+	height : 65px;
+	width:210px;
+	margin-right:7px;
+}
+.error {
+  clear: both;
+  color: red;
+  display: block;
+  font-size: 12px;
+  text-align: left;
+  font-weight:100;
+}
+a.link, label.link {
+	color : #fff;
+	text-decoration : none;
+	font-weight:normal;
+}
+
+/*--- Signup----*/
+.signup-bg {
+	width : 580px;
+	margin :auto;
+	background : #fff;
+	color : #333333;
+	padding-top : 20px;
+	padding-bottom : 20px;
+	margin-bottom : 30px;
+	display:table;
+	font-size:12px;
+}
+.signup-bg .chk-box-error {color:#737373}
+.signup-bg a {
+	color : #333333;
+	text-decoration : none;
+	font-family: 'Helvetica Neue LT Std 75 Bold', 'helvetica neue lt std 75 bold', 'HelveticaNeueLTStd75Bold', sans-serif, 'Arial'; 
+}
+.signup-bg input.form-control,.signup-bg textarea.form-control, .signup-bg select.form-control { 
+	border-right : 1px solid #ccc;
+	margin : auto;
+}
+.signup-bg .form-group {
+	height : 74px;
+	text-align : center;
+	margin-bottom:0;
+	clear:both;
+}
+.signup-bg .error {/*text-align:center;*/}
+.error-req span.error {
+	left: 0;
+    padding-top: 2px;
+    position: absolute;
+    right: 0;
+    text-align: center;
+    width: 100%;
+	margin:auto;
+}
+.error-req label {margin-top:20px !important;margin-bottom:30px !important;text-align:center;}
+.login-button {
+	position : fixed;
+	left : 0px;
+	z-index : 10;
+	top : 50%;
+}
+.alert {
+  padding-left: 15px;
+  margin-left: 0;
+  position: relative;
+  padding : 7px;
+  margin-left : auto;
+  margin-right : auto;
+  float : none;
+  text-align : center;
+}
+
+.login-button a {
+   -webkit-box-sizing: content-box;
+  -moz-box-sizing: content-box;
+  box-sizing: content-box;
+  width: 52px;
+  height: 0;
+  border: 26px solid #fff;
+  border-left: 0 solid;
+  border-right: 17px solid rgba(0,0,0,0);
+ font-weight:100; font-stretch:normal;
+font:13px/0 "HelveticaNeue-Light STd", "Helvetica Neue Lt STd", "HelveticaNeueLTStd25UltraLight",sans-serif,arial;;
+  color: #333333;
+  -o-text-overflow: clip;
+  text-overflow: clip;
+  
+  display : block;
+  padding-left : 20px;
+  text-decoration : none;
+}
+
+.page-wrap:after {
+	height: 45px; 
+}
+
+.site-footer {
+	clear  : both;
+	position : absolute;
+	z-index : 100;
+	color : #68696b;
+	text-align:center;
+	bottom:0px;
+	width:100%;
+}
+.site-footer a {
+	color : #68696b;
+	text-transform:uppercase;
+	text-decoration : none;
+	margin-left : 19px;
+	margin-right : 20px;
+}
+.site-footer a:hover {
+	color : #fff;
+}
+.site-footer p {margin-bottom:15px;}
+
+#slideshow {
+    position:absolute;
+    z-index:1;
+	width :100%;
+	height : 100%;
+}
+ 
+#slideshow div {
+    position:absolute;
+    top:0;
+    left:0;
+    z-index:8;
+    opacity:0.0;
+	
+	background-attachment: fixed; 
+	background-position: center center;  background-repeat: no-repeat;  
+	-webkit-background-size: cover;
+	-moz-background-size: cover;
+	-o-background-size: cover;
+	background-size: cover;
+	
+   height: 100%;  left: 0;  position: fixed;  width: 100%; 
+}
+ 
+#slideshow div.active {
+    z-index:10;
+    opacity:1.0;
+}
+ 
+#slideshow div.last-active {
+    z-index:9;
+}
+ 
+#slideshow div {
+    /* Set rules to fill background */
+    min-height: 100%;
+    min-width: 1024px;
+ 
+    /* Set up proportionate scaling */
+    width: 100%;
+    height: auto;
+ 
+    /* Set up positioning */
+    position: fixed;
+    top: 0;
+    left: 0;
+}
+ 
+ .content {
+    margin: 0 auto;
+	position:relative;
+	z-index:10;
+}
+#login-box .static_content h1, #login-box .static_content h2, #login-box .static_content h3 {color:#000;padding-top:10px;padding-bottom:10px;}
+#login-box .static_content h1 {font-size:36px;}
+#login-box .static_content h2 {font-size:30px;text-align:left;padding-bottom:0px !important;}
+#login-box .static_content h3 {font-size:24px;text-align:left;padding-bottom:0px !important;}
+#login-box .static_content p {padding-top:6px;}
+
+/* For mobile Device */
+@media screen and (max-width: 360px) {
+	.signup-bg .pull-right {height:74px;}
+	.error-req span.error {padding-top:14px;}
+}
+@media screen and (max-width: 568px) {
+	.signup-bg {width:100%;}
+	.login-button a {width:36px;padding-left:5px;border:19px solid #00B3A4;border-right:10px solid rgba(0, 0, 0, 0);border-left:0px solid;}
+	.signup-bg .pull-left, .signup-bg .pull-right { float:none !important;}
+	.signup-bg .pull-right {height:65px;}
+	.signup-bg .pull-right label {padding-top:16px;}
+	.signup-bg select.form-control, .signup-bg input.form-control {width:100%;}
+	.signup-bg input[type='submit'].form-control {width:65%;}
+	.signup-bg .error {max-width:100%;}
+}
+
+@media screen and (max-width: 640px) {
+	.page-wrap:after {height: 75px;}
+	.login-button a {border:19px solid #00B3A4;border-right:10px solid rgba(0, 0, 0, 0);border-left:0px solid;color:#fff;}
+	.signup-bg .chk-box-error {margin-top:18px;}
+	.site-footer a {/*line-height:24px;*/}
+}
+@media screen and (max-width: 1024px){
+   #slideshow div {
+    left: 50%;
+    margin-left: -512px;
+}
+}
+
+#merchant_login_form a {color:#B8BABC}
+#merchant_login_form a:hover {color:#fff}
+
+@media only screen and (min-width : 320px) and (max-width : 640px) {
+	.signup-bg h3 {padding-top:10px;}
+}
+@media only screen and (min-width : 320px) and (max-width : 640px) and (orientation : portrait) {
+	.site-footer a {margin-left:6.5%;margin-right:6.5%;}
+}
+/* Samsung Galaxy Note */
+@media only screen and (min-width : 400px) and (max-width : 640px) and (orientation : portrait) {
+	.site-footer a {margin-left: 0px;margin-right: 12px;}
+}
+
+@media only screen and (min-width : 768px) and (max-width : 1024px) and (orientation : landscape) {
+	h1 {padding-top:25px;}
+}
+
+@media only screen and (min-width : 768px) and (max-width : 1024px) and (orientation : portrait) {
+	.signup-bg .col-xs-9{width: 80%;}
+	.signup-bg select.form-control, .signup-bg input.form-control {width:210px;}
+	.signup-bg .error {max-width:210px;}
+}
+
+
+
+
+.login_check input[type="checkbox"]{
+	margin-top:0px;
+	vertical-align:middle;
+}
+.login_check label {vertical-align:bottom;height:17px;margin-bottom:10px;line-height:13px}
+.login_check {clear:both}
+.signup-bg .login_check label{font-size:14px}
+.signup-bg .login_check label a {font-size:14px;line-height:13px;height:20px;vertical-align:bottom}
+
+
+
+
+
+
+/* Base for label styling */
+/*
+[type="checkbox"]:not(:checked),
+[type="checkbox"]:checked {
+  position: absolute;
+  left: -9999px;
+}
+[type="checkbox"]:not(:checked) + label,
+[type="checkbox"]:checked + label {
+  position: relative;
+  padding-left: 15px;
+  cursor: pointer;
+}
+
+[type="checkbox"]:not(:checked) + label:before,
+[type="checkbox"]:checked + label:before {
+  content: '';
+  position: absolute;
+  left:0; top: 2px;
+  width: 15px; height: 15px;
+  border: 1px solid #cccccc;
+  border-radius: 2px;
+  background:#fff;
+}
+[type="checkbox"]:not(:checked) + label:after,
+[type="checkbox"]:checked + label:after {
+  position: absolute;
+  top: 0; left: 4px;
+  font-size: 14px;
+  color: #09ad7e;
+  transition: all .2s;
+  content:'\f00c';
+}
+[type="checkbox"]:not(:checked) + label:after {
+  opacity: 0;
+  transform: scale(0);
+}
+[type="checkbox"]:checked + label:after {
+  opacity: 1;
+  transform: scale(1);
+}
+[type="checkbox"]:disabled:not(:checked) + label:before,
+[type="checkbox"]:disabled:checked + label:before {
+  box-shadow: none;
+  border-color: #bbb;
+  background-color: #ddd;
+}
+[type="checkbox"]:disabled:checked + label:after {
+  color: #999;
+}
+[type="checkbox"]:disabled + label {
+  color: #aaa;
+}
+[type="checkbox"]:checked:focus + label:before,
+[type="checkbox"]:not(:checked):focus + label:before {
+
+}
+
+label:hover:before {
+  border: 1px solid #aaa!important;
+}
+*/

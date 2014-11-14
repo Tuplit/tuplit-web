@@ -54,7 +54,7 @@ if(!isset($_SESSION['tuplit_ses_from_timeZone']) || $_SESSION['tuplit_ses_from_t
 commonHead();
 ?>
 
-<body class="skin-blue fixed">
+<body class="skin-blue fixed body_height">
 		<div class="col-xs-12 no-padding">	
 			<section class="content-header">
 				<h1 class="no-margin space_bottom">Product List</h1>

@@ -1,8 +1,16 @@
 <?php
 require_once('includes/CommonIncludes.php');
-merchant_login_check();
+if(isset($_GET['reset']) && $_GET['reset'] == 1){
+	$_SESSION['MerchantPortalAskPin']   =	0;
+	$focus  = 'Pincode';
+}
+else{
+	merchant_login_check();
+	$focus  = 'ShopName';
+}
 
 if(isset($_GET['ajax']) && $_GET['ajax'] == 1) {
+	echo $_POST['img'];
 	echo $_POST['img'];
 	die();
 }
@@ -17,11 +25,11 @@ if(isset($_GET['imgid']) && !empty($_GET['imgid']) && isset($_GET['ext']) && !em
 $merchantCategory = array();
 global $days_array;
 $slideshowcount	=	0;
+$remaining      = 10;
 $merchantId					= 	$_SESSION['merchantInfo']['MerchantId'];
 $url						=	WEB_SERVICE.'v1/merchants/'.$merchantId."?From=0";
 $curlMerchantResponse 		= 	curlRequest($url, 'GET', null, $_SESSION['merchantInfo']['AccessToken']);
-if(isset($curlMerchantResponse) && is_array($curlMerchantResponse) && $curlMerchantResponse['meta']['code'] == 201 && $curlMerchantResponse['merchant']['MerchantId'] != '' ) 
- {
+if(isset($curlMerchantResponse) && is_array($curlMerchantResponse) && $curlMerchantResponse['meta']['code'] == 201 && $curlMerchantResponse['merchant']['MerchantId'] != '' ) {
 	$merchantInfo  			= 	$_SESSION['merchantDetailsInfo']   =	$curlMerchantResponse['merchant'];
 	$newCategory			=	$merchantInfo['Category'];
 }
@@ -32,7 +40,7 @@ if(isset($merchantInfo['PriceRange']) && $merchantInfo['PriceRange'] != ''){
   if(isset( $prizeArray[1] ) &&  $prizeArray[1] !='')
   	$max_val		=	$prizeArray[1];
 }
-$url							=	WEB_SERVICE.'v1/categories/';
+$url							=	WEB_SERVICE.'v1/categories/?From=1';
 $curlCategoryResponse 			= 	curlRequest($url, 'GET', null, $_SESSION['merchantInfo']['AccessToken']);
 if(isset($curlCategoryResponse) && is_array($curlCategoryResponse) && $curlCategoryResponse['meta']['code'] == 201 && is_array($curlCategoryResponse['categoryDetails']) ) {
 	if(isset($curlCategoryResponse['categoryDetails']))
@@ -45,8 +53,6 @@ if(isset($curlCategoryResponse) && is_array($curlCategoryResponse) && $curlCateg
 } else {
 		$errorMessage			= 	"Bad Request";
 }
-
-
 if(isset($_POST) && !empty($_POST)){
 	if(isset($_POST['ShopName']))
 		$merchantInfo['CompanyName']		=	$_POST['ShopName'];
@@ -71,14 +77,27 @@ if(isset($_POST) && !empty($_POST)){
 	if(isset($_POST['State']))
 		$merchantInfo['State']				=	$_POST['State'];
 	if(isset($_POST['Country']))
-		$merchantInfo['LocationCountry']	=	$_POST['Country'];
+		$merchantInfo['Country']	=	$_POST['Country'];
 	if(isset($_POST['Facebook']))
 		$merchantInfo['FBId']				=	$_POST['Facebook'];
 	if(isset($_POST['Twitter']))
 		$merchantInfo['TwitterId']			=	$_POST['Twitter'];
 	if(isset($_POST['DiscountTier']))
 		$merchantInfo['DiscountTier']		=	$discountTierArray[$_POST['DiscountTier']].'%';
-	
+	if(isset($_POST['AutoLock']))
+		$merchantInfo['AutoLock']			=	$_POST['AutoLock'];
+	if(isset($_POST['PanelFeatures']))
+		$merchantInfo['PanelFeatures']		=	$_POST['PanelFeatures'];
+	if(isset($_POST['ProductVAT']))
+		$merchantInfo['ProductVAT']			=	$_POST['ProductVAT'];
+	if(isset($_POST['Emails']))
+		$merchantInfo['Emails']				=	$_POST['Emails'];
+	if(isset($_POST['Security']))
+		$merchantInfo['Security']			=	$_POST['Security'];
+	if(isset($_POST['EmailNotification']))
+		$Notification			= 	1;
+	else
+		$Notification 			= 	0;
 	//Opening Hours
 	$openTiming = array();	
 	if(isset($_POST['samehours']) && $_POST['samehours'] == 'on'){
@@ -118,18 +137,14 @@ if(isset($_POST) && !empty($_POST)){
 		$max_val		=	$_POST['max_price'];
 	if($min_val != '' && $max_val != '')
 		$prizeRange		=	$min_val.','.$max_val;
-	$iconPath	= $imagePath	='';
+	$iconPath	= $imagePath	= $bimagePath = '';
 	if (isset($_POST['icon_photo_upload']) && !empty($_POST['icon_photo_upload'])) {
 		$iconPath		=	TEMP_IMAGE_PATH_REL.$_POST['icon_photo_upload'];
 		if(isset($merchantInfo['Icon']) && $merchantInfo['Icon'] != ''){
 			if(!SERVER){
 				if(file_exists(MERCHANT_ICONS_IMAGE_PATH_REL.$merchantInfo['Icon']))
 					unlink(MERCHANT_ICONS_IMAGE_PATH_REL .$merchantInfo['Icon']);
-			}
-			else{
-				if(image_exists(6,$merchantInfo['Icon'])) 
-					deleteImages(6,$merchantInfo['Icon']);
-			}
+			}			
 		}
 		$merchantInfo['Icon']	=	TEMP_IMAGE_PATH.$_POST['icon_photo_upload'];
 	}
@@ -139,20 +154,24 @@ if(isset($_POST) && !empty($_POST)){
 			if(!SERVER){
 				if(file_exists(MERCHANT_COVER_IMAGE_PATH_REL.$merchantInfo['Image']))
 					unlink(MERCHANT_COVER_IMAGE_PATH_REL . $merchantInfo['Image']);
-			}
-			else{
-				if(image_exists(7,$merchantInfo['Image'])) {
-					deleteImages(7,$merchantInfo['Image']);
-				}
-			}
+			}			
 		}
 		$merchantInfo['Image']	=	TEMP_IMAGE_PATH.$_POST['merchant_photo_upload'];
+	}
+	if (isset($_POST['background_photo_upload']) && !empty($_POST['background_photo_upload'])) {
+		$bimagePath		=	TEMP_IMAGE_PATH_REL.$_POST['background_photo_upload'];
+		if(isset($merchantInfo['Background']) && $merchantInfo['Background'] != ''){
+			if(!SERVER){
+				if(file_exists(MERCHANT_BACKGROUND_IMAGE_PATH_REL.basename($merchantInfo['Background'])))
+					unlink(MERCHANT_BACKGROUND_IMAGE_PATH_REL . basename($merchantInfo['Background']));
+			}
+		}
+		$merchantInfo['Background']	=	TEMP_IMAGE_PATH.$_POST['background_photo_upload'];
 	}
 	$merchantInfo['OpeningHours']	=	$openTiming;
 	$data	=	array(
 					'CompanyName' 		=> 	$_POST['ShopName'],
-					'Email' 			=> 	$_POST['Email'],
-					'Street' 			=> 	$_POST['Street'],
+					'Email' 			=> 	$_POST['Email'],					
 					'PhoneNumber' 		=> 	$_POST['Phone'],
 					'WebsiteUrl' 		=> 	$_POST['Website'],
 					'ShortDescription' 	=> 	$_POST['ShopDescription'],
@@ -160,37 +179,48 @@ if(isset($_POST) && !empty($_POST)){
 					'OpeningHours' 		=> 	$openTiming,
 					'IconPhoto' 		=> 	$iconPath,
 					'MerchantPhoto' 	=> 	$imagePath,
+					'BackgroundPhoto' 	=> 	$bimagePath,
 					'IconExist'			=> 	$_POST['old_icon_photo'],
 					'MerchantExist'		=> 	$_POST['old_merchant_photo'],
+					'BackgroundExist'	=> 	$_POST['old_background_photo'],
 					'PriceRange' 		=> 	$prizeRange,
 					'Categories' 		=> 	$_POST['categorySelected'],
-					'DiscountTier' 		=> 	$_POST['DiscountTier'],
+					'DiscountTier' 		=> 	$_POST['PriceScheme'],
+					'Street' 			=> 	$_POST['Street'],
 					'City'				=> 	$_POST['City'],
 					'State'				=> 	$_POST['State'],
 					'ZipCode'			=> 	$_POST['ZipCode'],
 					'Country'			=> 	$_POST['Country'],
 					'FBId'				=> 	$_POST['Facebook'],
 					'TwitterId'			=> 	$_POST['Twitter'],
-					'TotalImageExt'		=>	$_POST['ImageExt'],
-					'ImageCount'		=>	$_POST['imagecount'],
-					'DeleteIds'			=>	$_POST['DeleteIds'],
-					'DeleteImg'			=>	$_POST['DeleteImg']
+					'uploadimage'		=>	$_POST['uploadimage'],
+					'deleteimage'		=>	$_POST['deleteimage'],
+					'image_data'		=>	$_POST['image_data'],
+					'AutoLock'			=>	$_POST['AutoLock'],
+					'ProductVAT'		=>	$_POST['ProductVAT'],
+					'PanelFeatures'		=>	$_POST['PanelFeatures'],
+					'Emails'			=>	$_POST['Emails'],
+					'Security'			=>	$_POST['Security'],
+					'Pincode'			=>	$_POST['Pincode'],
+					'Password'			=>	$_POST['Password'],
+					'OrderMail'			=>  $Notification
 				);
 	$url			=	WEB_SERVICE.'v1/merchants/';
 	$method			=	'PUT';
-	//echo json_encode($data);
+	/*echo $url."<br>";
+	echo json_encode($data); die();*/
 	$curlResponse	=	curlRequest($url,$method,json_encode($data), $_SESSION['merchantInfo']['AccessToken']);
 	if(isset($curlResponse) && is_array($curlResponse) && $curlResponse['meta']['code'] == 201) {
 		$merchantId					= 	$_SESSION['merchantInfo']['MerchantId'];
-		$url						=	WEB_SERVICE.'v1/merchants/'.$merchantId;
+		$url						=	WEB_SERVICE.'v1/merchants/'.$merchantId.'?From=0';
 		$curlMerchantResponse 		= 	curlRequest($url, 'GET', null, $_SESSION['merchantInfo']['AccessToken']);
 		if(isset($curlMerchantResponse) && is_array($curlMerchantResponse) && $curlMerchantResponse['meta']['code'] == 201 && $curlMerchantResponse['merchant']['MerchantId'] != '' ) 
-		 {
+		{
 			$merchantInfo  						= 	$curlMerchantResponse['merchant'];
 			$_SESSION['merchantDetailsInfo']	=	$merchantInfo;
 			$newCategory						=	$merchantInfo['Category'];
 		}
-	
+		$_SESSION['MerchantPortalAccessTime']   =	time();
 		$successMessage	=	$curlResponse['notifications'][0];
 	} else if(isset($curlResponse['meta']['errorMessage']) && $curlResponse['meta']['errorMessage'] != '') {
 		$errorMessage		=	$curlResponse['meta']['errorMessage'];
@@ -198,8 +228,9 @@ if(isset($_POST) && !empty($_POST)){
 		$errorMessage		= 	"Bad Request";
 	}
 }
-
-$merchantInfo['OpeningHours']	=	formOpeningHours($merchantInfo['OpeningHours']);
+if(isset($merchantInfo['OpeningHours']) && !empty($merchantInfo['OpeningHours'])) {
+	$merchantInfo['OpeningHours']	=	formOpeningHours($merchantInfo['OpeningHours']);
+}
 
 //slideshow images
 $url							=	WEB_SERVICE.'v1/merchants/slideshows/';
@@ -227,297 +258,586 @@ if(isset($errorMessage) && $errorMessage != ''){
 	$successMessage = 	'';
 }
 commonHead();
+$show_cat = 0;
+if(isset($newCategory) && $newCategory>0) 
+$show_cat = $newCategory;
 ?>
-
-<body class="skin-blue fixed" onload="fieldfocus('Address');">
-		<?php top_header(); ?>
-		<section class="content">
-		<div class="col-lg-8 col-md-11 box-center">
-			<section class="content-header">
-                <h1>My Store</h1>
-            </section>
-			<?php if(isset($msg) && $msg != '') { ?>
-				<div align="center" class="alert <?php  echo $class;  ?> alert-dismissable col-xs-12 col-sm-5"><i class="fa <?php  echo $class_icon;  ?>"></i>  <?php echo $msg; ?></div>
-			<?php } ?>
-			<form action="" name="mystore_form" id="mystore_form"  method="post">
-				<div class="row clear">
-					<div class="col-sm-12 col-md-12">					
-					<div class="box box-primary no-padding">
-						<div class="box-header no-padding">
-							<h3 class="box-title"></h3>
-						</div>
-						<div class="form-group col-xs-12 col-md-12">
-							<div class="col-sm-8 col-md-8 control-label no-padding">
-							<label class="control-label" >Shop Name</label>
-							<p class="help-block col-sm-12 no-padding">Name is visible on your card in mobile app</p>
-							</div>
-							<div class="col-sm-4 col-md-4 no-padding"><input type="text" name="ShopName" class="form-control valid"  id="ShopName" value="<?php if(isset($merchantInfo['CompanyName']) && !empty($merchantInfo['CompanyName'])) echo $merchantInfo['CompanyName'];?>"></div>
-						</div>
-						<div class="form-group col-xs-12 col-md-12">
-							<label class="col-sm-12 col-md-12 control-label no-padding border-right"><span>Shop Description</span><em></em></label>
-							<p class="help-block col-sm-12 no-padding">Shop Description(max. 80 characters)</p>
-							<div class="col-sm-12 no-padding"><input type="text" name="ShopDescription"  id="ShopDescription" maxlength="80" placeholder="e.g: The best burger" class="form-control valid" value="<?php if(isset($merchantInfo['ShortDescription']) && !empty($merchantInfo['ShortDescription'])) echo $merchantInfo['ShortDescription'];?>"></div>
-						</div>
-						<div class="form-group col-xs-12 col-sm-12">
-							<label class="col-sm-8 control-label no-padding">Category</label>
-							<div class="col-sm-4 control-label no-padding">
-								<select name="Category" id="Category" class="form-control" onchange="showCategory(this.value)">
-									<option value="">Select</option>	
-									<?php if(isset($categories) && !empty($categories)) {
-										foreach($categories as $key=>$val) {
-										if($key != 'totalCount') {
-									?>
-									<option value="<?php echo $val['CategoryId'];?>"  style="background-image:url(<?php echo $val['CategoryIcon']; ?>);"><?php echo ucfirst($val['CategoryName']);?></option>
-									<?php } } } ?>
-								</select><span id="njkj"></span>
-							</div>
-						</div>
-						<div class="form-group col-xs-12 col-md-12">
-							<?php if(isset($categories) && !empty($categories)) {
-								foreach($categories as $key=>$val) {
-								//echo "<pre>"; echo print_r($val); echo "</pre>";
-							?>
-								<span id="cat_id_<?php echo $val['CategoryId']; ?>" <?php if(in_array($val['CategoryId'],$merchantCategory )){ ?> class="cat_box" <?php } else {?> style="display:none;" class="cat_box" <?php } ?>>
-									<img width="30" src="<?php echo $val['CategoryIcon']; ?>"/>
-									<span class="cname"><?php echo ucfirst($val['CategoryName']);?></span>
-									<a class="delete" title="Remove" href="javascript:void(0)" onclick="removeCategory(<?php echo $val['CategoryId']; ?>,'<?php echo $val['CategoryIcon']; ?>')">
-										<i class="fa fa-trash-o "></i>
-									</a>
-								</span>
-							<?php  } } ?>
-							<input type="Hidden" id="categorySelected" name="categorySelected" value="<?php //if(isset($newCategory) && $newCategory>0) echo $newCategory;?>"/>
-						</div>
-						<div class="form-group col-xs-12 col-md-12 clear">
-							<label class="col-sm-8 col-xs-12  control-label no-padding">Price Range</label>
-							<span class="col-sm-4 col-xs-12  control-label no-padding">
-								<div class="col-xs-5 col-md-5 no-padding">
-									<div class="col-xs-2 col-md-2 no-padding LH30">$</div>
-									<div class="col-xs-9 col-md-10 no-padding"><input type="Text" onchange="price_val(this.value);" maxlength="7" name="min_price" value="<?php if(isset($min_val)) echo $min_val;?>" id="min_price" onkeypress="return isNumberKey_price(event);" class="form-control"></div>
+<?php top_header(); ?>
+<body class="skin-blue fixed body_height" onload="fieldfocus('<?php echo $focus;?>');">
+		
+		<div height="100%" width="100%" id="fancybox-loading" style="display:none;"><img src="./webresources/images/fetch_loader.gif"></img></div>
+		<section class="content mystore">
+			<div class="col-xs-12">
+				<section class="content-header">
+					<h1 style="margin-top:0px;margin-bottom:20px;">My Store</h1>
+				</section>
+				<?php if(isset($msg) && $msg != '') { ?>
+					<div align="center" class="alert <?php  echo $class;  ?> alert-dismissable col-xs-12 col-sm-5 "><i class="fa <?php  echo $class_icon;  ?>"></i>  <?php echo $msg; ?></div>
+				<?php } ?>
+				<form action="" name="Settings_form" id="Settings_form"  method="post" onSubmit="return validateOpenHours();">
+					<div class="col-md-12 box box-center">
+						<div class=" box-primary my_store_form no-padding">
+							<div class="col-md-6" style="padding-top:20px;padding-bottom:20px;">
+								<div class="col-sm-6">
+									<label class="control-label" ><h3 class="no-bottom">Shop Name</h3></label>
+									<p class="help-block col-sm-12 no-padding">Name is visible on your card in mobile app</p>
 								</div>
-								<div class="col-xs-1 col-md-2 no-padding LH30" align="center"><strong>to</strong></div>
-								<div class="col-xs-5 col-md-5 no-padding">
-									<div class="col-xs-2 col-md-2 no-padding LH30">$</div>
-									<div class="col-xs-9 col-md-10 no-padding"><input type="Text" onchange="price_val(this.value);" maxlength="7" name="max_price" value="<?php if(isset($min_val)) echo $max_val;?>" id="max_price" onkeypress="return isNumberKey_price(event);" class="form-control"></div>
-								</div>
-								<input  type="hidden" id="priceValidation" name="priceValidation" value="">
-							</span>
-						</div>
-						<div class="form-group col-xs-12 col-sm-12">
-							<label class="col-sm-8 control-label no-padding">Discount Scheme</label>
-							<div class="col-sm-4 control-label no-padding">
-								<div class=" col-sm-5 no-padding">
-								<select class="form-control" id="DiscountTier" name="DiscountTier" onclick="selectPrice(this.value,'<?php if(isset($ProductsArray) && count($ProductsArray) > 0) echo "1"; else echo "0"; ?>');">
-									<option value="" >Select
-									<?php if(isset($discountTierArray) && is_array($discountTierArray) && count($discountTierArray) > 0) {
-											foreach($discountTierArray as $key=>$value){
-									 ?>
-									<option value="<?php echo $key; ?>" <?php if(isset($merchantInfo['DiscountTier']) &&  $merchantInfo['DiscountTier'] == $value.'%' ) echo 'selected';?>><?php echo $value.'%'; ?>
-									<?php } } ?>
-								</select>
-								</div>
-							</div>
-						</div>
-						<div class="form-group col-xs-12 col-md-12">
-							<div class="col-sm-8 col-md-8 control-label no-padding">
-								<label class="control-label" >Logo</label>
-								<p class="help-block col-sm-12 no-padding">(dimension 100x100)</p>
-							</div>
-							<div class="col-sm-4 col-md-4 no-padding">
-								<div class="col-xs-12 no-padding"><input type="file"  name="icon_photo" id="icon_photo" onchange="return ajaxAdminFileUploadProcess('icon_photo');"  /><br>
-								<span class="error" for="empty_merchant_photo" generated="true" style="display: none">Logo is required</span>
-								 </div>
+								<div class="col-sm-6 mystore_pad"><input type="text" name="ShopName" class="form-control valid"  id="ShopName" value="<?php if(isset($merchantInfo['CompanyName']) && !empty($merchantInfo['CompanyName'])) echo $merchantInfo['CompanyName'];?>"></div>
 								
-								<div class="col-xs-12 no-padding text-left" >
-							      <div id="icon_photo_img" class="">
-									 <?php 
-									 if(!empty($merchantInfo['Icon'])) { 
-										 $image_path = $merchantInfo['Icon'];
-									 ?>
-									 <a href="<?php echo $image_path;?>" class="icon_fancybox" title="">
-									  <img class="img_border" src="<?php echo $image_path;?>" width="75" height="75" alt="Image"/>
-									  </a>
-								 	<?php } ?>
-								  </div>								
-									<input type="Hidden" name="old_icon_photo" id="old_icon_photo" value="<?php if(!empty($merchantInfo['Icon'])) { echo $merchantInfo['Icon']; }?>" />
-									<?php  if(isset($_POST['icon_photo_upload']) && $_POST['icon_photo_upload'] != ''){  ?><input type="Hidden" name="icon_photo_upload" id="icon_photo_upload" value="<?php  echo $_POST['icon_photo_upload'];  ?>"><?php  }  ?>
-											<input type="Hidden" name="empty_icon_photo" id="empty_icon_photo" value="<?php  if(isset($image_path) && $image_path != '') { echo $image_path; }  ?>" />
-											<input type="Hidden" name="name_icon_photo" id="name_icon_photo" value="<?php  if(isset($image_path) && $image_path != '') { echo $image_path; }  ?>" />				
+								<div class="col-sm-12">
+									<label class="col-sm-12 col-md-12 control-label no-padding border-right"><h3 class="no-bottom"><span>Shop Description / Slogan</span></h3></label>
+									<p class="help-block col-sm-12 no-padding">Slogan is shown under the shop name (max. 80 characters)</p>
 								</div>
-							</div>	
-						</div>
-						<div class="form-group col-xs-12 col-md-12">
-							<div class="col-sm-8 col-md-8 control-label no-padding">
-								<label class="control-label" >Image</label>
-								<p class="help-block col-sm-12 no-padding">(dimension 640x260)</p>
-							</div>
-							<div class="col-sm-4 col-md-4 no-padding">
-								<div class="col-xs-12 no-padding"><input type="file"  name="merchant_photo" id="merchant_photo" onclick="" onchange="return ajaxAdminFileUploadProcess('merchant_photo');"   /><br>
-								<span class="error" for="empty_merchant_photo" generated="true" style="display: none">Image is required</span>
+								<div class="col-sm-12">
+									<input type="text" name="ShopDescription"  id="ShopDescription" maxlength="80" style="margin-bottom:20px;" placeholder="e.g: The best burger in town!" class="form-control valid" value="<?php if(isset($merchantInfo['ShortDescription']) && !empty($merchantInfo['ShortDescription'])) echo $merchantInfo['ShortDescription'];?>">
 								</div>
-								
-								<div class="col-xs-12 no-padding"> 
-									  <div id="merchant_photo_img" class="text-left">
-										 <?php 
-										 if(!empty($merchantInfo['Image'])) { 
-										 	$cimage_path = $merchantInfo['Image'];
+								<div class="col-sm-6"><label class="col-sm-8 control-label no-padding"><h3>Category</h3></label></div>
+								<div class="col-sm-6 mystore_pad">
+									<div class="custom-select">
+										<select name="Category" id="Category" class="form-control" onchange="showCategory(this.value)">
+											<option value="">Select</option>	
+											<?php if(isset($categories) && !empty($categories)) {
+												foreach($categories as $key=>$val) {
 											?>
-										  <a href="<?php echo $cimage_path;?>" class="image_fancybox" title="">
-										  <img class="img_border" src="<?php echo $cimage_path;?>" width="200" height="100" alt="Image"/>
-										  </a>
-										<?php } ?>
-									  </div>
-									<input type="Hidden" name="old_merchant_photo" id="old_merchant_photo" value="<?php if(!empty($merchantInfo['Image'])) { echo $merchantInfo['Image']; } ?>" />
-									<?php  if(isset($_POST['merchant_photo_upload']) && $_POST['merchant_photo_upload'] != ''){  ?>
-									<input type="Hidden" name="merchant_photo_upload" id="icon_photo_upload" value="<?php  echo $_POST['merchant_photo_upload'];  ?>"><?php  }  ?>
-									<input type="Hidden" name="empty_merchant_photo" id="empty_merchant_photo" value="<?php  if(isset($cimage_path) && $cimage_path != '') { echo $cimage_path; }  ?>" />
-									<input type="Hidden" name="name_merchant_photo" id="name_merchant_photo" value="<?php  if(isset($cimage_path) && $cimage_path != '') { echo $cimage_path; }  ?>" />				
-								</div>
-							</div>	
-						</div>
-						<div class="form-group col-sm-12 col-xs-12">
-							<label class="col-sm-12 control-label no-padding border-right"><span>Slideshow Pictures</span><em></em></label>
-							<p class="help-block no-padding">Upload upto 10 pictures(resolution is 1000*350 pixels, bigger images will scaled down automatically)</p>
-							<div class="row">
-								<?php if(isset($slideshows) && count($slideshows) > 0) { $mystoreidstot	=	''; 
-									$i = 0;	foreach($slideshows as $val) { $i = $i + 1;	
-									if(!empty($mystoreidstot))
-										$mystoreidstot	.=	','.$val['id'];
-									else
-										$mystoreidstot	=	$val['id'];
-								?>
-									<div class="col-sm-6 col-xs-12 form-group" id="myStore_<?php echo $val['id']; ?>">
-										<div class="col-xs-1 no-padding" id="imgStoreCount_<?php echo $val['id']; ?>"><?php echo $i; ?>.</div>
-										<div class="col-xs-11 no-padding" align="center">
-											<div  class="photo_gray_bg">
-												<a href="<?php echo $val['imagePath']; ?>" class="image_fancybox" title="">
-												<img style="vertical-align:top" class="" src="<?php echo $val['imagePath']; ?>" width="330" height="160" alt="">
-												</a>
-											</div>
-										</div>
-										<div class="col-xs-12">&nbsp;</div>										
-										<div class="col-xs-2 col-md-1 clear">&nbsp;</div>
-										<div class="col-xs-10 col-md-11" align="center">
-											<input type="button" name="" id="" value="Delete" title="Delete" class="box-center btn btn-danger  col-xs-10" onclick="return deleteMyStoreImage('<?php echo $val['id']; ?>','<?php echo $val['SlideshowName']; ?>')">
-										</div>
+											<option value="<?php echo $val['CategoryId'];?>"  style="background-image:url(<?php echo $val['CategoryIcon']; ?>);"><?php echo trim(ucfirst($val['CategoryName']));?></option>
+											<?php } }  ?>
+										</select>
+										<span id="njkj"></span>
 									</div>
-								<?php }	}?>									
-									<div class="col-sm-6 col-xs-12 form-group" id='temp0' <?php  if($slideshowcount >= 10) echo 'style="display:none;"'; ?> >
-										<div class="col-xs-1 no-padding" id="imgcount"><?php echo $slideshowcount + 1; ?>.</div>
-										<div class="col-xs-11 no-padding" align="center" id="drop-files" ondragover="return false">
-											<div  class="photo_gray_bg_light" >
-												<img style="vertical-align:top" class="resize" id="imgdrag" src="<?php SITE_PATH;?>webresources/images/no_photo_my_store.png" width="330" height="160" alt="">
-											</div>											
-											<div class="drag_pos" id="holder">
-												Drag & drop an image or
-												<span>
-												choose a file to upload
-												<input type="file" name="myStore" id="myStore" onchange="return ajaxAdminFileUploadProcess('myStore');" >
-												</span>
-											</div>
-										</div>
-										<div class="col-xs-12">&nbsp;</div>
-										<div class="col-xs-2 col-md-1 clear">&nbsp;</div>
-										<div class="col-xs-10 col-md-11" align="center">
-											<!--<input type="button" name="Upload" id="Upload" value="Upload" title="Upload" class="box-center btn btn-success  col-xs-10">-->
-										</div>
-									</div>									
-							</div>
-							<input type="hidden" id="totalImageNow" name="totalImageNow" value="<?php if(isset($slideshowcount) && !empty($slideshowcount)) echo $slideshowcount; else echo "0"; ?>" />
-							<input type="hidden" id="totalImage" name="totalImage" value="<?php if(isset($slideshowcount) && !empty($slideshowcount)) echo $slideshowcount; else echo "0"; ?>" />
-							<input type="hidden" id="oldtotalImage" name="oldtotalImage" value="<?php if(isset($slideshowcount) && !empty($slideshowcount)) echo $slideshowcount; else echo "0"; ?>" />
-							<input type="hidden" id="imagecount" name="imagecount" value="" />
-							<input type="hidden" id="ImageExt" name="ImageExt" value="" />
-							<input type="hidden" id="DeleteIds" name="DeleteIds" value="" />
-							<input type="hidden" id="DeleteImg" name="DeleteImg" value="" />
-							<input type="hidden" id="mystoreidstot" name="mystoreidstot" value="<?php if(isset($mystoreidstot) && !empty($mystoreidstot)) echo $mystoreidstot; ?>" />
-						</div>
-						
-						<div class="form-group col-xs-12 col-md-12">
-							<label class="col-sm-12 control-label no-padding border-right"><span>More Info</span><em></em></label>
-							<p class="help-block no-padding">More info ...............(max. 300 characters) </p>
-							<span class="col-md-12 no-padding"><input type="text" name="MoreInfo"  id="MoreInfo" maxlength="300" placeholder="More Info" class="form-control valid" value="<?php if(isset($merchantInfo['Description']) && !empty($merchantInfo['Description'])) echo $merchantInfo['Description'];?>"></span>	
-						</div>
-						<div class="form-group col-xs-12 col-md-12 clearfix no-padding">
-						<div class="form-group col-xs-12 col-md-12">
-							<label class="col-sm-12  control-label no-padding border-right"><span>Contact Info</span><em></em></label>
-							<div class="form-group col-sm-3 col-md-2 no-padding"><input type="button" title="Use my location" value="Use my location" class="btn bg-olive btn-md " /></div>
-							<div class="col-sm-9 col-md-10 no-padding">
-								<div class="show-grid form-group col-sm-9 no-padding">
-									<div class="form-group col-sm-12 no-padding"><input type="text"  id="Street" name="Street" value="<?php if(isset($merchantInfo['Address']) && !empty($merchantInfo['Address'])) echo $merchantInfo['Address'];?>" placeholder="Street Address" class="form-control"></div>
-									<div class="form-group col-sm-7 no-padding"><input type="text"  id="City" name="City" value="<?php if(isset($merchantInfo['City']) && !empty($merchantInfo['City'])) echo $merchantInfo['City'];?>" placeholder="City" class="form-control"></div>
-									<div class="form-group col-sm-5 no-padding-right"><input type="text"  id="ZipCode" name="ZipCode" value="<?php if(isset($merchantInfo['PostCode']) && !empty($merchantInfo['PostCode'])) echo $merchantInfo['PostCode'];?>" placeholder="ZIP" class="form-control"></div>
-									<div class="form-group col-sm-12 no-padding"><input type="text"  id="State" name="State" value="<?php if(isset($merchantInfo['State']) && !empty($merchantInfo['State'])) echo $merchantInfo['State'];?>" placeholder="State" class="form-control"></div>	
-									<div class="form-group col-sm-12 no-padding"><input type="text"  id="Country" name="Country" value="<?php if(isset($merchantInfo['LocationCountry']) && !empty($merchantInfo['LocationCountry'])) echo $merchantInfo['LocationCountry'];?>" placeholder="Country" class="form-control"></div>	
 								</div>
-								<div class="show-grid form-group col-sm-9 no-padding">
-									<div class="form-group col-sm-12 no-padding"><input type="text"  id="Phone" name="Phone" value="<?php if(isset($merchantInfo['PhoneNumber']) && !empty($merchantInfo['PhoneNumber'])) echo $merchantInfo['PhoneNumber'];?>" placeholder="Phone" class="form-control"></div>	
-									<div class="form-group col-sm-12 no-padding"><input type="text"  id="Email" name="Email" value="<?php if(isset($merchantInfo['Email']) && !empty($merchantInfo['Email'])) echo $merchantInfo['Email'];?>" placeholder="Email" class="form-control"></div>	
-									<div class="form-group col-sm-12 no-padding"><input type="text"  id="Website" name="Website" value="<?php if(isset($merchantInfo['WebsiteUrl']) && !empty($merchantInfo['WebsiteUrl'])) echo $merchantInfo['WebsiteUrl'];?>" placeholder="Website" class="form-control"></div>
+								<div class="col-xs-12">
+									<?php if(isset($categories) && !empty($categories)) {
+											foreach($categories as $key=>$val) {
+									?>
+									<span id="cat_id_<?php echo $val['CategoryId']; ?>" <?php if(in_array($val['CategoryId'],$merchantCategory )){ ?> class="cat_box" <?php } else {?> style="display:none;" class="cat_box" <?php } ?>>
+										<img width="30" src="<?php echo $val['CategoryIcon']; ?>"/>
+										<span class="cname"><?php echo ucfirst($val['CategoryName']);?></span>
+										<a class="delete" title="Remove" href="javascript:void(0)" onclick="removeCategory(<?php echo $val['CategoryId']; ?>,'<?php echo $val['CategoryIcon']; ?>')">
+											<i class="fa fa-trash-o "></i>
+										</a>
+									</span>
+									<?php  } } ?>
+									<input type="Hidden" id="categorySelected" name="categorySelected" value="<?php if(isset($newCategory) && $newCategory>0) echo $newCategory;?>"/>
 								</div>
-								<div class="form-group col-sm-9 no-padding">
-									<input type="text"  id="Facebook" name="Facebook" value="<?php if(isset($merchantInfo['FBId']) && !empty($merchantInfo['FBId'])) echo $merchantInfo['FBId'];?>" placeholder="Facebook" class="form-control">
-									<p class="help-block col-sm-12 no-padding">eg: http://www.facebook.com/example</p>
-								</div>	
-								<div class="form-group col-sm-9 no-padding">
-									<input type="text"  id="Twitter" name="Twitter" value="<?php if(isset($merchantInfo['TwitterId']) && !empty($merchantInfo['TwitterId'])) echo $merchantInfo['TwitterId'];?>" placeholder="Twitter" class="form-control">
-									<p class="help-block col-sm-12 no-padding">eg: http://www.twitter.com/example</p>
-								</div>													
+								<div class="col-sm-6"><label class="col-sm-8 col-xs-12  control-label no-padding"><h3>Price Range</h3></label></div>
+ 								<div class="col-sm-6 mystore_pad">
+									<span class="col-sm-12 col-xs-12  control-label no-padding">
+										<div class="col-xs-5 col-md-5 no-padding">
+											<div class="col-xs-2 col-md-2 no-padding LH30"><?php echo '&pound;';?></div>
+											<div class="col-xs-9 col-md-10 no-padding"><input type="Text" onchange="price_val(this.value);" maxlength="7" name="min_price" value="<?php if(isset($min_val)) echo $min_val;?>" id="min_price" onkeypress="return isNumberKey_price(event);" class="form-control"></div>
+										</div>
+										<div class="col-xs-1 col-md-2 no-padding LH30" align="center"><strong>to</strong></div>
+										<div class="col-xs-5 col-md-5 no-padding">
+											<div class="col-xs-2 col-md-2 no-padding LH30"><?php echo '&pound;';?></div>
+											<div class="col-xs-9 col-md-10 no-padding"><input type="Text" onchange="price_val(this.value);" maxlength="7" name="max_price" value="<?php if(isset($min_val)) echo $max_val;?>" id="max_price" onkeypress="return isNumberKey_price(event);" class="form-control"></div>
+										</div>
+										<input  type="hidden" id="priceValidation" name="priceValidation" value="">
+									</span>
+								</div>								
+								<!-- <div class="col-sm-6"><label class="col-sm-8 control-label no-padding"><h3>Discount Scheme</h3></label></div> -->
+								<!-- <div class="col-sm-6 mystore_pad">
+									<select class="form-control" id="DiscountTier" name="DiscountTier" onclick="selectPrice(this.value,'<?php if(isset($ProductsArray) && count($ProductsArray) > 0) echo "1"; else echo "0"; ?>');">
+													<option value="" >Select
+													<?php if(isset($discountTierArray) && is_array($discountTierArray) && count($discountTierArray) > 0) {
+															foreach($discountTierArray as $key=>$value){
+													 ?>
+													<option value="<?php echo $key; ?>" <?php if(isset($merchantInfo['DiscountTier']) &&  $merchantInfo['DiscountTier'] == $value.'%' ) echo 'selected';?>><?php echo $value.'%'; ?>
+													<?php } } ?>
+												</select>
+								</div> -->
 								
-							</div>
-						</div>
-						<div class="form-group col-xs-12 col-md-12">
-							<label class="col-sm-12 col-md-12 control-label no-padding border-right"><span>Business Hours</span><em></em></label>
-							<p class="help-block col-sm-12 no-padding">Open Hours leave as empty for not service</p>
-							<?php 
-							if(isset($days_array) && count($days_array)>0) {
-							foreach($days_array as $key=>$val){ ?>
-							<div class="col-xs-12 no-padding form-group <?php if($key != 0) echo "rowHide";?>"  <?php if(isset($merchantInfo['OpeningHours'][0]['DateType']) && $merchantInfo['OpeningHours'][0]['DateType'] == '1' && $key != 0) echo 'style="display:none;"'; ?>>
-								<?php if($key == 0) { ?>
-									<div class="col-sm-4 col-lg-3 col-xs-12 no-padding">
-										<input type="checkbox" name="samehours" id="samehours"  onclick="return hideAllDays();" <?php if(isset($merchantInfo['OpeningHours'][0]['DateType']) && $merchantInfo['OpeningHours'][0]['DateType'] == '1') echo "checked"; ?>>&nbsp;Same for all days 
-										<input type="hidden" id="showdays" name="showdays" value="<?php if(isset($merchantInfo['OpeningHours'][0]['DateType']) && $merchantInfo['OpeningHours'][0]['DateType'] == '1') echo 'checked'; ?>"/>
+								<div class="col-sm-6 clear">
+									<label class="col-sm-12 col-md-12 col-lg-8 col-xs-12 control-label no-padding"><h3 class="no-bottom">Logo</h3></label>
+									<p class="help-block col-sm-12 no-padding">Please upload only JPG or PNG files.<br>The best resolution is 100X100 pixels.</p>
+								</div>
+								<div class="col-sm-6 mystore_pad">
+									<div class="col-xs-12 no-padding text-left" >
+										 <?php 
+										 if(!empty($merchantInfo['Icon'])) { 
+											 $image_path = $merchantInfo['Icon'];
+										 ?>
+										 <div id="icon_photo_img" class="col-xs-6 col-sm-6 col-md-6 col-lg-6 no-padding image-border">
+											 <a onclick="return loaded;" href="<?php echo $image_path;?>" class="icon_fancybox" title="">
+											  <img class="photo_img_border" src="<?php echo $image_path;?>" width="86" height="86" alt="Image"/>
+											  </a>
+										  </div>
+										<?php } else { ?>
+											<div id="icon_photo_img" class="col-xs-6 col-sm-6 col-md-6 col-lg-6 no-padding image-border upload_img"  style="float:left;"></div>
+										<?php } ?>
+									  <div class="col-xs-6 col-sm-6 col-md-6 col-lg-6 no-padding drag_pos LH80">UPLOAD <input type="file"  name="icon_photo" id="icon_photo" title="Upload"/><br>
+										<!--<span class="error" for="empty_merchant_photo" generated="true" style="display: none">Logo is required</span>-->
+									</div>								
+										<input type="Hidden" name="old_icon_photo" id="old_icon_photo" value="<?php if(!empty($merchantInfo['Icon'])) { echo $merchantInfo['Icon']; }?>" />
+										<?php  if(isset($_POST['icon_photo_upload']) && $_POST['icon_photo_upload'] != ''){  ?><input type="Hidden" name="icon_photo_upload" id="icon_photo_upload" value="<?php  echo $_POST['icon_photo_upload'];  ?>"><?php  }  ?>
+												<input type="Hidden" name="empty_icon_photo" id="empty_icon_photo" value="<?php  if(isset($image_path) && $image_path != '') { echo $image_path; }  ?>" />
+												<input type="Hidden" name="name_icon_photo" id="name_icon_photo" value="<?php  if(isset($image_path) && $image_path != '') { echo $image_path; }  ?>" />				
 									</div>
-									<div class="col-xs-6 col-sm-4 col-xs-6 no-padding LH30">From :</div>
-									<div class="col-xs-5 col-sm-4 col-xs-6 no-padding LH30">To :</div>
-								<?php } ?>
-								<div class="col-sm-4  col-lg-3 col-xs-12  no-padding LH30"><strong><span class="<?php if($key == 0) echo "rowshow";?>"><?php if(isset($merchantInfo['OpeningHours'][0]['DateType']) && $merchantInfo['OpeningHours'][0]['DateType'] == '1' && $key == 0) echo "Monday to Sunday"; else echo $val.""; ?></span></strong></div>
-								<div class="col-sm-4 col-xs-6  no-padding select_sm">
-									<input type="text" rowid="<?php echo $key; ?>" class="form-control timepicker" style="width:50%" id="from1_<?php echo $key; ?>" name="from1_<?php echo $key; ?>" value="<?php if(isset($merchantInfo['OpeningHours'][$key]['Start']['fromTime'])) echo $merchantInfo['OpeningHours'][$key]['Start']['fromTime']; ?>" readonly>
-									<input type="hidden" id="row_<?php echo $key; ?>" name="row_<?php echo $key; ?>" value="<?php if(!empty($merchantInfo['OpeningHours'][$key]['Start']['fromTime']) || !empty($merchantInfo['OpeningHours'][$key]['End']['toTime'])) echo "1"; ?>" />
-									<span id="error_<?php echo $key; ?>" style="color:red;"></span>
 								</div>
-								<div class="col-sm-4 col-xs-6  no-padding select_sm">
-									<input type="text" rowid="<?php echo $key; ?>" class="form-control timepicker" style="width:50%" id="to1_<?php echo $key; ?>" name="to1_<?php echo $key; ?>" value="<?php if(isset($merchantInfo['OpeningHours'][$key]['End']['toTime'])) echo $merchantInfo['OpeningHours'][$key]['End']['toTime']; ?>" readonly>
+								<div class="col-sm-6">
+									<label class="col-sm-12 col-md-12 col-lg-8 col-xs-12 control-label no-padding"><h3 class="no-bottom">Image</h3></label>
+									<p class="help-block col-sm-12 no-padding">Please upload only JPG or PNG files.<br>The best resolution is 260X640 pixels.</p>
 								</div>
-								<input type="hidden" id="id_<?php echo $key; ?>" name="id_<?php echo $key; ?>" value="<?php if(isset($merchantInfo['OpeningHours'][$key]['id'])) echo $merchantInfo['OpeningHours'][$key]['id']; ?>" >
+								<div class="col-sm-6 mystore_pad">
+									<div class="col-xs-12 no-padding text-left" >
+										<?php 
+										if(!empty($merchantInfo['Image'])) { 
+											$cimage_path = $merchantInfo['Image'];
+										?>
+										<div id="merchant_photo_img" class="col-xs-6 col-sm-6 col-md-6 col-lg-6 no-padding image-border">
+											<a onclick="return loaded;" href="<?php echo $cimage_path;?>" class="image_fancybox" title="">
+												<img class="" src="<?php echo $cimage_path;?>" width="100" height="100" alt="Image"/>
+											</a>
+										</div>
+										<?php } else { ?>
+											<div id="merchant_photo_img" class="col-xs-6 col-sm-6 col-md-6 col-lg-6 no-padding image-border upload_img" style="float:left;"></div>
+										<?php } ?>										  
+										<div class="col-xs-6 col-sm-6 col-md-6 col-lg-6 no-padding drag_pos LH80">UPLOAD<input type="file"  name="merchant_photo" id="merchant_photo"/><br>
+											<!--<span class="error" for="empty_merchant_photo" generated="true" style="display: none">Image is required</span>-->
+										</div>
+										<input type="Hidden" name="old_merchant_photo" id="old_merchant_photo" value="<?php if(!empty($merchantInfo['Image'])) { echo $merchantInfo['Image']; } ?>" />
+										<?php  if(isset($_POST['merchant_photo_upload']) && $_POST['merchant_photo_upload'] != ''){  ?>
+										<input type="Hidden" name="merchant_photo_upload" id="icon_photo_upload" value="<?php  echo $_POST['merchant_photo_upload'];  ?>"><?php  }  ?>
+										<input type="Hidden" name="empty_merchant_photo" id="empty_merchant_photo" value="<?php  if(isset($cimage_path) && $cimage_path != '') { echo $cimage_path; }  ?>" />
+										<input type="Hidden" name="name_merchant_photo" id="name_merchant_photo" value="<?php  if(isset($cimage_path) && $cimage_path != '') { echo $cimage_path; }  ?>" />				
+									</div>
+								</div>
+								
+								<div class="col-sm-6">
+									<label class="col-sm-12 col-md-12 col-lg-8 col-xs-12  control-label no-padding"><h3 class="no-bottom">Background Image</h3></label>
+									<p class="help-block col-sm-12 no-padding">Please upload only JPG or PNG files.<br>The best resolution is 100X100 pixels.</p>
+								</div>
+								<div class="col-xs-12 col-sm-6 mystore_pad">
+									<div class="col-xs-6 col-sm-6 col-md-6 col-lg-6 no-padding text-left image-border" >
+										  <div id="background_photo_img" class="upload_img">
+											 <?php 
+											 if(!empty($merchantInfo['Background'])) { 
+												$bimage_path = $merchantInfo['Background'];
+												?>
+											  <a onclick="return loaded;" href="<?php echo $bimage_path;?>" class="image_fancybox" title="">
+											  <img class="" src="<?php echo $bimage_path;?>" width="100" height="100" alt="Image"/>
+											  </a>
+											<?php } ?>
+										  </div>
+										<input type="Hidden" name="old_background_photo" id="old_background_photo" value="<?php if(!empty($merchantInfo['Background'])) { echo $merchantInfo['Background']; } ?>" />
+										<?php  if(isset($_POST['background_photo_upload']) && $_POST['background_photo_upload'] != ''){  ?>
+										<input type="Hidden" name="background_photo_upload" id="background_photo_upload" value="<?php  echo $_POST['background_photo_upload'];  ?>"><?php  }  ?>
+										<input type="Hidden" name="empty_background_photo" id="empty_background_photo" value="<?php  if(isset($bimage_path) && $bimage_path != '') { echo $bimage_path; }  ?>" />
+										<input type="Hidden" name="name_background_photo" id="name_background_photo" value="<?php  if(isset($bimage_path) && $bimage_path != '') { echo $bimage_path; }  ?>" />				
+									</div>
+									<div class="col-xs-6 col-sm-6 col-md-6 col-lg-6 no-padding drag_pos LH80">UPLOAD<input type="file"  name="background_photo" id="background_photo"/><br>
+										<!--<span class="error" for="empty_merchant_photo" generated="true" style="display: none">Image is required</span>-->
+									</div>
+									
+								</div>
+														
+								<div class="col-xs-12 col-sm-12">
+									<label class="col-sm-12 control-label no-padding "><h3 class="no-bottom"><span>Slideshow pictures</span></h3></label>
+									<p class="help-block no-padding">Upload up to 10 pictures (optimum resolution is 260x640 pixels, bigger images will be scaled down
+										automatically. Please upload only JPG or PNG files.)</p>
+								</div>
+								<div class="col-sm-12">
+									<div class="row">
+								<?php $i = 0;	if(isset($slideshows) && count($slideshows) > 0) { 
+											$slideshowcount	=	count($slideshows);
+											foreach($slideshows as $val) { 
+											$i = $i + 1;	
+										?>
+										<div class="col-sm-6 col-xs-12 form-group">
+											<div class="col-xs-12 no-padding">
+												<div class="col-xs-6 col-md-6 no-padding image-border" align="left" id="image_<?php echo $i; ?>">
+													<div  class="photo_gray_bg" style="background-color:#fff;"> 
+														<a onclick="return loaded;" href="<?php echo $val['imagePath']; ?>" class="image_fancybox" title="">
+														<img style="vertical-align:top" class="" src="<?php echo $val['imagePath']; ?>" width="76" height="40" alt="">
+														</a>
+													</div>
+												</div>
+												<div class="col-xs-6 col-md-6 no-padding" align="left" id="default_<?php echo $i; ?>"  style="display:none;">
+													<img style="vertical-align:top" class="resize" id="imgdrag" src="<?php SITE_PATH;?>webresources/images/no_photo.png" alt="">
+												</div>
+												<div class="col-lg-6 col-sm-6 col-xs-6 no-padding" align="left" id="upload_<?php echo $i; ?>"  style="display:none;">
+													<div class="drag_pos pull-left" id="holder" style="font-size:11px !important;">
+														UPLOAD
+														<input type="file" name="myStore_<?php echo $i; ?>" id="myStore_<?php echo $i; ?>" title="upload">
+													</div>
+												</div>
+												<div class="col-lg-6 col-sm-6 col-xs-6" align="left" id="delete_<?php echo $i; ?>">
+													<a  href="javascript:void(0);" title="Delete" class="delete_image col-xs-12 no-padding" onclick="return deleteMyStoreImage('<?php echo $i;?>')"><i class="fa fa-trash-o"></i>&nbsp;&nbsp;DELETE</a>
+												</div>
+											</div>
+											<input type="hidden" id="uploadimage_<?php echo $i; ?>" name="uploadimage[]" value="" />
+											<input type="hidden" id="deleteimage_<?php echo $i; ?>" name="deleteimage[]" value="" />
+											<input type="hidden" id="image_Id_<?php echo $i; ?>" name="image_Id[]" value="<?php echo $val['id']; ?>" />
+											<input type="hidden" id="image_data_<?php echo $i; ?>" name="image_data[]" value="<?php echo $val['SlideshowName']; ?>" />
+										</div>
+										<?php }	}?>
+										<?php for($n=$slideshowcount;$n<=9;$n++){ $i = $i + 1 ?>
+										<div class="col-sm-6 col-xs-12 form-group">
+											<div class="col-xs-12 no-padding">
+												<div class="col-xs-6 col-md-6 no-padding" align="left" id="image_<?php echo $i; ?>"   style="display:none;">
+													<div  class="photo_gray_bg" style="background-color:#fff;"> 
+														<a onclick="return loaded;" href="<?php if(isset($val['imagePath']) && !empty($val['imagePath']))echo $val['imagePath']; else echo '';  ?>" class="image_fancybox" title="">
+														<img style="vertical-align:top" class="" src="" width="76" height="40" alt="">
+														</a>
+													</div>
+												</div>
+												<div class="col-xs-6 col-md-6 no-padding" align="left" id="default_<?php echo $i; ?>">
+													<img style="vertical-align:top" class="resize" id="imgdrag" src="<?php SITE_PATH;?>webresources/images/no_photo.png" alt="">
+												</div>
+												<div class="col-lg-6 col-sm-6 col-xs-6 no-padding" align="left" id="upload_<?php echo $i; ?>">
+													<div class="drag_pos pull-left" id="holder" style="font-size:11px !important;">
+														UPLOAD
+														<input type="file" name="myStore_<?php echo $i; ?>" id="myStore_<?php echo $i; ?>" title="upload">
+													</div>
+												</div>
+												<div class="col-lg-6 col-sm-6 col-xs-6" align="left" id="delete_<?php echo $i; ?>"   style="display:none;">
+													<a  href="javascript:void(0);" title="Delete" class="delete_image col-xs-12 no-padding" onclick="return deleteMyStoreImage('<?php echo $i; ?>')"><i class="fa fa-trash-o"></i>&nbsp;&nbsp;DELETE</a>
+												</div>
+											</div>
+											<input type="hidden" id="uploadimage_<?php echo $i; ?>" name="uploadimage[]" value="" />
+											<input type="hidden" id="deleteimage_<?php echo $i; ?>" name="deleteimage[]" value="" />
+											<input type="hidden" id="image_Id_<?php echo $i; ?>" name="image_Id[]" value="" />
+											<input type="hidden" id="image_data_<?php echo $i; ?>" name="image_data[]" value="" />
+										</div>		
+										<?php } ?>						
+									</div>
+								</div>
+								
+								<!-- Price Scheme -->
+								<div class="col-sm-9">
+									<label class="control-label"><h3 class="no-bottom">Price Scheme</h3></label>
+									<p class="help-block col-sm-12 no-padding">Price Scheme defines how much will all product be discounted</p>
+								</div>
+								<div class="col-sm-3">
+									<div class="custom-select top-margin24">
+										<select name="PriceScheme" id="PriceScheme" class="form-control">
+											<option value="">Select</option>	
+											<?php if(isset($discountTierArray) && is_array($discountTierArray) && count($discountTierArray) > 0) {
+												foreach($discountTierArray as $key=>$val) {
+											?>
+											<option value="<?php echo $key; ?>" <?php if(isset($merchantInfo['DiscountTier']) &&  $merchantInfo['DiscountTier'] == $val.'%' ) echo 'selected';?>><?php echo $val.'%'; ?>
+											<?php } } ?>
+										</select>
+										<span id="njkj"></span>
+									</div>
+								</div>
+								<!-- Price Scheme -->
+								
+								<!-- Product VAT% -->
+								<div class="col-sm-9">
+									<label class="control-label"><h3 class="no-bottom">Product VAT %</h3></label>
+									<p class="help-block no-padding">Taxes percent included to each product price</p>
+								</div>
+								<div class="col-sm-3">
+									<div class="custom-select top-margin24">
+										<select name="ProductVAT" id="ProductVAT" class="form-control">
+											<option value="">Select</option>	
+											<?php if(isset($ProductVAT) && is_array($ProductVAT) && count($ProductVAT) > 0) {
+												foreach($ProductVAT as $key=>$val) {
+											?>
+											<option value="<?php echo $key;?>" <?php if(isset($merchantInfo['ProductVAT']) &&  $merchantInfo['ProductVAT'] == $key ) echo 'selected';?> ><?php echo $val.'%'; ?></option>
+											
+											<?php } } ?>
+										</select>
+										<span id="njkj"></span>
+									</div>
+								</div>
+								<!-- Product VAT% -->
+								
+								<!-- Panel Features -->
+								<div class="col-sm-12">
+									<label class="col-sm-12 col-md-12 control-label no-padding"><h3 class="no-bottom">Panel Features and Info</h3></label>
+									<p class="help-block col-sm-12 no-padding">Information about this part of the settings page(only if needed)</p>
+								</div>
+								<div class="col-sm-12">
+									<textarea type="text" name="PanelFeatures"  id="PanelFeatures" rows="4" cols="3" maxlength="80" placeholder="Please specify the content" class="form-control valid"><?php  if(isset($merchantInfo['PanelFeatures']) &&  $merchantInfo['PanelFeatures'] != '' ) echo  $merchantInfo['PanelFeatures'];?></textarea>
+								</div>
+								<!-- Panel Features -->
+								
+								<!-- Communications -->
+								<div class="col-sm-12">
+									<label class="col-sm-12 col-md-12 control-label no-padding border-right"><h3><span>Communication</span></h3></label>
+								</div>
+								<div class="col-sm-12">
+									<div class="col-sm-6 col-xs-12 form-group no-padding" style="">
+									<div class="col-xs-12 no-padding">
+										<div class="col-xs-8 col-sm-6 col-md-6 no-padding" style="">
+											<b>Order Email Notification</b>
+										</div>
+										<div class="col-xs-4 col-sm-6 col-md-6 no-padding">
+												<span class="email_notification">
+												<input checked="checked" style="display: none;" id="EmailNotification" name="EmailNotification" type="checkbox">
+												<input type="hidden" id="Notification_val" name="Notification_val" value="<?php if(isset($Notification) && $Notification == '1') echo "1"; else if(isset($Notification) && $Notification == '0') echo "0"; else echo "1"; ?>"></span>
+										</div>
+									</div>
+									</div>
+								</div>
+								<!-- Communications -->
+								
+								<!-- Emails -->
+								<div class="col-sm-12">
+									<label class="col-sm-12 col-md-12 control-label no-padding border-right"><h3><span>Emails</span></h3></label>
+								</div>
+								<div class="col-sm-12">
+									<input type="text" name="Emails" class="form-control valid"  id="Emails" placeholder="Please type in all email addresses dividing tem by coma(,)" value="<?php if(isset($merchantInfo['Emails']) &&  $merchantInfo['Emails'] != '' ) echo  $merchantInfo['Emails'];?>">
+								</div>
+								<!-- Emails -->
+								<div class="col-sm-12">
+									<div class=" box-primary no-padding">
+										<label class="col-sm-12 col-md-12 control-label no-padding border-right"><h3><span>Payment Account</span></h3></label>
+										<?php if(isset($merchantInfo['MangoPayUniqueId']) && $merchantInfo['MangoPayUniqueId']!= ''){?>
+										<div class="form-group col-md-12  no-padding" style="">
+											<h4 class="box-title text-teal" style="margin-bottom:0px;"><strong>Connected with Mango Pay</strong></h4>
+										</div>
+										<div class="form-group col-md-12  no-padding error_msg_align LH34">
+											<label class="pad5"></label><a onclick="return loaded;" href="MangoPayAccount?MId=<?php echo base64_encode($merchantInfo['MangoPayUniqueId']);?>" class="MangoPay">
+											<button type="button" name="MangoPay" id="MangoPay" value="" class="btn bg-olive btn-md ">
+												<!--<i class="fa fa-plus"></i>--> Edit Mangopay Account
+											</button></a> 
+										</div>
+										<?php } else {?>
+										<div class="form-group col-md-12 no-padding error_msg_align ">
+											<label class="pad5"></label><a onclick="return loaded;" href="MangoPayAccount" class="MangoPay">
+											<button type="button" name="MangoPay" id="MangoPay" value="" class="btn bg-olive btn-md ">
+												<i class="fa fa-plus"></i> Add Mangopay Account
+											</button></a> 
+										</div>
+										<?php } ?>
+										<?php if(!SERVER && isset($merchantInfo['MangoPayUniqueId']) && $merchantInfo['MangoPayUniqueId']!= ''){?>
+										<div class="form-group col-md-12 no-padding error_msg_align ">
+											<label class="pad5"></label><a onclick="return loaded;" href="MangoPayBankAccount?MId=<?php echo base64_encode($merchantInfo['MangoPayUniqueId']);?>" class="MangoPay">
+											<button type="button" name="MangoPay" id="MangoPay" value="" class="btn bg-olive btn-md ">
+												<i class="fa fa-plus"></i> Add Bank Account
+											</button></a> 
+										</div>
+										<?php } ?>
+									</div>	
+								</div>
 							</div>
-							<?php } } ?>
+							<div class="left_border">&nbsp;</div>
+							<div class="col-md-6" style="padding-top:20px;padding-bottom:20px;">
+								<div class="col-sm-12">
+									<label class="col-sm-12 control-label no-padding"><h3 class="no-bottom"><span>More Info</span></h3></label>
+									<p class="help-block no-padding">More info is text shown on your details page. Tell more about your venue and why should your 
+										potential customers visit and shop in your venue. Up to 300 characters.</p>
+								</div>
+								<div class="col-sm-12"><textarea type="text" name="MoreInfo" id="MoreInfo" maxlength="300" style="margin-bottom:20px;" placeholder="e.g. Family-owned restaurant since 1965. We prepare food only from fresh local ingredients." class="form-control valid more_info" ><?php if(isset($merchantInfo['Description']) && !empty($merchantInfo['Description'])) echo $merchantInfo['Description'];?></textarea></div>
+								
+								<div class="form-group col-xs-12 col-md-12">
+									<label class="col-sm-12 col-md-12 control-label no-padding border-right"><h3 style="margin-bottom:15px;"><span>Business hours</span></h3><!-- <em></em> --></label>
+									<!-- <p class="help-block col-sm-12 no-padding">Open Hours leave as empty for not service</p> -->
+									<?php 
+									if(isset($days_array) && count($days_array)>0) {
+									foreach($days_array as $key=>$val){ ?>
+									<div class="col-xs-12 no-padding form-group <?php if($key != 0) echo "rowHide";?>"  <?php if(isset($merchantInfo['OpeningHours'][0]['DateType']) && $merchantInfo['OpeningHours'][0]['DateType'] == '1' && $key != 0) echo 'style="display:none;"'; ?>>
+										<?php if($key == 0) { ?>
+											<!-- <div class="col-xs-6 col-sm-4 col-xs-6 no-padding LH30">From :</div> -->
+											<!-- <div class="col-xs-5 col-sm-4 col-xs-6 no-padding LH30">To :</div> -->
+										<?php } ?>
+										<div class="col-sm-3  col-lg-4 col-xs-12  no-padding LH30"><span class="<?php if($key == 0) echo "rowshow";?>"><?php if(isset($merchantInfo['OpeningHours'][0]['DateType']) && $merchantInfo['OpeningHours'][0]['DateType'] == '1' && $key == 0) echo "Monday - Sunday"; else echo $val.""; ?></span></div>
+										<div class="col-sm-3 col-lg-3 col-xs-6 select_sm no-left-pad">
+											<input type="text" rowid="<?php echo $key; ?>" class="form-control timepicker col-xs-6" id="from1_<?php echo $key; ?>" name="from1_<?php echo $key; ?>" value="<?php if(isset($merchantInfo['OpeningHours'][$key]['Start']['fromTime'])) echo $merchantInfo['OpeningHours'][$key]['Start']['fromTime']; ?>" readonly>
+											<input type="hidden" id="row_<?php echo $key; ?>" name="row_<?php echo $key; ?>" value="<?php if(!empty($merchantInfo['OpeningHours'][$key]['Start']['fromTime']) || !empty($merchantInfo['OpeningHours'][$key]['End']['toTime'])) echo "1"; ?>" />
+											<span id="error_<?php echo $key; ?>" style="color:red;"></span>
+											<span id="error_frm_<?php echo $key; ?>" style="color:red;"></span>
+										</div>
+										
+										<div class="col-sm-3 col-lg-3 col-xs-6 select_sm no-left-pad">
+											<input type="text" rowid="<?php echo $key; ?>" class="form-control timepicker col-xs-6" id="to1_<?php echo $key; ?>" name="to1_<?php echo $key; ?>" value="<?php if(isset($merchantInfo['OpeningHours'][$key]['End']['toTime'])) echo $merchantInfo['OpeningHours'][$key]['End']['toTime']; ?>" readonly>
+											<span id="error_to_<?php echo $key; ?>" style="color:red;"></span>
+										</div>
+										<?php if($key == 0) { ?>
+										<div class="col-sm-3 col-lg-2 col-xs-12 no-padding des_label checkbox_day">
+											<div class=""><input type="checkbox" class="business_hours <?php if(isset($merchantInfo['OpeningHours'][0]['DateType']) && $merchantInfo['OpeningHours'][0]['DateType'] == '1') echo 'active'; ?>" name="samehours" id="samehours"  onclick="return hideAllDays();" <?php if(isset($merchantInfo['OpeningHours'][0]['DateType']) && $merchantInfo['OpeningHours'][0]['DateType'] == '1') echo 'checked'; ?>>&nbsp;<label for="samehours"><span style="vertical-align:middle;">Every day</span></label>
+											<input type="hidden" id="showdays" name="showdays" value="<?php if(isset($merchantInfo['OpeningHours'][0]['DateType']) && $merchantInfo['OpeningHours'][0]['DateType'] == '1') echo 1; ?>"/>
+											<!-- <label>&nbsp;</label> -->
+											</div>
+										</div>
+										<?php } ?>
+
+										<input type="hidden" id="id_<?php echo $key; ?>" name="id_<?php echo $key; ?>" value="<?php if(isset($merchantInfo['OpeningHours'][$key]['id'])) echo $merchantInfo['OpeningHours'][$key]['id']; ?>" >
+									</div>
+									<?php } } ?>
+								</div>
+								
+								
+								<div class="col-sm-12"><label class="col-sm-12  control-label no-padding"><h3 style="margin-bottom:10px;"><span>Contact Info</span></h3></label></div>
+								<div class="form-group col-xs-12 col-xs-12 contact-info">
+									<!--<div class="form-group col-sm-3 col-md-2 no-padding"><input type="button" title="Use my location" value="Use my location" class="btn bg-olive btn-md " onclick="return geolocation(1);"/></div>-->
+									<div class="col-sm-12 col-md-12 no-padding">
+										<div class="show-grid form-group col-sm-12 no-padding">
+											<div class="form-group col-xs-12 col-sm-5 no-padding" ><input type="text"  id="Street" name="Street" value="<?php if(isset($merchantInfo['Street']) && !empty($merchantInfo['Street'])) echo $merchantInfo['Street'];?>" placeholder="Street" class="form-control"></div>
+											<div class="form-group col-xs-12 col-sm-4 resp-no-pad"><input type="text"  id="City" name="City" value="<?php if(isset($merchantInfo['City']) && !empty($merchantInfo['City'])) echo $merchantInfo['City'];?>" placeholder="City" class="form-control"></div>
+											<div class="form-group col-xs-12 col-sm-3 no-padding"><input type="text"  id="ZipCode" name="ZipCode" value="<?php if(isset($merchantInfo['PostCode']) && !empty($merchantInfo['PostCode'])) echo $merchantInfo['PostCode'];?>" placeholder="ZIP Code" class="form-control"></div>
+											<div class="form-group col-xs-12 col-sm-5 no-padding"><input type="text"  id="State" name="State" value="<?php if(isset($merchantInfo['State']) && !empty($merchantInfo['State'])) echo $merchantInfo['State'];?>" placeholder="State" class="form-control"></div>	
+											<div class="form-group col-xs-12 col-sm-7 no-padding-right"><input type="text"  id="Country" name="Country" value="<?php if(isset($merchantInfo['Country']) && !empty($merchantInfo['Country'])) echo $merchantInfo['Country'];?>" placeholder="Country" class="form-control"></div>	
+										</div>
+										<div class="show-grid form-group col-sm-12 no-padding">
+											<div class="form-group col-xs-12 col-sm-5 no-padding"><input type="text"  id="Phone" name="Phone" value="<?php if(isset($merchantInfo['PhoneNumber']) && !empty($merchantInfo['PhoneNumber'])) echo $merchantInfo['PhoneNumber'];?>" placeholder="Phone" class="form-control"></div>	
+											<div class="form-group col-xs-12 col-sm-7 no-padding-right"><input type="text"  id="Email" name="Email" value="<?php if(isset($merchantInfo['Email']) && !empty($merchantInfo['Email'])) echo $merchantInfo['Email'];?>" placeholder="Email" class="form-control"></div>	
+											<div class="form-group col-xs-12 col-sm-5 no-padding clear"><input type="text"  id="Website" name="Website" value="<?php if(isset($merchantInfo['WebsiteUrl']) && !empty($merchantInfo['WebsiteUrl'])) echo $merchantInfo['WebsiteUrl'];?>" placeholder="Website" class="form-control"></div>
+										</div>
+										<div class="form-group col-xs-12 col-sm-5 col-md-5 col-lg-5 no-padding">
+											<input type="text"  id="Facebook" name="Facebook" value="<?php if(isset($merchantInfo['FBId']) && !empty($merchantInfo['FBId'])) echo $merchantInfo['FBId'];?>" placeholder="Facebook" class="form-control">
+											<!-- <p class="help-block col-sm-12 no-padding">eg: http://www.facebook.com/example</p> -->
+										</div>	
+										<div class="form-group col-xs-12 col-sm-7 col-md-7 col-lg-7 no-padding-right">
+											<input type="text"  id="Twitter" name="Twitter" value="<?php if(isset($merchantInfo['TwitterId']) && !empty($merchantInfo['TwitterId'])) echo $merchantInfo['TwitterId'];?>" placeholder="Twitter" class="form-control">
+											<!-- <p class="help-block col-sm-12 no-padding">eg: http://www.twitter.com/example</p> -->
+										</div>													
+										<input type="hidden" name="Latitude" id="Latitude" value="">
+										<input type="hidden" name="Longitude" id="Longitude" value="">
+									</div>
+								</div>	
+								
+								<!-- Security -->
+								<div class="col-sm-12 col-md-12 no-padding">
+									<div class="col-xs-12 col-sm-5 col-md-5 col-lg-5"><label class="col-sm-8 col-xs-12  control-label no-padding"><h3 style="padding:4px 0px;">Security</h3></label></div>
+									<div class="col-xs-12 col-sm-7 col-md-7 col-lg-7 mystore_security"><input type="text" name="Security" class="form-control valid"  id="Security" placeholder="Email: tuplit@mcdonalds.com" value="<?php if(isset($merchantInfo['Security']) &&  $merchantInfo['Security'] != '' ) echo  $merchantInfo['Security'];?>"></div>
+								</div>
+								<!-- Security -->
+								
+								<!-- Change Password & PIN code -->
+								<div class="col-sm-12"><label class="col-sm-12  control-label no-padding"><h4 style="margin-top:30px;margin-bottom:10px;"><span>Change Password & PIN code</span></h4></label></div>
+								<div class="form-group col-xs-12 col-xs-12">	
+									<div class="col-sm-12 col-md-12 no-padding">
+										<div class="show-grid form-group col-sm-12 no-padding">
+											<div class="form-group col-xs-12 col-sm-5 no-padding"><input type="text" onkeypress="return isNumberKey(event);"  id="Pincode" name="Pincode" value="" placeholder="New PIN code" class="form-control" maxlength="4"></div>	
+											<div class="form-group col-xs-12 col-sm-7 no-padding-right"><input type="text" onkeypress="return isNumberKey(event);"  id="CPincode" name="CPincode" value="" placeholder="Confirm new PIN code" maxlength="4" class="form-control"></div>	
+										</div>
+										<div class="show-grid form-group col-sm-12 no-padding">
+											<div class="form-group col-xs-12 col-sm-5 no-padding"><input type="text"  id="Password" name="Password" value="" placeholder="New password" class="form-control"></div>	
+											<div class="form-group col-xs-12 col-sm-7 no-padding-right"><input type="text"  id="CPassword" name="CPassword" value="" placeholder="Confirm new password" class="form-control"></div>
+											<input type="hidden" name="hidden_pin" id="hidden_pin" value="<?php if(isset($merchantInfo['Pincode']) &&  $merchantInfo['Pincode'] != '' ) echo  $merchantInfo['Pincode'];?>">
+										</div>
+									</div>
+								</div>
+								
+								<!-- Permissions -->
+								<?php if(isset($merchantInfo['SalespersonList']) && isset($merchantInfo['SalespersonList']['salesperson']) && count($merchantInfo['SalespersonList']['salesperson']) > 0) {  ?>
+								<div class="col-sm-12">
+									<label class="col-sm-12 control-label no-padding "><h3><span>Permissions</span></h3></label>
+								</div>
+								<div class="col-sm-12 col-xs-12 form-group" style="margin-bottom:10px;">
+									<div class="col-xs-6 no-padding">&nbsp;</div>
+									<div class="col-xs-2 no-padding" align="center">Basic</div>
+									<div class="col-xs-2 no-padding" align="center">Pro</div>
+									<div class="col-xs-2 no-padding" align="center">Admin</div>
+								</div> 
+										<?php foreach($merchantInfo['SalespersonList']['salesperson'] as $val) { ?>
+											<div class="col-sm-12 col-xs-12 form-group permission">
+												<div class="col-xs-6 no-padding"><strong><?php echo $val['Name']; ?></strong></div>
+												<!-- <div class="col-xs-2 no-padding" ><input type="radio" id="Basic_<?php echo $val['id'];?>" checked = "checked" name="Basic_<?php echo $val['id'];?>" value="1"></div> -->
+												<div class="col-xs-2 no-padding radio des_label text-center">
+													<span class="checkbox"><input type="radio" id="Basic_<?php echo $val['id'];?>" checked = "checked" name="Basic_<?php echo $val['id'];?>" value="1">
+													<label>&nbsp;</label>
+													</span>
+												</div>
+												<div class="col-xs-2 no-padding radio des_label" align="center"><span class="checkbox"><input disabled type="radio" name="Pro" value="2"><label>&nbsp;</label></span></div>
+												<div class="col-xs-2 no-padding radio des_label" align="center"><span class="checkbox"><input disabled type="radio" name="Admin" value="3"><label>&nbsp;</label></span></div>
+											</div> 
+										<?php } } ?>
+								<!-- <div class="col-sm-12 col-xs-12 form-group">
+									<div class="col-xs-6 no-padding"><strong>Jones</strong></div>
+									<div class="col-xs-2 no-padding" align="center"><input type="radio" name="Jones" value="1"></div>
+									<div class="col-xs-2 no-padding" align="center"><input type="radio" name="Jones" value="2"></div>
+									<div class="col-xs-2 no-padding" align="center"><input type="radio" name="Jones" value="3"></div>
+								</div>  -->
+								<!-- Permissions -->
+								
+								<!-- Security -->
+								<div class="col-sm-9">
+									<label class="col-sm-12 control-label no-padding"><h3 class="no-bottom">Auto-Lock</h3></label>
+									<p class="help-block no-padding">When no activity is done, Tuplit portal will lock itself and ask for PIN code to reactivate.</p>
+								</div>
+								<div class="col-sm-3 mystore_pad">
+									<select name="AutoLock" id="AutoLock" class="form-control">
+										<option value="">No AutoLock</option>	
+										<?php if(isset($AutoLock) && !empty($AutoLock)) {
+											foreach($AutoLock as $key=>$val) {
+										?>
+										<option value="<?php echo $key;?>" <?php if(isset($merchantInfo['AutoLock']) &&  $merchantInfo['AutoLock'] == $key ) echo 'selected';?> ><?php echo $val;?> minutes</option>
+										<?php } } ?>
+									</select>
+								</div>
+								<!-- Security -->
+								
+								<!-- Sales Persons List -->
+								<div class="col-sm-12"><label class="col-sm-12  control-label no-padding"><h3 style="margin-bottom:10px;"><span>Sales People</span></h3></label></div>
+								<div class="form-group col-xs-12 col-xs-12 sales_people">
+									<?php if(isset($merchantInfo['SalespersonList']) && isset($merchantInfo['SalespersonList']['totalCount'])) {
+										foreach($merchantInfo['SalespersonList']['salesperson'] as $val) { ?>
+										<div class="form-group col-sm-6 col-xs-12 col-lg-6 no-padding height80">
+											<div class="col-xs-12 no-padding">
+											<div class="col-xs-2 col-sm-2 col-md-3 col-lg-2 no-padding">
+												<?php 	if(!empty($val['Image'])) {	?><a onclick="return loaded;" href="<?php echo $val['Image']; ?>" class="icon_fancybox" title=""> <?php } ?>
+												<img class="img_border" src="<?php if(!empty($val['Image'])) echo $val['Image']; else echo MERCHANT_IMAGE_PATH."no_user.jpeg"; ?>" width="50" height="50" alt="Image"/>
+												<?php if(!empty($image_path)) { ?></a> <?php } ?>
+											</div>
+											<div class="col-xs-8 col-sm-10 col-md-9 col-lg-10">
+												<h5 class="no-margin"><b><?php echo $val['Name']; ?></b></h5>
+												<p class="help-block col-sm-12 no-padding"><?php echo $val['Email']; ?></p>
+												<p>
+													<a onclick="return loaded;" class="edit salesperson" href="SalesPerson?editId=<?php echo $val['id']; ?>" title="Edit"><i class="fa fa-edit "></i></a>&nbsp;&nbsp;
+													<!--<a class="delete" onclick="javascript:return confirm('Are you sure to delete?')" href="SalesPersonList?delId=<?php echo $val['id']; ?>" title="Delete"><i class="fa fa-trash-o "></i></a>-->
+												</p>
+											</div>
+											</div>
+										</div>								
+									<?php } }?>
+									<div class="form-group col-sm-6 col-xs-12 col-lg-6 no-padding height80">
+										<div class="col-xs-12 no-padding">
+										<div class="col-xs-2 col-sm3 col-md-3 col-lg-2 no-padding">
+											<a onclick="return loaded;" class="add_people salesperson" href="<?php echo SITE_PATH; ?>/SalesPerson" title="Add More People"><span><i class="fa fa-lg fa-plus"></i></span></a>
+										</div>
+										<div class="col-xs-10 col-sm9 col-md-9 col-lg-10 add_more">
+											<div class="more_people col-sm-12 no-padding">
+												<strong>Add More People</strong>
+											</div>
+										</div>
+										</div>
+									</div>		
+								</div>	
+							</div>
 						</div>
 					</div>
-				</div>				
-				</div>
-				<div class="footer col-xs-12 " align="center"> 
-						<input type="submit" name="mystore_submit" id="mystore_submit" value="SAVE CHANGES" title="Save Changes" class="btn btn-success col-xs-12 col-sm-5 box-center">
-				</div>
-				<div class="footer col-xs-12 " align="center"> <br>
-						<a href="Dashboard" name="cancel" id="cancel">Cancel</a>
-				</div>
-			</form>
-		 </div>
+					<div class="footer col-xs-12 no-padding" align="center">
+						<div class="col-xs-12 col-sm-1 Rejected_class btn btn-default col-lg-1">
+								<a href="Dashboard" name="cancel" class="btn btn-default  col-xs-12  cancel_button" id="cancel">Cancel</a>
+						</div>
+						<div class="col-xs-12 col-sm-11 col-lg-11 no-padding approve_class"> 
+								<input type="submit" name="mystore_submit" id="mystore_submit" value="SAVE CHANGES" title="Save Changes" class="btn btn-success cancel_button">
+						</div>
+					</div>
+				</form>
+			</div>
 		</section>
 		<?php footerLogin(); ?>
-	<?php commonFooter(); ?>
+		<?php commonFooter(); ?>
+		
+	<script type="text/javascript">		
+		geolocation();		
+	</script>
 </html>
 <script type="text/javascript">
 function price_val(val){
 	$("#priceValidation").val(val);
 }
+$(function() {
+	if($('#Notification_val').val() == 1)
+		$(".tog").addClass('on');
+	else 
+		$(".tog").removeClass('on');
+	/* Discount calculation */
+});
   //document.ready
-showCategory('<?php if(isset($newCategory) && $newCategory>0) echo $newCategory;?>');
+/*jQuery(document).ready(function() {
+	showCategory(<?php echo $show_cat;?>);
+});*/
 $(document).ready(function() {
-
+	//geolocation();		
 	$('.icon_fancybox').fancybox();	
 	$('.image_fancybox').fancybox();
+	
 	if($("#min_price").val() > 0)
 		price_val($("#min_price").val());
 	else
@@ -561,119 +881,52 @@ $(document).ready(function() {
 		
 	}); //end ptTimeSelect()
 	
+		
+	//Slideshow image
+	/*var myStore = {name: 'myStore', type : '2'};
+	$('#myStore').change(myStore,uploadFiles);*/
 	
-	// Makes sure the dataTransfer information is sent when we
-	// Drop the item in the drop box.
-	jQuery.event.props.push('dataTransfer');
+	//Logo image
+	var icon_photo = {name: 'icon_photo', type : '0', id : ''};
+	$('#icon_photo').change(icon_photo,uploadFiles);
 	
-	// Get all of the data URIs and put them in an array
-	var dataArray 	= 	[];
-	var imgextArray	=	['png','jpg','jpeg']
-	// Bind the drop event to the drop zone.
-	$('#drop-files').bind('drop', function(e) {
-		if(dataArray.length < 10) {
-			var files = e.dataTransfer.files;
-			// For each file
-			$.each(files, function(index, file) {
-				
-				//validate image type 
-				filename	=	files[index].type;
-				ext			=	filename.split('/');
-				if(jQuery.inArray( ext[1], imgextArray ) != '-1') {				
-					ImageExt	=	$('#ImageExt').val();
-					if(ImageExt != '') 
-						$('#ImageExt').val(ImageExt+','+ext[1]);
-					else
-						$('#ImageExt').val(ext[1]);
-				} else {
-					alert('Please upload JPEG, JPG and PNG images only.');
-					return false;
-				}
-				
-				//validate image size 
-				if(files[index].size > '1048576'){
-					alert('Image size should not be less than 1 MB.');
-					return false;
-				}
-				
-				totalImageNow	=	parseInt($('#totalImageNow').val());
-				totalImageNow	=	totalImageNow + 1;
-				if(totalImageNow > 10) {
-					return false;
-				}
-				$('#totalImageNow').val(totalImageNow)
-				// Start a new instance of FileReader
-				var fileReader = new FileReader();
-				// When the file reader loads initiate a function
-				fileReader.onload = (function(file) {				
-										return function(e) { 					
-											// Push the data URI into an array
-											dataArray.push({name : file.name, value : this.result});
-											index =	dataArray.length - 1;
-											
-											//total image uploaded
-											oldtotalImage	=	parseInt($('#oldtotalImage').val());
-											
-											//new images
-											imagecount		=	$('#imagecount').val();
-											if(imagecount != '') {
-												imagecountarray	=	imagecount.split(',');
-												newimagelength	=	imagecountarray.length;	
-											} else {
-												newimagelength	=	0;
-											}
-											
-											DeleteIds		=	$('#DeleteIds').val();
-											if(DeleteIds != '') {
-												DeleteIdsarray	=	DeleteIds.split(',');
-												DeleteIdslength	=	DeleteIdsarray.length;
-												oldtotalImage	=	oldtotalImage - DeleteIdslength;
-											}
-											
-											totalimagesin	=	oldtotalImage + newimagelength + 1;
-											orgtotalImage	=	parseInt($('#totalImage').val());
-											totalImage		=	orgtotalImage + 1;
-											
-											if(imagecount != '') 
-												$('#imagecount').val(imagecount+','+totalImage)
-											else
-												$('#imagecount').val(totalImage)
-											$.ajax({
-													type: "POST",
-													url: 'models/upload.php?img='+totalImage,
-													data: 'name='+file.name+'&value='+this.result,
-													success: function (result){
-														
-													}			
-												});
-											
-											$('#totalImage').val(totalImage);
-											imgcount	=	totalimagesin + 1;
-											
-											imgcontent	=	'<div class="col-sm-6 col-xs-12 form-group" id="temp'+totalImage+'"><div class="col-xs-1 no-padding" id="imgStore_'+totalImage+'">'+totalimagesin+'.</div><div class="col-xs-11 no-padding" align="center">';
-											imgcontent	+=	'<div  class="photo_gray_bg"><img style="vertical-align:top" class="" src="'+this.result+'" width="330" height="160" alt=""></div></div>';
-											if(totalimagesin == 10) {
-												imgcontent	+=	'<div class="col-xs-12">&nbsp;</div><div class="col-xs-2 col-md-1 clear">&nbsp;</div>';
-												imgcontent	+=	'<div class="col-xs-10 col-md-11" align="center"><input type="button" class="box-center btn btn-danger  col-xs-10" name="Delete" id="Delete" value="Delete" title="Delete" onclick="return deleteBefore('+totalImage+',\''+ext[1]+'\');"></div></div>';
-												$(imgcontent).insertBefore('#temp0');
-												$('#temp0').hide();
-											} else {
-												imgcontent	+=	'<div class="col-xs-12">&nbsp;</div><div class="col-xs-2 col-md-1 clear">&nbsp;</div>';
-												imgcontent	+=	'<div class="col-xs-10 col-md-11" align="center"><input type="button" class="box-center btn btn-danger  col-xs-10" name="Delete" id="Delete" value="Delete" title="Delete" onclick="return deleteBefore('+totalImage+',\''+ ext[1]+'\');"></div></div>';
-												$(imgcontent).insertBefore('#temp0');												
-												$('#imgcount').html(imgcount+'.');
-												$('#imgdrag').attr('src','<?php SITE_PATH;?>webresources/images/no_photo_my_store.png');
-											}
-										}; 				
-									})(files[index]);				
-				// For data URI purposes
-				fileReader.readAsDataURL(file);
-			});	
-		} else {
-			alert('You can upload only 10 pictures')
-		}
-		return false;
-	});		
+	//merchant image
+	var merchant_photo = {name: 'merchant_photo', type : '0', id : ''};
+	$('#merchant_photo').change(merchant_photo,uploadFiles);
+	
+	//background image
+	var background_photo = {name: 'background_photo', type : '0', id : ''};
+	$('#background_photo').change(background_photo,uploadFiles);
+	
+	//add salesperson
+	$(".salesperson").fancybox({
+				width: '320',
+				maxWidth: '100%',
+				scrolling: 'auto',			
+				type: 'iframe',
+				autoSize: true,
+				afterClose : function() {
+										location.reload();
+										return;
+									}
+		});
+	$(".MangoPay").fancybox({
+				width: '320',
+				maxWidth: '100%',
+				scrolling: 'auto',			
+				type: 'iframe',
+				fitToView: true,
+				autoSize: true,
+				afterClose : function() {
+										location.reload();
+										return;
+									}
+		});
+	<?php for($i=1;$i<=10;$i++) { ?>
+		var myStore_<?php echo $i; ?> = {name: 'myStore_<?php echo $i; ?>', type : '0' , id : '<?php echo $i; ?>'};
+		$('#myStore_<?php echo $i; ?>').change(myStore_<?php echo $i; ?>,uploadFiles);
+	<?php } ?>	
+	
 });
 
 </script>

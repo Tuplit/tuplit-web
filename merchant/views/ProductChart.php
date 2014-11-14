@@ -138,8 +138,8 @@ $(document).ready(function() {
 			
 			<tr>
 				<td align="left"><?php if(isset($value["Name"]) && $value["Name"] != '' ){ echo $value["Name"];} else echo '-';?></td>
-				<td align="center"><?php if(isset($total_price) && $total_price>0){ echo '$'.$total_price;}?></td>
-				<td align="center"><?php if(isset($average) && $average>0){ echo '$'.$average;}?></td>
+				<td align="center"><?php if(isset($total_price) && $total_price>0){ echo '&pound;'.$total_price;}?></td>
+				<td align="center"><?php if(isset($average) && $average>0){ echo '&pound;'.$average;}?></td>
 				<td align="center"><?php if(isset($total_quantity) && $total_quantity> 0){ echo $total_quantity;}?></td>
 				
 			</tr>

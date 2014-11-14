@@ -31,7 +31,7 @@
 	else
 		$errorMessage			= 	"Bad Request for countries";
 
-	//currencies list
+	/*currencies list
 	$url						=	WEB_SERVICE.'v1/contents/currencies/';
 	$curlCurrenciesResponse 	= 	curlRequest($url, 'GET', null);
 	if(isset($curlCurrenciesResponse) && is_array($curlCurrenciesResponse) && $curlCurrenciesResponse['meta']['code'] == 200 && is_array($curlCurrenciesResponse['currencies']) ) {
@@ -40,7 +40,7 @@
 	} else if(isset($curlCurrenciesResponse['meta']['errorMessage']) && $curlCurrenciesResponse['meta']['errorMessage'] != '')
 		$errorMessage			=	$curlCurrenciesResponse['meta']['errorMessage'];
 	else
-		$errorMessage			= 	"Bad Request for currencies";
+		$errorMessage			= 	"Bad Request for currencies";*/
 		
 	if(isset($_POST['setting_submit']) && $_POST['setting_submit'] == 'SAVE'){
 		
@@ -58,13 +58,13 @@
 			$merchantInfo['BusinessName']			=	$_POST['BusinessName'];
 		if(isset($_POST['BusinessType']))
 			$merchantInfo['BusinessType']			=	$_POST['BusinessType'];
-		if(isset($_POST['Currency']) && $_POST['Currency'] != 'k') {
+		/*if(isset($_POST['Currency']) && $_POST['Currency'] != 'k') {
 			$merchantInfo['Currency']				=	$currencies[$_POST['Currency']]['Code'];
 			$newcurrency							=	$currencies[$_POST['Currency']]['Code'];
 		}
 		else {
 			$newcurrency							=	$merchantInfo['Currency'];
-		}
+		}*/
 		if(isset($_POST['Address']))
 			$merchantInfo['Address']				=	$_POST['Address'];
 		if(isset($_POST['CompanyName']))
@@ -115,7 +115,7 @@
 						'PhoneNumber' 			=> $_POST['PhoneNumber'],
 						'BusinessName' 			=> $_POST['BusinessName'],
 						'BusinessType' 			=> $_POST['BusinessType'],
-						'Currency' 				=> $newcurrency,
+						'Currency' 				=> 'GBP',
 						'Address'				=> $_POST['Address'],
 						'CompanyName' 			=> $_POST['CompanyName'],
 						'RegisterCompanyNumber' => $_POST['CompanyNumber'],
@@ -164,7 +164,7 @@
 	commonHead();
 ?>
 
-<body class="skin-blue fixed" onload="fieldfocus('CompanyName');">
+<body class="skin-blue fixed body_height" onload="fieldfocus('CompanyName');">
 		<?php top_header(); ?>
 		<section class="content">
 		<div class="col-lg-12">
@@ -175,10 +175,10 @@
 				   <div align="center" class="alert <?php  echo $class;  ?> alert-dismissable col-xs-12 col-sm-5 col-lg-3"><i class="fa <?php  echo $class_icon;  ?>"></i>  <?php echo $msg; ?></div>
 			<?php } ?>
 			<form action="" name="merchant_setting_form" id="merchant_setting_form"  method="post">
-				<div class="row clear">
+				<div class="col-xs-12 white_bg clear">
 					<div class="col-md-6">
-						<div class="box box-primary no-padding">
-							<div class="box-header no-padding">
+						<div class=" box-primary no-padding">
+							<div class="box-header col-sm-12">
 								<h3 class="box-title">Business Info</h3>
 							</div>
 							<div class="form-group  col-sm-6">
@@ -216,20 +216,21 @@
 							</div>
 							<div class="form-group col-sm-6 col-lg-12">
 								<label>Currency</label>
-								<select class="form-control" name="Currency1" id="Currency1" disabled/>
+								<!--<select class="form-control" name="Currency1" id="Currency1" disabled/>
 									<option value="">Choose Currency</option>
 									<?php if(isset($currencies) && !empty($currencies) && count($currencies)>0) { foreach($currencies as $code){ ?>
 										<option  value="<?php echo $code['fkLocationId']; ?>" <?php if(isset($merchantInfo['Currency']) && $merchantInfo['Currency'] == $code['Code']) echo "selected"; ?>><?php echo $code['Code']; ?></option>
 									<?php } }?>
 								</select>
-								<input type="hidden" name="Currency" id="Currency" value="<?php if(isset($merchantInfo['Currency']) && !empty($merchantInfo['Currency'])) echo "k"; ?>">
+								<input type="hidden" name="Currency" id="Currency" value="<?php if(isset($merchantInfo['Currency']) && !empty($merchantInfo['Currency'])) echo "k"; ?>">-->
+								<input class="form-control" type="text" name="Currency" id="Currency" value="GBP" readonly/>
 							</div>							
 						</div>
 					</div>					
-					<div class="col-md-6 ">
-						<div class="box box-primary no-padding">
-							<div class="box-header ">
-								<h3 class="box-title">Company Details</h3>
+					<div class="col-md-6 border-left ">
+						<div class=" box-primary no-padding">
+							<div class="box-header col-sm-12">
+								<h3 class="box-title" style="margin-top:0px;">Company Details</h3>
 							</div>
 							<div class="form-group col-sm-6">
 								<label>Company Name</label>
@@ -257,8 +258,89 @@
 								<input class="form-control" type="text" name="PostCode"  id="PostCode"  placeholder="Postcode" value="<?php if(isset($merchantInfo['PostCode']) && !empty($merchantInfo['PostCode'])) echo $merchantInfo['PostCode'];?>">
 							</div>
 						</div>
+						<div class=" box-primary no-padding">
+							<div class="col-lg-6 col-sm-6">
+								<div class=" box-primary no-padding">
+									<div class="box-header ">
+										<h3 class="box-title">Payment Account</h3>
+									</div>
+									<?php if(isset($merchantInfo['MangoPayUniqueId']) && $merchantInfo['MangoPayUniqueId']!= ''){?>
+									<div class="form-group col-md-12 error_msg_align no-padding">
+										<h4 class="box-title text-teal"><strong>Connected with Mango Pay</strong></h4>
+									</div>
+									<?php } else {?>
+									<div class="form-group col-md-12 no-padding error_msg_align ">
+										<label class="pad5"></label><a href="MangoPayAccount" class="MangoPay">
+										<button type="button" name="MangoPay" id="MangoPay" value="" class="btn bg-olive btn-md ">
+											<i class="fa fa-plus"></i> Add Mango Pay Account
+										</button></a> 
+									</div>
+									<?php } ?>
+								</div>	
+							</div>
+							<div class="col-lg-6 col-sm-6">
+								<div class=" box-primary no-padding">
+									<div class="box-header ">
+										<h3 class="box-title">Email Notification Settings</h3>
+									</div>
+									<div class="form-group col-md-12 no-padding   error_msg_align ">
+										<label class="col-xs-7 no-padding mtop">Order Emails</label>
+										<div class="col-xs-5 no-padding email_notification">
+											
+											<input checked="checked" style="display: none;" id="EmailNotification" name="EmailNotification" type="checkbox">
+										</div>
+										<!-- <div> 
+											<label><input type="Radio" name="EmailNotification" id="EmailNotificationOn" value="1" <?php if(isset($merchantInfo['OrderMail']) && $merchantInfo['OrderMail'] == 1 ) echo "checked"; else echo "checked"; ?>>&nbsp;ON</label>&nbsp;&nbsp;
+											<label><input type="Radio" name="EmailNotification" id="EmailNotificationOff" value="0" <?php if(isset($merchantInfo['OrderMail']) && $merchantInfo['OrderMail'] == 0 ) echo "checked"; ?>>&nbsp;OFF</label>
+										</div> -->
+									</div>				
+								</div>
+							</div> 
+						</div>
+						<div class="col-sm-12 bottom-space">
+							<div class=" box-primary no-padding">
+								<div class="box-header ">
+									<h3 class="box-title">Discount Scheme</h3>
+								</div>
+								<div class="form-group col-md-12 no-padding">
+									<label class="col-xs-7 no-padding">Select Discount Scheme</label>
+									<div class="col-xs-5 no-padding"> 
+									<select class="form-control" id="DiscountTier" name="DiscountTier" onclick="selectPrice(this.value,'<?php if(isset($ProductsArray) && count($ProductsArray) > 0) echo "1"; else echo "0"; ?>');">
+										<option value="" >Select
+										<?php if(isset($discountTierArray) && is_array($discountTierArray) && count($discountTierArray) > 0) {
+												foreach($discountTierArray as $key=>$value){
+										 ?>
+										<option value="<?php echo $key; ?>" <?php if(isset($merchantInfo['DiscountTier']) &&  $merchantInfo['DiscountTier'] == $value.'%' ) echo 'selected';?>><?php echo $value.'%'; ?>
+										<?php } } ?>
+									</select>
+									</div>
+								</div>
+								<?php 
+								$show_opt = 0;
+								if(isset($ProductsArray) && is_array($ProductsArray) && count($ProductsArray) > 0 && $show_opt) {?>
+									<div class="form-group col-md-12 text-center">OR</div>
+									<div class="form-group col-xs-12 no-padding">
+										<label class="col-md-7 no-padding">Select the product list or menu to be discounted (30% and the whole menu)</label>
+										<div class="col-md-5 no-padding"> 
+											 <select multiple class="form-control" id="Products_List" name="Products_List[]" onclick="selectProduct(this.value);"><!-- return getPrice(this); -->
+												<option value="all">Select All</option>
+												<?php
+													   if(isset($merchantInfo['DiscountProductId']) && $merchantInfo['DiscountProductId'] != ''){
+															$productListArray = explode(',',$merchantInfo['DiscountProductId']);
+														}
+																foreach($ProductsArray as $key=>$value){
+																	foreach($value as $s_key=>$s_value){
+												 ?>										
+												<option value="<?php echo $s_value['ProductId']; ?>" <?php if(isset($productListArray) &&  in_array($s_value['ProductId'],$productListArray)) { echo 'selected'; } else if($merchantInfo['DiscountProductId'] == 'all') echo 'selected';?> ><?php echo $s_value['ItemName']; ?></option>
+												<?php }  } ?>
+											</select>
+										</div>
+									</div>
+								<?php } ?>
+							</div>
+						</div>	
 					</div>
-					<div class="col-lg-3 col-sm-6">
+					<!-- <div class="col-lg-3 col-sm-6">
 						<div class="box box-primary no-padding">
 							<div class="box-header ">
 								<h3 class="box-title">Payment Account</h3>
@@ -276,7 +358,7 @@
 							</div>
 							<?php } ?>
 						</div>						
-					</div>
+					</div> 
 					<div class="col-lg-3 col-sm-6">
 						<div class="box box-primary no-padding">
 							<div class="box-header ">
@@ -290,63 +372,26 @@
 								</div>
 							</div>				
 						</div>
-					</div>
+					</div> -->
 					
-					<div class="col-sm-12">
-						<div class="box box-primary no-padding">
-							<div class="box-header ">
-								<h3 class="box-title">Discount Scheme</h3>
-							</div>
-							<div class="form-group col-md-12 ">
-								<label class="col-xs-7 no-padding">Select Discount Scheme</label>
-								<div class="col-xs-5 no-padding"> 
-								<select class="form-control" id="DiscountTier" name="DiscountTier" onclick="selectPrice(this.value,'<?php if(isset($ProductsArray) && count($ProductsArray) > 0) echo "1"; else echo "0"; ?>');">
-									<option value="" >Select
-									<?php if(isset($discountTierArray) && is_array($discountTierArray) && count($discountTierArray) > 0) {
-											foreach($discountTierArray as $key=>$value){
-									 ?>
-									<option value="<?php echo $key; ?>" <?php if(isset($merchantInfo['DiscountTier']) &&  $merchantInfo['DiscountTier'] == $value.'%' ) echo 'selected';?>><?php echo $value.'%'; ?>
-									<?php } } ?>
-								</select>
-								</div>
-							</div>
-							<?php 
-							$show_opt = 0;
-							if(isset($ProductsArray) && is_array($ProductsArray) && count($ProductsArray) > 0 && $show_opt) {?>
-								<div class="form-group col-md-12 text-center">OR</div>
-								<div class="form-group col-xs-12 ">
-									<label class="col-md-7 no-padding">Select the product list or menu to be discounted (30% and the whole menu)</label>
-									<div class="col-md-5 no-padding"> 
-										 <select multiple class="form-control" id="Products_List" name="Products_List[]" onclick="selectProduct(this.value);"><!-- return getPrice(this); -->
-											<option value="all">Select All</option>
-											<?php
-												   if(isset($merchantInfo['DiscountProductId']) && $merchantInfo['DiscountProductId'] != ''){
-														$productListArray = explode(',',$merchantInfo['DiscountProductId']);
-													}
-															foreach($ProductsArray as $key=>$value){
-																foreach($value as $s_key=>$s_value){
-											 ?>										
-											<option value="<?php echo $s_value['ProductId']; ?>" <?php if(isset($productListArray) &&  in_array($s_value['ProductId'],$productListArray)) { echo 'selected'; } else if($merchantInfo['DiscountProductId'] == 'all') echo 'selected';?> ><?php echo $s_value['ItemName']; ?></option>
-											<?php }  } ?>
-										</select>
-									</div>
-								</div>
-							<?php } ?>
-						</div>
-					</div>	
 					
 				</div>
 			</div>
-				<div class="footer col-xs-12" align="center"> 
-					<input type="submit" name="setting_submit" id="setting_submit" value="SAVE" class="btn btn-success col-sm-6 col-lg-3 col-xs-12 box-center"><br><br>
-				</div>
+				<div class="footer col-xs-12" align="center" style="z-index:1000;position:relative;"> 
+					<div class="col-sm-6 Rejected_class btn btn-default col-lg-3"> 
+						<a  class="btn btn-default  col-xs-12  cancel_button" href="Dashboard">CANCEL</a>
+					</div>
+					<div class="col-sm-6 col-lg-9 no-padding approve_class save_button">
+						<input type="submit" name="setting_submit" id="setting_submit" value="SAVE" class=" btn btn-success cancel_button">
+					</div>
+	
 			</form>
 		 </div>
 		</section>
 		<?php footerLogin(); ?>
 	<?php commonFooter(); ?>
 	<script type="text/javascript">
-	$( "#Country" ).change(function() {
+	/*$( "#Country" ).change(function() {
 		value	=	$('#Country').val();
 		$("#Currency1").val(value);
 		$("#Currency").val(value);
@@ -355,7 +400,7 @@
 		value	=	$('#Country').val();
 		$("#Currency1").val(value);
 		$("#Currency").val(value);
-	});	
+	});	*/
 	
 	$(document).ready(function() {
 		$(".changePass").fancybox({

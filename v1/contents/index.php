@@ -39,7 +39,7 @@ $app = new \Slim\Slim();
 
 /**
 * Get static pages
-* GET /v1/
+* GET /v1/contents/
 */
 $app->get('/', function () use ($app) {
 
@@ -56,6 +56,7 @@ $app->get('/', function () use ($app) {
 		$pages['cms'] 				= $cms->getStaticPages();
 		$pages['HomeSlider'] 		= $cms->getSliderImages(1);
 		$pages['TutorialSlider'] 	= $cms->getSliderImages(2);
+		$pages['Legal'] 			= $cms->getLegalContent();
 		/**
          * Get Discount Tier array
          */
@@ -64,6 +65,8 @@ $app->get('/', function () use ($app) {
 		if(isset($discountTierArray) && is_array($discountTierArray) && count($discountTierArray) > 0 ){
 			$pages['DiscountTier'] 	= $discountTierArray;
 		}
+		$pages['FriendInviteMessage'] 	= ucfirst(nl2br(str_replace("\r\n","<br>",trim(FRIEND_INVITE_MESSAGE))));
+		$pages['ItunesURL'] 			= ITUNES_URL;
 	    $response->returnedObject 	= $pages;
         $response->addNotification('Static content has been retrieved successfully');
         echo $response;
@@ -88,7 +91,7 @@ $app->get('/', function () use ($app) {
 
 /**
 * Get web-page contents
-* GET /v1/webpagecontent/
+* GET /v1/contents/
 */
 $app->get('/webpagecontent/:url', function ($url) use ($app) {
 
@@ -127,7 +130,7 @@ $app->get('/webpagecontent/:url', function ($url) use ($app) {
 
 /**
 * Get countries
-* GET /v1/countries
+* GET /v1/contents/
 */
 $app->get('/countries/', function () use ($app) {
 
@@ -163,7 +166,7 @@ $app->get('/countries/', function () use ($app) {
 
 /**
 * Get currencies
-* GET /v1/currencies
+* GET /v1/contents/
 */
 $app->get('/currencies/', function () use ($app) {
 

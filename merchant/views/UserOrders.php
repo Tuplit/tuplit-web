@@ -86,22 +86,23 @@ if(isset($_GET['viewId']) && $_GET['viewId'] != ''){
 commonHead();
 ?>
 
-<body class="skin-blue fixed">
-			<section class="row content-header no-margin">
+<body class="skin-blue fixed popup_bg">
+<div class="popup_white">
+			<section class="row content-header no-margin popup">
                 <h1 class="no-margin space_bottom">Order History</h1>
             </section>
-			<div class="row no-margin">
-				<div class="product_list">
+			<div class="row no-margin ">
+				<div class="product_list col-xs-12">
 					<form name="search_merchant" action="UserOrders?viewId=<?php echo $_GET['viewId'];?>&cs=1" method="post">
 					<div class="box box-primary">
 						<div class="box-body no-padding" >				
-							<div class="col-sm-3 col-xs-3 form-group">
+							<div class="col-xs-12 col-sm-3 col-md-3 col-lg-3 form-group">
 								<label>Transaction ID</label>
 								<input type="text" id ="transaction_id" class="form-control" name="transaction_id" value="<?php if(isset($TransactionId) && $TransactionId != '') echo $TransactionId;?>" >
 							</div>
 						</div>
 						<div class="box-body no-padding" >				
-							<div class="col-sm-3 col-xs-3 form-group">
+							<div class="col-xs-12 col-sm-3 col-md-3 col-lg-3 form-group">
 								<label>Order Status</label>
 								<select name="order_status" id="order_status" class="form-control col-sm-4">
 									<option value="">Select</option>
@@ -113,13 +114,13 @@ commonHead();
 							</div>
 						</div>
 						<div class="box-body no-padding" >				
-							<div class="col-sm-3 col-xs-3 form-group">
+							<div class="col-xs-12 col-sm-3 col-md-3 col-lg-3 form-group">
 								<label>Start Date</label>
 								<input  type="text" id = "from_date" class="form-control datepicker" autocomplete="off" title="Select Date" name="from_date" value="<?php if(isset($FromDate) && $FromDate != '') echo date('m/d/Y',strtotime($FromDate));?>" onchange="return emptyDates(this);">
 							</div>
 						</div>
 						<div class="box-body no-padding" >				
-							<div class="col-sm-3 col-xs-3 form-group">
+							<div class="col-xs-12 col-sm-3 col-md-3 col-lg-3 form-group">
 								<label>End Date</label>
 								<input type="text" id = "to_date" class="form-control datepicker" autocomplete="off"  title="Select Date" name="to_date" value="<?php if(isset($ToDate) && $ToDate != '') echo date('m/d/Y',strtotime($ToDate));?>" onchange="return emptyDates(this);">
 							</div>
@@ -131,9 +132,10 @@ commonHead();
 					</form>
 				</div>
 			</div>
-			<div class="row no-margin product_list paging">
+			<div class="row product_list paging" style="margin:15px 0px;"">
+			<div class="col-xs-12">
 				<div class="col-xs-12 col-sm-3 no-padding">
-					<span class="totl_txt">Total Order(s) : <b><?php echo $tot_rec; ?></b></span>
+					<span class="totl_txt" style="margin-left:0px;">Total Order(s) : <b><?php echo $tot_rec; ?></b></span>
 				</div>
 				<div class="col-xs-12 col-sm-9 no-padding">
 					<div class="dataTables_paginate paging_bootstrap row no-margin">
@@ -141,7 +143,8 @@ commonHead();
 					</div>
 				</div>
 			</div>
-			<div class="product_list space_top">
+			</div>
+			<div class="product_list col-xs-12">
 				<?php if(isset($orderList) && !empty($orderList)) { ?>
 				<div class="box box-primary no-padding no-margin">
 					<div class="box-body table-responsive no-padding no-margin">
@@ -196,7 +199,8 @@ commonHead();
 					</div>	
 			   <?php  } ?>
 								
-			</div>	
+			</div>
+		</div>
 		<?php //footerLogin(); ?>
 	<?php commonFooter(); ?>
 	<script type="text/javascript">

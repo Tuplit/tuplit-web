@@ -96,14 +96,14 @@ commonHead();
 
 ?>
 
-<body class="skin-blue fixed">
+<body class="skin-blue fixed body_height">
 	<?php if($show ==1){?>
 	
-		<div class="col-xs-12 no-padding">	 
+		<div class="col-xs-12 no-padding popup_bg popup_white">	 
 			<section class="content-header"> 
-                <h1 class="no-margin space_bottom">Top 5 Customers</h1>
+                <h1 class="space_bottom">Top 5 Customers</h1>
             </section>
-			<div class="product_list">
+			<div class="clear">
 				<div class="box box-primary no-padding no-margin">
 					<div class="box-body table-responsive no-padding no-margin">
 						
@@ -123,7 +123,7 @@ commonHead();
 							<tr>
 								<td align="center"><?php echo $key+1;?></td>												
 								<td>
-									<div class="col-xs-2 col-sm-1 col-md-1 no-padding">
+									<div class="col-xs-3 col-sm-1 col-md-1 no-padding">
 									<?php if(isset($value["Photo"]) && $value["Photo"] != ''){ 
 											?>
 									
@@ -137,7 +137,7 @@ commonHead();
 										<?php  echo  ucfirst($value["FirstName"]).' '.ucfirst($value["LastName"]);?>					
 								</div>
 								</td>
-								<td align="right"><?php if(isset($value["TotalPrice"]) && $value["TotalPrice"]!= ''){ echo '$'.number_format((float)$value["TotalPrice"],2,'.',',');}?></td>
+								<td align="right"><?php if(isset($value["TotalPrice"]) && $value["TotalPrice"]!= ''){ echo '&pound;'.number_format((float)$value["TotalPrice"],2,'.',',');}?></td>
 								<td align="center"><?php if(isset($value["TotalOrders"]) && $value["TotalOrders"]!= ''){ echo $value["TotalOrders"];}?></td>
 							</tr>
 							<?php } //end for ?>	
@@ -157,8 +157,8 @@ commonHead();
 		
 		
 		<?php  top_header(); ?>
-		<section class="content row">
-			<div class=" col-lg-10  box-center">	
+		<section class="content">
+			<div class=" col-lg-12  box-center">	
 				<div class="col-sm-8 no-padding"><?php  AnalyticsTab(); ?></div>
 				<div class="col-sm-4 no-padding">
 					<div class="btn-inline space_top pull-right no-margin">
@@ -171,9 +171,9 @@ commonHead();
 		</section>
 		
 		<section class="content no-top-padding clear">
-		<div class="col-lg-10 no-padding box-center">	
+		<div class="col-lg-12 box-center">	
 				<section class=" content-header">
-	                <h1 class="no-top-margin pull-left">Customer Analytics</h1>
+	                <h1 class="pull-left">Customer Analytics</h1>
 	            </section>
 				<div class="clear">
 				<div class="product_list">
@@ -216,7 +216,7 @@ commonHead();
 					</form>
 				</div>
 			</div>
-			<div class="product_list paging">
+			<div class="product_list paging" style="margin-top:15px;">
 				<div class="row">
 					<?php if(isset($customerList) && is_array($customerList) && count($customerList) > 0){ ?>
 					<div class="col-xs-12 col-sm-3">
@@ -224,7 +224,7 @@ commonHead();
 							
 						</span>
 					</div>
-					<div class="col-xs-12 col-sm-9 no-padding">
+					<div class="col-xs-12 col-sm-9">
 						<div class="dataTables_paginate paging_bootstrap row no-margin">
 								<?php pagingControlLatestAjax($tot_rec,'CustomerList'); ?>
 						</div>
@@ -233,7 +233,7 @@ commonHead();
 					</div>
 			</div>
 			<div class="clear">
-            	<div class="col-xs-12 no-padding">
+            	<div class="col-xs-12 no-padding customerlist">
 				   <?php if(isset($customerList) && !empty($customerList)) { ?>
 		              <div class="box">
 		               <div class="box-body table-responsive no-padding no-margin">
@@ -264,8 +264,8 @@ commonHead();
 								</td>
 								<td nowrap><?php if(isset($value["FirstVisit"]) && $value["FirstVisit"] != '0000-00-00 00:00:00'){ echo date('m/d/Y',strtotime($value["FirstVisit"])); }else echo '-';?></td>
 								<td nowrap><?php if(isset($value["LastVisit"]) && $value["LastVisit"] != '0000-00-00 00:00:00'){ echo date('m/d/Y',strtotime($value["LastVisit"])); }else echo '-';?></td>
-								<td align="right"><?php if(isset($value["TotalPrice"]) && $value["TotalPrice"]!= ''){ echo '$'.number_format((float)$value["TotalPrice"],2,'.',',');}?></td>
-								<td align="right"><?php if(isset($value["AverageSpend"]) && $value["AverageSpend"]!= ''){ echo '$'.number_format((float)$value["AverageSpend"],2,'.',',');}?></td>
+								<td align="right"><?php if(isset($value["TotalPrice"]) && $value["TotalPrice"]!= ''){ echo '&pound;'.number_format((float)$value["TotalPrice"],2,'.',',');}?></td>
+								<td align="right"><?php if(isset($value["AverageSpend"]) && $value["AverageSpend"]!= ''){ echo '&pound;'.number_format((float)$value["AverageSpend"],2,'.',',');}?></td>
 								<td align="center"><?php if(isset($value["TotalOrders"]) && $value["TotalOrders"]!= ''){ echo $value["TotalOrders"];}?></td>
 								<td align="center"><?php echo $value["DayDifference"]; ?></td>
 								

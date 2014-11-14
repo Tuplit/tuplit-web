@@ -3,8 +3,8 @@ class MerchantModel extends Model
 {
    function getMerchantList($fields,$condition)
 	{
-		$limit_clause='';
-		$sorting_clause = ' m.id desc';
+		$limit_clause = ' ';
+		$sorting_clause = 'm.id desc';
 		$join = '';
 		if(!empty($_SESSION['ordertype']))
 			$sorting_clause = $_SESSION['orderby'] . ' ' . $_SESSION['ordertype'];
@@ -31,6 +31,7 @@ class MerchantModel extends Model
 				left join comments c on (m.id = c.fkMerchantsId and c.Status = 1) 
 				WHERE 1".$condition." AND UserType = 1 group by m.id ORDER BY ".$sorting_clause." ".$limit_clause;
 		$result	=	$this->sqlQueryArray($sql);
+		//echo "=====================>".$sql;
 		if(count($result) == 0) return false;
 		else {	
 			return $result;
@@ -89,7 +90,7 @@ class MerchantModel extends Model
 	}
 	
 	function getMerchantNotApproved(){
-		$sql	 =	"select count(id) as total from {$this->merchantTable} where Status=0";
+		$sql	 =	"select count(id) as total from {$this->merchantTable} where Status=0 and UserType = 1";
 		//echo "<br/>======".$sql;
 		$result = 	$this->sqlQueryArray($sql);
 			if($result) return $result;
@@ -179,6 +180,7 @@ class MerchantModel extends Model
 				$res = $this->selectCategoryDetail($data['merchant_id'],$val);
 				if(count($res) == 0) {
 					$sql1 =	"insert into {$this->merchantcategoriesTable}(fkMerchantId,fkCategoriesId,DateCreated) values('".$data['merchant_id']."','".$val."','".date('Y-m-d H:i:s')."')";
+					//echo $sql1;
 					$this->updateInto($sql1);
 				}
 			}
@@ -187,6 +189,7 @@ class MerchantModel extends Model
 		$update_string = rtrim($update_string, ",");	
 		$sql =	"update {$this->merchantTable}  set ".$update_string." where id=".$data['merchant_id'];
 		$this->updateInto($sql);
+		//echo $sql;
 	}
 	function updateShoppingHours($data){		
 		if(isset($data['merchant_id']) && $data['merchant_id'] !=''){
@@ -312,7 +315,7 @@ class MerchantModel extends Model
 			else false;
 	}
 	function selectMerchantDetails($field,$condition){
-		$sql	 =	"select ".$field." from {$this->merchantTable} where ".$condition;
+		$sql	 =	"select ".$field." from {$this->merchantTable} where UserType = 1 and  ".$condition;
 		//echo "<br/>======".$sql;
 		$result = 	$this->sqlQueryArray($sql);
 			if($result) return $result;
@@ -399,5 +402,44 @@ class MerchantModel extends Model
 		}
         return $insertId;
 	}
+	
+	function getMerchantImagesList($fields,$condition,$searchtxt)
+	{
+		if(isset($_SESSION['startlimit']) && $_SESSION['startlimit'] != ''){
+			$limit_clause = ' LIMIT '.($_SESSION['startlimit']). ', 30';
+		}else{
+			$limit_clause='LIMIT 0,30'; 
+		}
+		$sorting_clause = 'm.id asc';
+		if(empty($searchtxt)) {
+			$sql = "select SQL_CALC_FOUND_ROWS ".$fields." from {$this->merchantTable} as m	
+					WHERE 1 and UserType=1 ".$condition.' order by m.id asc '.$limit_clause;
+		} else {
+			$sql = "SELECT SQL_CALC_FOUND_ROWS ".$fields." FROM products p 
+					left join merchants m on (p.fkMerchantsId = m.id)
+					WHERE 1 and p.ItemName like '%".$searchtxt."%' and p.Status = 1 ".$condition." group by m.id";
+		}
+		//echo $sql;
+		$result	=	$this->sqlQueryArray($sql);
+		if(count($result) == 0) return false;
+		else {	
+			return $result;
+		}
+	}
+	function getMerchantLocation($fields,$condition,$join){
+		$sorting_clause = 'm.id desc';
+		$leftjoin = '';
+		if($join == 'category'){
+			$leftjoin = " left join {$this->merchantcategoriesTable} as mca on (mca.fkMerchantId = m.id)";
+		}	
+		$sql = "select SQL_CALC_FOUND_ROWS ".$fields." from {$this->merchantTable} as m	".$leftjoin. "
+				WHERE 1".$condition." AND m.UserType = 1 group by m.id ORDER BY ".$sorting_clause;
+		$result	=	$this->sqlQueryArray($sql);
+		if(count($result) == 0) return false;
+		else {	
+			return $result;
+		}
+	}
+		
 }
 ?>

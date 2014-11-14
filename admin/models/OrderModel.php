@@ -1,33 +1,30 @@
 <?php
 class OrderModel extends Model
 {
-   function getOrderList($fields,$condition)
+   function getOrderList($fields,$leftjoin,$condition,$sortby,$limit)
 	{
-		$limit_clause='';
-		$sorting_clause = ' o.id desc';
-		if(!empty($_SESSION['ordertype']))
-			$sorting_clause = $_SESSION['orderby'] . ' ' . $_SESSION['ordertype'];
-		if(isset($_SESSION['sortBy']) && isset($_SESSION['orderType']))
-			$sorting_clause	= $_SESSION['sortBy']. ' ' .$_SESSION['orderType'];
-		if(isset($_SESSION['curpage']))
-			$limit_clause = ' LIMIT '.(($_SESSION['curpage'] - 1) * ($_SESSION['perpage'])) . ', '. $_SESSION['perpage'];
-		if(isset($_SESSION['tuplit_sess_order_user_name']) && $_SESSION['tuplit_sess_order_user_name'] != '')
-			$condition .= " and ( u.FirstName LIKE '%".trim($_SESSION['tuplit_sess_order_user_name'])."%' || u.LastName LIKE '%".trim($_SESSION['tuplit_sess_order_user_name'])."%' )";
-		if(isset($_SESSION['tuplit_sess_order_company_name']) && $_SESSION['tuplit_sess_order_company_name'] != '')
-			$condition .= " and ( m.CompanyName LIKE '%".trim($_SESSION['tuplit_sess_order_company_name'])."%')";
-		if(isset($_SESSION['tuplit_sess_order_price']) && $_SESSION['tuplit_sess_order_price'] != '')
-			$condition .= " and o.TotalPrice = '".$_SESSION['tuplit_sess_order_price']."' ";
-		if(isset($_SESSION['tuplit_sess_order_status']) && $_SESSION['tuplit_sess_order_status'] != '')
-			$condition .= " and o.orderStatus LIKE '%".trim($_SESSION['tuplit_sess_order_status'])."%' ";
-		if(isset($_SESSION['tuplit_sess_trans_id']) && $_SESSION['tuplit_sess_trans_id'] != '')
-			$condition .= " and o.TransactionId LIKE '%".$_SESSION['tuplit_sess_trans_id']."%' ";
+		if(isset($limit) && $limit != ''){
+			$limit_clause = 'limit '.$limit.',10';
+		}else{ 
+			$limit_clause='limit 0,10';
+		}
+		/*if(isset($_SESSION['loc_mer_name']) && $_SESSION['loc_mer_name'] != '')
+			$condition .= " and m.id = ".trim($_SESSION['loc_mer_name']); 
+		if(isset($_SESSION['loc_mer_price']) && $_SESSION['loc_mer_price'] != '')
+			$condition .= " and o.TotalPrice = ".trim($_SESSION['loc_mer_price']); 
+		if(isset($_SESSION['loc_mer_city']) && $_SESSION['loc_mer_city'] != '')
+			$condition .= " and m.City LIKE '%".trim($_SESSION['loc_mer_city'])."%'"; 
+		if(isset($_SESSION['loc_mer_category']) && $_SESSION['loc_mer_category'] != ''){
+			$condition .= " and c.id  = ".trim($_SESSION['loc_mer_category']);
+			$groupby	.= " group by fkCartId ";
+		}else{
+			$groupby	= " ";
+		}*/
 		$sql = "select SQL_CALC_FOUND_ROWS ".$fields." from {$this->orderTable} as o
-				left join users as u on  (u.id	= o.fkUsersId )
-				left join merchants as m on (m.id = o.fkMerchantsId)
-				WHERE 1".$condition." group by o.id ORDER BY ".$sorting_clause." ".$limit_clause;
-		//echo "<br/>======".$sql;
+				".$leftjoin."
+				WHERE 1".$condition." and o.Status in (1,2) ORDER BY ".$sortby." ".$limit_clause;
 		$result	=	$this->sqlQueryArray($sql);
-		//echo "<pre>";   print_r($result);   echo "</pre>";
+		//echo "====>".$sql;
 		if(count($result) == 0) return false;
 		else return $result;		
 	}
@@ -111,7 +108,7 @@ class OrderModel extends Model
 			
 		$sql 				= 	"SELECT  count(id) as TotalOrders,SUM(TotalPrice) as TotalPrice ".$field." from orders as o 
 								where 1 and  o.OrderStatus IN (1)  ".$search_condition." ".$condition."";	
-							//	echo '-->'. $sql .'<br>';
+							//echo '-->'. $sql .'<br>';
 		$result	=	$this->sqlQueryArray($sql);
 		if(count($result) == 0) return false;
 		else return $result;	
@@ -171,14 +168,15 @@ class OrderModel extends Model
 									left join products as p on (p.id = c.fkProductsId)
 									where (c.`ProductsCost` = c.DiscountPrice and p.ItemType IN(1)) and o.OrderStatus IN (1) 	".$search_condition ."  ".$condition." 
 									limit 0,1)  as normalProducts
- 									from `carts` where 1  limit 0,1" ;	
+ 									from `carts` where 1  limit 0,1" ;
+		
 	   $result	=	$this->sqlQueryArray($sql);
+		//echo $sql;
 		if(count($result) == 0) return false;
 		else return $result;	
 	}	
 	function getUserTransactions($fields,$conditions)
 	{
-	
 		$sql =			"SELECT DISTINCT o.fkUsersId, u.FirstName, u.LastName, u.MangoPayUniqueId, u.WalletId FROM `orders` o
 						LEFT JOIN users u ON ( o.fkUsersId = u.id )
 						WHERE 1 AND ".$conditions." AND u.MangoPayUniqueId != '' AND u.WalletId != ''";			
@@ -186,5 +184,100 @@ class OrderModel extends Model
 		if(count($result) == 0) return false;
 		else return $result;	
 	}
+	/*-----merchants - transaction list-----*/
+	function getTotalRevenue($field,$condition)
+	{
+		$sql 	= 	"SELECT  count(id) as TotalOrders,SUM(TotalPrice) as TotalPrice ".$field." from orders as o 
+								where 1 and  o.OrderStatus IN (1) ".$condition;	
+		//	echo $sql."<br>";
+		$result	=	$this->sqlQueryArray($sql);
+		if(count($result) == 0) return false;
+		else return $result;	
+	}
+	function getProductList($field,$condition)
+	{
+		$limit_clause = '';
+		$sorting_clause = ' c.id desc';
+		if(isset($_SESSION['curpage']))
+			$limit_clause = ' LIMIT '.(($_SESSION['curpage'] - 1) * ($_SESSION['perpage'])) . ', '. $_SESSION['perpage'];
+		$sql 	= "select SQL_CALC_FOUND_ROWS ".$field." from {$this->cartTable} as c
+					left join {$this->productTable} as p on  (p.id	= c.fkProductsId)
+					WHERE 1".$condition." ORDER BY ".$sorting_clause." ".$limit_clause;
+		//echo "<br/>======".$sql;
+		$result	=	$this->sqlQueryArray($sql);
+		if(count($result) == 0) return false;
+		else return $result;		
+	}
+	function MerchantTransactionList($fields,$condition,$searchCond,$limit)
+	{
+		if(isset($limit) && $limit != ''){
+			$limit_clause = 'limit '.$limit.',10';
+		}else{ 
+			$limit_clause='limit 0,10';
+		}
+		$sql = "select SQL_CALC_FOUND_ROWS ".$fields." from {$this->orderTable} As o1 
+				LEFT JOIN {$this->orderTable} AS o2
+				ON (".$condition." AND o1.OrderDate < o2.OrderDate) 
+				LEFT JOIN users as u on (u.id = o1.fkUsersId)
+				Left join merchants as m on (m.id = o1.fkMerchantsId)
+				WHERE o2.OrderDate IS NULL  ".$searchCond."and o1.Status in (1,2) ".$limit_clause;
+		//echo "<br/>======".$sql;
+		$result	=	$this->sqlQueryArray($sql);
+		if(count($result) == 0) return false;
+		else return $result;		
+	}
+	function getPopularProducts($fields,$condition)
+	{
+		$sql 	= "select SQL_CALC_FOUND_ROWS ".$fields." from {$this->cartTable} as c
+					left join products p on (c.fkProductsId = p.id) 
+					WHERE 1 and p.Status=1 ".$condition." group by c.fkProductsId ORDER BY TotalPrice desc LIMIT 0,5";
+		//echo $sql;
+		$result	=	$this->sqlQueryArray($sql);
+		if(count($result) == 0) return false;
+		else return $result;		
+	}
+	function merchantCustomerList($fields,$condition,$groupby)
+	{
+		
+		$sql = "select SQL_CALC_FOUND_ROWS ".$fields." from {$this->orderTable} as o
+				WHERE 1".$condition." and o.Status in (1,2) ".$groupby;
+		//echo "<br/>======".$sql;
+		$result	=	$this->sqlQueryArray($sql);
+		if(count($result) == 0) return false;
+		else return $result;		
+	}
+	function getTransactionDetails($fields,$leftjoin,$condition,$sortby,$limit,$type)
+	{
+		$groupby	= "";
+		if($type == 1){
+			if(isset($limit) && $limit != ''){
+				$limit_clause	= 'limit '.$limit.',10';
+			}else{ 
+				$limit_clause	='limit 0,10';
+			}
+		}else if($type == 2){
+			$limit_clause	='limit 0,3';
+		}
+		if(isset($_SESSION['loc_mer_name']) && $_SESSION['loc_mer_name'] != '')
+			$condition .= " and m.id = ".trim($_SESSION['loc_mer_name']); 
+		if(isset($_SESSION['loc_mer_price']) && $_SESSION['loc_mer_price'] != '')
+			$condition .= " and o.TotalPrice  <= ".trim($_SESSION['loc_mer_price']); 
+		if(isset($_SESSION['loc_mer_city']) && $_SESSION['loc_mer_city'] != '')
+			$condition .= " and m.City LIKE '%".trim($_SESSION['loc_mer_city'])."%'"; 
+		if(isset($_SESSION['loc_mer_category']) && $_SESSION['loc_mer_category'] != ''){
+			$condition  .= " and c.id  = ".trim($_SESSION['loc_mer_category']);
+			$groupby	.= " group by fkCartId ";
+		}else{
+			$groupby	= " ";
+		}
+		$sql = "select SQL_CALC_FOUND_ROWS ".$fields." from {$this->orderTable} as o
+				".$leftjoin."
+				WHERE 1".$condition." and o.Status in (1,2) ".$groupby." ORDER BY ".$sortby." ".$limit_clause;
+		$result	=	$this->sqlQueryArray($sql);
+		//echo "====>".$sql;
+		if(count($result) == 0) return false;
+		else return $result;		
+	}
+
 }
 ?>

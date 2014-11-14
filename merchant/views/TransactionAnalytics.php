@@ -27,16 +27,16 @@ $dis_end_date	= date('m/t/Y', mktime(0, 0, 0, $month, 1, $year));
 
 commonHead();
 ?>
-<body class="skin-blue fixed">
+<body class="skin-blue fixed body_height">
 		<?php top_header(); ?>
 		<section class="content ">
-			<div class="col-lg-10 no-padding box-center">	
+			<div class="col-lg-12 box-center">	
 				<?php  AnalyticsTab(); ?>
 			</div>
 		</section>
 		
 		<section class="row content no-top-padding no-margin">
-		<div class="col-lg-10 no-padding box-center">	
+		<div class="col-lg-12 box-center">	
 			<section class="content-header">
                 <h1 class="no-top-margin">Transaction Analytics</h1>
             </section>

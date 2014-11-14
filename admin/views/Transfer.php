@@ -52,23 +52,26 @@ foreach($userListTemp as $val)
 }
 ?>
 <body class="skin-blue">
-<?php top_header(); ?>
+<?php 
+	top_header(); 
+	$activeTab = 3;
+	?>
 	<!-- Content Header (Page header) -->
 	<section class="content-header">
 		<div class="row col-xs-10">
-			<h1><i class="fa fa-list"></i> Transfer </h1>			
+			<h1>Transfer Tracking</h1>			
 		</div>
 	</section>
 	<!-- Main content -->
 	<section class="content">
-	<div class="row">
+		<div class="row">
 			<div class="col-xs-12">
 				<form name="search_Analytics" action="Transfer?cs=1" method="post">
-				<div class="box box-primary">	
+				<div class="box box-primary box-padding report">	
 					<div class="box-body no-padding" >				
 						<div class="col-sm-3 form-group">
-							<label>User Name</label>
-							<input type="text" class="form-control" name="DebitedName" id="DebitedName"  value="<?php  if(isset($_SESSION['tuplit_sess_DebitedName']) && $_SESSION['tuplit_sess_DebitedName'] != '') echo unEscapeSpecialCharacters($_SESSION['tuplit_sess_DebitedName']);  ?>" >
+							<!--<label>User Name</label>-->
+							<input type="text" class="form-control" name="DebitedName" id="DebitedName" placeholder="User Name" value="<?php  if(isset($_SESSION['tuplit_sess_DebitedName']) && $_SESSION['tuplit_sess_DebitedName'] != '') echo unEscapeSpecialCharacters($_SESSION['tuplit_sess_DebitedName']);  ?>" >
 						</div>
 					<!--<div class="box-body no-padding" >				
 						<div class="col-sm-4 form-group">
@@ -77,79 +80,80 @@ foreach($userListTemp as $val)
 						</div>
 					</div>-->
 						<div class="col-sm-3 form-group">
-							<label>Transfer Amount </label>
-							<input type="text" class="form-control" onkeypress="return isNumberKey(event);" name="TransferAmount" id="TransferAmount"  value="<?php if(isset($_SESSION['tuplit_sess_TransferAmount']) && $_SESSION['tuplit_sess_TransferAmount'] != '') echo $_SESSION['tuplit_sess_TransferAmount'];  ?>" >
+							<!--<label>Transfer Amount </label>-->
+							<input type="text" class="form-control" onkeypress="return isNumberKey(event);" name="TransferAmount" placeholder="Transfer Amount" id="TransferAmount"  value="<?php if(isset($_SESSION['tuplit_sess_TransferAmount']) && $_SESSION['tuplit_sess_TransferAmount'] != '') echo $_SESSION['tuplit_sess_TransferAmount'];  ?>" >
 						</div>
 						<div class="col-sm-3 form-group">
-							<label>From Date</label>
-							<input type="text" class="form-control datepicker" name="TransferDateFrom" id="TransferDateFrom"  value="<?php  if(isset($_SESSION['tuplit_sess_TransferDateFrom']) && $_SESSION['tuplit_sess_TransferDateFrom'] != '') echo $_SESSION['tuplit_sess_TransferDateFrom'];  ?>" >
+							<!--<label>From Date</label>-->
+							<input type="text" class="form-control datepicker" name="TransferDateFrom" id="TransferDateFrom" placeholder="Start Date" value="<?php  if(isset($_SESSION['tuplit_sess_TransferDateFrom']) && $_SESSION['tuplit_sess_TransferDateFrom'] != '') echo $_SESSION['tuplit_sess_TransferDateFrom'];  ?>" >
 						</div>
 						<div class="col-sm-3 form-group">
-							<label>To Date</label>
-							<input type="text" class="form-control datepicker" name="TransferDateTo" id="TransferDateTo"  value="<?php  if(isset($_SESSION['tuplit_sess_TransferDateTo']) && $_SESSION['tuplit_sess_TransferDateTo'] != '') echo $_SESSION['tuplit_sess_TransferDateTo'];  ?>" >
+							<!--<label>To Date</label>-->
+							<input type="text" class="form-control datepicker" name="TransferDateTo" id="TransferDateTo"  placeholder="End Date" value="<?php  if(isset($_SESSION['tuplit_sess_TransferDateTo']) && $_SESSION['tuplit_sess_TransferDateTo'] != '') echo $_SESSION['tuplit_sess_TransferDateTo'];  ?>" >
 						</div>
 					</div>
-					<div class="col-sm-12 box-footer clear" align="center">
-						<label>&nbsp;</label>
+					<div class="col-sm-12 clear" align="center">
+						<!--<label>&nbsp;</label>-->
 						<input type="submit" class="btn btn-success" name="Search" id="Search" value="Search" >
 					</div>
 				</div>
 				</form>				
 			</div>	
 		</div>
-		<div class="row paging">
-					<?php if(isset($transferList) && is_array($transferList) && count($transferList) > 0){ ?>
-					<div class="col-xs-12 col-sm-3">
-						<span class="totl_txt">Total Transfer(s) : <b><?php echo $tot_rec; ?></b></span>
-					</div>
-					<div class="col-xs-12 col-sm-9">
-						<div class="dataTables_paginate paging_bootstrap row">
-								<?php pagingControlLatest($tot_rec,'Transfer'); ?>
-						</div>
-					</div>
-					<?php } ?>
+		<?php require_once('StatisticsTabs.php');?>
+		<div class="row paging-margin paging">
+			<?php if(isset($transferList) && is_array($transferList) && count($transferList) > 0){ ?>
+			<div class="col-xs-12 col-sm-3 dataTables_info no-padding">
+				<span class="white_txt">Total Transfer(s) : <b><?php echo $tot_rec; ?></b></span>
+			</div>
+			<div class="col-xs-12 col-sm-9">
+				<div class="dataTables_paginate paging_bootstrap row">
+						<?php pagingControlLatest($tot_rec,'Transfer'); ?>
+				</div>
+			</div>
+			<?php } ?>
 		</div>
-		<div class="">
-            	<div class="col-xs-12 no-padding">
-				   <?php if(isset($transferList) && !empty($transferList)) { ?>
-		              <div class="box">
-		               <div class="box-body table-responsive no-padding no-margin">
-						<table class="table table-hover">
-                               <tr>
-									<th align="center" width="2%" class="text-center">#</th>									
-									<th width="10%">Debited user</th>
-									<th width="10%">Credited user</th>
-									<th width="10%" align="center">Notes</th>
-									<th width="10%" class="text-right">Transfer Amount</th>									
-									<th width="10%" class="text-left">Transfer Date</th>
+		<div class="row">
+			<div class="col-xs-12">
+			   <?php if(isset($transferList) && !empty($transferList)) { ?>
+				  <div class="box">
+				   <div class="box-body table-responsive no-padding no-margin">
+					<table class="table table-hover">
+						   <tr>
+								<th align="center" width="2%" class="text-center">#</th>									
+								<th width="10%">Debited user</th>
+								<th width="10%">Credited user</th>
+								<th width="10%" align="center">Notes</th>
+								<th width="10%" class="text-right">Transfer Amount</th>									
+								<th width="10%" class="text-left">Transfer Date</th>
+							</tr>
+						  <?php
+							foreach($transferList as $key=>$value){ 
+						  ?>
+								<tr>
+									<td align="center"><?php echo (($_SESSION['curpage'] - 1) * ($_SESSION['perpage']))+$key+1;?></td>												
+									<td ><?php if(isset($userList[$value->fkUsersId]))echo $userList[$value->fkUsersId]; else echo "-"; ?></td>
+									<td ><?php if(isset($userList[$value->fkTransferUsersId]))echo $userList[$value->fkTransferUsersId]; else echo "-"; ?></td>
+									<td class="text-left"><?php  if(!empty($value->Notes)) echo $value->Notes; else echo "-"; ?></td>
+									<td class="text-right"><?php  echo price_fomat($value->Amount); ?></td>										
+									<td  class="text-left"><?php   if(isset($value->TransferDate)){
+										$gmt_current_transfer_time = convertIntocheckinGmtSite($value->TransferDate);
+										$transfer_time	=  displayConversationDateTimeForLog($gmt_current_transfer_time,$_SESSION['tuplit_ses_from_timeZone']);
+										echo $transfer_time; } else echo '-'; ?></td>
 								</tr>
-                              <?php
-							  	foreach($transferList as $key=>$value){ 
-							  ?>
-									<tr>
-										<td align="center"><?php echo (($_SESSION['curpage'] - 1) * ($_SESSION['perpage']))+$key+1;?></td>												
-										<td ><?php if(isset($userList[$value->fkUsersId]))echo $userList[$value->fkUsersId]; else echo "-"; ?></td>
-										<td ><?php if(isset($userList[$value->fkTransferUsersId]))echo $userList[$value->fkTransferUsersId]; else echo "-"; ?></td>
-										<td class="text-left"><?php  if(!empty($value->Notes)) echo $value->Notes; else echo "-"; ?></td>
-										<td class="text-right"><?php  echo price_fomat($value->Amount); ?></td>										
-										<td  class="text-left"><?php   if(isset($value->TransferDate)){
-											$gmt_current_transfer_time = convertIntocheckinGmtSite($value->TransferDate);
-											$transfer_time	=  displayConversationDateTimeForLog($gmt_current_transfer_time,$_SESSION['tuplit_ses_from_timeZone']);
-											echo $transfer_time; } else echo '-'; ?></td>
-									</tr>
-							<?php } //end for ?>	
-                           </table>
-							<!-- End product List -->						 
-						<?php } else { ?>
-							<div class="row clear">		
-								 <div align="center" class="alert alert-danger alert-dismissable col-lg-4 col-sm-5 col-xs-10"><i class="fa fa-warning"></i> <?php echo $errorMessage; ?>	</div>							
-							</div>							
-						<?php } ?>						
-					</div><!-- /.box-body -->
-				</div>					
-			</div>	
-		 </div>
-	</section><!-- /.content -->	
+						<?php } //end for ?>	
+					   </table>
+						<!-- End product List -->						 
+					<?php } else { ?>
+						<div class="row clear">		
+							 <div align="center" class="alert alert-danger alert-dismissable col-lg-4 col-sm-5 col-xs-10"><i class="fa fa-warning"></i> <?php echo $errorMessage; ?>	</div>							
+						</div>							
+					<?php } ?>						
+				</div><!-- /.box-body -->
+			</div>					
+		</div>	
+	 </div>
+</section><!-- /.content -->	
 <?php commonFooter(); ?>
 <script type="text/javascript">
 $(".datepicker").datepicker({

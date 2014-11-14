@@ -142,10 +142,11 @@ function sendMail($mailContentArray,$type)
 				break;
 			case 5:
 				//Merchant Registeration 
-				$mailData 			=	str_replace('{NAME}', $mailContentArray['name'], $mailData);
-				$mailData 			=	str_replace('{EMAIL}', $mailContentArray['toemail'], $mailData);
-				$mailData 			=	str_replace('{PASSWORD}',  $mailContentArray['password'], $mailData);
-				$mailData 			=	str_replace('{SITE_MAIL_PATH}',  $sitelinkpath, $mailData);
+				$mailData 			=	str_replace('{NAME}',$mailContentArray['name'], $mailData);
+				$mailData 			=	str_replace('{EMAIL}',$mailContentArray['toemail'], $mailData);
+				$mailData 			=	str_replace('{PASSWORD}',$mailContentArray['password'], $mailData);
+				$mailData 			=	str_replace('{COMPANY_NAME}',$mailContentArray['company_name'], $mailData);
+				$mailData 			=	str_replace('{SITE_MAIL_PATH}',$sitelinkpath, $mailData);
 				break;
 			case 6:
 				//Admin Merchant Registeration
@@ -167,6 +168,8 @@ function sendMail($mailContentArray,$type)
 				$mailData 			=	str_replace('{NAME1}',  $mailContentArray['name1'], $mailData);
 				$mailData 			=	str_replace('{ADDRESS}',  $mailContentArray['address'], $mailData);
 				$mailData 			=	str_replace('{TOTAL}',  $mailContentArray['TotalPrice'], $mailData);
+				$mailData 			=	str_replace('{SUBTOTAL}',  $mailContentArray['SubTotal'], $mailData);
+				$mailData 			=	str_replace('{VAT}',  $mailContentArray['VAT'], $mailData);
 				$transactionData	= 	'';
 				if(!empty($mailContentArray['TransactionId'])) {
 					$transactionData	=	'<tr><td height="10" ></td></tr>	
@@ -197,9 +200,8 @@ function sendMail($mailContentArray,$type)
 		$headers        .= 	"From: $from\r\n";
 		$headers 		.= 	"Content-type: text/html\r\n";
 		if ($_SERVER['HTTP_HOST'] == '172.21.4.104'){
-			if($_SERVER['REMOTE_ADDR'] == '172.21.4.215' || $_SERVER['REMOTE_ADDR'] == '172.21.4.81'|| $_SERVER['REMOTE_ADDR'] == '172.21.4.130'){
-				echo $mailData;
-				//die();
+			if($_SERVER['REMOTE_ADDR'] == '172.21.4.215' || $_SERVER['REMOTE_ADDR'] == '172.21.4.102'){
+				echo "<pre>"; print_r($mailData); echo "</pre>";
 			}	
 			//$sendmail = sendMailSes($from,$to,$subject,$mailData,'');
 		}
@@ -504,7 +506,7 @@ function pagingControlLatest($total,$action='')
 				<?php } ?>
 				</select>
 			</span>
-			<span class="pull-right">Per page &nbsp;</span>
+			<span class="pull-right white_txt">Per page &nbsp;</span>
 			 </div>
 		<?php }?>
 	</form>
@@ -663,6 +665,12 @@ function uploadImageToS3($image_path,$type,$image_name){
 		$image_upload_path = 'merchants/'.$image_name;
 	} else if($type == 8){ //merchants
 		$image_upload_path = 'products/'.$image_name;
+	}else if($type == 9){ //backgrounds
+		$image_upload_path = 'merchants/backgrounds/'.$image_name;
+	}else if($type == 10){ //salespersons
+		$image_upload_path = 'salespersons/'.$image_name;
+	}else if($type == 11){ //adminlogo
+		$image_upload_path = 'adminlogo/'.$image_name;
 	}
 	require_once('sdk.class.php');// Include the SDK
 	$s3 = new AmazonS3();//// Instantiate the AmazonS3 class
@@ -690,7 +698,7 @@ function uploadImageToS3($image_path,$type,$image_name){
 					
 			);
 		$file_upload_response = $s3->batch()->send();
-		//echo'<br>-------file---------<pre>';print_r($file_upload_response);echo'</pre>';
+	//	echo'<br>-------file---------<pre>';print_r($file_upload_response);echo'</pre>';die();
 		
 }
 
@@ -710,8 +718,14 @@ function image_exists($type,$image_name){
 		$filename = 'merchants/icons/'.$image_name;
 	} else if($type == 7){ //merchants
 		$filename = 'merchants/'.$image_name;
-	} else if($type == 8){ //merchants
+	} else if($type == 8){ //products
 		$filename = 'products/'.$image_name;
+	} else if($type == 9){ //backgrounds
+		$filename = 'merchants/backgrounds/'.$image_name;
+	} else if($type == 10){ //salespersons
+		$filename = 'salespersons/'.$image_name;
+	}else if($type == 11){ //adminlogo
+		$filename = 'adminlogo/'.$image_name;
 	}
 	$bucket = BUCKET_NAME;
 	require_once('sdk.class.php');// Include the SDK
@@ -741,7 +755,13 @@ function deleteImages($type,$image_name){
 		$filename = 'merchants/'.$image_name;
 	} else if($type == 8){ //merchants
 		$filename = 'products/'.$image_name;
-	} 
+	} else if($type == 9){ //backgrounds
+		$filename = 'merchants/backgrounds/'.$image_name;
+	} else if($type == 10){ //salespersons
+		$filename = 'salespersons/'.$image_name;
+	}else if($type == 11){ //adminlogo
+		$filename = 'adminlogo/'.$image_name;
+	}
 	$bucket = BUCKET_NAME;
 	
 	require_once('sdk.class.php');// Include the SDK
@@ -756,13 +776,6 @@ function deleteImages($type,$image_name){
 }
 
 function ipAddress(){
-	/*if (!empty($_SERVER['HTTP_CLIENT_IP'])){
- 		$ip_address=$_SERVER['HTTP_CLIENT_IP'];
-	}elseif (!empty($_SERVER['HTTP_X_FORWARDED_FOR'])){
- 		$ip_address=$_SERVER['HTTP_X_FORWARDED_FOR'];
-	}else{
- 		$ip_address=$_SERVER['REMOTE_ADDR'];
-	}*/	
 	if (isset($_SERVER['HTTP_X_FORWARDED_FOR'])){
  		$ip_address=$_SERVER['HTTP_X_FORWARDED_FOR'];
 	}else{
@@ -1299,7 +1312,7 @@ function createEndpointARNAWS($PlatformApplicationArn,$Token,$CustomUserData){
 	$endpoint = require("sns-create.php");
 	return $endpoint;die();
 }
-function sendNotificationAWS($message,$EndpointArn,$platform,$badge,$type,$processId,$userId,$sound){
+function sendNotificationAWS($message,$EndpointArn,$platform,$badge,$type,$processId,$userId,$sound,$merchantId,$merchantName,$notes){
 	error_reporting(E_ALL);
 	$endpoint = require("sns-send.php");
 	return $endpoint;die();
@@ -1758,10 +1771,10 @@ function openingHoursString($openHoursArray,$from) {
 
 function price_fomat($price_val){
 	$price = number_format($price_val,2,'.',',');
-	if(strstr($price,'$'))
+	if(strstr($price,'&pound;'))
 		return $price;
 	else
-		return '$'.$price;
+		return utf8_encode('£').$price;
 }
 
 function imagethumb_addbg($src,$des,$itype,$exn,$maxwidth,$hght)
@@ -2276,4 +2289,41 @@ function csvDownload($contentArray,$filename) {
     fclose($fp);
     die();
 }
+function changeDate_DBformat($date)
+{
+	if( ($date != ''))
+	{
+		$date 	= substr($date,0,10);
+		$day 	= substr($date,0,2);
+		$month 	= substr($date,3,2);
+		$year   = substr($date,6,4);
+		$date_db_format = $year.'-'.$month.'-'.$day;
+		return $date_db_format;
+	}
+}
+function changeDate_format($date)
+{
+	if( ($date != ''))
+	{
+		$date 	= substr($date,0,10);
+		$day 	= substr($date,3,2);
+		$month 	= substr($date,0,2);
+		$year   = substr($date,6,4);
+		$date_db_format = $year.'-'.$month.'-'.$day;
+		return $date_db_format;
+	}
+}
+function dateDisplayFormat($date)
+{
+	if( ($date != ''))
+	{
+		$date 	= substr($date,0,10);
+		$year   = substr($date,0,4);
+		$month  = substr($date,5,2);
+		$day 	= substr($date,8,2);
+		$date_db_format = $day.'-'.$month.'-'.$year;
+		return $date_db_format;
+	}
+}
+
 ?>

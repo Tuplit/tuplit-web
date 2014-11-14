@@ -42,6 +42,15 @@ class ContentController extends Controller
 			$this->loadModel('ContentModel', 'ContentModelObj');
 		if ($this->ContentModelObj)
 			return $this->ContentModelObj->deleteContent($ids);
-	}    
+	}  
+	/*
+	function updateContent($data)
+	{
+		if (!isset($this->ContentModelObj))
+			$this->loadModel('ContentModel', 'ContentModelObj');
+		if ($this->ContentModelObj)
+			return $this->ContentModelObj->updateContent($data);
+	}
+*/
 }
 ?>

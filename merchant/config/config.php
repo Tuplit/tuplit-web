@@ -63,8 +63,8 @@ if($_SERVER['HTTP_HOST']=='172.21.4.104')
 	define('ABS_PATH_UPLOAD',MERCHANT_ABS_PATH.'/webresources/uploads/');
 }
 else{
-	define('SITE_PATH_UPLOAD','http://'.BUCKET_NAME.'.s3.amazonaws.com/');
-	define('ABS_PATH_UPLOAD','http://'.BUCKET_NAME.'.s3.amazonaws.com/');
+	define('SITE_PATH_UPLOAD','http://dru4vhpkosqqc.cloudfront.net/');
+	define('ABS_PATH_UPLOAD','http://dru4vhpkosqqc.cloudfront.net/');
 }
 
 define('MERCHANT_ICONS_IMAGE_PATH', SITE_PATH_UPLOAD.'merchants/icons/');	
@@ -72,6 +72,9 @@ define('MERCHANT_ICONS_IMAGE_PATH_REL', ABS_PATH_UPLOAD.'merchants/icons/');
 
 define('MERCHANT_COVER_IMAGE_PATH', SITE_PATH_UPLOAD.'merchants/');	
 define('MERCHANT_COVER_IMAGE_PATH_REL', ABS_PATH_UPLOAD.'merchants/');
+
+define('MERCHANT_BACKGROUND_IMAGE_PATH', SITE_PATH_UPLOAD.'merchants/backgrounds/');	
+define('MERCHANT_BACKGROUND_IMAGE_PATH_REL', ABS_PATH_UPLOAD.'merchants/backgrounds/');
 
 define('MERCHANT_SITE_IMAGE_PATH',MERCHANT_SITE_PATH.'/webresources/images/');	
 define('MERCHANT_SITE_IMAGE_PATH_REL', MERCHANT_SITE_PATH.'/webresources/images/');
@@ -98,6 +101,9 @@ $MERCHANT_per_page_array = array(10,50,100,200,250);
 define('MERCHANT_PER_PAGE_ARRAY', 'return ' . var_export($MERCHANT_per_page_array, 1) . ';');//define constant array
 global $methodArray;
 $methodArray = array('POST','DELETE','GET','PUT');
+
+global $Salesperson;
+$Salesperson = array('Dashboard','Orders','OrderHistory','TransactionList','ProductList');
 
 global $platformArray;
 $platformArray = array('0'=>'Web','1'=>'ios','2'=>'Android');
@@ -413,4 +419,23 @@ $country_currency_array = array(
 								'Yemen' => 'YER',
 								'Zambia' => 'ZMK',
 								'Zimbabwe' => 'ZWD');
+								
+require(ABS_PATH.'/includes/CommonFunctions.php');
+if(!isset($layout)){
+	$layout = detectLayout();
+}	
+define('LAYOUT',$layout);
+
+global $backgroundSliderArray;
+$backgroundSliderArray = array( '1'=>SITE_PATH.'/webresources/images/HomePage_Bg1.jpg',
+								'2'=>SITE_PATH.'/webresources/images/HomePage_Bg2.jpg',
+								'3'=>SITE_PATH.'/webresources/images/HomePage_Bg3.jpg',
+								'4'=>SITE_PATH.'/webresources/images/HomePage_Bg4.jpg',
+								'5'=>SITE_PATH.'/webresources/images/HomePage_Bg5.jpg');
+								
+global $AutoLock;
+$AutoLock = array('1'=>'3','2'=>'5','3'=>'10');
+
+global $ProductVAT;
+$ProductVAT = array('0'=>'0','5'=>'5','20'=>'20');
 ?>

@@ -90,4 +90,7 @@ class ErrorCodeType {
 	const AlreadyRefunded = 001401;
 	
 	const ProductDiscountMust = 2223;
+	const MerchantNotPublished = 2224;
+	const AlreadyRegisteredUser = 2255;
+	const InvitingOwnFriends = 2256;
 }

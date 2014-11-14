@@ -17,12 +17,14 @@ if(isset($_POST['change_password_submit']) && $_POST['change_password_submit'] =
         $updateString   =   " password  = '".$_POST['new_password']."'";
         $condition      =   " id = 1 ";
         $adminLoginObj->updateAdminDetails($updateString,$condition);
+		header("Location:CommonSettings?msg=2");
 		$msg            = "Password updated successfully";
 		$class          = "alert-success";
 		$class_icon          = "fa-check";
 		$display        = "block";
 	}
 	else{
+		header("Location:CommonSettings?msg=3");
 		$class    = "alert-danger";
 		$class_icon          = "fa-warning";
 		$display  = "block";

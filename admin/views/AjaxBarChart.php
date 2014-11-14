@@ -1,4 +1,5 @@
-<?php if(isset($_POST['action']) && $_POST['action']=='GET_CHART') { 
+<?php 
+if(isset($_POST['action']) && $_POST['action']=='GET_CHART') { 
 	require_once('AjaxChartFilter.php');
 	$xarrays = $new_array = array();
 	$count = 0;	
@@ -39,8 +40,8 @@
 		}?>
 		
 		<tr>
-			<td align="center"><?php if(isset($total_price) && $total_price>0){ echo '$'.number_format((float)$total_price,2,'.',',');}?></td>
-			<td align="center"><?php if(isset($average) && $average>0){ echo '$'.number_format((float)$average, 2, '.', ',');}?></td>
+			<td align="center"><?php if(isset($total_price) && $total_price>0){ echo '&pound;'.number_format((float)$total_price,2,'.',',');}?></td>
+			<td align="center"><?php if(isset($average) && $average>0){ echo '&pound;'.number_format((float)$average, 2, '.', ',');}?></td>
 			<td align="center"><?php if(isset($total_orders) && $total_orders> 0){ echo $total_orders;}?></td>
 		</tr>
 	<?php //} //end for ?>	
@@ -95,7 +96,7 @@ $(document).ready(function() {
               barColors: ['#01B3A5'],
               xkey: 'y',
               ykeys: ['a'],
-              labels: ['Revenue($)'],
+              labels: ['Revenue(&pound;)'],
               hideHover: 'auto',
 			 // xLabelAngle: 60
 			 
@@ -105,6 +106,4 @@ $(document).ready(function() {
 <?php } ?>
 </script>
 <?php
-
  } ?>
- 

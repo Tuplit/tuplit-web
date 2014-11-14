@@ -1,5 +1,6 @@
 <?php
 	require_once('includes/CommonIncludes.php');
+	
 	if(isset($_GET['Page']) && !empty($_GET['Page'])) {
 		$url					=	WEB_SERVICE.'v1/contents/webpagecontent/'.$_GET['Page'];
 		$curlCategoryResponse 	= 	curlRequest($url, 'GET', null, null);
@@ -15,6 +16,7 @@
 		<?php 
 			top_header(); 
 			if(isset($webpagecontent) && !empty($webpagecontent)) {
+				$_SESSION['MerchantPortalAccessTime']   =	time();
 				//echo "<pre>"; echo print_r($webpagecontent); echo "</pre>";
 				echo $webpagecontent['Content'];
 			}

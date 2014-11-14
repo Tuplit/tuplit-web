@@ -47,8 +47,11 @@ $app->get('/', function () use ($app) {
 		/**
 		* Retrieving category list array
 		*/
-		$categories 		= 	R::dispense('categories');
-	 	$categoryDetails 	=  $categories->getCategoryDetails();
+		$req 				= 	$app->request();
+		$categories 			= 	R::dispense('categories');
+		if($req->params('From'))
+			$categories->From 	= 	$req->params('From');
+	 	$categoryDetails 	 	=   $categories->getCategoryDetails();
 		if($categoryDetails){
 			$response 	   	= 	new tuplitApiResponse();
 	        $response->setStatus(HttpStatusCode::Created);
@@ -322,6 +325,48 @@ $app->delete('/:CategoryId',tuplitApi::checkToken(), function ($CategoryId) use 
         tuplitApi::showError($e);
     }
 });
+
+/**
+* get category product count
+* GET /v1/categories/productscount/
+*/
+$app->get('/productscount/:CategoryId',tuplitApi::checkToken(), function ($CategoryId) use ($app) {
+
+    try {
+		$merchantId 		= 	tuplitApi::$resourceServer->getOwnerId();
+		
+		/**
+		* Retrieving product category list array
+		*/
+		$categories 				= 	R::dispense('categories');
+		$categories->merchantId		=	$merchantId;
+		$categories->CategoryId		=	$CategoryId;
+	 	$productCount 				=  	$categories->getCategoryProductCount();
+		$response 	   	= 	new tuplitApiResponse();
+		$response->setStatus(HttpStatusCode::Created);
+		$response->meta->dataPropertyName 	= 	'CategoryProductCount';
+		$response->meta->TotalCount 		= 	$productCount;
+		$response->addNotification('Category product count retrieved successfully');
+		echo $response;
+    }
+    catch (ApiException $e){
+        // If occurs any error message then goes here
+        tuplitApi::showError(
+            $e,
+            $e->getHttpStatusCode(),
+            $e->getErrors()
+        );
+    }
+    catch (\Slim\Exception\Stop $e){
+        // If occurs any error message for slim framework then goes here
+    }
+    catch (Exception $e) {
+        // If occurs any error message then goes here
+        tuplitApi::showError($e);
+    }
+
+});
+
 
 /**
 * Start the Slim Application

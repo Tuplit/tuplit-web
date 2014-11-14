@@ -38,37 +38,40 @@ if(isset($_POST['password_change_submit']) && $_POST['password_change_submit'] =
 }
 commonHead();
 ?>
-<body class="skin-blue fixed" onload="fieldfocus('user_name');">
+<body class="skin-blue fixed popup_bg" onload="fieldfocus('user_name');">
+	<div class="popup_white">
 		<section class="content-header col-xs-12 text-left">
-			<h1>Change Password</h1>
+			<h1 style="margin-bottom:15px;">Change Password</h1>
 		</section>
 		
 			<form action="" name="change_password_form" id="change_password_form"  method="post">
 		<div class="form-box" id="login-box">
 				<div class="body">
 					<?php if(isset($responseMessage) && $responseMessage != '') { ?>
-						<div class="<?php echo $msg_class; ?> clear" style="margin-top:7px"><i class="fa <?php echo $class_icon; ?>"></i>&nbsp;&nbsp;<?php echo $responseMessage;?></div>
+						<div class="<?php echo $msg_class; ?> clear" style="margin-top:7px;"><i class="fa <?php echo $class_icon; ?>"></i>&nbsp;&nbsp;<?php echo $responseMessage;?></div>
 					<?php  } ?>
 
 					<div class="col-xs-12 no-padding clear">
 					
-					<div class="form-group col-xs-12 no-padding no-margin"  style="height:65px" >
+					<div class="form-group"  style="height:58px;margin-bottom:0px;" >
 						<input type="password" name="OldPassword" id="OldPassword" class="form-control" required placeholder="Old Password" value=""/>
 						
 					</div>
-					<div class="form-group col-xs-12 no-padding no-margin"  style="height:65px">
+					<div class="form-group"  style="height:58px;margin-bottom:0px;">
 						<input type="password" name="Password" id="Password" class="form-control" required placeholder="New Password" value=""/>
 					</div> 
-					<div class="form-group col-xs-12 no-padding no-margin"  style="height:80px">
+					<div class="form-group"  style="height:58px;margin-bottom:0px;">
 						<input type="password" name="C_Password" id="C_Password" class="form-control"  required placeholder="Confirm Password" value=""/>
 					</div>          
 					</div>
 				</div>
-				<div class="footer">                                                               
-					<input type="submit" name="password_change_submit" id="password_change_submit" title="CHANGE PASSWORD" value="CHANGE PASSWORD" class="btn btn-success btn-lg btn-block ">
+				<div class="footer" style="padding-bottom:20px;">                                                               
+					<input type="submit" name="password_change_submit" id="password_change_submit" title="CHANGE PASSWORD" value="CHANGE PASSWORD" class="form-control btn btn-success btn-lg btn-block ">
 				</div>
 				
 		</div>
 			</form>
+</div>
+
 	<?php commonFooter(); ?>
 </html>

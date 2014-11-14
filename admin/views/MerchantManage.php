@@ -52,18 +52,18 @@ if(isset($_GET['editId']) && $_GET['editId'] != '' ){
 		$LastName 							= 	$merchantListResult[0]->LastName;
 		$Email 								= 	$merchantListResult[0]->Email;
 		$PhoneNumber 						= 	$merchantListResult[0]->PhoneNumber;
-		$BusinessName 						= 	$merchantListResult[0]->BusinessName;
+		//$BusinessName 						= 	$merchantListResult[0]->BusinessName;
 		$BusinessTypeval 					= 	$merchantListResult[0]->BusinessType;
 		$CompanyName 						= 	$merchantListResult[0]->CompanyName;
-		$CompanyNumber 						= 	$merchantListResult[0]->RegisterCompanyNumber;
-		$Address 							= 	$merchantListResult[0]->Address;
+		//$CompanyNumber 						= 	$merchantListResult[0]->RegisterCompanyNumber;
+		//$Address 							= 	$merchantListResult[0]->Address;
 		$Country 							= 	$merchantListResult[0]->Country;
 		$Postcode 							= 	$merchantListResult[0]->PostCode;
 		$Currency 							= 	$merchantListResult[0]->Currency;
 		$HowHeared 							= 	$merchantListResult[0]->HowHeared;
 		$WebsiteUrl							= 	$merchantListResult[0]->WebsiteUrl;
 		$Location							= 	$merchantListResult[0]->Location;
-		$ItemsSold							= 	$merchantListResult[0]->ItemsSold;
+		//$ItemsSold							= 	$merchantListResult[0]->ItemsSold;
 		$Description						= 	$merchantListResult[0]->Description;
 		$ShortDescription					= 	$merchantListResult[0]->ShortDescription;
 		if(isset($merchantListResult[0]->Icon) && $merchantListResult[0]->Icon != ''){
@@ -100,14 +100,14 @@ if(isset($_POST['submit']) && $_POST['submit'] != ''){
 		$LastName 			= 	$_POST['LastName'];
 	if(isset($_POST['PhoneNumber']))
 		$PhoneNumber   		= 	$_POST['PhoneNumber'];
-	if(isset($_POST['BusinessName']) )
-		$BusinessName     	= 	$_POST['BusinessName'];
+	/*if(isset($_POST['BusinessName']) )
+		$BusinessName     	= 	$_POST['BusinessName'];*/
 	if(isset($_POST['BusinessType']) )
 		$BusinessTypeval    = 	$_POST['BusinessType'];
 	if(isset($_POST['CompanyName']) )
 		$CompanyName     	= 	$_POST['CompanyName'];
-	if(isset($_POST['CompanyNumber']) )
-		$CompanyNumber     	= 	$_POST['CompanyNumber'];
+	/*if(isset($_POST['CompanyNumber']) )
+		$CompanyNumber     	= 	$_POST['CompanyNumber'];*/
 	if(isset($_POST['Country']) )
 		$Country     		= 	$locations[$_POST['Country']]->Location;
 	if(isset($_POST['Currency']) )
@@ -201,7 +201,7 @@ if(isset($_POST['submit']) && $_POST['submit'] != ''){
 				$MerchantObj->updateShoppingHours($_POST);
 			}
 			unset($_POST);
-			header("location:MerchantList?msg=2");
+			header("location:Merchants?msg=2");
 		}
 		else if($_POST['submit'] == 'Add'){	
 			/*if(isset($locations) && count($locations) > 0)
@@ -221,7 +221,7 @@ if(isset($_POST['submit']) && $_POST['submit'] != ''){
 			$mailContentArray['fileName']	= 'merchantregistration.html';
 			sendMail($mailContentArray,'5');
 			unset($_POST);
-			header("location:MerchantList?msg=1");
+			header("location:Merchants?msg=1");
 		}
 	}
 	else{
@@ -250,7 +250,7 @@ commonHead();
 		<div class="row">
 			<div class="col-md-12"> 
 			<form name="<?php if(isset($_GET['editId']) && $_GET['editId'] != '' ) echo 'merchant_edit_form'; else echo 'merchant_add_form';?>" id="<?php if(isset($_GET['editId']) && $_GET['editId'] != '' ) echo 'merchant_edit_form'; else echo 'merchant_add_form';?>" action="" method="post" onsubmit="">
-			<div class="box box-primary"> 
+			<div class="box box-primary box-padding"> 
 				<!-- left column -->
 					<?php if(isset($error_msg) && $error_msg != '')  { ?> <div class="alert <?php echo $class;  ?> alert-dismissable col-lg-4  col-sm-5  col-xs-11 text-center"><i class="fa <?php echo $class_icon ;  ?>"></i>  <?php echo $error_msg;  ?></div> <?php } ?>
 					<input type="Hidden" name="merchant_id" id="merchant_id" value="<?php if(isset($_GET['editId']) && $_GET['editId'] != '' ) echo $_GET['editId'];?>">
@@ -267,20 +267,18 @@ commonHead();
 						<input type="text" class="form-control" name="Email" id="Email" maxlength="100" value="<?php if(isset($Email) && $Email != '') echo $Email;  ?>" >
 					</div>
 					<div class="form-group col-sm-6">
-						<label>Mobile Number</label>
+						<label>Phone</label>
 						<input type="text" class="form-control" id="PhoneNumber" name="PhoneNumber" maxlength="15" onkeypress="return isNumberKey_Phone(event);" value="<?php if(isset($PhoneNumber) && $PhoneNumber != '') echo $PhoneNumber;  ?>" >
 					</div>					
 					<div class="form-group col-sm-6 clear">
 						<label>Password</label>
 						<input type="Password" class="form-control" id="Password" name="Password"  value="<?php if(isset($Password) && $Password != '' && !isset($_GET['editId'])) echo $Password;  ?>" >
 					</div>
-					<?php if(!isset($_GET['editId'])) { ?>
 					<div class="form-group col-sm-6">
 						<label>Confirm Password</label>
 						<input type="Password" class="form-control" id="C_Password" name="C_Password"  value="<?php if(isset($C_Password) && $C_Password != '') echo $C_Password;  ?>" >
 					</div>
-					<?php } ?>
-					<div class="form-group col-sm-6 clear">
+					<!--<div class="form-group col-sm-6 clear">
 						<label>Business Name</label>
 						<input type="text" class="form-control" id="BusinessName" name="BusinessName" maxlength="50" value="<?php if(isset($BusinessName) && $BusinessName != '') echo $BusinessName;  ?>" >
 					</div>
@@ -292,16 +290,16 @@ commonHead();
 								<option value="<?php echo $busi_key; ?>" <?php if(isset($BusinessTypeval) && $BusinessTypeval == $busi_key) echo "selected"; ?>><?php echo $busi_type; ?></option>
 								<?php } ?>
 						</select>
-					</div>
+					</div>-->
 					<div class="form-group col-sm-6 clear">
 						<label>Company Name</label>
 						<input type="text" class="form-control" id="CompanyName" name="CompanyName" maxlength="30" value="<?php if(isset($CompanyName) && $CompanyName != '') echo $CompanyName;  ?>" >
 					</div>
-					<div class="form-group col-sm-6">
+					<!--<div class="form-group col-sm-6">
 						<label>Company Number</label>
 						<input type="text" class="form-control" id="CompanyNumber" name="CompanyNumber" maxlength="15" onkeypress="return isNumberKey_Phone(event);" value="<?php if(isset($CompanyNumber) && $CompanyNumber != '') echo $CompanyNumber;  ?>" >
-					</div>
-					<div class="form-group col-sm-6 clear">
+					</div>-->
+					<div class="form-group col-sm-6">
 							<label>Country</label>
 							<select class="form-control" id="Country" name="Country">
 								<option value="">Select</option>
@@ -310,7 +308,7 @@ commonHead();
 									<?php } } ?>
 							</select>
 					</div>
-					<div class="form-group col-sm-6">
+					<!--<div class="form-group col-sm-6">
 						<label>Currency</label>
 						<select class="form-control" name="Currency1" id="Currency1" disabled/>
 							<option value="">Choose Currency</option>
@@ -319,15 +317,15 @@ commonHead();
 							<?php } } ?>
 						</select>
 						<input type="hidden" class="form-control" id="Currency" name="Currency" readonly="readonly" value="<?php if(isset($Currency) && $Currency != '') echo $Currency;  ?>" >
-					</div>
+					</div> -->
 					<div class="form-group col-sm-6 clear">
 						<label>Postcode</label>
 						<input type="text" class="form-control" id="Postcode" name="Postcode" maxlength="8" onkeypress="return isNumberKey_Phone(event);" value="<?php if(isset($Postcode) && $Postcode != '') echo $Postcode;  ?>" >
 					</div>
-					<div class="form-group col-sm-6 ">
+					<!-- <div class="form-group col-sm-6 ">
 						<label>Address</label>
 						<textarea class="form-control" id="Address" name="Address" cols="5"><?php if(isset($Address) && $Address != '') echo $Address;  ?></textarea>
-					</div>
+					</div> -->
 					<?php if(!isset($_GET['editId'])) { ?>		
 					<div class="form-group col-sm-6 clear">
 						<label>How did you hear about us?</label>
@@ -348,10 +346,10 @@ commonHead();
 						<label>Location</label>
 						<input type="text" class="form-control" id="Location" name="Location" maxlength="30" value="<?php if(isset($Location) && $Location != '') echo $Location;  ?>" >
 					</div>
-					<div class="form-group col-sm-6">
+					<!--<div class="form-group col-sm-6">
 						<label>Items Sold</label>
 						<input type="text" class="form-control" id="ItemsSold" name="ItemsSold" maxlength="5" onkeypress="return isNumberKey_numbers(event);" value="<?php if(isset($ItemsSold) && $ItemsSold != '') echo $ItemsSold;  ?>" >
-					</div>
+					</div>-->
 					<div class="form-group col-sm-6 clear">
 						<label>Short Description</label>
 						<textarea class="form-control" id="ShortDescription" name="ShortDescription" maxlength="250" cols="5"><?php if(isset($ShortDescription) && $ShortDescription != '') echo $ShortDescription;  ?></textarea>	
@@ -372,7 +370,7 @@ commonHead();
 							<div class="col-sm-3 no-padding" >
 						      <div id="icon_photo_img">
 							 	 <?php if(isset($image_path) && $cimage_path != ''){?>
-								  <a href="<?php echo $image_path; ?>" class="fancybox" title="<?php echo ucfirst($CompanyName); ?>"><img class="img_border" src="<?php echo $image_path;?>" width="75" height="75" alt="Image"/></a>
+								  <a onclick="return loaded;" href="<?php echo $image_path; ?>" class="fancybox" title="<?php echo ucfirst($CompanyName); ?>"><img class="img_border" src="<?php echo $image_path;?>" width="75" height="75" alt="Image"/></a>
 								<?php } ?>
 							  </div>								
 						   </div>	
@@ -392,7 +390,7 @@ commonHead();
 						<div class="col-sm-5 no-padding"> 
 					      <div id="merchant_photo_img">
 						  		<?php if(isset($cimage_path) && $cimage_path != ''){?>
-							  	<a href="<?php echo $cimage_path; ?>" class="fancybox" title="<?php echo ucfirst($CompanyName); ?>"><img class="img_border" src="<?php echo $cimage_path;?>" width="200" height="100" alt="Image"/></a>
+							  	<a onclick="return loaded;" href="<?php echo $cimage_path; ?>" class="fancybox" title="<?php echo ucfirst($CompanyName); ?>"><img class="img_border" src="<?php echo $cimage_path;?>" width="200" height="100" alt="Image"/></a>
 								<?php } ?>
 						  </div>
 					  	</div>	
@@ -403,9 +401,9 @@ commonHead();
 							<input type="Hidden" name="name_merchant_photo" id="name_merchant_photo" value="<?php  if(isset($cimage_path) && $cimage_path != '') { echo $cimage_path; }  ?>" />						
 					</div>
 					
-					<div class="form-group col-sm-6 ">
+					<div class="form-group col-sm-12 ">
 						<label>Category</label>
-						<div class="col-sm-6 col-lg-6 no-padding form-group">
+						<div class="col-sm-3 col-lg-3 no-padding form-group">
 						<select name="Category" id="Category" class="form-control" onchange="showCategory(this.value)">
 							<option value="">Select</option>	
 							<?php if(isset($categories) && !empty($categories)) {
@@ -433,8 +431,8 @@ commonHead();
 							<input type="Hidden" id="categorySelected" name="categorySelected" value="<?php //echo $cat_id_values; ?>"/>
 						</div>
 					</div>
-					<div class="form-group col-sm-6 clear">
-						<div class="col-xs-12 col-sm-6 col-md-5 no-padding">
+					<div class="form-group col-sm-3 clear">
+						<div class="col-xs-12 col-sm-12 col-md-12 no-padding">
 							<label>Price Scheme</label>
 							<div class="form-group col-md-12 col-lg-12 no-padding ">
 							<select class="form-control" id="DiscountTier" name="DiscountTier" onclick="selectPrice(this.value);">
@@ -459,18 +457,18 @@ commonHead();
 									$ProductIds = array();
 						?>
 						
-							<div class="form-group col-sm-8 col-lg-1 text-center LH30">OR</div>
+							<!--<div class="form-group col-sm-8 col-lg-1 text-center LH30">OR</div>
 							<div class="form-group col-sm-6  no-padding">
 								<label class="col-md-12 no-padding">Select the product list or menu to be discounted (30% and the whole menu)</label>
 								<div class="col-md-12 no-padding"> 
-									 <select multiple class="form-control" id="Products_List" name="Products_List[]" onclick="selectProduct(this.value);"><!-- return getPrice(this); -->
+									 <select multiple class="form-control" id="Products_List" name="Products_List[]" onclick="selectProduct(this.value);">return getPrice(this);
 										<option value="all" <?php if(in_array('all',$ProductIds)) echo "selected='selected'"; ?>>Select All</option>
 										<?php foreach($ProductsArray as $key=>$value){ ?>
 												<option value="<?php echo $value->id; ?>" <?php if(in_array($value->id,$ProductIds)) echo "selected='selected'"; else if(in_array('all',$ProductIds)) echo "selected='selected'"; ?>><?php echo ucfirst($value->ItemName); ?></option>
 										<?php } ?>
 									</select>
 								</div>
-							</div>
+							</div>-->
 						<?php } ?>
 						
 						
@@ -488,12 +486,12 @@ commonHead();
 							<label>Price Range</label>
 							<div class="col-md-12 col-xs-12 no-padding">							
 								<div class="col-sm-5 col-xs-5 no-padding">
-									<div class="col-sm-2 col-xs-2 no-padding LH30">$</div>
+									<div class="col-sm-2 col-xs-2 no-padding LH30">&pound</div>
 									<div class="col-sm-10 col-xs-10 no-padding"><input type="Text" name="min_price" maxlength="7" onchange="price_val(this.value);" value="<?php echo $min_val;?>" id="min_price" onkeypress="return isNumberKey(event);" class="form-control"></div>
 								</div>
 								<div class="col-sm-2 col-xs-2 no-padding LH30" align="center"><strong>to</strong></div>
 								<div class="col-sm-5 col-xs-5 no-padding">
-									<div class="col-sm-2 col-xs-2 no-padding LH30">$</div>
+									<div class="col-sm-2 col-xs-2 no-padding LH30">&pound</div>
 									<div class="col-sm-10 col-xs-10 no-padding"><input type="Text" name="max_price" maxlength="7" onchange="price_val(this.value);"  value="<?php echo $max_val;?>" id="max_price" onkeypress="return isNumberKey(event);" class="form-control"></div>
 								</div>
 								<input  type="hidden" id="priceValidation" name="priceValidation" value="">
@@ -532,14 +530,24 @@ commonHead();
 					<?php } ?>
 					
 					
-					<div class="box-footer col-sm-12 col-xs-12 " align="center">
+					<div class="col-sm-12 col-xs-12 top-boronly" align="center"><!--box-footer merchants  -->
 						<?php if(isset($_GET['editId']) && $_GET['editId'] != ''){ ?>
-							<input type="submit" class="btn btn-success" name="submit" id="submit" value="Save" title="Save" alt="Save">&nbsp;&nbsp;&nbsp;&nbsp;
+							<input type="submit" class="btn btn-success mR-button" name="submit" id="submit" value="Save" title="Save" alt="Save">
 						<?php } else { ?>
-							<input type="submit" class="btn btn-success" name="submit" id="submit" value="Add" title="Add" alt="Add">&nbsp;&nbsp;&nbsp;&nbsp;
+							<input type="submit" class="btn btn-success mR-button" name="submit" id="submit" value="Add" title="Add" alt="Add">
 						<?php } ?>
-						<?php $href_page = "MerchantList"; 	?>		
-							<a href="<?php if(isset($href_page) && $href_page != '' ) echo $href_page; else echo 'MerchantList';?>" class="btn btn-default" name="Back" id="Back" title="Back" alt="Back" >Back </a>	
+						<?php if(isset($_GET['back']) && $_GET['back'] != ''){
+							if ($_GET['back'] == '1'){ 
+								$href_page = "Merchants?cs=1&status=0";
+							}else{
+								$href_page = "Merchants";
+							}
+						?>
+								
+						
+						<?php } ?>
+						<?php //$href_page = "Merchants"; 	?>		
+							<a href="<?php if(isset($href_page) && $href_page != '' ) echo $href_page; else echo 'Merchants';?>" class="trans-button" name="Back" id="Back" title="Back" alt="Back" >Back </a>	
 						
 					</div>
 				</div><!-- /.box -->

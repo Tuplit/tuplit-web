@@ -9,7 +9,10 @@ require_once('controllers/MerchantController.php');
 $merchantObj   	=   new MerchantController();
 commonHead(); 
 $errorMessage = 'No Record Found';
-$show = $count = 0;
+$show 	= $count = 0;
+$class	= '';
+//$top	= array();
+$class_count  = '5';
 $image_path = $original_image_path = '';
 if(isset($_GET['cs']) && $_GET['cs']=='1') { 
 	destroyPagingControlsVariables();	
@@ -44,6 +47,9 @@ if(isset($_POST['Search']) && $_POST['Search'] != ''){
 setPagingControlValues('o.id',ADMIN_PER_PAGE_LIMIT);
 $fields 		= '';
 $condition 		= '';
+$top  			= $analyticsObj->getAnalyticsList($fields,$condition,'1');
+foreach($top as $key=> $value)
+	$top_five[]	= $value->userId;
 $analyticsList  = $analyticsObj->getAnalyticsList($fields,$condition,$show);
 $tot_rec 		= $analyticsObj->getTotalRecordCount();
 if($tot_rec!=0 && !is_array($analyticsList)) {
@@ -95,7 +101,7 @@ $merchantList		= 	$merchantObj->selectMerchantDetails($field,$condition);
 									<td>
 										<div class="col-xs-2 no-padding">
 											<?php if(isset($image_path) && $image_path != ''){ ?>
-												<a <?php if(isset($original_image_path) ) { ?>href="<?php echo $original_image_path; ?>" class="fancybox" title="<?php  echo  ucfirst($value->FirstName).' '.ucfirst($value->LastName);?>" <?php } ?> > 
+												<a  onclick="return loaded;"<?php if(isset($original_image_path) ) { ?>href="<?php echo $original_image_path; ?>" class="fancybox" title="<?php  echo  ucfirst($value->FirstName).' '.ucfirst($value->LastName);?>" <?php } ?> > 
 													<img  width="36" height="36" align="top" class="img_border" src="<?php echo  $image_path;?>" >
 												</a>
 											<?php } else {?> 
@@ -129,7 +135,7 @@ $merchantList		= 	$merchantObj->selectMerchantDetails($field,$condition);
 		</div>
 		<?php if(isset($analyticsList) && !empty($analyticsList)) { ?>
 		<div class="col-xs-10 col-sm-6  pull-right">
-			<h3><a href="CustomerAnalytics?Show=1" class="newWindow"><i class="fa fa-users"></i> View top 5 customers</a></h3>
+			<h3><a onclick="return loaded;" href="CustomerAnalytics?Show=1" class="newWindow"><i class="fa fa-users"></i> View top 5 customers</a></h3>
 		</div>
 		<?php } ?>	
 	</section>
@@ -138,7 +144,7 @@ $merchantList		= 	$merchantObj->selectMerchantDetails($field,$condition);
 		<div class="row">
 		<div class=" col-xs-12">
 				<form name="search_Analytics" action="CustomerAnalytics?cs=1" method="post">
-					<div class="box box-primary">	
+					<div class="box box-primary box-padding">	
 						<div class="box-body no-padding" >		
 							<div class="form-group col-sm-3 ">
 								<label>Merchant</label>
@@ -176,11 +182,11 @@ $merchantList		= 	$merchantObj->selectMerchantDetails($field,$condition);
 				</form>		
 			</div>
 		</div>	
-		<div class="row product_list paging">
+		<div class="row product_list paging-margin paging">
 			<?php if(isset($analyticsList) && is_array($analyticsList) && count($analyticsList) > 0){ ?>
 			<div class="col-xs-12 col-sm-2">
 			
-				<div class="dataTables_info">Total Customer(s)&nbsp:&nbsp;<strong><?php echo $tot_rec; ?></strong></div>
+				<div class="dataTables_info"><span class="white_txt">Total Customer(s)&nbsp:&nbsp;<strong><?php echo $tot_rec; ?></strong></span></div>
 			</div>
 			<div class="col-xs-12 col-sm-10">
 				<div class="dataTables_paginate paging_bootstrap row">
@@ -192,11 +198,12 @@ $merchantList		= 	$merchantObj->selectMerchantDetails($field,$condition);
 		<div class="row">
             	<div class="col-xs-12">
 				   <?php if(isset($analyticsList) && !empty($analyticsList)) { ?>
-		              <div class="box">
+		              <div class="box ">
 		               <div class="box-body table-responsive no-padding no-margin">
 						<table class="table table-hover">
                                <tr>
-									<th align="center" width="3%" class="text-center">#</th>									
+									<th align="center" width="3%" class="text-center">#</th>
+									<th width="5%" align="center"><img width="20" height="20" src="<?php echo ADMIN_IMAGE_PATH?>/no_user.jpeg"style="border-radius:10px"></th>
 									<th width="25%">Name</th>
 									<th width="10%">First Order</th>
 									<th width="10%">Last Order</th>
@@ -218,9 +225,37 @@ $merchantList		= 	$merchantObj->selectMerchantDetails($field,$condition);
 									$averagePrice				=	$value->TotalPrice/$value->TotalOrders;
 									$averageSpend				=	round($averagePrice,2);
 								}
+								if(isset($value->Photo) && $value->Photo != ''){
+									$user_image = $value->Photo;
+									if (!SERVER){
+										if(file_exists(USER_THUMB_IMAGE_PATH_REL.$user_image))
+											$image_path = USER_THUMB_IMAGE_PATH.$user_image;
+										if(file_exists(USER_IMAGE_PATH_REL.$user_image))
+											$original_image_path = USER_IMAGE_PATH.$user_image;
+									}
+									else{
+										if(image_exists(2,$user_image))
+											$image_path = USER_THUMB_IMAGE_PATH.$user_image;
+										if(image_exists(1,$user_image))
+											$original_image_path = USER_IMAGE_PATH.$user_image;
+									}
+								}
+								if(in_array($value->userId,$top_five)) $class = 'top-five';									
+								else $class='';
 							  ?>
 									<tr>
-								<td align="center"><?php echo (($_SESSION['curpage'] - 1) * ($_SESSION['perpage']))+$key+1;?></td>												
+								<td align="center" class="<?php echo $class;?>"><?php echo (($_SESSION['curpage'] - 1) * ($_SESSION['perpage']))+$key+1;?></td>
+								<td>
+									<div class="col-xs-2 no-padding">
+										<?php if(isset($image_path) && $image_path != ''){ ?>
+											<a onclick="return loaded;" <?php if(isset($original_image_path) ) { ?>href="<?php echo $original_image_path; ?>" class="fancybox" title="<?php  echo  ucfirst($value->FirstName).' '.ucfirst($value->LastName);?>" <?php } ?> > 
+												<img  width="36" height="36" align="top" class="img_border" src="<?php echo  $image_path;?>" style="border-radius:20px;" >
+											</a>
+										<?php } else {?> 
+										<img  width="36" height="36" align="top" class="img_border" src="<?php echo ADMIN_IMAGE_PATH.'no_user.jpeg';?>" > 
+										<?php  } ?>
+									</div>
+								</td>
 								<td>
 									<div class="col-xs-10 col-md-11 no-padding"> 										
 										<a href="UserDetail?viewId=<?php echo $value->userId;?>&cs=1&bk=1" class="userWindow white-space" title="View Customer Details" ><?php  echo  ucfirst($value->FirstName).' '.ucfirst($value->LastName);?></a>								

@@ -222,6 +222,7 @@ function ajaxAdminFileUploadProcess(process_pram)
 						$("#empty_"+process_pram).val(1);
 					}
 					var result	=	data.msg.split("####");
+					var image_name = process_pram.substr(0,16);
 					if(process_pram == 'cover_photo'){
 						var img	='<img  src="'+path+'/webresources/uploads/temp/'+result[0] +'.'+ result[1]+'?rnd='+Math.random()+'" width="200" />\n\
                                         <input type="hidden" name="'+process_pram+'_upload" id="'+process_pram+'_upload" value="'+result[0] +'.'+ result[1]+'" />';
@@ -233,6 +234,9 @@ function ajaxAdminFileUploadProcess(process_pram)
 					else if(process_pram == 'icon_photo'){
 						var img	='<img  src="'+path+'/webresources/uploads/temp/'+result[0] +'.'+ result[1]+'?rnd='+Math.random()+'" width="75" height="75" />\n\
                                         <input type="hidden" name="'+process_pram+'_upload" id="'+process_pram+'_upload" value="'+result[0] +'.'+ result[1]+'" />';
+					}
+					else if(image_name == 'Slider_Image_Old') {
+						var img	='<a href "'+path+'/webresources/uploads/temp/'+result[0] +'.'+ result[1]+'?rnd='+Math.random()+'" class="fancybox" ><img  src="'+path+'/webresources/uploads/temp/'+result[0] +'.'+ result[1]+'?rnd='+Math.random()+'" width="145" height="145" />\n\<input type="hidden" name="'+process_pram+'_upload" id="'+process_pram+'_upload" value="'+result[0] +'.'+ result[1]+'" /></a>';
 					}
 					else{
 						var img	='<img  src="'+path+'/webresources/uploads/temp/'+result[0] +'.'+ result[1]+'?rnd='+Math.random()+'" width="75" height="75" />\n\
@@ -855,43 +859,49 @@ function currencyAlreadyExist() {
 	name		= 	$('#CurrencyName').val();
 	id 			=	$('#Currency_id').val();
 	ajaxval		=	$('#ajax').val();
-	if(ajaxval != '') {
-		return true;
-	} else {
-		if(code != '' && name != '' && Location != '') {
-			if(id != '')
-				datapost	=	"CurrencyCode="+code+"&CurrencyName="+name+"&Location="+Location+"&Currency_id="+id;
-			else
-				datapost	=	"CurrencyCode="+code+"&CurrencyName="+name+"&Location="+Location;
-			$.ajax({
-				type	: 	"POST",
-				url		: 	'CurrencyManage?ajax=1',
-				data	: 	datapost,
-				success	: 	function (result){
-					if(result == 1) {
-						$('#ajax').val('1');
-						$('#add_currency_form').submit();
-					}
-					else if(result == 2) {
-						$('#error2').html(' Currency already added for this location')
-						$('#error1').show();
-						$('#success1').hide();
-					}
-					else if(result == 3) {
-						$('#error2').html(' Currency code already exists')
-						$('#error1').show();
-						$('#success1').hide();
-					}
-					else if(result == 4) {
-						$('#error2').html(' Currency name already exists')
-						$('#error1').show();
-						$('#success1').hide();
-					}
-				}			
-			});
-		}
-	}	
-	return false;
+	delStatus	= 	$('#deleteStatus').val();
+	if(delStatus == 1){
+		window.location.href = actionPath+'CurrencyManage?curDelId='+id;
+		return false;
+	} else{
+		if(ajaxval != '') {
+			return true;
+		} else {
+			if(code != '' && name != '' && Location != '') {
+				if(id != '')
+					datapost	=	"CurrencyCode="+code+"&CurrencyName="+name+"&Location="+Location+"&Currency_id="+id;
+				else
+					datapost	=	"CurrencyCode="+code+"&CurrencyName="+name+"&Location="+Location;
+				$.ajax({
+					type	: 	"POST",
+					url		: 	'CurrencyManage?ajax=1',
+					data	: 	datapost,
+					success	: 	function (result){
+						if(result == 1) {
+							$('#ajax').val('1');
+							$('#add_currency_form').submit();
+						}
+						else if(result == 2) {
+							$('#error2').html(' Currency already added for this location')
+							$('#error1').show();
+							$('#success1').hide();
+						}
+						else if(result == 3) {
+							$('#error2').html(' Currency code already exists')
+							$('#error1').show();
+							$('#success1').hide();
+						}
+						else if(result == 4) {
+							$('#error2').html(' Currency name already exists')
+							$('#error1').show();
+							$('#success1').hide();
+						}
+					}			
+				});
+			}
+		}	
+		return false;
+	}
 }
 function loadGraph(search,graghType,sortVal,fieldVal)
 {
@@ -917,6 +927,7 @@ function loadGraph(search,graghType,sortVal,fieldVal)
 		data : "action=GET_CHART&"+queryString,
         success: function(result){
             result	=	$.trim(result);
+				//alert(result);
                 $('.graph').html(result);
         }
     });
@@ -1039,21 +1050,709 @@ function delRowWeb(ref)
 		alert("Atleast one row is required");
 }
 
-function pushnotification(val) {
-	$('input[name=SendCredit][value=' + val + ']').prop('checked',true);
-	$('input[name=BuySomething][value=' + val + ']').prop('checked',true);
-	$('input[name=RecieveCredit][value=' + val + ']').prop('checked',true);
-	$('input[name=DealsOffers][value=' + val + ']').prop('checked',true);
-	$('input[name=Sounds][value=' + val + ']').prop('checked',true);
-	$('input[name=Passcode][value=' + val + ']').prop('checked',true);
-	$('input[name=PaymentPreference][value=' + val + ']').prop('checked',true);
-	$('input[name=RememberMe][value=' + val + ']').prop('checked',true);
+/*-------category list-------------*/
+function seeMoreCategory()
+{
+	var start = $("#result_count").val();
+	$.ajax({
+	        type: "GET",
+	        url: actionPath+"models/AjaxAction.php",
+	        data: 'action=GET_CATEGORY_LIST&start='+start,
+	        success: function (result){
+				//alert(result);
+				$("#category_list").append(result);
+				
+	        }			
+	    });
+}
+/*-------comment list-------------*/
+function seeMoreComments(commentsNo)
+{
+	var start = '';
+	if(commentsNo == 1){
+		start = 0;
+	}else{
+		start = $("#comments_result_count").val();
+	}
+	var merchantId	= $("#merchantId").val();
+	//alert(merchantId);
+	$.ajax({
+	        type: "GET",
+	        url: actionPath+"CommentList",
+			 global: false,
+	        data: 'action=GET_COMMENTS_LIST&merchantId='+merchantId+'&start='+start,
+	        success: function (result){
+				if(commentsNo == 1){
+					$("#commentsList").html(result);
+				}else{
+					$("#commentsList").append(result);
+					$('html, body').animate({scrollTop:$(document).height()}, 2000);
+					return false;
+				}
+	        },
+			beforeSend: function(){
+				// Code to display spinner
+				//alert('l start');
+				$('.loader-merchant').show();
+			},
+			complete: function(){
+			// Code to hide spinner.
+			//alert('end');
+				$('.loader-merchant').hide();
+			}			
+	    });
+	
+}
+function callProductSlider(type){
+	var productSlider = $("#productSlider").sudoSlider({ 
+        effect: "slide",
+        speed: 1500,
+        customLink: false,
+        controlsShow: true,
+        controlsFadeSpeed: 400,
+        controlsFade: true,
+        insertAfter: true,
+		ease: "swing",
+        vertical: false,//slider effect 
+		numeric:true,
+		responsive:true,
+		slideCount: 5,
+        moveCount: 1,
+        startSlide: 1,
+		prevNext: true,//speed: 100,
+		afterAnimation: function(slide){
+			var total_products = $('#product_total_count').val();
+			var display_products = $('#product_display_count').val();
+            var totalSlides = productSlider.getValue('totalSlides');
+			var currentslides = productSlider.getValue('currentSlide');
+			var merchantId	= $("#merchantId").val();
+			var total_pager = $('#productImages .numericControls li').size();
+			/*console.log('--------currentslides-------------'+currentslides);
+			console.log('---------total_pager------------'+total_pager);
+			console.log('----------totalSlides-----------'+totalSlides);
+			console.log('----------total_products-----------'+total_products);*/
+			
+			if(currentslides == total_pager && totalSlides < total_products && total_products > 5){
+				var start = display_products;
+				$.ajax({
+			        type: "GET",
+			        url: actionPath+"ProductImages",
+			        data: 'action=GET_MORE_PRODUCTS&start='+start+'&merchantId='+merchantId,
+			        success: function (result){
+						//alert(result);
+						if($.trim(result) != 'fails'){
+							var obj = jQuery.parseJSON(result);
+							$.each(obj, function(i, objects) {
+								productSlider.insertSlide(objects, totalSlides, '');
+								totalSlides =  (+totalSlides) + (+1);
+							});
+							display_products = (+display_products) + (+30);
+							$('#product_display_count').val(display_products);
+						}
+						else{
+							return false;
+						}
+			        },
+					beforeSend: function(){
+						// Code to display spinner
+						$('.loader-merchant').show();
+					},
+					complete: function(){
+						setTimeout( function() {
+							$('.loader-merchant').hide();
+						},100);
+					}			
+			    });
+			}
+         },
+      });
+	 return productSlider;
+}
+/*-------Merchant images list-------------*/
+function callSlider(type){
+	//alert(type);
+	var sudoSlider = $("#slider").sudoSlider({ 
+        effect: "slide",
+        speed: 1500,
+        customLink: false,
+        controlsShow: true,
+        controlsFadeSpeed: 400,
+        controlsFade: true,
+        insertAfter: true,
+		ease: "swing",
+        vertical: false,//new
+		numeric:true,
+		responsive:true,
+		slideCount: 5,
+        moveCount: 1,
+        startSlide: 1,
+		prevNext: true,
+		afterAnimation: function(slide){
+			var total_merchant = $('#image_total_count').val();
+			var display_merchant = $('#image_display_count').val();
+            var totalSlides = sudoSlider.getValue('totalSlides');
+			var currentslides = sudoSlider.getValue('currentSlide');
+			var curr = $('.current').attr('data-target');
+			var total_pager = $('#merchantImages .numericControls li').size();
+			
+			/*console.log('--------currentslides-------------'+currentslides);
+			console.log('---------total_pager------------'+total_pager);
+			console.log('----------totalSlides-----------'+totalSlides);
+			console.log('----------total_merchant-----------'+total_merchant);*/
+			if(currentslides == total_pager && totalSlides < total_merchant && total_merchant > 5){
+				var start = display_merchant;
+				var search = $('#merchantsearch').val();
+				var countValue = 1;
+				//alert("===="+start);
+				$.ajax({
+			        type: "GET",
+			        url: actionPath+"MerchantsImages",
+			        data: 'action=GET_MORE_MERCHANTS&start='+start+'&search='+search+'&type='+countValue,
+			        success: function (result){
+						//alert(result);
+						//alert(display_merchant);
+						if($.trim(result) != 'fails'){
+							var obj = jQuery.parseJSON(result);
+							$.each(obj, function(i, objects) {
+								sudoSlider.insertSlide(objects, totalSlides, '');
+								totalSlides =  (+totalSlides) + (+1);
+							});
+							display_merchant = (+display_merchant) + (+30);
+							$('#image_display_count').val(display_merchant);
+						}
+						else{
+							return false;
+						}
+			        },
+					beforeSend: function(){
+						// Code to display spinner
+						$('.loader-merchant').show();
+					},
+					complete: function(){
+						setTimeout( function() {
+							$('.loader-merchant').hide();
+						},100);
+					}		
+			    });
+			}
+         },
+      });
+	 return sudoSlider;
+}
+/*-------Edit Merchant-------------*/
+$( "#editMerchant" ).click(function() {
+		var redirect = $("#delStatus").val();
+		if($(".merchantImage").closest("li").hasClass("select")){
+			var mer_id = $("#merchantId").val();
+			window.location.href = actionPath+"MerchantManage?editId="+mer_id+"&back="+redirect;
+		}else{
+			alert("Please select merchant and then choose edit");
+		}
+});
+/*-------Delete Merchant-------------*/
+$( "#deleteMerchant" ).click(function() {
+		//alert($("#merchantId").val());
+		var redirect = $("#delStatus").val(); 
+		if($(".merchantImage").closest("li").hasClass("select")){
+			var mer_id = $("#merchantId").val();
+			if(confirm('Are you sure to cancel membership?')){
+				window.location.href = actionPath+"Merchants?delId="+mer_id+"&redirect="+redirect;}
+			//return true;
+				else
+			return false;
+		}else{
+			alert("Please select merchant and then choose delete");
+		}
+});
+/*-------Customer images list-------------*/
+/*-------Edit Customers-------------*/
+$( "#editCustomer" ).click(function() {
+		if($(".customerImage").closest("li").hasClass("select")){
+			var cust_id = $("#customerId").val();
+			//url = actionPath+"UserManage?editId="+cust_id;
+			//alert(url);
+			//window.open(url, '_blank');
+			window.location.href = actionPath+"CustomerManage?editId="+cust_id;
+		}else{
+			alert("Please select customer and then choose edit");
+		}
+});
+/*-------Delete Customers-------------*/
+$( "#deleteCustomer" ).click(function() {
+		if($(".customerImage").closest("li").hasClass("select")){
+			var cust_id = $("#customerId").val();
+			if(confirm('Are you sure to suspend user?')){
+				window.location.href = actionPath+"Customers?delId="+cust_id;}
+			//return true;
+				else
+			return false;
+		}else{
+			alert("Please select customer and then choose delete");
+		}
+});
+/*-------Customers transaction list-------------*/
+function getCustomerTransaction(cust_id){
+	var customer = "";
+	customer		= cust_id;
+	$.ajax({
+	        type: "GET",
+	        url: actionPath+"CustomerTransactionList",
+	        data: 'action=GET_CUSTOMER_TRANSACTION&customerId='+customer,
+	        success: function (result){
+				//alert(result);
+				$("#customerTransactions").html(result);
+	        },
+			beforeSend: function(){
+				//alert('----');
+				// Code to display spinner
+				$('.loader-merchant').show();
+			},
+			complete: function(){
+			// Code to hide spinner.
+				/*alert('--hi--');
+				$('.loader-merchant').hide();*/
+				setTimeout( function() {
+							$('.loader-merchant').hide();
+				},100);
+			}								
+	});
+	//return false;
+}
+function callCustomerSlider(type){
+	//alert(type);
+	var sudoSlider = $("#sliderC").sudoSlider({ 
+        effect: "slide",
+        speed: 2500,
+        customLink: false,
+        controlsShow: true,
+        controlsFadeSpeed: 400,
+        controlsFade: true,
+        insertAfter: true,
+		ease: "swing",
+        vertical: false,//new
+		numeric:true,
+		responsive:true,
+		slideCount: 5,
+        moveCount: 1,
+        startSlide: 1,
+		prevNext: true,//speed: 500,
+		afterAnimation: function(slide){
+			var total_merchant = $('#customer_total_count').val();
+			var display_merchant = $('#customer_display_count').val();
+            var totalSlides = sudoSlider.getValue('totalSlides');
+			var currentslides = sudoSlider.getValue('currentSlide');
+			var curr = $('.current').attr('data-target');
+			var total_pager = $('#Customers .numericControls li').size();
+			if(currentslides == total_pager && totalSlides < total_merchant && total_merchant > 5){
+				var start = display_merchant;
+				var search = $('#customersearch').val();
+				var countValue = 1;
+				$.ajax({
+			        type: "GET",
+			        url: actionPath+"CustomerList",
+			        data: 'action=GET_MORE_CUSTOMERS&start='+start+'&search='+search+'&type='+countValue,
+			        success: function (result){
+						if($.trim(result) != 'fails'){
+							var obj = jQuery.parseJSON(result);
+							$.each(obj, function(i, objects) {
+								sudoSlider.insertSlide(objects, totalSlides, '');
+								totalSlides =  (+totalSlides) + (+1);
+							});
+							display_merchant = (+display_merchant) + (+30);
+							$('#customer_display_count').val(display_merchant);
+						}
+						else{
+							return false;
+						}
+			        },
+					beforeSend: function(){
+						// Code to display spinner
+						$('.loader-merchant').show();
+					},
+					complete: function(){
+						setTimeout( function() {
+							$('.loader-merchant').hide();
+						},100);
+					}			
+			    });
+			}
+         },
+      });
+	 return sudoSlider;
+}
+/*-------Customers end-------------*/
+/*-------Transaction list-------------*/
+function getTransactionList(merchantId){
+	var merchant = merchantId;
+	$.ajax({
+	        type: "GET",
+	        url: actionPath+"MerchantTransactionList",
+			global: false,
+	        data: 'action=GET_TRANSACTION_LIST&merchantId='+merchant,
+	        success: function (result){
+				//alert(result);
+				$("#merchantTransactions").html(result);
+	        },
+			beforeSend: function(){
+				$('.loader-merchant').show();
+			},
+			complete: function(){
+				seeMoreComments('1');
+				//$('.loader-merchant').hide();
+			}				
+	});
+}
+/*-------Load transaction chart-------------*/
+function loadTransactionChart()
+{
+   $.ajax({
+        type: "POST",
+        url : actionPath+"views/TransactionChart.php",
+		data : "action=GET_CHART",
+        success: function(result){
+            result	=	$.trim(result);
+            $('#transactionChart').html(result);
+        }
+    });
+}
+function uploadFiles(event){
+	var process_pram = event.data.name;
+	if(process_pram.search("Slider_Image")=='0'){
+		var save_class = 'save';
+		var delete_class = 'delete';
+	}else if(process_pram.search("Tutorial_Image")=='0'){
+		var save_class		= 'tutor_save'
+		var delete_class	= 'tutor_delete';
+	}
+	files = event.target.files;
+	event.stopPropagation();
+	event.preventDefault();
+	
+	// Create a formdata object and add the files
+	var data = new FormData();
+	$.each(files, function(key, value)
+	{
+		data.append(key, value);
+	});
+	
+	var loadingIMG  =  '<span class="photo_load load_upimg text-align" ><i class="fa fa-spinner fa-spin fa-lg"></i></span>';	
+	$(loadingIMG).insertAfter($("#"+process_pram+"_img"));
+	$("#"+process_pram+"_img").hide();	
+	var hiddenVal = $("#empty_"+process_pram).val();
+	image_name = document.getElementById(process_pram).value;
+	image_name = image_name.replace(/C:\\fakepath\\/i,'');
+	
+	$.ajax({
+		url: 'models/AjaxAdminFileUploadScript.php?files&filename='+process_pram,
+		type: 'POST',
+		data: data,
+		cache: false,
+		processData: false,
+		contentType: false,
+		success: function(data)
+		{
+			if(hiddenVal=='') {
+				$("#empty_"+process_pram).val(1);
+			}
+			var json = JSON.parse(data);					
+			if(json['error'] != false) {
+				alert(json['error']);
+				$('#error_cover_image').html(data.error);
+				if($('#'+process_pram+'_upload').val() == '')
+					$("#empty_"+process_pram).val(hiddenVal);
+				
+				 $("#empty_"+process_pram).val(hiddenVal);
+				 $("#"+process_pram+"_img").html('');
+				 $("#image_value").val('');
+				 $("#image_value").html('');
+			}				
+			if(json['msg'] != '') {
+				msg	=	json['msg'];
+				var result	=	msg.split("####");
+				if(process_pram.search("Slider_Image")=='0'){
+					//var newdiv = $("#"+id+"_img").clone();
+					//$('#image_body').append("<div class='"+process_pram+" up-img unsortable ' ><div id='"+process_pram+"_img' class='pad "+process_pram+"_url'></div></div>");	
+					//$('#image_body').append("<div class='"+process_pram+" up-img unsortable ' ><div id='"+process_pram+"_img' class='pad "+process_pram+"_url'></div></div>");	
+					$("<div class='"+process_pram+" up-img unsortable ' ><div id='"+process_pram+"_img' class='pad "+process_pram+"_url'></div></div>").insertBefore('#welcome_Slider_upload');
+				}else if(process_pram.search("Tutorial_Image")=='0'){
+					//var newdiv = $("#"+id+"_img").clone();
+					$("<div class='up-img unsortable "+process_pram+"'><div id='"+process_pram+"_img' class='pad "+process_pram+"_url '></div></div>").insertBefore('#welcome_Tutorial_upload');	
+				}
+				 img ='<a href = "./webresources/uploads/temp/'+result[0] +'.'+ result[1]+'?rnd='+Math.random()+'" class="fancybox" ><img  src="./webresources/uploads/temp/'+result[0] +'.'+ result[1]+'?rnd='+Math.random()+'" width="145" height="145" class="img_border" />\n\<input type="hidden" name="'+process_pram+'_upload" id="'+process_pram+'_upload" value="'+result[0] +'.'+ result[1]+'" />\n\<input type="hidden" name="delete_'+process_pram+'" id="delete_'+process_pram+'" class="delete_'+process_pram+'" value="" /></a><div  width="200" height="50" class="'+save_class+'" id="'+process_pram+'_save"><i class="fa fa-plus-circle  fa-lg"></i></div><div  width="200" height="50" class="'+delete_class+'" style="display:none;" id="'+process_pram+'_delete"><i class="fa fa-minus-circle fa-lg"></i></div>';
+				/*img		=	'<img width="145" height="145" src="./webresources/uploads/temp/'+result[0] +'.'+ result[1]+'?rnd='+Math.random()+'">'
+						+'<input type="hidden" name="'+process_pram+'_upload" id="'+process_pram+'_upload" value="'+result[0] +'.'+ result[1]+'" />';*/						
+				$("#"+process_pram+"_img").html(img);
+				$("#no_"+process_pram).remove();
+				$("#image_value").val(image_name);
+			}
+			 $(".photo_load").remove();
+			$("#"+process_pram+"_img").show();
+			return true;
+		}
+	});
+}
+function delete_image($image,$remove_id){
+	data ={image:$image},
+	$.ajax({
+            url		: actionPath+"models/AjaxAction.php?action=Delete_Image",
+			data 	: data,
+           	type	: 'POST',
+            success: function(response) {
+				if(response == 'Deleted'){
+					$(remove_id).css('display','none');
+				}
+			}
+		});
+ }
+function save_image($image_id,$imgorder,$image,$old_image,my_class,id){
+	$.ajax({
+            url	:actionPath+"models/AjaxAction.php",
+			data:{action:'Save_Image',old_img:$old_image,save_image_name:$image_id,imgorder:$imgorder,image:$image},
+           	type: 'POST',
+			success:function(response){
+				var msg = $.parseJSON(response); 
+				$("."+my_class).attr('id','Slider_Image_Old_'+msg.insertid);
+				$("."+my_class).removeClass('unsortable');
+				$("#delete_"+my_class).val(msg.insertid);
+				$(id).attr('href',msg.url);
+				$(id+" img").attr('src',msg.url);				
+			}
+				
+		});
+}
+$(document).ready(function() {
+	$('.fancybox').fancybox();
+	$(".sortable").sortable({
+		cancel	: ".unsortable",
+		cursor	: "move",
+		grid	: [ 20, 10 ],
+		helper	: "clone",
+		opacity	: 0.4,
+		revert	: 10,
+		update	:function(event,ui){
+			var data = $(this).sortable('serialize');
+			$.ajax({
+            data:{"my_order": data},
+            type: 'POST',
+            url: actionPath+"models/AjaxAction.php"
+        });
+		}
+	});
+	$( ".sortable" ).disableSelection();
+	$(".file_input_old,.tutorial_input_old").live('change',function(event){
+		my_id = $(this).attr('name'),
+		event.data = {name : my_id},
+		uploadFiles(event);
+		document.getElementById(my_id).style.visibility = 'hidden';
+		var id_value = my_id.substr(my_id.lastIndexOf('_')+1);
+		++id_value;
+		if(my_id.search("Slider_Image")=='0'){
+			var id_name		= 'Slider_Image_Old_'+id_value;
+			$('#file_input').append("<input type='file'  class='file_input_old'  name='"+id_name+"' id='"+id_name+"' title='Home Slider' />");
+		}else if(my_id.search("Tutorial_Image")=='0'){
+			var id_name		= 'Tutorial_Image_Old_'+id_value;
+			$('#tutorial_input').append("<input type='file'  class='tutorial_input_old'  name='"+id_name+"' id='"+id_name+"' title='Home Slider' onclick=''/>");
+		}
+	});
+	$(".save,.tutor_save").live('click',function(){
+		var old_image	= '';
+		value		= $(this).attr('id');
+		extract		= value.substr(0,$(this).attr('id').lastIndexOf('_'));
+		number		= extract.substr(extract.lastIndexOf('_')+1);
+		id = "."+extract+"_url a";
+		hidden_id 	= '#'+extract+"_upload";
+		if(document.getElementById("name_"+extract)){
+			old_image	= $("#name_"+extract).val();
+		}
+		add_id			= "#"+extract+"_delete";		
+		$image_id 		= $(hidden_id).val();		
+		$imgorder		= number;
+		extract1	= extract.substr(0,extract.lastIndexOf('_'));
+		$image		 	= $image_id.substr(extract1.length+1); 
+		save_image($image_id,$imgorder,$image,old_image,extract,id);
+		document.getElementById(value).style.visibility = 'hidden';
+		$(add_id).css('display','block');
+	});
+	$(".delete,.tutor_delete").live('click',function(){
+		value		= $(this).attr('id');
+		extract		= value.substr(0,$(this).attr('id').lastIndexOf('_'));		
+		$image_id 	= $("#delete_"+extract).val();
+		remove_id 	= "#"+extract+"_img";
+		//extract1	= extract.substr(0,extract.lastIndexOf('_'));
+		//$image		= $image_id.substr(extract1.length+1);
+		if(confirm('Are you sure to delete this image?')){
+			delete_image($image_id,remove_id);
+		}
+	});
+});
+function showTag(ele,val){	
+	$(".tabdata textarea").removeClass('fancy');
+	var currenttab = $(ele).attr('id');
+	$('#tabs td').removeClass('active');
+	$(ele).parent().addClass('active');
+	$(".tabdata").not('#'+currenttab+'_div').hide("fast");
+	$('#'+currenttab+'_div textarea').addClass('fancy');
+	if($('#'+currenttab+'_div').is(':hidden')){
+		$('#'+currenttab+'_div').show("fast");
+	}
 }
 
-function notification() {
-	val	=	$( "input:radio[name=PushNotification]:checked" ).val();
-	if(val	==	1)
-		return true;
-	else	
-		return false;
+
+
+//$('.tabsection').children().hide();
+$('.tabsection').click(function(){
+	var id_val = $(this).attr('id');
+	//$(this).children().slideToggle().toggleClass("h2-active");
+	//alert(id_val);
+	$('#'+id_val+'_block').slideToggle(function(){
+		if($('#'+id_val+'_block').is(':hidden')){
+			$('#'+id_val).removeClass('active');
+			
+		}
+		else{
+			$('#'+id_val).addClass('active');
+			
+		}
+	});
+	
+	
+});
+/*var parentDivs = $('.tabsection').next();
+$('.tabsection').children().hide();
+$('.tabsection').click(function(){
+	$('.tabsection').children().hide();
+	var $this	= $(this);
+	var h2_chilren	= $this.children();
+	parentDivs.slideUp();
+	if(h2_chilren.is(':hidden')){
+		h2_chilren.show();
+	}
+	else{
+		h2_chilren.hide();
+	}
+	if($this.next().is(':hidden')){
+		 $this.next().slideDown();
+		}else{
+		 $this.next().slideUp();
+		}
+})*/
+
+
+/*function save(id){
+	if(id.search('save_content')=='0'){
+		content_id		= 	$(".fancy").attr('id')	
+		var content		= 	tinymce.get(content_id).getContent();
+		alert($("#"+content_id+"_id").val());
+		var	data_id     = 	$("#"+content_id+"_id").val().split("#");
+	}else{
+		my_id 			= 	id.split("-");
+		var content 	= 	tinymce.get('text-'+my_id[0]).getContent();
+		alert($("#"+my_id[0]+"_id").val());
+		var data_id		= 	$("#"+my_id[0]+"_id").val().split("#");
+	}
+	//alert(data_id);
+	//alert(data_id[0]);
+	//alert(data_id[1]);
+	//alert(data_id[2]);
+	url					=	actionPath+"Models/AjaxAction.php?action=Save-Content";
+	//data				=   "Content="+content+"&id="+data_id[0]+"&filename="+data_id[1]+"&ContentUrl="+data[2];
+	//alert(data);
+	$.ajax({
+		type	: 	"POST",
+		url		: 	url,
+		data	: 	data,
+		success : function(result){
+		 //alert(result);
+		}
+	});
+}*/
+function save(id){
+	if(id.search('save_content')=='0'){
+		content_id		= 	$(".fancy").attr('id')	
+		var content		= 	tinymce.get(content_id).getContent();
+		var	data_id     = 	$("#"+content_id+"_id").val().split("#");
+		$("#"+content_id+"_hidden").html(content);
+	}else{
+		my_id 			= 	id.split("-");
+		var content 	= 	tinymce.get('text-'+my_id[0]).getContent();
+		var data_id		= 	$("#"+my_id[0]+"_id").val().split("#");
+		$("#"+my_id[0]+"_hidden").html(content);
+	}
+	url					=	actionPath+"models/AjaxAction.php?action=Save-Content";
+	if($.isArray(data_id) && data_id.length>1){
+		data				=   "Content="+escape(content)+"&id="+data_id[0]+"&filename="+data_id[1]+"&ContentUrl="+data_id[2];
+		$.ajax({
+			type	: 	"POST",
+			url		: 	url,
+			data	: 	data,
+			success : function(result){
+				//alert(result);
+			}
+		});
+	}
 }
+
+/*-------Merchant/Customer list-------------*/
+function showMoreMerchantCustomer(idVal)
+{
+	var type = $("#define_search_type").val();
+	var display = '';
+	//alert(idVal);
+	//alert(type);
+	if(type == 2){
+		display = 'Merchant';
+	}else if(type == 3){
+		display	= 'Customer';
+	}
+	var start = $("#"+display+"_result_count_"+idVal).val();
+	//alert(start);
+	$.ajax({
+	        type: "GET",
+	        url: actionPath+"models/AjaxAction.php",
+	        data: 'action=MERCHANT_CUSTOMER_TRANSACTION&start='+start+'&type='+type+'&idVal='+idVal,
+	        success: function (result){
+				//alert(result);
+				$("#transaction_list_"+idVal).append(result);
+	        },
+			beforeSend: function(){
+				// Code to display spinner
+				$('.loader').show();
+			},
+			complete: function(){
+			// Code to hide spinner.
+				$('.loader').hide();
+			}				
+	    });
+}
+function approve(value){
+	if(confirm('Do you want to approve this merchant?')){
+		var id	  = $("#"+value+"_value").val();
+		//alert(id);
+		var num = parseInt($('#merchant_approve').text().match(/\d+/)[0], 10);
+		--num;
+		$.ajax({
+			type	: "POST",
+			url		: actionPath+"models/AjaxAction.php?action=APPROVE_MERCHANT",
+			data	: {"id":id},
+			success	: function(response){
+				$("#"+value).hide();
+				if(num!=0)
+					$('#merchant_approve').text($('#merchant_approve').text().replace(/-?[0-9]*\.?[0-9]+/, num)); 
+				else
+					$('#merchant_approve').text('');
+			}
+		});
+	}
+}
+
+/*function getMerchantLocation(merchant_id){
+	$.ajax({
+        type: "POST",
+        url: actionPath+"models/AjaxAction.php",
+        data: 'action=GET_MERCHANT_LOCATION&id='+merchant_id,
+        success: function (result){
+			$('#category_box').html(result);
+        }			
+    });
+}*/
+

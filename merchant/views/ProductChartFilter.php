@@ -1,12 +1,12 @@
 <?php 
-$dataArray = array();
-$error_div = 0;
-$cur_month = date('m');
-$cur_year = date('Y');
-$last_date =  date('m/t/Y');
-$curr_date = date('m/d/Y');
-$first_date_dbformat = date('Y-m-01 H:i:s');
-$last_date_dbformat = date('Y-m-d H:i:s');
+$dataArray 	= array();
+$error_div 	= 0;
+$cur_month 	= date('m');
+$cur_year 	= date('Y');
+$last_date 	= date('m/t/Y');
+$curr_date 	= date('m/d/Y');
+$first_date_dbformat 	= date('Y-m-01 H:i:s');
+$last_date_dbformat 	= date('Y-m-d H:i:s');
 $sort_type = 'asc';
 $sort_field='Name';
 $trans_type = 1;
@@ -31,7 +31,7 @@ $url					=	WEB_SERVICE.'v1/merchants/productAnalysis/?Start=0&Limit=0&Type='.$tr
 $curlProductResponse 	= 	curlRequest($url, 'GET', null, $_SESSION['merchantInfo']['AccessToken']);
 if(isset($curlProductResponse) && is_array($curlProductResponse) && $curlProductResponse['meta']['code'] == 201 && is_array($curlProductResponse['ProductAnalytics']) ) {
 	if(isset($curlProductResponse['ProductAnalytics']['result'])){
-		$product_array	 	= $curlProductResponse['ProductAnalytics']['result'];	
+		$product_array	= 	$curlProductResponse['ProductAnalytics']['result'];	
 	}
 } else if(isset($curlProductResponse['meta']['errorMessage']) && $curlProductResponse['meta']['errorMessage'] != '') {
 		$errorMessage	=	$curlProductResponse['meta']['errorMessage'];
@@ -61,7 +61,3 @@ if($date_type != '') {
 if(!isset($all_series) || count($all_series)<=0) {
 	$error_div = 1;
 } 
-
-
-
-

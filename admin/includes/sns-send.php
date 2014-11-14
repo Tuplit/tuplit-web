@@ -11,7 +11,6 @@ $sns = Aws\Sns\SnsClient::factory(array(
 	'region' => REGION
 ));
 $badge = $badge + 1;
-$pushdata = array();
 
   if($EndpointArn  !=''){
 	  try
@@ -21,7 +20,10 @@ $pushdata = array();
 								'badge'=>(integer)$badge ,										
 								'processId' => $processId,
 								'type' => $type,
-								'userId' => $userId );
+								'userId' => $userId,
+								'merchantId' => $merchantId,
+								'merchantName' => $merchantName,
+								'notes' => $notes );
 			if($sound == 1)
 				$pushdata['sound'] = $sound;
 		
@@ -46,7 +48,9 @@ $pushdata = array();
 								'badge'=>(integer)$badge ,										
 								'processId' => $processId,
 								'type' => $type,
-								'userId' => $userId );
+								'merchantId' => $merchantId,
+								'merchantName' => $merchantName,
+								'notes' => $notes );
 			if($sound == 1)
 				$pushdata['sound'] = $sound;
 			

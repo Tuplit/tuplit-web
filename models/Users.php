@@ -1,5 +1,6 @@
 <?php
 ini_set('max_execution_time', 600); //300 seconds = 5 minutes
+ini_set('default_encoding','utf-8');
 /**
  * Description of Users
  *
@@ -269,13 +270,21 @@ class Users extends RedBean_SimpleModel implements ModelBaseInterface {
 		$bean->PaymentPreference	= 	1;
 		$bean->RememberMe	 		= 	1;
 		$bean->DealsOffers	 		= 	1;
+		if(isset($bean->DOB)){
+			$dob		=	$bean->DOB;
+			$dob_year	=	date('Y',strtotime($dob));
+			$cur_year	=	date('Y');
+			$age		=	$cur_year-$dob_year;
+			$bean->Age	= 	$age;
+		}
 		// save the bean to the database
 		$userId = R::store($this);
-		if($bean->FBId != '' && $userId != ''){
-			$friends 							=	R::dispense('friends');
-			$friends->OtherUserUniquevalue 		= 	$bean->FBId;
-			$friends->UserId 					= 	$userId;
-			$friendsArray 						= 	$friends->insertFBFriends();
+		if(($bean->GooglePlusId != ''  || $bean->Email != '') && $userId != ''){
+			$friends 				=	R::dispense('friends');
+			$friends->GooglePlusId 	= 	$bean->GooglePlusId;
+			$friends->Email 		= 	$bean->Email;
+			$friends->UserId 		= 	$userId;
+			$friendsArray 			= 	$friends->makeInviteFriends();
 		}
 		if($userId != ''){
 			$numeric       			= 	'1234567890';
@@ -401,7 +410,14 @@ class Users extends RedBean_SimpleModel implements ModelBaseInterface {
 				unset($bean->Password);
 			}
 		}
-
+		if(isset($bean->DOB)){
+			$dob		=	$bean->DOB;
+			$dob_year	=	date('Y',strtotime($dob));
+			$cur_year	=	date('Y');
+			$age		=	$cur_year-$dob_year;
+			$bean->Age	= 	$age;
+			$bean->DOB  =   date('Y-m-d',strtotime($dob));
+		}
         $bean->DateModified 		= 	date('Y-m-d H:i:s');
 		unset($bean->PhotoFlag);
 		
@@ -525,7 +541,7 @@ class Users extends RedBean_SimpleModel implements ModelBaseInterface {
         $bean 					= 	$this->bean;
 		 if($bean->Type)
 		 	$type	=	$bean->Type;
-		$sql 	= 	"SELECT id as UserId,UniqueId,FirstName,LastName,Email,Photo,CurrentBalance as AvailableBalance,ZipCode,Location,Country,CellNumber,MangoPayUniqueId,WalletId,PushNotification,SendCredit,RecieveCredit,Sounds,Passcode,PaymentPreference,RememberMe,BuySomething,DealsOffers 
+		$sql 	= 	"SELECT id as UserId,UniqueId,FirstName,LastName,Email,Photo,CurrentBalance as AvailableBalance,ZipCode,Location,Country,CellNumber,MangoPayUniqueId,WalletId,PushNotification,SendCredit,RecieveCredit,Sounds,Passcode,PaymentPreference,RememberMe,BuySomething,DealsOffers,DOB,Gender,Age
 						FROM users where Status = 1 and id='".$userId."'";
    		$user 	= 	R::getAll($sql);
         if (!$user) {
@@ -608,6 +624,15 @@ class Users extends RedBean_SimpleModel implements ModelBaseInterface {
 					$userDetails['comments'] 		= 	$commentsArray['List'];
 					$totalComments					=	$commentsArray['Total'];
 				}
+				//Friend or not
+				$userDetails['Details']['IsFriend']=	0;
+				if(isset($bean->FriendStatus) && $bean->FriendStatus == 2 && isset($bean->OwnerID)) {
+					$result =	R::getRow("select id from friends where 1 and ((fkUsersId = ".$bean->OwnerID." and fkFriendsId = ".$userId.") or (fkUsersId = ".$userId." and fkFriendsId = ".$bean->OwnerID."))");
+					if($result) {
+						$userDetails['Details']['IsFriend']=	1;
+					}
+				}				
+				
 				//friends Orders
 				$orders1 							= 	R::dispense('friends');
 				$orders1->UserId					= 	$userId;
@@ -1146,7 +1171,7 @@ class Users extends RedBean_SimpleModel implements ModelBaseInterface {
 				
 					$userDetails['AuthorId']			=	$fromuser->MangoPayUniqueId;
 					$userDetails['CreditedUserId']		=	$touser->MangoPayUniqueId;
-					$userDetails['Currency']			=	'USD';
+					$userDetails['Currency']			=	DEFAULT_CURRENCY;
 					$userDetails['Amount']				=	$bean->Amount;
 					$userDetails['DebitedWalletId']		=	$fromuser->WalletId;
 					$userDetails['CreditedWalletId']	=	$touser->WalletId;
@@ -1191,8 +1216,8 @@ class Users extends RedBean_SimpleModel implements ModelBaseInterface {
     */
     public function validateAmount($amount)
     {
-		if ($amount <= 0 || $amount >= 100) {           
-            throw new ApiException("Sorry you can't process this amount value. Try with less amount below $99" , ErrorCodeType::NoResultFound);
+		if ($amount <= 0 || $amount >= 80) {           
+            throw new ApiException("Sorry you can't process this amount value. Try with less amount below ".utf8_encode('£')."80" , ErrorCodeType::NoResultFound);
         }
     }
 	
@@ -1274,8 +1299,8 @@ class Users extends RedBean_SimpleModel implements ModelBaseInterface {
 		$usersArray['LastName']				=	$bean->LastName;
 		$usersArray['Email']				=	$bean->Email;
 		$usersArray['Address']				=	$bean->Address;
-		$usersArray['Nationality']			=	'US';
-		$usersArray['CountryOfResidence']	=	'US';
+		$usersArray['Nationality']			=	DEFAULT_COUNTRY;
+		$usersArray['CountryOfResidence']	=	DEFAULT_COUNTRY;
 		$usersArray['Occupation']			=	$bean->Occupation;
 		$usersArray['Currency']				=	$bean->Currency;
 		$usersArray['Birthday']				=	$bean->Birthday;

@@ -7,7 +7,8 @@ if(isset($_SESSION['tuplit_merchant_user_name'])){
 }
 $responseErrorMessage = $responseSuccessMessage = '';
 
-if(isset($_POST['merchant_forgot_submit']) && $_POST['merchant_forgot_submit'] == 'SUBMIT'){
+//if(isset($_POST['merchant_forgot_submit']) && $_POST['merchant_forgot_submit'] == 'SUBMIT'){
+if(isset($_POST) && !empty($_POST)){
 	if(isset($_POST['Email']) && $_POST['Email']){
 		$data	=	array();
 		$url	=	WEB_SERVICE.'v1/merchants/forgetPassword?Email='.$_POST['Email'];
@@ -25,22 +26,30 @@ if(isset($_POST['merchant_forgot_submit']) && $_POST['merchant_forgot_submit'] =
 }
 commonHead();
 ?>
-<body class="skin-blue fixed" onload="fieldfocus('Email');">
-	<?php top_header(); ?>
-	<div class="form-box" id="login-box">
-		<form action="" name="forget_password_form" id="forget_password_form"  method="post">
-			<div class="body top-spacing">
-				<?php if($responseErrorMessage !='') { ?><div class="alert alert-danger alert-dismissable col-xs-12" style="margin-top:7px"><i class="fa fa-warning"></i>&nbsp;&nbsp;<?php echo $responseErrorMessage;?></div><?php  } ?>
-				<?php if($responseSuccessMessage !='') { ?><div class="alert alert-success alert-dismissable col-xs-12" style="margin-top:7px"><i class="fa fa-check"></i></i>&nbsp;&nbsp;<?php echo $responseSuccessMessage;?></div><?php  } ?>
-				<div class="form-group">
+<body onload="fieldfocus('Email');">
+	<?php top_header_before_login (); ?>
+				<h2>Get the best deals!</h2>
+				<h3>Tuplit Merchants have the best deals for you.<br>Get them before they expire!</h3>
+				<a class="signup-button" href="Signup" title="Sign up">Sign up</a>
+				<form action="" name="merchant_login_form" id="merchant_login_form"  method="post">
+					<div class="login-bg">
+						<div style="height:25px;clear:both;">
+						<div class="col-xs-12">
+				<?php if($responseErrorMessage !='') { ?><div class="alert alert-danger alert-dismissable col-lg-4 col-sm-5 col-xs-10 clear" style="margin-top:20px;"><i class="fa fa-warning"></i>&nbsp;&nbsp;<?php echo $responseErrorMessage;?></div><?php  } ?>
+				<?php if($responseSuccessMessage !='') { ?><div class="alert alert-success alert-dismissable col-lg-4 col-sm-5 col-xs-10 clear" style="margin-top:20px;"><i class="fa fa-check"></i></i>&nbsp;&nbsp;<?php echo $responseSuccessMessage;?></div><?php  } ?>
+						</div>
+						</div>
+				<div class="form-col">
 					<input class="form-control" type="Email" name="Email"  id="Email"  placeholder="Email" required >
 				</div>
-			</div>
-			<div class="footer">                                                               
-				<input type="submit" name="merchant_forgot_submit" id="merchant_forgot_submit" value="SUBMIT" class="btn btn-success btn-lg btn-block ">
+				<div class="form-col">                                                               
+				<input type="submit" name="merchant_forgot_submit" id="merchant_forgot_submit" value="Submit" class="btn form-control ">
+				</div>
 			</div>
 			
-			<div class="" align="center"><a href="Login"><i class="fa fa-reply"></i>&nbsp;&nbsp;back to login</a></div>
+			<div class="" align="center" style="margin-bottom:5px;">
+			
+			<a href="Login" title="Back to login" class="link"><i class="fa fa-reply"></i>&nbsp;&nbsp;Back to login</a></div>
 		</form>
 	</div>
 	<?php footerLogin(); ?>

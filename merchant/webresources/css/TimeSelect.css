@@ -81,3 +81,14 @@
 	text-align: center;
 	float: right;
 }
+#ptTimeSelectCntr #ptTimeClearSetButton {
+	padding-top: .2em;
+	padding-bottom: .2em;
+}
+#ptTimeSelectCntr #ptTimeClearSetButton a {
+ 	display: block;
+	padding: .2em;
+	width: 30%;
+	text-align: center;
+	float: left;
+}
