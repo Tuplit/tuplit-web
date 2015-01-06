@@ -9,6 +9,7 @@ class ProductModel extends Model
 				left join merchants as m on m.id = p.fkMerchantsId
 				left join productcategories as pc on (pc.id = p.fkCategoryId)
 				WHERE 1".$condition." group by p.id ORDER BY ".$sorting_clause." ".$limit_clause;
+		//echo "<br/>==============".$sql;
 		$result	=	$this->sqlQueryArray($sql);
 		if(count($result) == 0) return false;
 		else return $result;		

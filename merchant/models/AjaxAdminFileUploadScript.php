@@ -10,7 +10,8 @@ $file_types_array = array(
     "3" => "image/jpg",
     "4" => "image/png"
 );
-$imagePath = '../webresources/uploads/temp/';
+$mystore_array 	= array( "myStore_1","myStore_2","myStore_3","myStore_4","myStore_5","myStore_6","myStore_7","myStore_8","myStore_9","myStore_10");
+$imagePath 		= '../webresources/uploads/temp/';
 $fileElementName	=	$_GET['filename'];
 if(isset($_GET['files']))
 {	
@@ -51,15 +52,22 @@ if(isset($_GET['files']))
 			if ($file['tmp_name'] != '') {
 				$res = getImageSize($file['tmp_name']);
 				
+				//echo "(($res[0] > '100' || $res[0] < '200') || ($res[1] > '100' || $res[1] < '200')))";
 				//image dimension checking
-				if($res[0] < '100' || $res[1] < '100')
+				if(($fileElementName == 'merchant_photo' || in_array($fileElementName, $mystore_array))&& (($res[0] > '700' || $res[0] < '600') || ($res[1] > '300' || $res[1] < '250')))
+					$error = 'Image dimension should be LARGER than 600X250 and SMALLER than 700X300';
+				else if($fileElementName == 'product_photo' && (($res[0] > '350' || $res[0] < '250') || ($res[1] > '350' || $res[1] < '250')))
+					$error = 'Image dimension should be greater than 250X250 and lesser than 350X350';
+				else if($fileElementName == 'icon_photo' && (($res[0] > '200' || $res[0] < '100') || ($res[1] > '200' || $res[1] < '100')))
+					$error = 'Image dimension should be greater than 100X100 and lesser than 200X200';
+				else if($res[0] < '100' || $res[1] < '100')
 					$error = 'Image dimension should be greater than 100X100';
 					
 				//image type / size checking
 				if (!in_array($file['type'], $file_types_array)) {
 					$error = 'Please upload JPEG, JPG and PNG images only.';
 				}
-				else if ($file['size'] > 5242880) {
+				else if ($file['size'] > 1500000) {
 					$error = 'Image size should not be greater than 5 MB';
 				}
 				else if (!is_writable($imagePath)) {

@@ -39,7 +39,7 @@ $app = new \Slim\Slim();
 
 /**
  * get product details
- * GET /v1/Products
+ * GET /v1/products
  */
 $app->get('/:productId', tuplitApi::checkToken(), function ($productId) use ($app) {
 
@@ -102,11 +102,8 @@ $app->get('/',tuplitApi::checkToken(), function () use ($app) {
          */
 		$product 		= R::dispense('products');
 		
-		if(isset($_GET['Search']) && !empty($_GET['Search'])) 
-			$Search	=  $_GET['Search'];	
-		
-		if(isset($_GET['Type']) && !empty($_GET['Type'])) 
-			$product->Type	=  $_GET['Type'];	
+		if(isset($_GET['Search']) && !empty($_GET['Search'])) 		$Search	=  $_GET['Search'];			
+		if(isset($_GET['Type']) && !empty($_GET['Type'])) 			$product->Type	=  $_GET['Type'];	
 		
 	 	$productList 	=  $product->getProductList($merchantId,$Search);
 		if($productList){
@@ -259,10 +256,9 @@ $app->post('/',tuplitApi::checkToken(), function () use ($app) {
 		$SpecialQty 					= 	$req->params('SpecialQty');
 		if($req->params('OriginalPrice') != '')
 			$products->OriginalPrice	= 	$req->params('OriginalPrice');
+		$products->Discount 			= 	0;
 		if($req->params('Discount'))
 			$products->Discount 		= 	$req->params('Discount');
-		else
-			$products->Discount 		= 	0;
 			
 		if($req->params('Photo') || (isset($_FILES['Photo']['tmp_name']) && $_FILES['Photo']['tmp_name'] != ''))
 			$products->Photo 			= 	1;
@@ -290,7 +286,8 @@ $app->post('/',tuplitApi::checkToken(), function () use ($app) {
 			else
 				$temppath 				= 	TEMP_PRODUCT_IMAGE_PATH_UPLOAD.$tempImageName;
 			
-			imagethumb_addbg($temppath, $imagePath,'','',300,300);
+			//imagethumb_addbg($temppath, $imagePath,'','',300,300);
+			copy($temppath,$imagePath);
 			if(SERVER) {
 				uploadImageToS3($imagePath,8,$imageName);
 				unlink($imagePath);
@@ -380,15 +377,13 @@ $app->put('/:ProductId', tuplitApi::checkToken(),function ($ProductId) use ($app
 		if(isset($input->ItemType))				$ItemType 					= $input->ItemType;
 		if(isset($input->OriginalPrice) && !empty($input->OriginalPrice))				$product->OriginalPrice 					= $input->OriginalPrice;
 		
+		$product->DiscountApplied 		= '0';
 		if(isset($input->Discount) && $input->Discount == 1) 			
 			$product->DiscountApplied 	= '1';
-		else
-			$product->DiscountApplied 	= '0';
-			
+		
+		$product->ImageAlreadyExists 		= 0;
 		if(isset($input->ImageAlreadyExists))	
-			$product->ImageAlreadyExists 		= $input->ImageAlreadyExists;
-		else
-			$product->ImageAlreadyExists 		= 0;
+			$product->ImageAlreadyExists 	= $input->ImageAlreadyExists;
 		
 		/**
          * update the product details
@@ -402,9 +397,9 @@ $app->put('/:ProductId', tuplitApi::checkToken(),function ($ProductId) use ($app
 				mkdir (UPLOAD_PRODUCT_IMAGE_PATH_REL, 0777);
 			}
 			$temppath = TEMP_PRODUCT_IMAGE_PATH_UPLOAD.$tempImageName;	
-			//copy($temppath,$imagePath);
+			copy($temppath,$imagePath);
 			//resizeImage($temppath, $imagePath, '');
-			imagethumb_addbg($temppath , $imagePath,'','',300,300);
+			//imagethumb_addbg($temppath , $imagePath,'','',300,300);
 			if(SERVER) {
 				uploadImageToS3($imagePath,8,$imageName);
 				unlink($imagePath);
@@ -478,7 +473,6 @@ $app->put('/', tuplitApi::checkToken(),function () use ($app) {
         $request 	= 	$app->request();
     	$body 		= 	$request->getBody();
     	$input 		= 	json_decode($body);
-		//echo '-->'. $request->ProductId.'<br>';
         /**       
          * @var Products $Products
          */
@@ -521,6 +515,60 @@ $app->put('/', tuplitApi::checkToken(),function () use ($app) {
         tuplitApi::showError($e);
     }
 });
+
+/**
+ * product analytics
+ * GET /v1/Products/analytics
+ */
+$app->get('/analytics/',tuplitApi::checkToken(), function () use ($app) {
+
+    try {
+		 // Create a http request
+         $req = $app->request();
+		 $merchantId = tuplitApi::$resourceServer->getOwnerId();
+		
+		 /**
+         * Retrieving product analytics list array
+         */
+		$product 			= R::dispense('products');
+		if($req->params('DataType') !='')	$product->DataType	=  $req->params('DataType');
+		if($req->params('Start') !='')		$product->Start		=  $req->params('Start');
+		if($req->params('TimeZone') !='')	$product->TimeZone	=  $req->params('TimeZone');
+	 	$ProductAnalytics 	= $product->getProductAnalytics($merchantId);
+		if($ProductAnalytics){
+			$response 	= new tuplitApiResponse();
+	        $response->setStatus(HttpStatusCode::Created);
+	        $response->meta->dataPropertyName 	= 'ProductAnalytics';			
+	        $response->meta->TotalProducts 		= $ProductAnalytics['totalProducts'];			
+	        $response->meta->ListedProducts		= $ProductAnalytics['listedProducts'];			
+			$response->returnedObject 			= $ProductAnalytics['result'];			
+			echo $response;
+		}
+		else{
+			 /**
+	         * throwing error when no products found
+	         */
+			  throw new ApiException("No products Found", ErrorCodeType::NoResultFound);
+		}
+		
+    }
+    catch (ApiException $e){
+        // If occurs any error message then goes here
+        tuplitApi::showError(
+            $e,
+            $e->getHttpStatusCode(),
+            $e->getErrors()
+        );
+    }
+    catch (\Slim\Exception\Stop $e){
+        // If occurs any error message for slim framework then goes here
+    }
+    catch (Exception $e) {
+        // If occurs any error message then goes here
+        tuplitApi::showError($e);
+    }
+});
+
 
 /**
  * Start the Slim Application

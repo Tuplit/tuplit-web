@@ -33,7 +33,7 @@ class UserModel extends Model
 			else
 				$joincon.= 	" and sum(o.TotalPrice) >= '".$_SESSION['tuplit_sess_spent7']."'";
 			if(empty($lcondition))
-				$lcondition	.=	" and o.OrderStatus = 1 and o.TransactionId !='' and date(o.OrderDate) >= '2014-07-31'";
+				$lcondition	.=	" and o.OrderStatus = 1 and o.TransactionId !='' and date(o.OrderDate) >= '".date('Y-m-d',strtotime('-7 days'))."'";
 		}
 		
 		if(isset($_SESSION['tuplit_sess_spent']) && $_SESSION['tuplit_sess_spent'] != '') {
@@ -132,7 +132,7 @@ class UserModel extends Model
 	function getUserDetails($fields, $condition)
 	{
 		$sql	 =	"SELECT ".$fields." FROM {$this->userTable} WHERE ".$condition;
-		echo "================>".$sql."</br>";
+		//echo "================>".$sql."</br>";
 		$result = 	$this->sqlQueryArray($sql);
 			if($result) return $result;
 			else false;

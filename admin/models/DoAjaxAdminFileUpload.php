@@ -52,6 +52,10 @@ else {
 			if(( $res[0] < '80' || $res[0] > '100' ) || ( $res[1] < '80' || $res[1] > '100' ))
 				$error = 'Image dimension should be greater than 80x80 and less then 100x100';
 		}
+		if($fileElementName == 'merchant_photo' && (($res[0] > '700' || $res[0] < '600') || ($res[1] > '300' || $res[1] < '200')))
+				$error = 'Image dimension should be greater than 600X200 and lesser than 700X300';
+		if($fileElementName == 'icon_photo' && (($res[0] > '200' || $res[0] < '100') || ($res[1] > '200' || $res[1] < '100')))
+				$error = 'Image dimension should be greater than 100X100 and lesser than 200X200';
 		if (strstr($fileElementName, 'Slider_Image')) {
 			if( $res[0] != '640' || $res[1] != '570' ) 
 				$error = 'Image dimension should be 640x570';
@@ -82,7 +86,7 @@ else {
 		/*else if( $res[0] < '100' || $res[1] < '100' ){
 			$error = 'Image dimension should be greater than 100x100';
 		} */
-		else if ($_FILES[$fileElementName]['size'] > 5242880) {
+		else if ($_FILES[$fileElementName]['size'] > 1500000) {
             $error = 'Image size should not be greater than 5 MB';
         }
         else if (!is_writable($imagePath)) {

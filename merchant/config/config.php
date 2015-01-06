@@ -8,9 +8,11 @@
  
 define("TITLE","Tuplit");
 if (isset($_SERVER['HTTPS']) && ($_SERVER["HTTPS"] == 'on' ) )
-	$site = 'https://';
-else
-	$site = 'http://';
+			$site = 'https://';
+		elseif (!empty($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] == 'https' || !empty($_SERVER['HTTP_X_FORWARDED_SSL']) && $_SERVER['HTTP_X_FORWARDED_SSL'] == 'on')
+		   $site = 'https://';
+		else
+			$site = 'http://';
 
 if($_SERVER['SERVER_ADDR']=='172.21.4.104')
 {
@@ -63,8 +65,8 @@ if($_SERVER['HTTP_HOST']=='172.21.4.104')
 	define('ABS_PATH_UPLOAD',MERCHANT_ABS_PATH.'/webresources/uploads/');
 }
 else{
-	define('SITE_PATH_UPLOAD','http://dru4vhpkosqqc.cloudfront.net/');
-	define('ABS_PATH_UPLOAD','http://dru4vhpkosqqc.cloudfront.net/');
+	define('SITE_PATH_UPLOAD','https://dru4vhpkosqqc.cloudfront.net/');
+	define('ABS_PATH_UPLOAD','https://dru4vhpkosqqc.cloudfront.net/');
 }
 
 define('MERCHANT_ICONS_IMAGE_PATH', SITE_PATH_UPLOAD.'merchants/icons/');	
@@ -419,7 +421,29 @@ $country_currency_array = array(
 								'Yemen' => 'YER',
 								'Zambia' => 'ZMK',
 								'Zimbabwe' => 'ZWD');
-								
+global $monthArray;
+$monthArray	= array('1'=>'January',
+					'2'=>'February',
+					'3'=>'March',
+					'4'=>'April',
+					'5'=>'May',
+					'6'=>'June',
+					'7'=>'July',
+					'8'=>'August',
+					'9'=>'September',
+					'10'=>'October',
+					'11'=>'November',
+					'12'=>'December',
+					);
+global $dateArray;
+$dateArray	=	range(1,31);	
+global $hourArray;
+$hourArray	=	range(00,23);
+global $minArray;
+$minArray	=	range(00,59);
+global $yearArray;
+$yearArray	=	range(2013,date("Y"));
+	
 require(ABS_PATH.'/includes/CommonFunctions.php');
 if(!isset($layout)){
 	$layout = detectLayout();
@@ -432,10 +456,14 @@ $backgroundSliderArray = array( '1'=>SITE_PATH.'/webresources/images/HomePage_Bg
 								'3'=>SITE_PATH.'/webresources/images/HomePage_Bg3.jpg',
 								'4'=>SITE_PATH.'/webresources/images/HomePage_Bg4.jpg',
 								'5'=>SITE_PATH.'/webresources/images/HomePage_Bg5.jpg');
-								
+							
 global $AutoLock;
-$AutoLock = array('1'=>'3','2'=>'5','3'=>'10');
+$AutoLock = array('1'=>'3','2'=>'5','3'=>'10','4'=>'60');
 
 global $ProductVAT;
 $ProductVAT = array('0'=>'0','5'=>'5','20'=>'20');
+
+global $AnalyticsView;
+$AnalyticsView = array('day'=>'Today','7days'=>'7 days','month'=>'Month','year'=>'Year');
+
 ?>

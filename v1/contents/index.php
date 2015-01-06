@@ -91,7 +91,7 @@ $app->get('/', function () use ($app) {
 
 /**
 * Get web-page contents
-* GET /v1/contents/
+* GET /v1/contents/webpagecontent/
 */
 $app->get('/webpagecontent/:url', function ($url) use ($app) {
 
@@ -130,7 +130,7 @@ $app->get('/webpagecontent/:url', function ($url) use ($app) {
 
 /**
 * Get countries
-* GET /v1/contents/
+* GET /v1/contents/countries/
 */
 $app->get('/countries/', function () use ($app) {
 
@@ -142,7 +142,7 @@ $app->get('/countries/', function () use ($app) {
 		
 		$countries					= R::dispense('general');
 		$countriesList 				= $countries->getcountries();
-	    $response->returnedObject 	= $countriesList;
+	    $response->returnedObject 	= array_values($countriesList);
         $response->addNotification('Countries has been retrieved successfully');
         echo $response;
 
@@ -166,7 +166,7 @@ $app->get('/countries/', function () use ($app) {
 
 /**
 * Get currencies
-* GET /v1/contents/
+* GET /v1/contents/currencies/
 */
 $app->get('/currencies/', function () use ($app) {
 
@@ -178,7 +178,7 @@ $app->get('/currencies/', function () use ($app) {
 		
 		$currencies					= R::dispense('general');
 		$currenciesList 			= $currencies->getcurrencies();
-	    $response->returnedObject 	= $currenciesList;
+	    $response->returnedObject 	= array_values($currenciesList);
         $response->addNotification('Currencies has been retrieved successfully');
         echo $response;
 

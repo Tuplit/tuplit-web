@@ -51,7 +51,7 @@ commonHead();
 						<?php if(isset($OrderList) && !empty($OrderList)){?>
 							<strong class="col-xs-4 no-padding HelveticaNeueBold">Order Number:</strong>
 							<span>
-								<?php echo (!empty($OrderList['TransactionId'])?$OrderList['TransactionId']:'&nbsp;');?>
+								<?php echo (!empty($OrderList['TransactionId'])?$OrderList['TransactionId']:'-');?>
 							</span>
 							<div class="clearfix">
 								<strong class="col-xs-4 no-padding HelveticaNeueBold">User Name:</strong>
@@ -64,7 +64,7 @@ commonHead();
 							<div class="clearfix">
 								<strong class="col-xs-4 no-padding HelveticaNeueBold">User ID:</strong>
 								<span>
-									<?php echo (!empty($OrderList['UniqueId'])?$OrderList['UniqueId']:'');} ?>
+									<?php echo (!empty($OrderList['UniqueId'])?$OrderList['UniqueId']:'-');} ?>
 								</span>
 							</div>
 						</div>

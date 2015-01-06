@@ -2,7 +2,9 @@
 <?php
 require_once('includes/CommonIncludes.php');
 merchant_login_check();
-
+$show	=	0;
+if(isset($_GET['show']) && !empty($_GET['show']) && $_GET['show'] == 1) 
+	$show	=	1;
 if(isset($_SESSION['merchantInfo']['AccessToken'])){ 	
 	if(isset($_GET['orderId']) && !empty($_GET['orderId']) || isset($_GET['transId']) && !empty($_GET['transId'])) {
 		//getting Order List
@@ -34,7 +36,7 @@ if(isset($_GET['OrderID']) && !empty($_GET['OrderID'])) {
 		$url				=	WEB_SERVICE.'v1/orders/refund/'.$_GET['OrderID'].'?Type=1&msg='. base64_encode($_POST['refund_msg']);
 	$method				=	'GET';
 	$curlResponse		=	curlRequest($url,$method,'',$_SESSION['merchantInfo']['AccessToken']);
-	if(isset($curlResponse) && is_array($curlResponse) && $curlResponse['meta']['code'] == 201) {
+	if(isset($curlResponse) && is_array($curlResponse) && $curlResponse['meta']['code'] == 201 && isset($curlResponse['OrderRefund'])) {
 		//$_SESSION['refund_successMessage'] = $curlResponse['notifications'][0];		
 		$_SESSION['refund_successMessage'] = 'Refund has been done successfully';
 		$OrderList['RefundStatus']	=	'2';
@@ -51,11 +53,10 @@ if(isset($_SESSION['refund_successMessage']))
 	$successMessage	=	$_SESSION['refund_successMessage'];
 if(isset($_SESSION['refund_errorMessage']))
 	$errorMessage	=	$_SESSION['refund_errorMessage'];
-	
 if(isset($errorMessage) && $errorMessage != ''){
 	$msg			=	$errorMessage;
 	$display 		= 	"block";
-	$class   		= 	"alert-success";
+	$class   		= 	"alert alert-danger";
 	$class_icon 	= 	"fa-warning";
 	$errorMessage 	= 	'';
 }else if(isset($successMessage) && $successMessage != ''){
@@ -74,7 +75,7 @@ if(isset($errorMessage) && $errorMessage != ''){
 <div style="padding:0 15px">
 <section class="content-header"><h1 class="space_bottom">Product List</h1></section>
 <?php if(isset($msg) && $msg != '') { ?>
-<div align="center" class="success <?php  echo $class;  ?> alert-dismissable col-xs-10 col-sm-5 col-lg-3 box-center"><i class="fa <?php  echo $class_icon;  ?>"></i>  <?php echo $msg; ?></div>
+<div align="center" class="success <?php  echo $class;  ?> alert-dismissable col-xs-10 col-sm-9 col-lg-3 box-center"><i class="fa <?php  echo $class_icon;  ?>"></i>  <?php echo $msg; ?></div>
 <?php }  ?>	
 <div class="box box-primary order_list" style="padding-left:0px;margin-bottom:15px;">
 		<!-- Start New Orders List -->						
@@ -89,14 +90,14 @@ if(isset($errorMessage) && $errorMessage != ''){
 							<span class="help-block no-margin"><?php echo time_ago($OrderList['OrderDate']); ?></span>
 						</div>
 						<div class="clear"><br><hr class="no-margin"></div>
-						<?php if (!empty($OrderList['TransactionId']) && $OrderList['RefundStatus'] == 1){ ?>
-							<div class="margintb20" align="right" style="padding-right:5px;" id="refund_msg_but">
+						<?php if (!empty($OrderList['TransactionId']) && $OrderList['RefundStatus'] == 1 && $show == 0){ ?>
+							<!--<div class="margintb20" align="right" style="padding-right:5px;" id="refund_msg_but">
 								<a class="btn btn-success" title="Refund Order" onclick="return refundBox();">
 									<i class="fa fa-reply"></i> Refund Order
 								</a>
 							</div>		
-											
-							<div class="col-xs-12 table-responsive no-padding list_height no-margin" id="refund_msg_box" style="display:none;">	
+							-->				
+							<div class="col-xs-12 table-responsive no-padding list_height no-margin" id="refund_msg_box" style="display:block;">	
 								<form method="post" action="OrderProductDetail?cs=1&OrderID=<?php echo $OrderList['OrderId']; ?>" id="RefundForm" name="RefundForm">
 									<table class="table">
 										<tr>
@@ -186,12 +187,21 @@ if(isset($errorMessage) && $errorMessage != ''){
 										</td>
 										<?php// } ?> -->
 									</tr>
-							<?php } } ?>
+							<?php } }  ?>
 								<tr>
-								 	<td colspan="5"><div class="col-xs-12 no-padding text-right"><strong>Total</strong> </div></td>
-									<td class="text-right"><strong><?php echo price_fomat($OrderList['TotalPrice']); ?></strong></td>
-									
-								</tr>
+								 	<td colspan="5">
+											<div class="col-xs-12 no-padding text-right"><strong>Sub Total</strong></div>
+											<div class="col-xs-12 no-padding text-right">VAT </div>
+											<div class="col-xs-12 no-padding text-right"><strong>Total</strong></div>
+									</td>
+									<td class="text-right">
+									<?php 
+										echo "<strong>".price_fomat($OrderList['SubTotal'])."</strong>";
+										echo "<br>".price_fomat($OrderList['VAT']); 
+										echo "<br><strong>".price_fomat($OrderList['TotalPrice'])."</strong>"; 
+									?>
+									</td>
+								</tr>								
 						</table>
 						</div>
 			<?php }  else { ?>

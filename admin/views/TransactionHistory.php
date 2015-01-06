@@ -11,10 +11,10 @@ $managementObj  =   new ManagementController();
 $searchCond		=	$cond 	= $search_merchant = '';
 $search_city 	=  $search_category = $search_price = '';
 if(isset($_GET['cs']) && $_GET['cs'] == 1){
-	unset($_SESSION['loc_mer_name']);
-	unset($_SESSION['loc_mer_price']);
-	unset($_SESSION['loc_mer_city']);
-	unset($_SESSION['loc_mer_category']);
+	//unset($_SESSION['loc_mer_name']);
+	//unset($_SESSION['loc_mer_price']);
+	//unset($_SESSION['loc_mer_city']);
+	//unset($_SESSION['loc_mer_category']);
 }
 if(isset($_POST['Search'])){
 	if(isset($_POST['Merchant_Name']) && $_POST['Merchant_Name']!=''){
@@ -24,7 +24,7 @@ if(isset($_POST['Search'])){
 	if(isset($_POST['Merchant_Price']) && $_POST['Merchant_Price']!=''){
 		$_SESSION['loc_mer_price'] 	 = $_POST['Merchant_Price'];
 		//$cond						.= " and o.TotalPrice = ".trim($_SESSION['loc_mer_price']);
-		$cond 						.= " and ".$_SESSION['loc_mer_price']." between substring_index(m.PriceRange,',',1) and substring_index(m.PriceRange,',',-1)"; 
+		$cond 						.= " and '".$_SESSION['loc_mer_price']."' between substring_index(m.PriceRange,',',1) and substring_index(m.PriceRange,',',-1)"; 
 	}else unset($_SESSION['loc_mer_price']);
 	if(isset($_POST['Merchant_city']) && $_POST['Merchant_city']!=''){
 		$_SESSION['loc_mer_city'] 	 = $_POST['Merchant_city'];
@@ -38,7 +38,7 @@ if(isset($_POST['Search'])){
 
 /*-----------------Common Transaction List---------------------*/
 $limit				= 0;
-$fields    			= " o.TotalPrice,o.TransactionId,o.OrderDate,o.Status,m.CompanyName,u.FirstName,u.LastName,o.Commision ";
+$fields    			= " o.TotalPrice,o.TransactionId,o.OrderDate,o.OrderStatus,o.Status,m.CompanyName,u.FirstName,u.LastName,o.Commision ";
 //$cond 				.= " and o.Status in (1,2)";
 $sort				= " o.id desc ";
 $leftjoin			= " left join users as u on  (u.id	= o.fkUsersId ) left join merchants as m on (m.id = o.fkMerchantsId)";
@@ -75,10 +75,10 @@ $tot_rec 		 	= $OrderObj->getTotalRecordCount();
 						</div>	
 						<div class="col-xs-12 next-prev">
 							<div id="prevTransHist"  class="col-xs-6 col-sm-6" align="center">	
-								<a class="" href="javascript:void(0);" onclick="transHistTransaction('prev')"  title="Prev Page">Back</a>
+								<a class="" href="javascript:void(0);" onclick="transHistTransaction('prev')"  title="Prev Page">Previous</a>
 							</div>
 						
-							<div id="nextTransHist"  class="col-xs-6 col-sm-6" align="center">
+							<div id="nextTransHist"  class="col-xs-6 col-sm-6" align="center" style="float:right;">
 								<a class="" href="javascript:void(0);" onclick="transHistTransaction('next')"  title="Next Page">Next</a>
 							</div>
 						</div>
@@ -179,7 +179,7 @@ function transHistTransaction(direction)
 		$("#count").val('1');
 	}
 	if(search_price != ''){
-		searchVal = searchVal+'<?php if(isset($_SESSION['loc_mer_price']) && $_SESSION['loc_mer_price'] != '') " and ".$_SESSION['loc_mer_price']." between substring_index(m.PriceRange,',',1) and substring_index(m.PriceRange,',',-1)" //echo " and o.TotalPrice=".$_SESSION['loc_mer_price']; ?>';	
+		searchVal = searchVal+'<?php if(isset($_SESSION['loc_mer_price']) && $_SESSION['loc_mer_price'] != '') " and '".$_SESSION['loc_mer_price']."' between substring_index(m.PriceRange,',',1) and substring_index(m.PriceRange,',',-1)" //echo " and o.TotalPrice=".$_SESSION['loc_mer_price']; ?>';	
 		$("#count").val('1');
 	}
 	if(search_city != ''){

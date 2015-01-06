@@ -295,11 +295,62 @@
 		var id		= 	$(".isPtTimeSelectActive").attr('rowid');
 		var from	=	$("#from1_"+id).val();
 		var to		=	$("#to1_"+id).val();
+		var hr1	=	hr2 = min1 = min2 = 0;
 		if(from != '' || to != '') {
+			/* validation  code by suganya*/
+			if (from) {
+				var re = /([0-9]{1,2}).*:.*([0-9]{2}).*(PM|AM)/i;
+				var match = re.exec(from);
+				if (match) {
+					hr1    = match[1] || 1;
+					min1    = match[2] || '00';
+					tm1    = match[3] || 'AM';
+				}
+				if(tm1 == 'PM'){
+					if(hr1 !=12){
+						hr1 = Number(hr1) + 12;
+					}
+				}else{
+					if(hr1 == 12){
+						hr1 = 0;
+					}
+				}
+			}
+			if (to) {
+				var re = /([0-9]{1,2}).*:.*([0-9]{2}).*(PM|AM)/i;
+				var match = re.exec(to);
+				if (match) {
+					hr2    = match[1] || 1;
+					min2   = match[2] || '00';
+					tm2    = match[3] || 'AM';
+				}
+				if(tm2 == 'PM'){
+					if(hr2 !=12){
+						hr2 = Number(hr2) + 12;
+					}
+				}else{
+					if(hr2 == 12){
+						hr2 = 0;
+					}
+				}
+			}
+			if(hr1>hr2 ){
+				$('#valid_'+id).val('1');
+			}else if(hr1 == hr2){
+				if(min1 > min2){
+					$('#valid_'+id).val('1');
+				}else{
+					$('#valid_'+id).val('0');
+				}
+			}	
+			else{
+				$('#valid_'+id).val('0');
+			}
+			/* validation end*/
 			$('#row_'+id).val('1');
 		}
         this.closeCntr();
-        
+		
     };// END setTime() function
 	jQuery.ptTimeSelect.clearTime = function() {
         var tSel = jQuery('#ptTimeSelectUserSelHr').text()
@@ -314,7 +365,7 @@
 		var name	=	$(".isPtTimeSelectActive").attr('name');
 		//console.log(id+'<====>'+name)
 		$("#"+name).val('');
-		//console.log($("#from1_"+id).val()+'<====>'+$("#to1_"+id).val())
+		//console.log($("#from1_"+id).val()+'<==ff==>'+$("#to1_"+id).val())
 		if($("#from1_"+id).val() != '' || $("#to1_"+id).val() != '')
 			$("#row_"+id	).val(1);
 		else

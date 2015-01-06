@@ -220,7 +220,7 @@ class OrderModel extends Model
 				ON (".$condition." AND o1.OrderDate < o2.OrderDate) 
 				LEFT JOIN users as u on (u.id = o1.fkUsersId)
 				Left join merchants as m on (m.id = o1.fkMerchantsId)
-				WHERE o2.OrderDate IS NULL  ".$searchCond."and o1.Status in (1,2) ".$limit_clause;
+				WHERE o2.OrderDate IS NULL  ".$searchCond."and o1.Status in (1,2) and u.Status = 1 and m.Status = 1 ".$limit_clause;
 		//echo "<br/>======".$sql;
 		$result	=	$this->sqlQueryArray($sql);
 		if(count($result) == 0) return false;
@@ -261,7 +261,7 @@ class OrderModel extends Model
 		if(isset($_SESSION['loc_mer_name']) && $_SESSION['loc_mer_name'] != '')
 			$condition .= " and m.id = ".trim($_SESSION['loc_mer_name']); 
 		if(isset($_SESSION['loc_mer_price']) && $_SESSION['loc_mer_price'] != '')
-			$condition .= " and o.TotalPrice  <= ".trim($_SESSION['loc_mer_price']); 
+			$condition .= " and o.TotalPrice  <= '".trim($_SESSION['loc_mer_price'])."'"; 
 		if(isset($_SESSION['loc_mer_city']) && $_SESSION['loc_mer_city'] != '')
 			$condition .= " and m.City LIKE '%".trim($_SESSION['loc_mer_city'])."%'"; 
 		if(isset($_SESSION['loc_mer_category']) && $_SESSION['loc_mer_category'] != ''){

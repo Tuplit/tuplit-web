@@ -34,8 +34,8 @@ commonHead();
 <body onload="fieldfocus('user_name');" class="login_bg">
 		<div class="navbar-inner">
 			<div class="navbar-user-list">
-				<a href="<?php echo $site?>www.tuplit.com">USER</a>
-				<a href="<?php echo SITE_PATH?>/merchant/">MERCHANT</a>
+				<a href="http://www.tuplit.com" target="_blank">USER</a>
+				<a href="<?php echo SITE_PATH?>/merchant/" target="_blank">MERCHANT</a>
 			</div>
 		</div>
 		<div style="margin-top:100px;">

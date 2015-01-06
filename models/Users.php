@@ -134,11 +134,20 @@ class Users extends RedBean_SimpleModel implements ModelBaseInterface {
 		$result 	= 	R::findOne('users', 'id = ? ', array($bean->UsersId));
 		if($result) {
 			if(!empty($result->MangoPayUniqueId) && !empty($result->WalletId)) {
+
+				$logStart				=	microtime(true);
+				$walletDetails			=	getWalletDetails($result->WalletId);
 				
-				//validate amount
-					//$this->validateAmount($bean->PaymentAmount);
+				//MangoPay Log
+				$logArray				=	Array();	
+				$logArray['UserId']		=	$bean->UsersId;
+				$logArray['URL']		=	'getWalletDetails';
+				$logArray['Content']	=	Array('WalletId'=>$result->WalletId);
+				$logArray['Start']		=	$logStart;
+				$logArray['End']		=	microtime(true);
+				$logArray['Response']	=	$walletDetails;
+				$this->storeMangoPayLog($logArray);
 				
-				$walletDetails		=	getWalletDetails($result->WalletId);
 				if(isset($walletDetails->Balance->Amount) && ($walletDetails->Balance->Amount >= getCents($bean->PaymentAmount))) {
 					$AllowPayment 	= 	1;
 					$message		= 	'You can proceed your process';
@@ -537,7 +546,7 @@ class Users extends RedBean_SimpleModel implements ModelBaseInterface {
         * @var $bean Users
         */
 		
-		$type = 0;
+		$type = 'all';
         $bean 					= 	$this->bean;
 		 if($bean->Type)
 		 	$type	=	$bean->Type;
@@ -566,7 +575,19 @@ class Users extends RedBean_SimpleModel implements ModelBaseInterface {
 				}
 			}
 			if(!empty($user[0]['WalletId'])) {
-				$walletDetails					=	getWalletDetails($user[0]['WalletId']);
+				$logStart				=	microtime(true);
+				$walletDetails			=	getWalletDetails($user[0]['WalletId']);
+				
+				//MangoPay Log
+				$logArray				=	Array();	
+				$logArray['UserId']		=	$userId;
+				$logArray['URL']		=	'getWalletDetails';
+				$logArray['Content']	=	Array('WalletId'=>$user[0]['WalletId']);
+				$logArray['Start']		=	$logStart;
+				$logArray['End']		=	microtime(true);
+				$logArray['Response']	=	$walletDetails;
+				$this->storeMangoPayLog($logArray);
+				
 				if(isset($walletDetails->Balance->Amount))
 					$user[0]['AvailableBalance']	= 	($walletDetails->Balance->Amount/100);
 				else
@@ -577,6 +598,16 @@ class Users extends RedBean_SimpleModel implements ModelBaseInterface {
 			$user[0]['Photo']		  			= 	$imagePath;
 			$user[0]['OriginalPhoto'] 			= 	$originalPath;
 			$userDetails['Details'] 			= 	$user[0];
+			
+			//Friend or not
+			$userDetails['Details']['IsFriend']=	0;
+			if(isset($bean->FriendStatus) && $bean->FriendStatus == 2 && isset($bean->OwnerID)) {
+				$result =	R::getRow("select id from friends where 1 and ((fkUsersId = ".$bean->OwnerID." and fkFriendsId = ".$userId.") or (fkUsersId = ".$userId." and fkFriendsId = ".$bean->OwnerID."))");
+				if($result) {
+					$userDetails['Details']['IsFriend']=	1;
+				}
+			}	
+			
 			if($type == 'basic' ){
 				$userData['userDetails'] 			= 	$userDetails;
 				$userData['userMetaDetails']		= 	'';
@@ -589,17 +620,12 @@ class Users extends RedBean_SimpleModel implements ModelBaseInterface {
 				$userDetails['UserLinkedCards']		= array();
 				$userDetails['FriendsOrders'] 		= array();
 				$totalOrders	= $totalComments	=	0;
-				/*
-				 	http://172.21.4.104/tuplit/v1/users/10
-				f2MWMucdGXjdqEYtzB7nAU0rrHsw3am0FcemrIaW */
 				//Linked Cards
 				$cards 								= 	R::dispense('cards');
 				$cards->UserId						=   $userId;
 				$cards->Type						=	1;
 				$cards->MangoPayUniqueId			=	$user[0]['MangoPayUniqueId'];
-				//echo"<br>see here===============";
 				$cardArray 							= 	$cards->getCards();
-				//echo'<pre>';print_r($cardArray);echo'</pre>';
 				if($cardArray){
 					$userDetails['UserLinkedCards'] = 	$cardArray['result'];
 				}
@@ -623,15 +649,7 @@ class Users extends RedBean_SimpleModel implements ModelBaseInterface {
 				if($commentsArray){
 					$userDetails['comments'] 		= 	$commentsArray['List'];
 					$totalComments					=	$commentsArray['Total'];
-				}
-				//Friend or not
-				$userDetails['Details']['IsFriend']=	0;
-				if(isset($bean->FriendStatus) && $bean->FriendStatus == 2 && isset($bean->OwnerID)) {
-					$result =	R::getRow("select id from friends where 1 and ((fkUsersId = ".$bean->OwnerID." and fkFriendsId = ".$userId.") or (fkUsersId = ".$userId." and fkFriendsId = ".$bean->OwnerID."))");
-					if($result) {
-						$userDetails['Details']['IsFriend']=	1;
-					}
-				}				
+				}							
 				
 				//friends Orders
 				$orders1 							= 	R::dispense('friends');
@@ -685,11 +703,12 @@ class Users extends RedBean_SimpleModel implements ModelBaseInterface {
         /**
         * Get the identity of the person requesting the details
         */
-		$userId 	= 	R::findOne('users', 'id = ? and Status = ?', [$userId,StatusType::ActiveStatus]);
-        if (!$userId) {
-            // the User was not found
-            throw new ApiException("Your status is not in active state", ErrorCodeType::UserNotInActiveStatus);
+		$userData 	= 	R::findOne('users', 'id = ? and Status = ?', [$userId,StatusType::ActiveStatus]);
+        if (!$userData) {
+            // the User was not found			
+			throw new ApiException("Your status is not in active state", ErrorCodeType::UserNotInActiveStatus);
         }
+		return $userData;
     }
 	
 	/**
@@ -1086,7 +1105,6 @@ class Users extends RedBean_SimpleModel implements ModelBaseInterface {
 					where 1".$condition." 
 					and (((acos(sin((".$bean->Latitude."*pi()/180)) * sin((u.`Latitude`*pi()/180))+cos((".$bean->Latitude."*pi()/180)) * cos((u.`Latitude`*pi()/180)) * cos(((".$bean->Longitude."- u.`Longitude`)*pi()/180))))*180/pi())*60*1.1515) <= $distanceLimit
 					and Status = 1 and Latitude!='' and Longitude!='' order by u.FirstName asc ".$limit;
-		//echo "===>".$sql;
 		$user 			= 	R::getAll($sql);		
 		$user1			=	R::getAll('SELECT FOUND_ROWS() as count ');
 		$usertotal		=	$user1[0]['count'];
@@ -1150,22 +1168,34 @@ class Users extends RedBean_SimpleModel implements ModelBaseInterface {
 		/**
         * Get the bean
         */
-		$bean 											= 	$this->bean;
+		$bean 					= 	$this->bean;
 		
 		// validate the model
         $this->validateTransferParams();
 		
 		//validate and get userdetails		
-        $userInfo										=	$this->validateTransferAmounts();
+        $userInfo				=	$this->validateTransferAmounts();
 		if($userInfo) {
 			
 			//validate amount
 				$this->validateAmount($bean->Amount);
 		
-			$fromuser									=	$userInfo['fromuser'];
-			$touser										=	$userInfo['touser'];
+			$fromuser			=	$userInfo['fromuser'];
+			$touser				=	$userInfo['touser'];
 			
-			$amountDetails								=	getWalletDetails($fromuser->WalletId);
+			$logStart			=	microtime(true);
+			$amountDetails		=	getWalletDetails($fromuser->WalletId);
+			
+			//MangoPay Log
+			$logArray				=	Array();	
+			$logArray['UserId']		=	$bean->UserId;
+			$logArray['URL']		=	'getWalletDetails';
+			$logArray['Content']	=	Array('WalletId'=>$fromuser->WalletId);
+			$logArray['Start']		=	$logStart;
+			$logArray['End']		=	microtime(true);
+			$logArray['Response']	=	$amountDetails;
+			$this->storeMangoPayLog($logArray);
+			
 			if($amountDetails) {
 				if(isset($amountDetails->Balance->Amount) && ($amountDetails->Balance->Amount >= getCents($bean->Amount))) {
 				
@@ -1175,7 +1205,19 @@ class Users extends RedBean_SimpleModel implements ModelBaseInterface {
 					$userDetails['Amount']				=	$bean->Amount;
 					$userDetails['DebitedWalletId']		=	$fromuser->WalletId;
 					$userDetails['CreditedWalletId']	=	$touser->WalletId;
+					
+					$logStart							=	microtime(true);
 					$result								=	transfer($userDetails);
+					//MangoPay Log
+					$logArray				=	Array();	
+					$logArray['UserId']		=	$bean->UserId;
+					$logArray['URL']		=	'transfer';
+					$logArray['Content']	=	$userDetails;
+					$logArray['Start']		=	$logStart;
+					$logArray['End']		=	microtime(true);
+					$logArray['Response']	=	$result;
+					$this->storeMangoPayLog($logArray);					
+					
 					if(isset($result->Id) && $result->Id != '') {
 					
 						//Storing transfer amount
@@ -1305,11 +1347,35 @@ class Users extends RedBean_SimpleModel implements ModelBaseInterface {
 		$usersArray['Currency']				=	$bean->Currency;
 		$usersArray['Birthday']				=	$bean->Birthday;
 		$usersArray['IncomeRange']			=	$bean->IncomeRange;
-		$mangopayDetails 					=   userRegister($usersArray);
+		
+		$logArray				=	Array();	
+		$logArray['UserId']		=	$userId;
+		$logArray['URL']		=	'userRegister';
+		$logArray['Content']	=	$usersArray;
+		$logArray['Start']		=	microtime(true);		
+		$mangopayDetails 		=   userRegister($usersArray);
+		$logArray['End']		=	microtime(true);
+		$logArray['Response']	=	$mangopayDetails;
+		$this->storeMangoPayLog($logArray);
+		
 		$mangopayDetails = json_decode(json_encode($mangopayDetails), true);
 		if( isset($mangopayDetails['Id']) && $mangopayDetails['Id'] != ''){
 			$uniqueId					=	$mangopayDetails['Id'];
+			
+			$logStart					=	microtime(true);
 			$walletId					=	createWallet($uniqueId,$bean->Currency);
+			
+			//MangoPay Log
+			$logArray				=	Array();	
+			$logArray['UserId']		=	$userId;
+			$logArray['URL']		=	'createWallet';
+			$logArray['Content']	=	Array('uniqueId'=>$uniqueId, 'Currency'=>$bean->Currency);
+			$logArray['Start']		=	$logStart;
+			$logArray['End']		=	microtime(true);
+			$logArray['Response']	=	$walletId;
+			$log 	=	R::dispense('users');
+			$log->storeMangoPayLog($logArray);
+			
 			$users 						= 	R::dispense('users');
 			$users->id 					= 	$userId;
 			$users->MangoPayResponse 	= 	serialize($mangopayDetails);
@@ -1367,5 +1433,77 @@ class Users extends RedBean_SimpleModel implements ModelBaseInterface {
 		$usersId 				= 	R::store($this);
 		return $usersId;
 	}
+	
+	/**
+    * AccountDetails
+    */
+	public function getAccountDetails(){
 		
+		/**
+		* Get the bean
+		*/
+		$bean 		= 	$this->bean;
+		$userId 	= 	$bean->UserId;
+		$userData 	=	$this->validateUser($userId);
+		$user		=	Array();
+		
+		$user['UserId']				= 	$userData['id'];
+		$user['AvailableBalance']	= 	0;
+		$user['UserLinkedCards']	=	Array();
+		
+		if(!empty($userData['WalletId'])) {
+			$logStart				=	microtime(true);
+			$walletDetails			=	getWalletDetails($userData['WalletId']);
+			
+			//MangoPay Log
+			$logArray				=	Array();	
+			$logArray['UserId']		=	$userData['id'];
+			$logArray['URL']		=	'getWalletDetails';
+			$logArray['Content']	=	Array('WalletId'=>$userData['WalletId']);
+			$logArray['Start']		=	$logStart;
+			$logArray['End']		=	microtime(true);
+			$logArray['Response']	=	$walletDetails;
+			$this->storeMangoPayLog($logArray);
+			
+			if(isset($walletDetails->Balance->Amount))
+				$user['AvailableBalance']	= 	($walletDetails->Balance->Amount/100);
+			else
+				$user['AvailableBalance']	= 	0;
+		}
+		
+		//Linked Cards		
+		$cards 							= 	R::dispense('cards');
+		$cards->UserId					=   $userId;
+		$cards->Type					=	1;
+		$cards->MangoPayUniqueId		=	$userData['MangoPayUniqueId'];
+		$cardArray 						= 	$cards->getCards();
+		if($cardArray)
+			$user['UserLinkedCards'] 	= 	$cardArray['result'];
+		
+		return $user;
+	}
+	/**
+    * Store MangoPay Log
+    */
+	public function storeMangoPayLog($details){
+		$log 	= 	R::dispense('mangopaylogs');
+		if(isset($details['UserId']) && !empty($details['UserId']))					$log->fkUsersId		=	$details['UserId'];
+		if(isset($details['MerchantId']) && !empty($details['MerchantId']))			$log->fkMerchantsId	=	$details['MerchantId'];
+		
+		$log->url				=	$details['URL'];
+		$log->content			=	json_encode($details['Content']);
+		$log->response			=	json_encode($details['Response']);
+		$log->start_time		=	date('Y-m-d H:i:s',$details['Start']);
+		$log->end_time 			=	date('Y-m-d H:i:s',$details['End']);
+		$log->execution_time 	=	$details['End'] - $details['Start'];
+		
+		//save ip address
+		if(isset($_SERVER['HTTP_X_FORWARDED_FOR']))			
+			$ip 	= 	$_SERVER['HTTP_X_FORWARDED_FOR'];
+		else
+			$ip 	= 	$_SERVER['REMOTE_ADDR'];
+		
+		$log->ip_address 	 	=	$ip;
+		R::store($log);
+	}
 }

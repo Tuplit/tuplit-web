@@ -185,7 +185,7 @@ function sendMail($mailContentArray,$type)
 					$productData	.=	'<tr>
 											<td align="left" style="color:#010101;font-size:20px;font-family:Calibri;">&nbsp;&nbsp;<span style="color:#6b5f5f;font-size:12px;font-family:Calibri;">'.$val['ProductsQuantity'].' x&nbsp;&nbsp;</span></td> 
 											<td align="left" style="color:#010101;font-size:20px;font-family:Calibri;"><b>&nbsp;&nbsp;'.$val['ItemName'].'</b></td>
-											<td align="right" style="color:#010101;font-size:20px;font-family:Calibri;"><b>$'.number_format((float)($val['DiscountPrice'] * $val['ProductsQuantity']), 2, '.', '').'&nbsp;&nbsp;</b></td></tr>';
+											<td align="right" style="color:#010101;font-size:20px;font-family:Calibri;"><b>&pound;&nbsp;'.number_format((float)($val['DiscountPrice'] * $val['ProductsQuantity']), 2, '.', '').'&nbsp;&nbsp;</b></td></tr>';
 				}
 				$mailData 			=	str_replace('{PRODUCTSLIST}',  $productData, $mailData);
 				$mailData 			=	str_replace('{CONTENT}',  $mailContentArray['content'], $mailData);
@@ -201,6 +201,9 @@ function sendMail($mailContentArray,$type)
 		$headers 		.= 	"Content-type: text/html\r\n";
 		if ($_SERVER['HTTP_HOST'] == '172.21.4.104'){
 			if($_SERVER['REMOTE_ADDR'] == '172.21.4.215' || $_SERVER['REMOTE_ADDR'] == '172.21.4.102'){
+				echo "<pre>"; print_r($mailData); echo "</pre>";
+			}	
+			if($_SERVER['REMOTE_ADDR'] == '172.21.4.113'){
 				echo "<pre>"; print_r($mailData); echo "</pre>";
 			}	
 			//$sendmail = sendMailSes($from,$to,$subject,$mailData,'');
@@ -1312,7 +1315,7 @@ function createEndpointARNAWS($PlatformApplicationArn,$Token,$CustomUserData){
 	$endpoint = require("sns-create.php");
 	return $endpoint;die();
 }
-function sendNotificationAWS($message,$EndpointArn,$platform,$badge,$type,$processId,$userId,$sound,$merchantId,$merchantName,$notes){
+function sendNotificationAWS($message,$EndpointArn,$platform,$badge,$type,$processId,$userId,$sound,$merchantId,$merchantName,$notes,$orderAmount){
 	error_reporting(E_ALL);
 	$endpoint = require("sns-send.php");
 	return $endpoint;die();
@@ -1777,6 +1780,31 @@ function price_fomat($price_val){
 		return utf8_encode('£').$price;
 }
 
+function thumbnail($image_path,$original_path, $size ) {
+  list($width, $height) = getimagesize($image_path);
+  $image_aspect = $width / $height;
+  
+  list($thumb_width, $thumb_height) = explode('x', $size);
+  $thumb_aspect = $thumb_width / $thumb_height;
+ 
+  if ($image_aspect > $thumb_aspect) {
+    $crop_height = $height;
+    $crop_width = round($crop_height * $thumb_aspect);
+  } else {
+    $crop_width = $width;
+    $crop_height = round($crop_width / $thumb_aspect);
+  }
+ 
+  $crop_x_offset = round(($width - $crop_width) / 2);
+  $crop_y_offset = round(($height - $crop_height) / 2);
+ 
+  // crop parameter
+  $crop_size = $crop_width.'x'.$crop_height.'+'.$crop_x_offset.'+'.$crop_y_offset;
+  $thumb_image = dirname($original_path).'/'.basename($image_path);
+  exec('convert '. escapeshellarg($image_path).' -crop ' . $crop_size .' -thumbnail '.$size.' '. escapeshellarg($thumb_image));
+ 
+  return $thumb_image;
+}
 function imagethumb_addbg($src,$des,$itype,$exn,$maxwidth,$hght)
 {
 	ini_set('memory_limit', '100M');

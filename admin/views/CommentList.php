@@ -10,7 +10,7 @@ $fields    		= " com.*,u.FirstName,u.LastName,u.Photo ";
 if(isset($_GET['merchantId']) && !empty($_GET['merchantId'])){
 	$condition .= " and m.id = ".$_GET['merchantId'];
 }
-$condition 		.= " and com.Status = 1";
+$condition 		.= " and u.Status = 1 and com.Status = 1";
 if(isset($_GET['start']) && $_GET['start'] !=''){
 	$limit		= $_GET['start'];
 }else{

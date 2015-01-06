@@ -58,7 +58,7 @@ commonHead();
 					<div class="col-xs-12 user_details" style="padding-top:12px;">
 						<?php if(isset($image_path) && $image_path != ''){ ?>
 						<div class="col-xs-4 col-sm-4 col-md-5">
-							<a <?php if(isset($image_path) && basename($image_path) != "no_user.jpeg") { ?>href="<?php echo $original_image_path; ?>" class="fancybox" title="<?php echo  ucfirst($FirstName).' '.ucfirst($LastName);?>" <?php } ?> > 
+							<a onclick="return loaded;"  <?php if(isset($image_path) && basename($image_path) != "no_user.jpeg") { ?>href="<?php echo $original_image_path; ?>" class="fancybox" title="<?php echo  ucfirst($FirstName).' '.ucfirst($LastName);?>" <?php } ?> > 
 								<img width="80" height="80" align="top" class="img_border" src="<?php echo $image_path;?>" >
 							</a>
 						</div>

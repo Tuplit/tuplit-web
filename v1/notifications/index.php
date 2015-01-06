@@ -45,7 +45,7 @@ $app->put('/badgecount',function () use ($app) {
         // Create a http request
 		$request = $app->request();
     	$body = stripslashes($request->getBody());
-    	$input = json_decode($body); 
+    	$input = json_decode($body);
         /**
          * Update Bade Count
          * @var Notification 
@@ -58,8 +58,9 @@ $app->put('/badgecount',function () use ($app) {
         $response->setStatus(HttpStatusCode::Created);
         $response->meta->dataPropertyName = 'badge';
 		$token = '';
-		if(isset($input->DeviceToken))	$token	=  $input->DeviceToken;
-		$success = $device->updateBadgeForToken($token,2);
+		if(isset($input->DeviceToken))	
+			$token	=  $input->DeviceToken;
+		$success = $device->updateBadgeForToken($token,4);
 	    $response->addNotification('Badge Count has been updated successfully');
         echo $response;
     }

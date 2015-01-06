@@ -19,7 +19,8 @@ use Helpers\RedBeanHelper as RedBeanHelper;
 //Require needed models
 require_once 'Products.php';
 require_once 'Comments.php'; 
-require_once 'Orders.php'; 
+require_once 'Orders.php';
+require_once 'Users.php';
 
 require_once '../../admin/includes/mangopay/functions.php';
 require_once '../../admin/includes/mangopay/config.php';
@@ -304,85 +305,6 @@ class Merchants extends RedBean_SimpleModel implements ModelBaseInterface {
     }
 		
 	/**
-	* @param Modify the user entity
-	*/
-    public function modifySettings(){
-
-		/**
-		* Get the bean
-		*/
-		$bean = $this->bean;
-	
-		// validate the model
-        $this->validateModifyParams();
-		
-        // validate the modification
-        $this->validateModify($bean->id);
-
-        $bean->DateModified = date('Y-m-d H:i:s');
-		
-		$latlong = $lat = $lng = '';
-		$latlong = getLatLngFromAddress($bean->Address) ;
-		if($latlong != ''){
-			$latlngArray = explode('###',$latlong);
-			if(isset($latlngArray) && is_array($latlngArray) && count($latlngArray) > 0){
-				if(isset($latlngArray[0]))
-					$lat = $latlngArray[0];
-				if(isset($latlngArray[1]))
-					$lng = $latlngArray[1];
-			}
-		}
-		if($lat != '')
-			$bean->Latitude = $lat;
-		if($lng != '')
-			$bean->Longitude = $lng;
-        // modify the bean to the database
-        R::store($this);
-    }
-
-	/**
-	* Validate the model
-	* @throws ApiException if the models fails to validate required fields
-	*/
-    public function validateModifyParams()
-    {
-		$bean 		= 	$this->bean;
-		$temp 		= 	array(array('FirstName'),
-							array('LastName'),
-							array('Email'),
-							array('PhoneNumber'),
-							array('BusinessName'),
-							array('BusinessType'),
-							array('Currency'),
-							array('Address'),
-							array('CompanyName'),
-							array('RegisterCompanyNumber'),
-							array('Country'),
-							array('PostCode'),
-							array('DiscountTier'),
-							array('DiscountType'),
-							);
-		if(isset($bean->DiscountType) && $bean->DiscountType == 1){
-		   $temp[] 	= 	array('DiscountProductId');
-		}
-		$rules = [
-	            'required' => $temp,
-				'in' =>[
-						['DiscountTier',['1','2','3','4','5','6']]
-					]
-	        ];		
-        $v = new Validator($this->bean);
-        $v->rules($rules);
-        if (!$v->validate()) {
-            $errors = $v->errors();
-            throw new ApiException("Please check the merchant's properties. Fill fields with correct values" ,  ErrorCodeType::SomeFieldsRequired, $errors);//Email,
-        }
-    }
-	
-	
-	
-	
-	/**
 	* Get user details
 	*/
     public function getMerchantsDetails($merchantId){
@@ -406,13 +328,14 @@ class Merchants extends RedBean_SimpleModel implements ModelBaseInterface {
 		$this->validateMerchants($merchantId,3);
 				
 		if($from == 1){
-			//Check for total products   - 27/10/2014
-			$sql		=	"SELECT `fkMerchantsId`,count(*) as totcount FROM `products` WHERE 1 and fkMerchantsId ='".$merchantId."' and `ItemType` in (1,3) and `Status` in (1,2) group by `fkMerchantsId` HAVING totcount > 20 ";
-			$producttot = 	R::getAll($sql);
-			if(!$producttot) {
-				throw new ApiException("The Merchant you requested was not published.", ErrorCodeType::MerchantNotPublished);
-			}
-			
+			if($_SERVER['SERVER_ADDR'] != '172.21.4.104'){
+				//Check for total products   - 27/10/2014
+				$sql		=	"SELECT `fkMerchantsId`,count(*) as totcount FROM `products` WHERE 1 and fkMerchantsId ='".$merchantId."' and `ItemType` in (1,3) and `Status` in (1,2) group by `fkMerchantsId` HAVING totcount >= 20 ";
+				$producttot = 	R::getAll($sql);
+				if(!$producttot) {
+					throw new ApiException("The Merchant you requested was not published.", ErrorCodeType::MerchantNotPublished);
+				}
+			}	
 			//Validate latitude and longitude	
 			$this->validateLatLong();				
 
@@ -426,8 +349,8 @@ class Merchants extends RedBean_SimpleModel implements ModelBaseInterface {
 		}	
 		
 		// Merchant details		
-		$sql 	= "SELECT m.*,m.id as MerchantId".$fields." 
-				  FROM merchants as m	".$joinCondition."	where m.Status = 1 and m.id=".$merchantId." ";
+		$sql 	= 	"SELECT m.*,m.id as MerchantId".$fields." 
+						FROM merchants as m	".$joinCondition."	where m.Status = 1 and m.id=".$merchantId." ";
 
 		$merchants 		= R::getAll($sql);
 		$merchants 		= $merchants[0];		
@@ -461,8 +384,8 @@ class Merchants extends RedBean_SimpleModel implements ModelBaseInterface {
 			//condition to check whether we can allow cart to be enabled
 			if(!empty($latitude) && !empty($longitude)){
 				if($merchants['distance'] != '') {					
-					$result 		= R::findOne('admins', 'id = ? ', array('1'));
-					$distanceLimit 	= $result->LocationLimit;
+					$result 		= 	R::getAll("select LocationLimit from admins where id=1");
+					$distanceLimit	=	$result[0]['LocationLimit'];
 					if($merchants['distance'] > $distanceLimit) 
 						$AllowCart = 0;
 					else
@@ -525,7 +448,6 @@ class Merchants extends RedBean_SimpleModel implements ModelBaseInterface {
 				$comments->MerchantId						= 	$merchantId;
 				$comments->Start 							= 	0;
 				$comments->Limit 							= 	3;
-				//$merchantsDetails['Comments'] 				= 	$comments->getMerchantCommentList();
 				$merchantsDetails['TotalComments'] 			= 	0;
 				$merchantsDetails['Comments'] 				= 	Array();
 				$merchantsComments			 				= 	$comments->getMerchantCommentList();
@@ -579,8 +501,8 @@ class Merchants extends RedBean_SimpleModel implements ModelBaseInterface {
 	*/
 	public function getMerchantSlideshowImages($merchantId)
     {
-		$sql1 				= 	"select * from merchantslideshow where fkMerchantId=".$merchantId;
-		$slideshowImages	= 	R::getAll($sql1);
+		$sql 				= 	"select SlideshowName from merchantslideshow where fkMerchantId=".$merchantId;
+		$slideshowImages	= 	R::getAll($sql);
 		$slideshowArray		=	array();
 		if($slideshowImages) {
 			foreach($slideshowImages as $val) {
@@ -686,7 +608,8 @@ class Merchants extends RedBean_SimpleModel implements ModelBaseInterface {
     * @param checking email
     */
 	public function validateForgotEmail($email){	 
-		$sql 		 	 = " select id,FirstName,LastName,ResetPassword,Status,Email,OrderMail from merchants where email = '".$email."' order by id desc";
+		$sql 		 	 = " select id,FirstName,LastName,ResetPassword,Status,Email,OrderMail from merchants where Email = '".$email."' order by id desc";
+		//echo $sql;
 		$merchantDetails = R::getAll($sql);
 		if(!$merchantDetails) {
 			/**
@@ -753,13 +676,10 @@ class Merchants extends RedBean_SimpleModel implements ModelBaseInterface {
 		* Get the bean
 		*/
 		$bean = $this->bean;
-		
 		//validate param
 		$this->validateMerchantsPassword(1);
-		
 		//validate Email
 		$merchantDetails 	= 	$this->validateForgotEmail($bean->Email);
-		
 		$merchantsId 		= 	'';
 		if($merchantDetails){
 			$merchantsId 	= 	$merchantDetails[0]['id'];
@@ -873,89 +793,134 @@ class Merchants extends RedBean_SimpleModel implements ModelBaseInterface {
 	public function getMerchantList($merchantIds='')
     {		
 		global $discountTierArray;
-		$condition	= $searchCondition	= $category	 = $group_condition	= '';
+		$condition	= $searchCondition	= $category	 = $group_condition	= $categorytype = $userId = '';
 		
 		/**
 		* Get the bean
 		*/
-		$bean 			= $this->bean;
+		$bean 			= 	$this->bean;
 		$latitude		=	$bean->Latitude;			
 		$longitude		=	$bean->Longitude;
 		
 		//Validate latitude and longitude
 		$this->validateLatLong();
 		
-		if($bean->Start)
-			$Start 		= 	$bean->Start;
-		else
-			$Start 		= 	0;
-		
-		if(isset($bean->Category))
-			$category	=	$bean->Category;
-			
-		if($bean->Type)
-			$type		=	$bean->Type;
-		else
-			$type 		= 	0;
-			
+		if($bean->Start)					$Start 			= 	$bean->Start;			else		$Start 		= 	0;	
+		if($bean->Type)						$type			=	$bean->Type;			else		$type 		= 	0;
+		if(isset($bean->Category))			$category		=	$bean->Category;		
+		if(isset($bean->CategoryType))		$categorytype	=	$bean->CategoryType;		
+		if(isset($bean->UserID) && !empty($bean->UserID))		$userId	=	$bean->UserID;
 		if(isset($bean->DiscountTier) && $bean->DiscountTier != ''){
-			$tierVal	=	$bean->DiscountTier;
-			
-		//Validate discount tier
-		$this->validateDiscountTier($tierVal);
-		if($tierVal > 0)
-			$searchCondition	.=	" and m.DiscountTier = ".$tierVal." ";
+			$tierVal	=	$bean->DiscountTier;			
+			//Validate discount tier
+			$this->validateDiscountTier($tierVal);
+			if($tierVal > 0)
+				$searchCondition	.=	" and m.DiscountTier = ".$tierVal." ";
 		}
 		
 		//Check for total products   - 27/10/2014
-		$merchantsIdNot	=	'';
-		$sql		=	"SELECT `fkMerchantsId`,count(*) as totcount FROM `products` WHERE 1 and `ItemType` in (1,3) and `Status` in (1,2) group by `fkMerchantsId` HAVING totcount > 20 ";
+		$merchantsIdIn	=	'';
+		$sql		=	"SELECT p.`fkMerchantsId`,count(p.id) as totcount FROM `products` as p
+							left join merchants as m on (p.fkMerchantsId = m.id)
+							WHERE 1 and p.`ItemType` in (1,3) and m.Status = 1 and p.`Status` in (1,2) group by p.`fkMerchantsId` HAVING totcount >= 20 ";
+		//echo $sql;
 		$producttot = 	R::getAll($sql);
 		if($producttot) {
-			$merchantsIdNotArray = Array();
+			$merchantsIdInArray = Array();
 			foreach($producttot as $val) {
-				$merchantsIdNotArray[]		=	$val['fkMerchantsId'];
+				$merchantsIdInArray[]		=	$val['fkMerchantsId'];
 			}
-			if(count($merchantsIdNotArray) > 0)
-				$merchantsIdNot = implode(',',$merchantsIdNotArray);
+			if(count($merchantsIdInArray) > 0)
+				$merchantsIdIn = implode(',',$merchantsIdInArray);
 		} else {
 			/**
 			* throwing error when no data found
 			*/
 			throw new ApiException("No Merchants Found", ErrorCodeType::NoResultFound);
 		}
-		if(!empty($merchantsIdNot))
-			$merchantsIdNot = " and m.id in (".$merchantsIdNot.") ";
-		//Check for total products   - 27/10/2014
-		
-		
-		
+		if(!empty($merchantsIdIn))
+			$merchantsIdIn = " and m.id in (".$merchantsIdIn.") ";
+
+		if(!empty($categorytype) && $categorytype != 4){
+			$temp_condition	=	$error_data = '';
+			$error	=	0;
+			if(isset($merchantsIdInArray) && !empty($merchantsIdInArray) && count($merchantsIdInArray) > 0)
+				$temp_condition	=	" and fkMerchantsId in (".implode(',',$merchantsIdInArray).") ";
+			if($categorytype == 1) {				
+				$sql	=	"SELECT fkMerchantsId FROM products WHERE 1 and ItemType in (1,3) and Status in (1,2) and DiscountApplied = 0 ".$temp_condition." group by fkMerchantsId";
+				$temp 	=	R::getAll($sql);
+				if($temp) {
+					$newIds		=	Array();
+					foreach($temp as $val)
+						$newIds[]	=	$val['fkMerchantsId'];
+					$result			=	array_diff($merchantsIdInArray,$newIds);
+					$merchantsIdIn 	= 	" and m.id in (".implode(',',$result).") ";
+				} else {
+					$error		=	1;
+					$error_data	=	'No wholemenu discounted merchant';
+				}
+			} else if($categorytype == 2) {
+				$sql	=	"SELECT m.id FROM merchants m WHERE 1 and m.Status = 1 ".$merchantsIdIn." and Date(m.DateCreated) between '".date('Y-m-d', strtotime('-30 days'))."' and '".date('Y-m-d')."'";
+				$temp 	=	R::getAll($sql);
+				if($temp) {
+					$newIds		=	Array();
+					foreach($temp as $val)
+						$newIds[]	=	$val['id'];
+					$merchantsIdIn = " and m.id in (".implode(',',$newIds).") ";
+				} else {
+					$error		=	1;
+					$error_data	=	'No recently added merchant';
+				}
+			} else if($categorytype == 3) {
+				if(!empty($userId)) {
+					$sql	=	"SELECT distinct fkMerchantsId FROM favorites WHERE 1 and fkUsersId = ".$userId." ".$temp_condition." and FavouriteType=1";
+					//echo $sql;
+					$temp 	=	R::getAll($sql);
+					if($temp) {
+						$newIds		=	Array();
+						foreach($temp as $val)
+							$newIds[]	=	$val['fkMerchantsId'];
+						$merchantsIdIn 	= 	" and m.id in (".implode(',',$newIds).") ";
+					} else {
+						$error		=	1;
+						$error_data	=	'No Favorites merchant';
+					}
+				} else
+					throw new ApiException("Please check the merchant search properties", ErrorCodeType::SomeFieldsRequired);
+			}
+			if($error == 1)
+			{
+				if(empty($error_data))
+					$error_data	=	'No merchant found';
+				throw new ApiException($error_data, ErrorCodeType::NoResultFound);
+			}
+		}		
 		/**
 		* Query to get merchant details
 		*/
 		if($bean->SearchKey != '')
 			$searchCondition	.=	" and (m.CompanyName like '%".$bean->SearchKey."%' or  m.ShortDescription like '%".$bean->SearchKey."%')";
 			
-		if($category != ''){
+		if(!empty($category)){
 			$fields				 =	" m.id,m.id as MerchantId,DiscountType,m.Icon,m.Image,m.DiscountTier,m.CompanyName,m.ShortDescription,mc.fkCategoriesId as Category,m.ItemsSold,m.Latitude,m.Longitude,m.Street,m.City,m.State,m.PostCode,m.Country,DiscountProductId";
 			$join_condition 	 = 	" LEFT JOIN  merchantcategories as mc ON (mc.fkMerchantId = m.id) ";
 			if($type == 2){
-			$fields				 .= ',count(DISTINCT(o.fkUsersId)) as TotalUsersShopped';
-			$join_condition 	.= " left join  orders as o ON (o.fkMerchantsId = m.id) ";
+				$fields				.= 	",count(DISTINCT(o.fkUsersId)) as TotalUsersShopped ";
+				$join_condition 	.= 	" left join  orders as o ON (o.fkMerchantsId = m.id) ";
 			}
 			$searchCondition	.=	" and mc.fkCategoriesId ='".$category."'";
 		}
 		else{
 			$fields				=	"m.id,m.id as MerchantId,DiscountType,m.Icon,m.Image,m.DiscountTier,m.CompanyName,m.ShortDescription,m.ItemsSold,m.Latitude,m.Longitude,m.Street,m.City,m.State,m.PostCode,m.Country,DiscountType,DiscountProductId, group_concat(DISTINCT(mc.fkCategoriesId)) as Category,count(DISTINCT(o.fkUsersId)) as TotalUsersShopped";
 			$join_condition 	= 	" LEFT JOIN  merchantcategories as mc ON (mc.fkMerchantId = m.id) ";
-			$join_condition 	.= " left join  orders as o ON (o.fkMerchantsId = m.id) ";
+			$join_condition 	.= 	" left join  orders as o ON (o.fkMerchantsId = m.id) ";
 		}
 		if($type == 2){
-			$fields				 .=	",count(o.id) as OrderCount";
+			$fields				.=	",count(o.id) as OrderCount";
 		}
 		if($type == 2 )
 			$orderby			=	"orderCount desc";
-		 else
+		else
 			$orderby			=	"distance asc";
 		
 		if(!empty($merchantIds)) { 
@@ -963,7 +928,7 @@ class Merchants extends RedBean_SimpleModel implements ModelBaseInterface {
 		}
 		$group_condition	=  " group by m.id";
 		$sql 				= 	"SELECT SQL_CALC_FOUND_ROWS ".$fields.",date(m.DateCreated) as DateCreated,(((acos(sin((".$latitude."*pi()/180)) * sin((m.`Latitude`*pi()/180))+cos((".$latitude."*pi()/180)) * cos((m.`Latitude`*pi()/180)) * cos(((".$longitude."- m.`Longitude`)*pi()/180))))*180/pi())*60*1.1515)*1.6093 as distance  from merchants as m ".$join_condition." 
-								where  m.Status = 1 and m.UserType = 1 ".$searchCondition." ".$condition." and m.Image != '' ".$merchantsIdNot." ".$group_condition." 								
+								where  m.Status = 1 and m.UserType = 1 ".$searchCondition." ".$condition." and m.Image != '' ".$merchantsIdIn." ".$group_condition." 								
 								 ORDER BY ".$orderby." limit $Start,10";	
 		//echo $sql;
 		$result 			= 	R::getAll($sql);
@@ -1174,109 +1139,6 @@ class Merchants extends RedBean_SimpleModel implements ModelBaseInterface {
 		return count($product);
     }
 	
-	/**
-    * get Customer list
-    */
-	public function getCustomerList($merchantId)
-    {
-		/**
-        * Query to get customer list
-        */
-		$d 			=	 0;
-		$condition 	=  	 $having_condition = $userName = $visitCount = $totalSpend ='';
-		$bean 		=	 $this->bean;
-		
-		$this->validateMerchants($merchantId,1);
-		if($bean->Type == 1){
-			$start 	= 	0;
-			$limit	= 	5;
-			$orderby = 'TotalOrders desc,o.OrderDate desc';
-		}
-		else{
-			$orderby = 'LastVisit  desc';
-			if(isset($bean->UserName))			$userName		=	$bean->UserName;
-			if(isset($bean->TotalOrders))		$visitCount		=	$bean->TotalOrders;
-			if(isset($bean->TotalPrice))		$totalSpend		=	$bean->TotalPrice;
-			if($bean->Start)					$start 			= 	$bean->Start;
-			else
-				$start = 0;
-			if($bean->Limit)					$limit 			= 	$bean->Limit;
-			else
-				$limit = 10;
-			if(isset($bean->FromDate))			$fromDate		=	$bean->FromDate;
-			if(isset($bean->ToDate))			$toDate			=	$bean->ToDate;
-		}
-		if($userName != '')
-			$condition  		.= 	' and (u.FirstName LIKE "%'.$userName.'%" or u.LastName LIKE "%'.$userName.'%")';
-		if(isset($fromDate) && $fromDate != ''	&&	isset($toDate) && $toDate != ''){
-			$condition .= " AND ((date(OrderDate) >=  '".date('Y-m-d',strtotime($fromDate))."' and date(OrderDate) <= '".date('Y-m-d',strtotime($toDate))."') ) ";
-		}
-		else if(isset($fromDate) && $fromDate != '')
-			$condition .= " AND date(OrderDate) >=  '".date('Y-m-d',strtotime($fromDate))."'";
-		else if(isset($toDate) && $toDate != '')
-			$condition .= " AND date(OrderDate) <=  '".date('Y-m-d',strtotime($toDate))."'";
-		if($visitCount != '' && $totalSpend != '')
-			$having_condition  	.= 	' Having TotalOrders = '.$visitCount.'  and  TotalPrice = '.$totalSpend.' ';
-		else if($visitCount != '')
-			$having_condition  	.= 	' Having TotalOrders = '.$visitCount.' ';
-		else if($totalSpend != '')
-			$having_condition  	.= 	' Having TotalPrice = '.$totalSpend.' ';	
-		
-		$sql 			= 	"SELECT SQL_CALC_FOUND_ROWS u.id as userId,u.FirstName,u.LastName,u.Photo,MAX(o.OrderDate) as LastVisit,
-							MIN(o.OrderDate) as FirstVisit,COUNT(o.id) as TotalOrders,SUM(TotalPrice) as TotalPrice,c.id as Comments from orders as o 
-							LEFT JOIN users as u ON(u.id = o.fkUsersId) 
-							Left JOIN comments as c	on(u.id	= c.fkUsersId)
-							where 1 ".$condition." and o.OrderStatus IN(0,1,2) and u.Status =1  and o.fkMerchantsId = ".$merchantId." 
-							GROUP BY u.id ".$having_condition." order by ".$orderby." limit $start,$limit";	
-							//echo '-->'. $sql .'<br>';
-							
-		$CustomerList 	=	R::getAll($sql);
-		$totalRec 		= 	R::getAll('SELECT FOUND_ROWS() as count ');
-		
-		$total 			= 	(integer)$totalRec[0]['count'];
-		$listedCount	= 	count($CustomerList);
-		if($CustomerList){
-			foreach($CustomerList as $key=>$value){
-				$imagePath 		= $originalPath = '';
-				if($value["Photo"] !=''){
-					if(SERVER){
-						$imagePath 		= USER_THUMB_IMAGE_PATH.$value["Photo"];
-						$originalPath 	= USER_IMAGE_PATH.$value["Photo"];
-					}
-					else{
-						if(file_exists(USER_THUMB_IMAGE_PATH_REL.$value["Photo"]))
-							$imagePath = USER_THUMB_IMAGE_PATH.$value["Photo"];
-						if(file_exists(USER_IMAGE_PATH_REL.$value["Photo"]))
-							$originalPath = USER_IMAGE_PATH.$value["Photo"];
-					}
-				}
-				$totalOrders					=	$value["TotalOrders"];
-				$totalPrice						=	$value["TotalPrice"];
-				$averagePrice					=	$totalPrice/$totalOrders;
-				$value["AverageSpend"]			=	round($averagePrice,2);
-				$diff 							= 	abs(strtotime($value["LastVisit"])-strtotime($value["FirstVisit"]));
-				$year							=	round($diff/(365*24*60*60));
-				$month							=	round(($diff-($year*365*24*60*60))/(30*24*60*60));
-				$dates							=	round(($diff-($year*365*24*60*60)-($month*30*24*60*60))/(24*60*60));
-				$d								=	abs($dates);
-				$value["DayDifference"]			=	$d;//$date_diff->format('%d');
-				$value["Photo"]					=	$imagePath;
-				$value["OriginalPhoto"]			=	$originalPath;
-				$CustomerListArray[] 			= 	$value;
-			}
-			
-			$CustomerListArray['result'] 		= 	$CustomerListArray;
-			$CustomerListArray['totalCount']	= 	$total;
-			$CustomerListArray['listedCount']	= 	$listedCount;
-			return $CustomerListArray;
-		}
-		else{
-			/**
-	        * throwing error when no data found
-	        */
-			throw new ApiException("No customers found", ErrorCodeType::NoResultFound);
-		}
-	}	
 	/*
 	* Add MangoPay Details
 	*/
@@ -1295,11 +1157,39 @@ class Merchants extends RedBean_SimpleModel implements ModelBaseInterface {
 		$merchantArray['Country']		=	$bean->Country;
 		$merchantArray['Currency']		=	$bean->Currency;
 		$merchantArray['Birthday']		=	$bean->Birthday;
+		
+		$logStart						=	microtime(true);
 		$mangopayDetails 				=   merchantRegister($merchantArray);
+		
+		//MangoPay Log
+		$logArray				=	Array();	
+		$logArray['MerchantId']	=	$merchantsId;
+		$logArray['URL']		=	'merchantRegister';
+		$logArray['Content']	=	$merchantArray;
+		$logArray['Start']		=	$logStart;
+		$logArray['End']		=	microtime(true);
+		$logArray['Response']	=	$mangopayDetails;
+		$log 	=	R::dispense('users');
+		$log->storeMangoPayLog($logArray);
+
 		if(isset($mangopayDetails) && count($mangopayDetails) > 0 && isset($mangopayDetails->Id)){
 			$merchants 								= 	R::dispense('merchants');
 			$uniqueId								=	$mangopayDetails->Id;
+			
+			$logStart								=	microtime(true);
 			$walletId								=	createWallet($uniqueId,$merchantArray['Currency']);
+			
+			//MangoPay Log
+			$logArray				=	Array();	
+			$logArray['MerchantId']	=	$merchantsId;
+			$logArray['URL']		=	'createWallet';
+			$logArray['Content']	=	Array('uniqueId'=>$uniqueId, 'Currency'=>$merchantArray['Currency']);
+			$logArray['Start']		=	$logStart;
+			$logArray['End']		=	microtime(true);
+			$logArray['Response']	=	$walletId;
+			$log 	=	R::dispense('users');
+			$log->storeMangoPayLog($logArray);
+			
 			$merchants->MangoPayUniqueId 			= 	$uniqueId;
 			$merchants->WalletId 					= 	$walletId;
 			$merchants->MangoPayTransactionDetails 	= 	serialize($mangopayDetails);
@@ -1369,7 +1259,20 @@ class Merchants extends RedBean_SimpleModel implements ModelBaseInterface {
 				}
 				if(isset($bean->Nature) && !empty($bean->Nature))
 					$inputarr['Nature']		=	$bean->Nature;
-				$result		=	GetTransactionsNew($inputarr);				
+					
+				$logStart	=	microtime(true);
+				$result		=	GetTransactionsNew($inputarr);
+				//MangoPay Log
+				$logArray				=	Array();	
+				$logArray['MerchantId']		=	$bean->merchantId;
+				$logArray['URL']		=	'GetTransactionsNew';
+				$logArray['Content']	=	$inputarr;
+				$logArray['Start']		=	$logStart;
+				$logArray['End']		=	microtime(true);
+				$logArray['Response']	=	$result;
+				$log 	=	R::dispense('users');
+				$log->storeMangoPayLog($logArray);
+				
 				if($result) {
 					
 					//getting user's namelist 
@@ -1416,84 +1319,7 @@ class Merchants extends RedBean_SimpleModel implements ModelBaseInterface {
 			throw new ApiException("Merchant not in active status or not found", ErrorCodeType::NoResultFound);
 		}
     }
-	
-	/*
-	* get products count
-	*/
-	public function getProductCounts()
-    {
-		/**
-		* Get the bean
-		* @var $bean merchants
-		*/
-        $bean = $this->bean;
 		
-		//assigning variable
-		$specials	= $regular	=	$counts 	=	array();
-		$applied	= $unapplied	=	0;
-		
-		//getting product details
-		$productDetail 					= 	R::dispense('products');
-		$productDetail->merchantId		=	$bean->merchantId;
-		$countResult					= 	$productDetail->getProductsTotal();	
-		if($countResult && is_array($countResult) && count($countResult) > 0) {
-			
-			//getting various counts of products 			
-			foreach($countResult as $val) {
-				if($val['ItemType'] == 1) {
-					if($val['DiscountApplied'] == 1)
-						$applied	=	$applied	+ 1;
-					if($val['DiscountApplied'] == 0)
-						$unapplied	=	$unapplied	+ 1;
-					$regular[]		=	$val;
-				}
-				if($val['ItemType'] == 3)
-					$specials[]		=	$val;
-			}
-			$counts['Totalproducts']				=	count($regular) + count($specials);
-			$counts['Regular']						=	count($regular);
-			$counts['Specials']						=	count($specials);
-			
-			//getting how products to be discounted
-			$discountMust	=	floor(((1/3) * $counts['Totalproducts']));
-			$counts['DiscountProductMustBe']		=	$discountMust;
-			
-			$counts['RegularDiscountApplied']		=	$applied;
-			if(isset($bean->Discount) && $bean->Discount == 0)
-				$counts['RegularDiscountApplied']	=	$applied	-	1;
-			$counts['RegularDiscountNotApplied']	=	$unapplied;		
-			
-			//getting total discounted products
-			$disapplied		=	$counts['Specials'] + $counts['RegularDiscountApplied'];
-			$counts['TotalDiscountApplied']			=	$disapplied;
-						
-			//checking the rule 1 (1/3 of product discount)
-			if($counts['TotalDiscountApplied'] >= $counts['DiscountProductMustBe']) {
-				$counts['Discounted']				=	1;
-				$counts['ProductDifference']		=	$counts['TotalDiscountApplied'] - $counts['DiscountProductMustBe'];
-				if(isset($bean->Type) && $bean->Type == 1) {					
-					$counts['ProductPlusDiscount']		=	floor(((1/3) * ($counts['Totalproducts'])));
-				}
-				else 
-					$counts['ProductPlusDiscount']		=	floor(((1/3) * ($counts['Totalproducts']  + 1)));
-			}
-			else {
-				if(isset($bean->Type) && $bean->Type == 3) { } else {				
-					/**
-					 * throwing error when Merchant not having 1/3 of products discounted
-					 */
-					 throw new ApiException("Sorry! 1/3 of your products should be with discount", ErrorCodeType::ProductDiscountMust);
-				 }
-			}
-			return  $counts;				
-		} else {		
-				/**
-				* throwing error when no Products found
-				*/
-				throw new ApiException("No Products found", ErrorCodeType::NoResultFound);
-		}
-	}
-	
 	/*
 	* get slideshow details
 	*/
@@ -1738,7 +1564,7 @@ class Merchants extends RedBean_SimpleModel implements ModelBaseInterface {
 		* @var $bean merchants
 		*/
         $bean 		= 	$this->bean;
-		echo
+		//echo
 		// validate the model
         $this->validateSalesPerson(1);
 		 // validate the email
@@ -1760,7 +1586,7 @@ class Merchants extends RedBean_SimpleModel implements ModelBaseInterface {
 	public function getTagType($merchantId)
     {
 		//assigning variable
-		$deals	=	$specials	= $regular	=	$applied	= $unapplied	=	0;
+		$deals	=	$specials	= $regular	=	$applied	= $unapplied	=	$Totalproducts = 0;
 		
 		//getting product details
 		$productDetail 					= 	R::dispense('products');
@@ -1770,29 +1596,31 @@ class Merchants extends RedBean_SimpleModel implements ModelBaseInterface {
 			
 			//getting various counts of products 			
 			foreach($countResult as $val) {
-				if($val['ItemType'] == 1) {
-					if($val['DiscountApplied'] == 1)
-						$applied	=	$applied	+ 1;
-					if($val['DiscountApplied'] == 0)
-						$unapplied	=	$unapplied	+ 1;
-					$regular		=	$regular + 1;
+				if($val['DiscountApplied'] != '') {
+					$Totalproducts++;
+					if($val['ItemType'] == 1) {
+						if($val['DiscountApplied'] == 1)
+							$applied	=	$applied	+ 1;
+						if($val['DiscountApplied'] == 0)
+							$unapplied	=	$unapplied	+ 1;
+						$regular		=	$regular + 1;
+					}
+					if($val['ItemType'] == 2)
+						$deals			=	$deals + 1;
+					if($val['ItemType'] == 3)
+						$specials		=	$specials + 1;
 				}
-				if($val['ItemType'] == 2)
-					$deals			=	$deals + 1;
-				if($val['ItemType'] == 3)
-					$specials		=	$specials + 1;
 			}
-			$Totalproducts				=	count($countResult);
 			
 			//getting total discounted products
 			$disapplied		=	$deals + $specials + $applied;
 			
 			//getting how products to be discounted
-			$discountMust		=	floor(((1/3) * count($countResult)));
+			$discountMust		=	floor(((1/3) * $Totalproducts));
 			$ProductMustBe1		=	$discountMust;
-			$discountMust		=	floor(((2/3) * count($countResult)));
+			$discountMust		=	floor(((2/3) * $Totalproducts));
 			$ProductMustBe2		=	$discountMust;
-			$discountMust		=	floor(((3/3) * count($countResult)));
+			$discountMust		=	floor(((3/3) * $Totalproducts));
 			$ProductMustBe3		=	$discountMust;
 			
 			$tagType		=	0;
@@ -1805,22 +1633,6 @@ class Merchants extends RedBean_SimpleModel implements ModelBaseInterface {
 					$tagType	=	1;
 			} else
 				return 0;
-			/*if($_SERVER['REMOTE_ADDR'] == '172.21.4.130'){
-				$counts["Totalproducts"]		=	$Totalproducts;
-				$counts["regular"]     			=  	$regular;
-				$counts["deals"]     			=  	$deals;
-				$counts["specials"]     		=   $specials;
-				$counts["regular discount Applied"]     =   $applied;
-				$counts["discount Applied"]     =   $disapplied;
-				$counts["discount not Applied"] =   $unapplied;
-				$counts["1/3"]     				=   $ProductMustBe1;
-				$counts["2/3"]     				=   $ProductMustBe2;
-				$counts["3/3"]					=	$ProductMustBe3;
-
-				echo "<pre>"; echo print_r($counts); echo "</pre>";	
-				echo "----------------------->".$tagType;
-			}*/
-			
 			return $tagType;
 			
 		} else
@@ -1862,7 +1674,21 @@ class Merchants extends RedBean_SimpleModel implements ModelBaseInterface {
 		$merchantArray['Currency']		=	$bean->Currency;
 		$merchantArray['Birthday']		=	$bean->Birthday;
 		$merchantArray['MangoPayId']	=	$bean->MangoPayId;
+		$logStart						=	microtime(true);
 		$mangopayDetails 				=   merchantEdit($merchantArray);
+		
+		//MangoPay Log
+		$logArray				=	Array();	
+		$logArray['MerchantId']	=	$merchantsId;
+		$logArray['URL']		=	'merchantEdit';
+		$logArray['Content']	=	$merchantArray;
+		$logArray['Start']		=	$logStart;
+		$logArray['End']		=	microtime(true);
+		$logArray['Response']	=	$mangopayDetails;
+		$log 	=	R::dispense('users');
+		$log->storeMangoPayLog($logArray);
+		
+		
 		if(isset($mangopayDetails) && count($mangopayDetails) > 0 && isset($mangopayDetails->Id)){
 			$mangopayDetails 				= 	R::dispense('mangopaydetails');
 			$sql 					=	"SELECT id FROM `mangopaydetails` WHERE 1 AND fkMerchantId ='".$merchantsId."'";					
@@ -1893,31 +1719,89 @@ class Merchants extends RedBean_SimpleModel implements ModelBaseInterface {
     {
 		$bean 			=	 $this->bean;
 		$merchantArray 	= 	 array();
-		
 		//Validate MangoPay params
-		$this->validateMangoPayBank();
-		$merchantArray['UserName']		=	$bean->FirstName.' '.$bean->LastName;
-		$merchantArray['Address']		=	$bean->Address;
-		$merchantArray['BankAccount']	=	$bean->BankAccount;
-		$merchantArray['SortCode']		=	$bean->SortCode;
-		$merchantArray['MangoPayId']	=	$bean->MangoPayId;
-		$mangopayDetails 				=   createBankAccount($merchantArray);
-		if(isset($mangopayDetails) && count($mangopayDetails) > 0 && isset($mangopayDetails->Id)){
-			$bankAccountDetails			= 	R::dispense('bankaccountdetails');
-			$bankAccountDetails->fkMerchantsId		= 	$merchantsId;
-			$bankAccountDetails->fkMangopayId		=	$mangopayDetails->UserId;
-			$bankAccountDetails->BankType			=	$mangopayDetails->Type;
-			$bankAccountDetails->OwnerName			=	$mangopayDetails->OwnerName;
-			$bankAccountDetails->OwnerAddress		=	$mangopayDetails->OwnerAddress;
-			$bankAccountDetails->AccountNumber		=	$mangopayDetails->Details->AccountNumber;
-			$bankAccountDetails->SortCode			=	$mangopayDetails->Details->SortCode;
-			$bankAccountDetails->AccountId			=	$mangopayDetails->Id;
-			$bankAccountDetails->DateCreated		=	date('Y-m-d h:i:s',$mangopayDetails->CreationDate);
-			$merchantsUpdate						= 	R::store($bankAccountDetails);
-			return $mangopayDetails;
-		} else {
-			throw new ApiException("Error with mangopay/functions" ,  ErrorCodeType::SomeFieldsRequired);
-		}
+		$this->validateMangoPayBank($bean->BankType);
+		$merchantArray['UserName']			=	$bean->FirstName.' '.$bean->LastName;
+		$merchantArray['Address']			=	$bean->Address;
+		if(isset($bean->AccountNumber))
+			$merchantArray['AccountNumber']		=	$bean->AccountNumber;
+		if(isset($bean->SortCode))
+			$merchantArray['SortCode']			=	$bean->SortCode;
+		if(isset($bean->BankType))
+			$merchantArray['BankType']			=	$bean->BankType;
+		if(isset($bean->IBAN))
+			$merchantArray['IBAN']				=	$bean->IBAN;
+		if(isset($bean->BIC))
+			$merchantArray['BIC']				=	$bean->BIC;
+		if(isset($bean->ABA))
+			$merchantArray['ABA']				=	$bean->ABA;
+		if(isset($bean->BankName))
+			$merchantArray['BankName']			=	$bean->BankName;
+		if(isset($bean->InstitutionNumber))
+			$merchantArray['InstitutionNumber']	=	$bean->InstitutionNumber;
+		if(isset($bean->BranchCode))
+			$merchantArray['BranchCode']		=	$bean->BranchCode;
+		if(isset($bean->Country))
+			$merchantArray['Country']			=	$bean->Country;
+		$merchantArray['MangoPayId']			=	$bean->MangoPayId;
+		
+		if($merchantArray['BankType'] == 'Iban')
+			$condition			=	' IBAN = "'.$merchantArray['IBAN'].'"';
+		else
+			$condition			=	' AccountNumber = "'.$merchantArray['AccountNumber'].'"';
+		$sql 					=	"SELECT id FROM `bankaccountdetails` WHERE 1 AND fkMerchantsId ='".$merchantsId."' AND $condition and Status = 1";
+		$getBankAccountDetails 	=	R::getAll($sql);
+		if(empty($getBankAccountDetails)){
+			$logStart				=	microtime(true);
+			$mangopayDetails 		=   createBankAccount($merchantArray);
+			//MangoPay Log
+			$logArray				=	Array();	
+			$logArray['MerchantId']	=	$merchantsId;
+			$logArray['URL']		=	'createBankAccount';
+			$logArray['Content']	=	$merchantArray;
+			$logArray['Start']		=	$logStart;
+			$logArray['End']		=	microtime(true);
+			$logArray['Response']	=	$mangopayDetails;
+			$log 	=	R::dispense('users');
+			$log->storeMangoPayLog($logArray);
+			
+			if(isset($mangopayDetails) && count($mangopayDetails) > 0 && isset($mangopayDetails->Id)){
+				$bankAccountDetails						= 	R::dispense('bankaccountdetails');
+				$bankAccountDetails->fkMerchantsId		= 	$merchantsId;
+				$bankAccountDetails->fkMangopayId		=	$mangopayDetails->UserId;
+				$bankAccountDetails->BankType			=	$mangopayDetails->Type;
+				$bankAccountDetails->OwnerName			=	$mangopayDetails->OwnerName;
+				$bankAccountDetails->OwnerAddress		=	$mangopayDetails->OwnerAddress;
+				if(isset($merchantArray['AccountNumber']))
+					$bankAccountDetails->AccountNumber		=	$merchantArray['AccountNumber'];
+				if(isset($merchantArray['SortCode']))
+					$bankAccountDetails->SortCode			=	$merchantArray['SortCode'];
+				if(isset($merchantArray['BankName']))
+					$bankAccountDetails->BankName			=	$merchantArray['BankName'];
+				if(isset($merchantArray['InstitutionNumber']))
+					$bankAccountDetails->InstitutionNumber	=	$merchantArray['InstitutionNumber'];
+				if(isset($merchantArray['BranchCode']))
+					$bankAccountDetails->BranchCode			=	$merchantArray['BranchCode'];
+				if(isset($merchantArray['ABA']))
+					$bankAccountDetails->ABA				=	$merchantArray['ABA'];
+				if(isset($merchantArray['IBAN']))
+					$bankAccountDetails->IBAN				=	$merchantArray['IBAN'];
+				if(isset($merchantArray['BIC']))
+					$bankAccountDetails->BIC				=	$merchantArray['BIC'];
+				if(isset($merchantArray['Country']))
+					$bankAccountDetails->Country			=	$merchantArray['Country'];
+				$bankAccountDetails->AccountId			=	$mangopayDetails->Id;
+				$bankAccountDetails->Status				=	'1';
+				$bankAccountDetails->DateCreated		=	date('Y-m-d h:i:s');
+				$bankAccountDetails->DateModified		=	$bankAccountDetails->DateCreated;
+				$merchantsUpdate						= 	R::store($bankAccountDetails);
+				return $mangopayDetails;
+			} else {
+				throw new ApiException("Please provide a valid bank account details." ,  ErrorCodeType::SomeFieldsRequired);
+			}
+		}else {
+				throw new ApiException("Account already exist in mangopay." ,  ErrorCodeType::SomeFieldsRequired);
+			}
 	}
 		/**
     * Validate MangoPay params
@@ -1933,10 +1817,46 @@ class Merchants extends RedBean_SimpleModel implements ModelBaseInterface {
 	            ],
 				
 	        ];
-		}else{
+		}else if($type == 'Iban'){
+			$rules = [
+	            'required' => [
+	                 ['FirstName'],['LastName'],['Address'],['IBAN'],['BIC'],['MangoPayId']
+	            ],
+				
+	        ];
+		}else if($type == 'Gb'){
+			$rules = [
+	            'required' => [
+	                ['FirstName'],['LastName'],['Address'],['AccountNumber'],['SortCode'],['MangoPayId']
+	            ],
+				
+	        ];
+		}else if($type == 'Us'){
+			$rules = [
+	            'required' => [
+	                ['FirstName'],['LastName'],['Address'],['AccountNumber'],['ABA'],['MangoPayId']
+	            ],
+				
+	        ];
+		}else if($type == 'Ca'){
+			$rules = [
+	            'required' => [
+	                ['FirstName'],['LastName'],['Address'],['AccountNumber'],['BranchCode'],['BankName'],['InstitutionNumber'],['MangoPayId']
+	            ],
+				
+	        ];
+		}else if($type == 'Other'){
+			$rules = [
+	            'required' => [
+	                ['FirstName'],['LastName'],['Address'],['AccountNumber'],['BIC'],['Country'],['MangoPayId']
+	            ],
+				
+	        ];
+		}
+		else{
 		  	$rules = [
 	            'required' => [
-	                 ['FirstName'],['LastName'],['Address'],['BankAccount'],['SortCode'],['MangoPayId']
+	                 ['FirstName'],['LastName'],['Address'],['AccountNumber'],['SortCode'],['MangoPayId']
 	            ],
 				
 	        ];
@@ -1949,49 +1869,22 @@ class Merchants extends RedBean_SimpleModel implements ModelBaseInterface {
             throw new ApiException("Please check the mango pay bank properties. Fill the properties with correct values" ,  ErrorCodeType::SomeFieldsRequired, $errors);
         }
     }
-	/*
-	* Transfer money from wallet to bank
-	*/
-	public function transferMoneyToBank($merchantsId)
-    {
-		$bean 			=	 $this->bean;
-		$merchantArray 	= 	 array();
-		
-		//Validate MangoPay params
-		$this->validateMangoPayBank(1);
-		$admin	= 	R::findOne('admins');
-		$merchantArray['FeeAmount']			=	$admin->MangoPayFees;
-		$merchantArray['MangoPayId']		=	$bean->MangoPayId;
-		$merchantArray['BankAccountId']		=	$bean->BankAccountId;
-		$merchantArray['WalletId']			=	$bean->WalletId;
-		$merchantArray['Amount']			=	$bean->Amount;
-		$mangopayDetails 					=   payAmountToBank($merchantArray);
-		if(isset($mangopayDetails) && count($mangopayDetails) > 0 && isset($mangopayDetails->Id) && ($mangopayDetails->Status == 'CREATED')){
-			return $mangopayDetails;
-		} else {
-			throw new ApiException("Error with in transfer amount from wallet to bank account" ,  ErrorCodeType::SomeFieldsRequired);
-		}
-	}
 	/**
     * get demographics
     */
     public function getDemographics($merchantId)
     {
-		$condition 		= $field = '';
+		$condition 		= $field = $time_zone = '';
 		$bean 			= 	$this->bean;
 		$this->validateMerchants($merchantId,1);
-		if(!isset($_SESSION['tuplit_ses_from_timeZone']) || $_SESSION['tuplit_ses_from_timeZone'] == ''){
-			$time_zone 	= 	getTimeZone();
-			$_SESSION['tuplit_ses_from_timeZone'] = strval($time_zone);
-		} else {
-			$time_zone 	= 	$_SESSION['tuplit_ses_from_timeZone'];
-		}
+		if($bean->TimeZone)
+		$time_zone 		= 	$bean->TimeZone;
 		$dataType 		= 	$bean->DateType;
 		$curr_date 		= 	date('d-m-Y');
 		$cur_month 		= 	date('m');
 		$cur_year 		= 	date('Y');
 		if($dataType=='day') {
-			$condition .= 	" and date(DATE_ADD(OrderDate,INTERVAL '".$_SESSION['tuplit_ses_from_timeZone']."' HOUR_MINUTE))='".date('Y-m-d',strtotime($curr_date))."'";
+			$condition .= 	" and date(DATE_ADD(OrderDate,INTERVAL '".$time_zone."' HOUR_MINUTE))='".date('Y-m-d',strtotime($curr_date))."'";
 		}
 		 else if($dataType=='7days') {
 			$condition 		.= 	"and (DATE_FORMAT(OrderDate,'%Y-%m-%d') <= '".date('Y-m-d',strtotime($curr_date))."' and DATE_FORMAT(OrderDate,'%Y-%m-%d') > '".date('Y-m-d',strtotime("-7 days"))."')";
@@ -2027,6 +1920,682 @@ class Merchants extends RedBean_SimpleModel implements ModelBaseInterface {
 	        * throwing error when no data found
 	        */
 			throw new ApiException("No results Found", ErrorCodeType::NoResultFound);
+		}
+	}
+	/**
+    * get Product Customer List
+    */
+	public function getProductCustomerList($merchantId)
+    {
+		/**
+        * Query to get customer list
+        */
+		$d 			=	 0;
+		$condition 	=  	 $having_condition = $userName = $visitCount = $totalSpend =$time_zone =  '';
+		$userIDs	=	$CustomerListArray	=	Array();
+		$bean 		=	 $this->bean;
+		$this->validateMerchants($merchantId,1);
+		
+		if(isset($bean->SearchText) && !empty($bean->SearchText)) {
+			$condition .= " and (u.FirstName like '%".$bean->SearchText."%' or u.LastName like '%".$bean->SearchText."%')";
+		}
+		
+		if($bean->Type == 1){
+			$start 		= 	0;
+			$limit		= 	5;
+			$condition 	.= " and o.OrderStatus IN(1) ";
+			$orderby = 'TotalOrders desc,o.OrderDate desc';
+		}
+		else{
+			$orderby = 'LastVisit  desc';
+			$condition 	.= " and o.OrderStatus IN(1)";
+		}
+		if($bean->Type != 1){
+			if($bean->Start)					
+				$start 			= 	$bean->Start;
+			else
+				$start = 0;
+			if($bean->Limit)	
+				$limit 			= 	$bean->Limit;
+			else
+				$limit = 10;
+		}
+		if($bean->TimeZone)
+		$time_zone 		= 	$bean->TimeZone;
+		$dataType 		= 	$bean->DataType;
+		$curr_date 		= 	date('d-m-Y');
+		$cur_month 		= 	date('m');
+		$cur_year 		= 	date('Y');
+		if($dataType=='day') {
+			$having_condition 		.= 	" Having date(DATE_ADD(LastVisit,INTERVAL '".$time_zone."' HOUR_MINUTE))='".date('Y-m-d',strtotime($curr_date))."'";
+		}else if($dataType=='7days') {
+			$having_condition 		.= 	" Having date(DATE_ADD(LastVisit,INTERVAL '".$time_zone."' HOUR_MINUTE)) <= '".date('Y-m-d',strtotime($curr_date))."' and date(DATE_ADD(LastVisit,INTERVAL '".$time_zone."' HOUR_MINUTE)) > '".date('Y-m-d',strtotime("-7 days"))."'";
+		}else if($dataType=='month') {
+			$having_condition 		.= 	" Having month(DATE_ADD(LastVisit,INTERVAL '".$time_zone."' HOUR_MINUTE)) = ".$cur_month." and year(DATE_ADD(LastVisit,INTERVAL '".$time_zone."' HOUR_MINUTE)) = ".$cur_year."";
+		}else if($dataType=='year') {
+			$having_condition 		.=	"  Having year(DATE_ADD(LastVisit,INTERVAL '".$time_zone."' HOUR_MINUTE)) = ".$cur_year."";
+		}
+		$sql 			= 	"SELECT SQL_CALC_FOUND_ROWS u.id as userId,u.FirstName,u.LastName,u.Photo,MAX(o.OrderDate) as LastVisit,
+							MIN(o.OrderDate) as FirstVisit,COUNT(o.id) as TotalOrders,SUM(TotalPrice) as TotalPrice from orders as o 
+							LEFT JOIN users as u ON(u.id = o.fkUsersId)							
+							where 1 ".$condition."  and u.Status =1 and o.TransactionId != '' and o.Status = 1 and o.fkMerchantsId = ".$merchantId." 
+							GROUP BY u.id ".$having_condition." order by ".$orderby." limit $start,$limit";	
+		//echo $sql;
+		$CustomerList 	=	R::getAll($sql);
+		$totalRec 		= 	R::getAll('SELECT FOUND_ROWS() as count ');
+		
+		$total 			= 	(integer)$totalRec[0]['count'];
+		$listedCount	= 	count($CustomerList);
+		if($CustomerList){
+			foreach($CustomerList as $key=>$value){
+				$imagePath 		= $originalPath = $comments = '';
+				if($value["Photo"] !=''){
+					if(SERVER){
+						$imagePath 		= USER_THUMB_IMAGE_PATH.$value["Photo"];
+						$originalPath 	= USER_IMAGE_PATH.$value["Photo"];
+					}
+					else{
+						if(file_exists(USER_THUMB_IMAGE_PATH_REL.$value["Photo"]))
+							$imagePath = USER_THUMB_IMAGE_PATH.$value["Photo"];
+						if(file_exists(USER_IMAGE_PATH_REL.$value["Photo"]))
+							$originalPath = USER_IMAGE_PATH.$value["Photo"];
+					}
+				}
+				$totalOrders					=	$value["TotalOrders"];
+				$totalPrice						=	$value["TotalPrice"];
+				$averagePrice					=	$totalPrice/$totalOrders;
+				$value["AverageSpend"]			=	round($averagePrice,2);
+				$diff 							= 	abs(strtotime($value["LastVisit"])-strtotime($value["FirstVisit"]));
+				$year							=	round($diff/(365*24*60*60));
+				$month							=	round(($diff-($year*365*24*60*60))/(30*24*60*60));
+				$dates							=	round(($diff-($year*365*24*60*60)-($month*30*24*60*60))/(24*60*60));
+				$d								=	abs($dates);
+				$value["DayDifference"]			=	$d;//$date_diff->format('%d');
+				$value["Photo"]					=	$imagePath;
+				$value["OriginalPhoto"]			=	$originalPath;
+				$CustomerListArray[$value["userId"]] 			= 	$value;
+				$userIDs[]						=	$value["userId"];
+			}
+			if(count($userIDs) > 0 && count($CustomerListArray) > 0) {
+				$sql = "SELECT id as CommentId,fkUsersId as UserId,count(id) as TotalCount FROM comments WHERE 1 and fkUsersId in (".implode(',',$userIDs).") and fkMerchantsId=".$merchantId." and Status=1 group by fkUsersId";
+				$CommentsList 	=	R::getAll($sql);
+				if($CommentsList) {
+					foreach($CommentsList as $key=>$value){
+						$CustomerListArray[$value["UserId"]]['TotalComment'] = $value["TotalCount"];
+					}
+				}
+			}
+			$CustomerListArray['result'] 		= 	array_values($CustomerListArray);
+			$CustomerListArray['totalCount']	= 	$total;
+			$CustomerListArray['listedCount']	= 	$listedCount;
+			return $CustomerListArray;
+		}
+		else{
+			/**
+	        * throwing error when no data found
+	        */
+			throw new ApiException("No customers found", ErrorCodeType::NoResultFound);
+		}
+	}	
+	
+	/**
+    * get Customer Overview
+    */
+	public function getCustomerOverview()
+    {
+		$bean 			=	$this->bean;
+		$merchantId		=	$bean->MerchantId;
+		
+		$this->validateMerchants($merchantId,1);
+		
+		$DataType 		=	'day';
+		$time_zone 		=	$condition = $groupby = $having = '';
+		global $month_name;
+		$totalOrders	=	$totalCustomers	=	$averagevisit	=	0;
+		
+		if(isset($bean->DataType) && !empty($bean->DataType))  		$DataType	=	$bean->DataType;
+		if(isset($bean->TimeZone) && !empty($bean->TimeZone))		$time_zone 	= 	$bean->TimeZone;
+		
+		$curr_date 		= 	date('Y-m-d');
+		$cur_month 		= 	date('m');
+		$cur_year 		= 	date('Y');
+		
+		$fields			=	" o.fkUsersId as UserId, count( o.id ) AS TotalOrders,  sum(o.TotalPrice) as TotalAmount ";
+		$leftjoin		=	" left join users as u on (o.fkUsersId = u.id) ";
+		$chkcondition  	=	" and o.OrderStatus = 1 and o.TransactionId != '' and o.Status = 1 and u.Status = 1 and o.fkMerchantsId = ".$merchantId;
+		$groupby		=	" group by date(DATE_ADD(o.OrderDate,INTERVAL '".$time_zone."' HOUR_MINUTE)) ";
+		if($DataType == 'day') {
+			$fields		.=	" , max(date(o.OrderDate)) as OrderDate ";
+			$condition  .= 	" and date(DATE_ADD(o.OrderDate,INTERVAL '".$time_zone."' HOUR_MINUTE)) = '".$curr_date."'";
+			$having  	.= 	"  and max(date(DATE_ADD(o.OrderDate,INTERVAL '".$time_zone."' HOUR_MINUTE))) = '".$curr_date."'";
+		} else if($DataType == '7days') {
+			$fields		.=	" , max(date(o.OrderDate)) as OrderDate ";
+			$condition  .= 	" and date(DATE_ADD(o.OrderDate,INTERVAL '".$time_zone."' HOUR_MINUTE)) <= '".$curr_date."' and date(DATE_ADD(o.OrderDate,INTERVAL '".$time_zone."' HOUR_MINUTE)) >= '".date('Y-m-d',strtotime("-7 days"))."' ";
+			$having  	.= 	"  and max(date(DATE_ADD(o.OrderDate,INTERVAL '".$time_zone."' HOUR_MINUTE))) <= '".$curr_date."' and max(date(DATE_ADD(o.OrderDate,INTERVAL '".$time_zone."' HOUR_MINUTE))) >= '".date('Y-m-d',strtotime("-7 days"))."' ";
+		}else if($DataType == 'month') {
+			$fields		.=	" , max(date(o.OrderDate)) as OrderDate ";
+			$condition  .= 	" and month(DATE_ADD(o.OrderDate,INTERVAL '".$time_zone."' HOUR_MINUTE)) = '".$cur_month."' and year(DATE_ADD(o.OrderDate,INTERVAL '".$time_zone."' HOUR_MINUTE)) = '".$cur_year."' ";
+			$having  	.= 	"  and max(month(DATE_ADD(o.OrderDate,INTERVAL '".$time_zone."' HOUR_MINUTE))) = '".$cur_month."' and max(year(DATE_ADD(o.OrderDate,INTERVAL '".$time_zone."' HOUR_MINUTE))) = '".$cur_year."' ";
+		}else if($DataType == 'year') {	
+			$fields		.=	" , max(month(o.OrderDate)) as OrderDate ";
+			$condition  .= 	" and year(DATE_ADD(o.OrderDate,INTERVAL '".$time_zone."' HOUR_MINUTE)) = '".$cur_year."'";
+			$having  	.= 	"  and max(year(DATE_ADD(o.OrderDate,INTERVAL '".$time_zone."' HOUR_MINUTE))) = '".$cur_year."'";
+			$groupby	=	" group by year(DATE_ADD(o.OrderDate,INTERVAL '".$time_zone."' HOUR_MINUTE)),month(DATE_ADD(o.OrderDate,INTERVAL '".$time_zone."' HOUR_MINUTE)) ";
+		}
+		
+		$newCustomerIds = $oldCustomerIds = $outArray = $response = Array();
+		$newcount		=	$oldcount	=	$newTot = $oldTot = 0;
+		$sql	=	"SELECT ".$fields." FROM orders as o ".$leftjoin." WHERE 1	".$chkcondition." group by o.fkUsersId  having TotalOrders = 1 ".$having."
+					union all
+					SELECT ".$fields." FROM orders as o ".$leftjoin." WHERE 1	".$chkcondition." group by o.fkUsersId  having TotalOrders > 1 ".$having;
+		//echo $sql;
+		$result	=	R::getAll($sql);
+		if($result) {	
+			foreach($result as $val) {
+				if($val['TotalOrders'] == 1)					
+					$newCustomerIds[]	=	$val['UserId'];	
+				else
+					$oldCustomerIds[]	=	$val['UserId'];	
+			}
+			$newcount	=	count($newCustomerIds);
+			$oldcount	=	count($oldCustomerIds);
+			$outArray['NewCustomers']['Visits']		=	$newcount;
+			$outArray['NewCustomers']['Sales']		=	0;
+			$outArray['RepeatCustomers']['Visits']	=	$oldcount;
+			$outArray['RepeatCustomers']['Sales']	=	0;
+			$totalCustomers		=	$newcount + $oldcount;
+			if($newcount > 0) {
+				$sql		=	"SELECT ".$fields." FROM orders as o ".$leftjoin." WHERE 1	".$chkcondition." ".$condition." and u.id in (".implode(',',$newCustomerIds).") ".$groupby.",u.id";
+				$newresult	=	R::getAll($sql);
+				$temp		=	$summary = Array();
+				foreach($newresult as $val) {
+					$totalOrders	=	$totalOrders	+ $val['TotalOrders'];
+					$newTot	=	$newTot + round($val['TotalAmount'],2);
+					$summary[$val['OrderDate']]['Date']			=	$val['OrderDate'];
+					
+					if($DataType != 'year') {
+						$dateString 	= $val['OrderDate'];
+						$myDate 		= new DateTime($dateString);
+						$formattedDate 	= $myDate->format('d M Y');
+						$summary[$val['OrderDate']]['DisplayDate']	=	$formattedDate;
+					} else
+						$summary[$val['OrderDate']]['DisplayDate']	=	$month_name[$val['OrderDate']];
+					
+					//calculating Visits
+					if(isset($summary[$val['OrderDate']]['Visits']))
+						$summary[$val['OrderDate']]['Visits']	=	$summary[$val['OrderDate']]['Visits'] + 1;
+					else
+						$summary[$val['OrderDate']]['Visits']	=	1;
+					
+					//calculating Sales
+					if(isset($summary[$val['OrderDate']]['Sales']))
+						$summary[$val['OrderDate']]['Sales']		=	round($summary[$val['OrderDate']]['Sales'] + $val['TotalAmount'],2);
+					else
+						$summary[$val['OrderDate']]['Sales']		=	round($val['TotalAmount'],2);
+				}
+				$outArray['NewCustomers']['Sales']				=	round($newTot,2);
+				$outArray['NewCustomers']['Percentage']			=	round(($newcount/($newcount + $oldcount)) * 100,2);
+				if($newTot > 0 && $newcount > 0)
+					$outArray['NewCustomers']['AverageSales']	=	round($newTot/$newcount,2);
+				else 
+					$outArray['NewCustomers']['AverageSales']	=	0;
+				
+				if(isset($summary) && count($summary) > 0) {
+					foreach($summary as $key=>$val) {
+						$summary[$key]['AverageSales'] 		= 	round($val['Sales'] / $val['Visits'],2)	;
+					}
+				}
+				$outArray['NewCustomers']['Summary']				=	array_values($summary);
+			}
+			
+			if($oldcount > 0) {
+				$sql		=	"SELECT ".$fields." FROM orders as o ".$leftjoin." WHERE 1	".$chkcondition." ".$condition." and u.id in (".implode(',',$oldCustomerIds).") ".$groupby.",u.id";
+				$oldresult	=	R::getAll($sql);
+				$summary 	= 	Array();
+				foreach($oldresult as $val) {
+					$totalOrders	=	$totalOrders	+ $val['TotalOrders'];
+					$oldTot	=	$oldTot + round($val['TotalAmount'],2);
+					$summary[$val['OrderDate']]['Date']			=	$val['OrderDate'];
+					
+					if($DataType != 'year') {
+						$dateString 	= $val['OrderDate'];
+						$myDate 		= new DateTime($dateString);
+						$formattedDate 	= $myDate->format('d M Y');					
+						$summary[$val['OrderDate']]['DisplayDate']	=	$formattedDate;					
+					} else
+						$summary[$val['OrderDate']]['DisplayDate']	=	$month_name[$val['OrderDate']];
+					
+					//calculating Visits
+					if(isset($summary[$val['OrderDate']]['Visits']))
+						$summary[$val['OrderDate']]['Visits']	=	$summary[$val['OrderDate']]['Visits'] + 1;
+					else
+						$summary[$val['OrderDate']]['Visits']	=	1;
+					
+					//calculating Sales
+					if(isset($summary[$val['OrderDate']]['Sales']))
+						$summary[$val['OrderDate']]['Sales']		=	round($summary[$val['OrderDate']]['Sales'] + $val['TotalAmount'],2);
+					else
+						$summary[$val['OrderDate']]['Sales']		=	round($val['TotalAmount'],2);
+				}
+				$outArray['RepeatCustomers']['Sales']				=	round($oldTot,2);
+				$outArray['RepeatCustomers']['Percentage']			=	round(($oldcount/($newcount + $oldcount)) * 100,2);
+				if($oldTot > 0 && $oldcount > 0)
+					$outArray['RepeatCustomers']['AverageSales']	=	round($oldTot/$oldcount,2);
+				else 
+					$outArray['RepeatCustomers']['AverageSales']	=	0;
+				
+				if(isset($summary) && count($summary) > 0) {
+					foreach($summary as $key=>$val) {
+						$summary[$key]['AverageSales'] 				= 	round($val['Sales'] / $val['Visits'],2);
+					}
+				}
+				
+				$outArray['RepeatCustomers']['Summary']				=	array_values($summary);
+			}
+
+			$response['result'] 		= $outArray;
+			$response['spentpervisit'] 	= round(($newTot+$oldTot)/($newcount + $oldcount),2);
+			$response['averagevisit']	=	0;
+			
+			$condition  = 	" and date(DATE_ADD(o.OrderDate,INTERVAL '".$time_zone."' HOUR_MINUTE)) <= '".$curr_date."' and date(DATE_ADD(o.OrderDate,INTERVAL '".$time_zone."' HOUR_MINUTE)) >= '".date('Y-m-d',strtotime("-30 days"))."' ";
+			$sql		=	"SELECT count(o.id) AS TotalOrders, count( DISTINCT fkUsersId) AS TotalUser FROM orders as o  WHERE o.fkMerchantsId =".$merchantId." AND o.TransactionId != '' AND o.OrderStatus =1 ".$condition;
+			//echo $sql;
+			$pervisit	=	R::getAll($sql);
+			if(isset($pervisit[0]['TotalUser']) && $pervisit[0]['TotalUser'] > 0 && isset($pervisit[0]['TotalOrders']) && $pervisit[0]['TotalOrders'] > 0)
+				$response['averagevisit'] 	= round(($pervisit[0]['TotalOrders']/$pervisit[0]['TotalUser']));
+			return $response;
+		}		
+	}
+	
+	/**
+    * get Customer performance 
+    */
+	public function getCustomerPerformance()
+    {
+		$bean 			=	$this->bean;
+		$merchantId		=	$bean->MerchantId;
+		$yrcondition	=	$mncondition	=	$condition = $time_zone = '';
+		if(isset($bean->TimeZone) && !empty($bean->TimeZone))		$time_zone 	= 	$bean->TimeZone;
+		$curr_date 		= 	date('Y-m-d');
+		$cur_month 		= 	date('m');	
+		$cur_year 		= 	$last_year	=	date('Y');
+		$mncondition	.= 	" and month(DATE_ADD(o.OrderDate,INTERVAL '".$time_zone."' HOUR_MINUTE)) in (".$cur_month;
+		$yrcondition	.= 	" and year(DATE_ADD(o.OrderDate,INTERVAL '".$time_zone."' HOUR_MINUTE)) in (".$cur_year;
+		if($cur_month == 1) {
+			$last_month = 	'12';
+			$last_year	=	$cur_year - 1;			
+			$yrcondition	.=	",".$last_year.") ";
+		}
+		else {
+			$last_month = 	$cur_month - 1;
+			$yrcondition	.=	") ";
+		}		
+		
+		$mncondition	.=	",".$last_month.") ";
+		$condition		.=	$mncondition.' '.$yrcondition;
+
+		$sql	=	"SELECT  count(distinct u.id) as totalcustomers, date(o.OrderDate) as OrderDate, month( o.OrderDate ) AS OrderMonth  FROM orders as o  
+					left join users as u on (o.fkUsersId = u.id)  
+					WHERE 1 and o.OrderStatus in (1) and o.Status = 1 and u.Status = 1 and o.fkMerchantsId = ".$merchantId."
+					".$condition." group by date(DATE_ADD(o.OrderDate,INTERVAL '".$time_zone."' HOUR_MINUTE))";
+		$result	=	R::getAll($sql);
+		if($result) {
+			$currentmonth 	= $lastmonth 	= 	$currentweek = $lastweek = $outArray = $last30 = Array();
+			$currenttot		= $lasttot		=	$currentweektot		= $lastweektot	=	$last30tot = 0;
+			
+			//Calculating dates for processing
+			$cur_week_start = date('Y-m-d',strtotime("-6 days"));
+			$cur_week_end 	= $curr_date;			
+			$last_week_start= date('Y-m-d',strtotime("-13 days"));
+			$last_week_end 	= date('Y-m-d',strtotime("-7 days"));
+			$last30_start 	= date('Y-m-d',strtotime("-29 days"));
+			$last30_end 	= $curr_date;
+
+			//Separating the data's to weeks,months
+			foreach($result as $val) {
+				if($last_month == $val['OrderMonth']) {
+					$lastmonth[] = $val;
+					$lasttot	=	$lasttot + $val['totalcustomers'];
+				}
+				if($cur_month == $val['OrderMonth']) {
+					$currentmonth[] = $val;
+					$currenttot	=	$currenttot + $val['totalcustomers'];
+				}
+				if($val['OrderDate'] >= $cur_week_start && $val['OrderDate'] <= $cur_week_end) {
+					$currentweek[]	=	$val;
+					$currentweektot	=	$currentweektot + $val['totalcustomers'];
+				}
+				if($val['OrderDate'] >= $last30_start && $val['OrderDate'] <= $last30_end) {
+					$last30[]		=	$val;
+					$last30tot		=	$last30tot + $val['totalcustomers'];
+				}
+				if($val['OrderDate'] >= $last_week_start && $val['OrderDate'] <= $last_week_end) {
+					$lastweek[]	=	$val;
+					$lastweektot	=	$lastweektot + $val['totalcustomers'];
+				}
+			}
+
+			//Forming response data
+			$outArray['PercentageGraphic']['Week']				=	Array();
+			$outArray['PercentageGraphic']['Month']				=	Array();
+			
+			$outArray['Purchases']['Week']['CurrentPercentage'] 	= 	0;
+			if($currentweektot > 0 && ($currentweektot + $lastweektot) > 0)
+				$outArray['Purchases']['Week']['CurrentPercentage'] = 	round($currentweektot/($currentweektot + $lastweektot) * 100, 2);
+				
+			$outArray['Purchases']['Week']['LastPercentage'] 		= 	0;
+			if($lastweektot > 0 && ($currentweektot + $lastweektot) > 0)
+				$outArray['Purchases']['Week']['LastPercentage'] 	= 	round($lastweektot/($currentweektot + $lastweektot) * 100, 2);
+				
+			$outArray['Purchases']['Month']['CurrentPercentage'] 	= 	0;
+			if($currenttot > 0 && ($currenttot + $lasttot) > 0)
+				$outArray['Purchases']['Month']['CurrentPercentage']= 	round($currenttot/($currenttot + $lasttot) * 100, 2);
+				
+			$outArray['Purchases']['Month']['LastPercentage'] 		= 	0;
+			if($lasttot > 0 && ($currenttot + $lasttot) > 0)
+				$outArray['Purchases']['Month']['LastPercentage'] 	= 	round($lasttot/($currenttot + $lasttot) * 100, 2);
+				
+			$outArray['Listing']['Last24HoursCustomers']		=	0;
+			$outArray['Listing']['Last7DaysCustomers']			=	$currentweektot;
+			$outArray['Listing']['Last30DaysCustomers']			=	$last30tot;
+			$outArray['Listing']['ThisYearCustomers']			=	0;
+			$outArray['Listing']['Last24Hours']					=	Array();
+			$outArray['Listing']['Last7Days']					=	Array();
+			$outArray['Listing']['Last30Days']					=	Array();
+			$outArray['Listing']['ThisYear']					=	Array();
+			
+			
+			
+			//processing the data's - WEEK(percentage and purchase)
+			$percentage = $purchasecurrent = $purchaselast = Array();
+			if(count($currentweek) > 0) {
+				foreach($currentweek as $key=>$val) {
+					$percentage[$val['OrderDate']]['OrderDate'] 		= 	$val['OrderDate'];
+					$percentage[$val['OrderDate']]['DisplayDate']		= 	date('l', strtotime($val['OrderDate']));
+					$percentage[$val['OrderDate']]['Percentage'] 		= 	round(($val['totalcustomers'] / $currentweektot) * 100,2);
+					
+					$purchasecurrent[$val['OrderDate']]['OrderDate'] 	= 	$val['OrderDate'];
+					$purchasecurrent[$val['OrderDate']]['DisplayDate']	= 	date('D', strtotime($val['OrderDate']));
+					$purchasecurrent[$val['OrderDate']]['Customers'] 	= 	$val['totalcustomers'];					
+				}				
+			}			
+			$outArray['PercentageGraphic']['Week']		=	array_values($percentage);
+			$outArray['Purchases']['Week']['Current']	=	array_values($purchasecurrent);
+			$outArray['Listing']['Last7Days']			=	array_values($purchasecurrent);
+			
+			//processing the data's - MONTH(percentage and purchase)
+			$percentage = $purchasecurrent = $purchaselast = Array();
+			if(count($currentmonth) > 0) {				
+				foreach($currentmonth as $key=>$val) {
+					$myDate 	= new DateTime($val['OrderDate']);
+					$percentage[$val['OrderDate']]['OrderDate'] 	= $val['OrderDate'];					
+					$percentage[$val['OrderDate']]['DisplayDate'] 	= $myDate->format('d M');
+					$percentage[$val['OrderDate']]['Percentage'] 	= round(($val['totalcustomers'] / $currenttot) * 100,2);
+					
+					$purchasecurrent[$val['OrderDate']]['OrderDate'] 	= $val['OrderDate'];
+					$purchasecurrent[$val['OrderDate']]['DisplayDate']	= $myDate->format('d');
+					$purchasecurrent[$val['OrderDate']]['Customers'] 	= $val['totalcustomers'];				
+				}
+			}
+			$outArray['PercentageGraphic']['Month']		=	array_values($percentage);
+			$outArray['Purchases']['Month']['Current']	=	array_values($purchasecurrent);
+			
+			//Processing the data's - LAST 30 DAYS
+			$temp = Array();
+			if(count($last30) > 0) {				
+				foreach($last30 as $key=>$val) {
+					$myDate 	= new DateTime($val['OrderDate']);
+					$temp[$val['OrderDate']]['OrderDate'] 		= 	$val['OrderDate'];					
+					$temp[$val['OrderDate']]['DisplayDate'] 	= 	$myDate->format('d M');
+					$temp[$val['OrderDate']]['Customers'] 		= 	$val['totalcustomers'];				
+				}
+			}
+			$outArray['Listing']['Last30Days']					=	array_values($temp);		
+			
+			//processing the data's - LAST WEEK
+			$purchaselast = Array();
+			if(count($lastweek) > 0) {				
+				foreach($lastweek as $key=>$val) {
+					$purchaselast[$val['OrderDate']]['OrderDate'] 	= 	$val['OrderDate'];
+					$purchaselast[$val['OrderDate']]['DisplayDate']	= 	date('D', strtotime($val['OrderDate']));
+					$purchaselast[$val['OrderDate']]['Customers'] 	= 	$val['totalcustomers'];
+				}				
+			}
+			$outArray['Purchases']['Week']['Last']					=	array_values($purchaselast);
+			
+			//processing the data's - LAST MONTH
+			$purchaselast = Array();
+			if(count($lastmonth) > 0) {				
+				foreach($lastmonth as $key=>$val) {
+					$myDate 	= new DateTime($val['OrderDate']);
+					$purchaselast[$val['OrderDate']]['OrderDate'] 	= 	$val['OrderDate'];					
+					$purchaselast[$val['OrderDate']]['DisplayDate'] = 	$myDate->format('d');
+					$purchaselast[$val['OrderDate']]['Customers'] 	= 	$val['totalcustomers'];
+				}				
+			}
+			$outArray['Purchases']['Month']['Last']					=	array_values($purchaselast);			
+			
+			//processing - Last 24 hours
+			$todaydata 	= $temp = Array();
+			$total 		= 0;
+			$sql = "SELECT  count(distinct u.id) as totalcustomers, o.OrderDate as OrderDate, hour( o.OrderDate ) AS OrderHour  FROM orders as o  
+					left join users as u on (o.fkUsersId = u.id)  
+					WHERE 1 and o.OrderStatus in (1) and o.Status = 1 and u.Status = 1 and o.fkMerchantsId = ".$merchantId."
+					and date(DATE_ADD(o.OrderDate,INTERVAL '".$time_zone."' HOUR_MINUTE)) >= NOW() - INTERVAL 1 DAY  group by hour(DATE_ADD(o.OrderDate,INTERVAL '".$time_zone."' HOUR_MINUTE))";
+			$temp	=	R::getAll($sql);
+			if($temp) {				
+				foreach($temp as $key=>$val) {
+					$total =	$total + $val['totalcustomers'];
+					$todaydata[$val['OrderHour']]['OrderDate'] 		= 	$val['OrderDate'];
+					$todaydata[$val['OrderHour']]['Hour'] 		= 	$val['OrderHour'];
+					$todaydata[$val['OrderHour']]['Customers'] 	= 	$val['totalcustomers'];					
+				}
+			}
+			$outArray['Listing']['Last24HoursCustomers']		=	$total;
+			$outArray['Listing']['Last24Hours']					=	array_values($todaydata);
+			
+			//processing - Current Year by month
+			$yeardata 	= $temp = Array();
+			$total 		= 0;
+			$sql = "SELECT  count(distinct u.id) as totalcustomers, date(o.OrderDate) as OrderDate, month( o.OrderDate ) AS OrderMonth  FROM orders as o  
+					left join users as u on (o.fkUsersId = u.id)  
+					WHERE 1 and o.OrderStatus in (1) and o.Status = 1 and u.Status = 1 and o.fkMerchantsId = ".$merchantId."
+					and year(DATE_ADD(o.OrderDate,INTERVAL '".$time_zone."' HOUR_MINUTE)) = ".$cur_year."  group by month(DATE_ADD(o.OrderDate,INTERVAL '".$time_zone."' HOUR_MINUTE))";
+			//echo $sql;
+			$temp	=	R::getAll($sql);
+			if($temp) {				
+				foreach($temp as $key=>$val) {
+					$total =	$total + $val['totalcustomers'];
+					$yeardata[$val['OrderMonth']]['OrderDate'] 		= 	$val['OrderDate'];
+					$yeardata[$val['OrderMonth']]['Month'] 		= 	$val['OrderMonth'];
+					$yeardata[$val['OrderMonth']]['Customers'] 	= 	$val['totalcustomers'];
+				}
+			}
+			$outArray['Listing']['ThisYearCustomers']			=	$total;
+			$outArray['Listing']['ThisYear']					=	array_values($yeardata);		
+			return $outArray;
+		}
+	}
+	/*
+	* get mangopay bank details
+	*/
+	public function getBankDetails()
+    {
+		/**
+		* Get the bean
+		* @var $bean merchants
+		*/
+        $bean = $this->bean;
+		
+		$sql 				=	"SELECT id,AccountId,AccountNumber,OwnerName,IBAN FROM `bankaccountdetails` WHERE 1 AND fkMerchantsId ='".$bean->merchantId."' and Status = 1";					
+		$mangopayDetails 	=	R::getAll($sql);
+		if($mangopayDetails) {
+			return $mangopayDetails;
+		}		
+	}
+	
+		/*
+	* get products count
+	*/
+	public function getProductCounts()
+    {
+		/**
+		* Get the bean
+		* @var $bean merchants
+		*/
+        $bean = $this->bean;
+		
+		//assigning variable
+		$specials	= $regular	=	$counts 	=	array();
+		$applied	= $unapplied	=	0;
+		
+		//getting product details
+		$productDetail 					= 	R::dispense('products');
+		$productDetail->merchantId		=	$bean->merchantId;
+		$countResult					= 	$productDetail->getProductsTotal();	
+		if($countResult && is_array($countResult) && count($countResult) > 0) {
+			
+			//getting various counts of products 			
+			foreach($countResult as $val) {
+				if($val['ItemType'] == 1) {
+					if($val['DiscountApplied'] == 1)
+						$applied	=	$applied	+ 1;
+					if($val['DiscountApplied'] == 0)
+						$unapplied	=	$unapplied	+ 1;
+					$regular[]		=	$val;
+				}
+				if($val['ItemType'] == 3)
+					$specials[]		=	$val;
+			}
+			$counts['Totalproducts']				=	count($regular) + count($specials);
+			$counts['Regular']						=	count($regular);
+			$counts['Specials']						=	count($specials);
+			
+			//getting how products to be discounted
+			$discountMust	=	floor(((1/3) * $counts['Totalproducts']));
+			$counts['DiscountProductMustBe']		=	$discountMust;
+			
+			$counts['RegularDiscountApplied']		=	$applied;
+			if(isset($bean->Discount) && $bean->Discount == 0)
+				$counts['RegularDiscountApplied']	=	$applied	-	1;
+			$counts['RegularDiscountNotApplied']	=	$unapplied;		
+			
+			//getting total discounted products
+			$disapplied		=	$counts['Specials'] + $counts['RegularDiscountApplied'];
+			$counts['TotalDiscountApplied']			=	$disapplied;
+						
+			//checking the rule 1 (1/3 of product discount)
+			if($counts['TotalDiscountApplied'] >= $counts['DiscountProductMustBe']) {
+				$counts['Discounted']				=	1;
+				$counts['ProductDifference']		=	$counts['TotalDiscountApplied'] - $counts['DiscountProductMustBe'];
+				if(isset($bean->Type) && $bean->Type == 1) {					
+					$counts['ProductPlusDiscount']		=	floor(((1/3) * ($counts['Totalproducts'])));
+				}
+				else 
+					$counts['ProductPlusDiscount']		=	floor(((1/3) * ($counts['Totalproducts']  + 1)));
+			}
+			else {
+				if(isset($bean->Type) && $bean->Type == 3) { } else {				
+					/**
+					 * throwing error when Merchant not having 1/3 of products discounted
+					 */
+					 throw new ApiException("Sorry! 1/3 of your products should be with discount", ErrorCodeType::ProductDiscountMust);
+				 }
+			}
+			return  $counts;				
+		} else {		
+				/**
+				* throwing error when no Products found
+				*/
+				throw new ApiException("No Products found", ErrorCodeType::NoResultFound);
+		}
+	}
+	/**
+    * Check Balance
+    */
+	public function checkWalletBalance(){
+	 	/**
+        * Get the bean
+        * @var $bean Users
+        */
+		$bean 					= 	$this->bean;
+		$this->validateBalanceParams();
+		
+		$logStart				=	microtime(true);
+		$walletDetails			=	getWalletDetails($bean->WalletId);
+		//MangoPay Log
+		$logArray				=	Array();	
+		$logArray['MerchantId']	=	$bean->MerchantId;
+		$logArray['URL']		=	'getWalletDetails';
+		$logArray['Content']	=	Array('WalletId'=>$bean->WalletId);
+		$logArray['Start']		=	$logStart;
+		$logArray['End']		=	microtime(true);
+		$logArray['Response']	=	$walletDetails;
+		$log 	=	R::dispense('users');
+		$log->storeMangoPayLog($logArray);
+		
+		if(!empty($walletDetails))
+			return $walletDetails;					
+		else
+			throw new ApiException("Sorry, user not connected with banking account", ErrorCodeType::NoResultFound);
+	 }
+	 /**
+	* Validate the fields (checkBalance)
+	*/
+    public function validateBalanceParams()
+    {
+		$bean 	= 	$this->bean;
+	  	$rules 	= 	[
+						'required' => [
+							 ['WalletId']
+						]
+					];
+		
+        $v 		= 	new Validator($this->bean);
+        $v->rules($rules);
+        if (!$v->validate()) {
+            $errors = $v->errors();
+			// check UsersId and PaymentAmount field
+            throw new ApiException("Please check WalletId." ,  ErrorCodeType::SomeFieldsRequired, $errors);
+        }
+	}
+	/*
+	* Transfer money from wallet to bank
+	*/
+	public function transferMoneyToBank($merchantsId)
+    {
+		$bean 			=	 $this->bean;
+		$merchantArray 	= 	 array();
+		
+		//Validate MangoPay params
+		$this->validateMangoPayBank(1);
+		$admin	= 	R::findOne('admins');
+		$merchantArray['FeeAmount']			=	$admin->MangoPayFees;
+		$merchantArray['MangoPayId']		=	$bean->MangoPayId;
+		$merchantArray['BankAccountId']		=	$bean->BankAccountId;
+		$merchantArray['WalletId']			=	$bean->WalletId;
+		$merchantArray['Amount']			=	$bean->Amount;
+		$logStart							=	microtime(true);
+		$mangopayDetails 					=   payAmountToBank($merchantArray);
+		
+		//MangoPay Log
+		$logArray				=	Array();	
+		$logArray['MerchantId']	=	$merchantsId;
+		$logArray['URL']		=	'payAmountToBank';
+		$logArray['Content']	=	$merchantArray;
+		$logArray['Start']		=	$logStart;
+		$logArray['End']		=	microtime(true);
+		$logArray['Response']	=	$mangopayDetails;
+		$log 	=	R::dispense('users');
+		$log->storeMangoPayLog($logArray);
+		
+		if(isset($mangopayDetails) && count($mangopayDetails) > 0 && isset($mangopayDetails->Id) ){
+			if($mangopayDetails->ResultMessage != '' && $mangopayDetails->Status =='FAILED' )
+				throw new ApiException($mangopayDetails->ResultMessage ,  ErrorCodeType::SomeFieldsRequired);
+			else
+				return $mangopayDetails;
+		} else {
+			throw new ApiException("Error in transfer amount from wallet to bank account" ,  ErrorCodeType::SomeFieldsRequired);
 		}
 	}
 }

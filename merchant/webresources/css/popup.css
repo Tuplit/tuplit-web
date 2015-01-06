@@ -214,7 +214,7 @@ div.tog{
 	-o-transition: all .2s ease;
 	transition: all .2s ease;
 }
-.email_notification div.tog {font-size:14px;font-weight:700;}
+.email_notification div.tog {font-size:14px;font-weight:700;z-index:1;}
 .email_notification .tog{
 	width:75px;
 	height:29px;

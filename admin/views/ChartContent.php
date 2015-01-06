@@ -94,7 +94,7 @@ $(document).ready(function() {
 				hideHover			: true
 			});
 		<?php }else{?>
-			$("#chart1").append("<div id='sample' align='center' class='no-data'>No-data available<div>");	
+			$("#chart1").append("<div id='sample' align='center' style='color:red;' class='error'>No data found<div>");	
 		<?php  }?>
 });
 </script> 

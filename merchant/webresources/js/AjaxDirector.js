@@ -1626,9 +1626,12 @@ function deleteBefore(id,ext){
 }
 
 function geolocation(type) {
+	TuplitShareLocation		=	getCookie('TuplitShareLocation');
+	if(TuplitShareLocation != '')
+		return false;
 	loc_lat		=	$("#Latitude").val();
 	loc_log		=	$("#Longitude").val();
-	if(loc_lat	==	'' && loc_log == '') {
+	if(loc_lat	==	'' && loc_log == '') {		
 		if(geo_position_js.init()){
 			if(type == 1)
 				$('#fancybox-loading').show();
@@ -1652,7 +1655,8 @@ function success_callback(p)
 
 function error_callback(p)
 {
-	alert('error='+p.message);
+	//alert('error='+p.message);
+	setSessionDeny();
 }
 
 function saveAddress(loc_lat,loc_log){
@@ -1660,7 +1664,6 @@ function saveAddress(loc_lat,loc_log){
 	var latitude 	= 	loc_lat;
 	var longitude 	= 	loc_log;
 	var latLng 		= 	new google.maps.LatLng(latitude,longitude);
-	//var latLng = new google.maps.LatLng(38.8833,77.0167);
 	geocoder.geocode({      
 			latLng: latLng    
 			},
@@ -1713,6 +1716,8 @@ function saveAddress(loc_lat,loc_log){
 							}
 						}
 					}
+					setCookie('TuplitShareLocation',1,1);
+					unsetSessionDeny();
 			   }
 			   else
 			   {      
@@ -1736,15 +1741,36 @@ function selectAllProductDelete(category_sel,type,cat_id) {
 	});
 	if(id != '') {
 		if(confirm('Are you sure to delete?')) { 	
-				id = id.substring(0,id.length-1);
+				id = id.substring(0,id.length-1);		
+
 				$.ajax({
 					type: "GET",
 					url: actionPath+"Product",
 					data: 'delete='+id+'&from=1&Type='+type,
 					success: function (result){
 						if(result == 1) {
-							for(i=0;i<idArray.length;i++)
+							product_discount_total 		= 0;
+							product_nondiscount_total 	= 0;
+							for(i=0;i<idArray.length;i++) {
+								if($('#product_discount_type_'+idArray[i]).val() == 1)
+									product_discount_total		=	product_discount_total	+ 1;
+								else
+									product_nondiscount_total	=	product_nondiscount_total	+ 1;
 								$('#'+idArray[i]).remove();
+							}
+							decval = 0;
+							if(product_discount_total > 0) {
+								decval = parseInt($('#toptotpro').html()) - product_discount_total;
+								$('#toptotpro').html(decval);
+							}
+							decval = 0;
+							if(product_nondiscount_total > 0) {
+								decval = parseInt($('#topdispro').html()) - product_nondiscount_total;
+								$('#topdispro').html(decval);
+							}
+							
+							/*for(i=0;i<idArray.length;i++)
+								$('#'+idArray[i]).remove();*/
 							$('#alert_'+category_sel).show();
 							temp	=	[];
 							i = 0;
@@ -1767,11 +1793,18 @@ function selectAllProductDelete(category_sel,type,cat_id) {
 }
 
 function cls(id_val){
-	//console.log(id_val);
 	if($(id_val).hasClass('select_active'))
 		$(id_val).removeClass("select_active");
 	else 
 		$(id_val).addClass("select_active");
+}
+/* multiple products drag&drop  */
+function clss(id_val){
+	//console.log(id_val);
+	if($(id_val).hasClass('selectedAll'))
+		$(id_val).removeClass("selectedAll");
+	else 
+		$(id_val).addClass("selectedAll");
 }
 function hideAlertMsg() {
 	$('.hideshowalert').slideUp();	
@@ -2019,6 +2052,13 @@ function validateOpenHours() {
 			validatetime = '0';
 			return false;
 		}
+		if($("#from1_0").val() != '' || $("#from1_0").val() != ''){
+			if($("#valid_0").val() == 1){
+				$('#error_0').html('Enter valid From time and To time.');
+				validatetime = '0';
+				return false;
+			}
+		}
 	}/* else {
 		$('#row_0').val('');
 	}*/
@@ -2041,6 +2081,7 @@ function validateOpenHours() {
 				validatetime = '0';
 			}
 			else {
+				var validChk	=	$("#valid_"+i).val();
 				var start = $('#from1_'+i).val();
 				start = start.toLowerCase();
                 var end = $('#to1_'+i).val();
@@ -2051,7 +2092,12 @@ function validateOpenHours() {
 						$('#error_'+i).show();
 						validatetime = '0';
 					}
-				}				
+					if(validChk == 1){
+						$('#error_'+i).html('Enter valid from time and to time ');
+						$('#error_'+i).show();
+						validatetime = '0';
+					}
+				}
 			}
 		}
 	}	
@@ -2138,90 +2184,86 @@ function clearPin() {
 }
 
 function updatePin(type) {
-	var now 		= 	Math.round((new Date()).getTime() / 1000);	
+	var nowdate		= 	Math.round((new Date()).getTime() / 1000);	
 	var last 		= 	$('#tuplit_merchant_lastaccess').val();
 	var autolock 	=  	60;
-	var diff 		= 	now - last;
+	var diff 		= 	nowdate - last;
 	var txttype		=	'';	
-	/*console.log('====>'+now)
-	console.log(last)
-	console.log(autolock)
-	console.log(diff)*/
+	
 	if(type == 2) {
 		txttype	=	'&type=1';
 	}	
 	if(diff >= autolock) {	
 		var url 	= 	actionPath+'AjaxWork?action=UPDATEPIN'+txttype;
 		 $.ajax({
-			type	: "GET",
-			url		: url,
-			data	: '',	
-			global	: false,
-			success	: function (result){
-				if(result == 2) {
-					$('#tuplit_merchant_lastaccess').val(now);					
-				}
-				else  if(result == 1){
-					$('.AskPin_error').hide();
-					$('#screen').html('');
-					var acceptedContent	 =   $('#AskPin').html(); 					
-					$.fancybox({
-						content		: acceptedContent, 
-						width		: '280',
-						height		: 'auto',
-						autoSize	: false,
-						type		: 'iframe',
-						closeBtn	: false,
-						closeClick  : false,
-						helpers 	: { 
-										overlay : {closeClick: false}
-										},
-						keys 		: {
-										close  : null
-										}
-					});
-				}
-			}			
+			type	: 	"GET",
+			url		: 	url,
+			data	: 	'',	
+			global	: 	false,
+			success	: 	function (result){
+							if(result == 2) {
+								$('#tuplit_merchant_lastaccess').val(nowdate);					
+							}
+							else  if(result == 1){
+								$('.AskPin_error').hide();
+								$('#screen').html('');
+								var acceptedContent	 =   $('#AskPin').html(); 					
+								$.fancybox({
+									content		: acceptedContent, 
+									width		: '280',
+									height		: 'auto',
+									autoSize	: false,
+									type		: 'iframe',
+									closeBtn	: false,
+									closeClick  : false,
+									helpers 	: { 
+													overlay : {closeClick: false}
+													},
+									keys 		: {
+													close  : null
+													}
+								});
+							}
+						}			
 		});	
 	}	
 }
 function getTopsales(search,graghType,dateTime)
 {
-	//var search = $( "#dataType option:selected" ).val();
-	//$('#dateTypes').html(search);
-	var content = $('#'+search).html();
+	var content 	= 	$('#'+search).html();
 	$('#dateTypes').html(content);
-	//alert(content);
 	if(graghType == 1)
 		var chart_url = 'TopSaleChart';
 	if(graghType == 2)
 		var chart_url = 'DemographicsChart';
     $.ajax({
-        type: "POST",
-        url : chart_url,
-		data : "action=GET_CHART&dataType="+search+"&timeOfDay="+dateTime,
-        success: function(result){
-            result	=	$.trim(result);
-                $('.graph').html(result);
-        },
-		beforeSend: function(){
-			// Code to display spinner
-			//alert('l start');
-			$('.loader-merchant').show();
-		},
-		complete: function(){
-		// Code to hide spinner.
-		//alert('end');
-			$('.loader-merchant').hide();
-		}		
-		
+        type		: 	"POST",
+        url 		: 	chart_url,
+		data 		: 	"action=GET_CHART&dataType="+search+"&timeOfDay="+dateTime,
+        success		: 	function(result){
+							result	=	$.trim(result);
+								$('.graph').html(result);
+						},
+		beforeSend	: 	function(){
+							$('.loader-merchant').show();
+						},
+		complete	: 	function(){
+							$('.loader-merchant').hide();
+						}		
     });
     return false;
 }
 
 /*----------Circle chart-------------*/
-function circleChart(text1,text2,radius,color,canvasId)
+function circleChart(text1,text2,radius,color,bordercolor,canvasId,type)
 {
+	var line;
+	if(radius > 45){
+		line	=	10;
+	}else{
+		line	= 6;
+	}
+	var type 	= type;//text2 position
 	var can 	= document.getElementById(canvasId);
 	var context = can.getContext('2d');
 	var text 	= text1;//"61%";
@@ -2229,12 +2271,12 @@ function circleChart(text1,text2,radius,color,canvasId)
 	context.fillStyle = color;//"#fc7f09";
 	context.beginPath();
 	var radius = radius//50	// for example
-	var radius1 = 25;
-	context.arc(100, 100, radius, 0, Math.PI * 2);
+	var radius1 = 35;
+	context.arc(105, 105, radius, 0, Math.PI * 2);
 	context.closePath();
 	context.fill();
-	context.lineWidth = 2;
-	context.strokeStyle = '#003300';
+	context.lineWidth = line;
+	context.strokeStyle = bordercolor;//'#f9a971';
 	context.stroke();
 	context.fillStyle = "white"; // font color to write the text with
 	var font = radius1 +"px serif";
@@ -2243,239 +2285,716 @@ function circleChart(text1,text2,radius,color,canvasId)
 	// Move it down by half the text height and left by half the text width
 	var width = context.measureText(text).width;
 	var height = context.measureText("w").width; // this is a GUESS of height
-	context.fillText(text, 100 - (width/2) ,90 + (height/2));
-	var font1 = 15 +"px serif";
-	context.font = font1;
-	context.fillText(text1, 100 - (width/2) ,100 + (height));
-
+	if(radius > 45){
+		if(type == 1){
+			context.fillText(text, 100 - (width/2) ,90 + (height/2));
+			var font1 		= 12 +"px serif";
+			context.font 	= font1;
+			context.fillText(text1, 120 - (width/2) ,100 + (height));
+		}else{
+			context.fillText(text, 100 - (width/2) ,100 + (height/2));
+			var font1 		= 18 +"px serif";
+			context.font 	= font1;
+			context.fillText(text1, 180 - (width/2) ,85 + (height/2));
+		}
+	}else{
+		context.fillStyle = "black";
+		if(type == 1){
+			context.fillText(text, 140 - Number(text.length) - (width) ,150 + (height/2));
+			var font1 = 15 +"px serif";
+			context.font = font1;
+			context.fillText(text1, 140 - Number(text1.length) - (width) ,160 + (height));
+		}else{
+			context.fillText(text, 130 - (width) ,160 + (height/2));
+			var font1 = 12 +"px serif";
+			context.font = font1;
+			context.fillText(text1, 160 - (width/2) ,135 + (height/2));
+		}
+		
+	}
 	// To show where the exact center is:
-	context.fillRect(50,50,5,5)
+	//context.fillRect(50,50,5,5)
 }
-function squareChart(text1,text2,color,canvasId)
+function squareChart(text1,text2,color,bordercolor,canvasId)
 {
+	//alert(text1.length);
 	var can = document.getElementById(canvasId);
 	var context = can.getContext('2d');
     context.beginPath();
 	context.fillStyle = color;
-	context.rect(100, 100, 100, 100);
+	context.rect(6, 6, 200, 200);
 	context.fill();
-	context.lineWidth = 2;
-	context.strokeStyle = '#003300';
+	context.lineWidth = 10;
+	context.strokeStyle = bordercolor;//'#59cdc1';
 	context.stroke();
-	var font = 20 +"px serif";
+	var font = 35 +"px serif";
 	context.font = font;
 	context.fillStyle = "white";
-	context.fillText(text1, 135, 150);
-	var font = 14 +"px serif";
+	context.fillText(text1, 60-Number(text1.length), 100);
+	var font = 12 +"px serif";
 	context.font = font;
 	context.fillStyle = "white";
-	context.fillText(text2, 110, 170);
+	context.fillText(text2, 70, 120);
 }
-/*----------Circle chart-------------*/
 /*----------get top products-------------*/
 function getTopOrders(search,graghType,dateTime)
 {
-	//var search = $( "#dataType option:selected" ).val();
-	var content = $('#'+search).html();
+	var content 	= 	$('#'+search).html();
 	$('#dateTypes').html(content);
 	if(graghType == 1)
 		var chart_url = 'TopOrdersChart';
 	if(graghType == 2)
 		var chart_url = 'DemographicsChart';
     $.ajax({
-        type: "POST",
-        url : chart_url,
-		data : "action=GET_CHART&dataType="+search+"&timeOfDay="+dateTime,
-        success: function(result){
-            //alert(result);
-			result	=	$.trim(result);
-                $('.graph').html(result);
-        },
-		beforeSend: function(){
-			// Code to display spinner
-			//alert('l start');
-			$('.loader-merchant').show();
-		},
-		complete: function(){
-		// Code to hide spinner.
-		//alert('end');
-			$('.loader-merchant').hide();
-		}		
-		
+        type		: 	"POST",
+        url 		: 	chart_url,
+		data 		: 	"action=GET_CHART&dataType="+search+"&timeOfDay="+dateTime,
+        success		: 	function(result){
+							result	=	$.trim(result);
+							$('.graph').html(result);
+							$("#onLoadChart").hide(); //for google chart
+							
+						},
+		beforeSend	: 	function(){
+							$('.loader-merchant').show();
+						},
+		complete	: 	function(){
+							$('.loader-merchant').hide();
+							$("#errorMessage").show(); //for google chart
+						}		
     });
     return false;
 }
 /*----------get bar charts-------------*/
-function getBarCharts(perc1,perc2,perc3,color1,color2,color3,divid)
+function getBarCharts(perc1,perc2,perc3,color1,color2,color3,divid,type)
 {
-	//alert(color1+"-"+color2+"-"+color3);
+	if(type == 1){
+		action = 'GET_BAR_CHART';
+	}else if(type == 2){
+		action = 'GET_WEEK_BAR_CHART';
+	}
 	$.ajax({
-        type: "POST",
-        url : "HorizontalBarChart",
-		data : 'action=GET_BAR_CHART&colour1='+color1+'&colour2='+color2+'&colour3='+color3+'&perc1='+perc1+'&perc2='+perc2+'&perc3='+perc3+'&divid='+divid,
-        success: function(result){
-            //alert(result);
-			result	=	$.trim(result);
-                $('.'+divid).html(result);
-        },
-		beforeSend: function(){
-			// Code to display spinner
-			//alert('l start');
-			$('.loader-merchant').show();
-		},
-		complete: function(){
-		// Code to hide spinner.
-		//alert('end');
-			$('.loader-merchant').hide();
-		}		
-		
+        type		: 	"POST",
+        url 		: 	"HorizontalBarChart",
+		data 		: 	'action='+action+'&colour1='+color1+'&colour2='+color2+'&colour3='+color3+'&perc1='+perc1+'&perc2='+perc2+'&perc3='+perc3+'&divid='+divid,
+        success		: 	function(result){
+							result	=	$.trim(result);
+							$('#'+divid).html(result);
+						},
+		beforeSend	: 	function(){
+							$('.loader-merchant').show();
+						},
+		complete	: 	function(){
+							$('.loader-merchant').hide();
+						}		
     });
 }
 /*----------get top sellers-------------*/
 function getTopSellers(search,graghType,dateTime)
 {
-	//var search = $( "#dataType option:selected" ).val();
-	var content = $('#'+search).html();
+	var content 	= 	$('#'+search).html();
 	$('#dateTypes').html(content);
 	if(graghType == 1)
 		var chart_url = 'TopSellersChart';
 	if(graghType == 2)
 		var chart_url = 'DemographicsChart';
     $.ajax({
-        type: "POST",
-        url : chart_url,
-		data : "action=GET_CHART&dataType="+search+"&timeOfDay="+dateTime,
-        success: function(result){
-            //alert(result);
-			result	=	$.trim(result);
-                $('.graph').html(result);
-        },
-		beforeSend: function(){
-			// Code to display spinner
-			//alert('l start');
-			$('.loader-merchant').show();
-		},
-		complete: function(){
-		// Code to hide spinner.
-		//alert('end');
-			$('.loader-merchant').hide();
-		}		
-		
+        type		: 	"POST",
+        url 		: 	chart_url,
+		data 		: 	"action=GET_CHART&dataType="+search+"&timeOfDay="+dateTime,
+        success		: 	function(result){
+							result	=	$.trim(result);
+								$('.graph').html(result);
+						},
+		beforeSend	: 	function(){
+							$('.loader-merchant').show();
+						},
+		complete	: 	function(){
+							$('.loader-merchant').hide();
+						}		
     });
     return false;
 }
-function getProductCustomers(search,cur_page,per_page)
+function getProductCustomers(search,istart,stype)
 {
-	var content = $('#'+search).html();
-	$('#dateTypes').html(content);
-	var chart_url = 'ProductCustomersList';
+	var chart_url 	= 	'ProductCustomersList';
+	var searchtext 	= 	'';
+	valtot 			= 	parseInt($('#startcounter').val());	
+	start			=	parseInt(istart);
+	
+	if(stype == 1 || stype == 2 || stype == 3) {
+		search	=	$('#dateTypes').html();
+		if(search == 'Today')
+			search =	'day';
+		else if(search == '7 days')
+			search =	'7days';
+		else if(search == 'Year')
+			search =	'year';	
+		else if(search == 'Month')
+			search =	'month';		
+	} 
+	if(stype == 1) {
+		start	=	0;
+	} else if(stype == 2) {		
+		start	=	valtot - 10;
+	} else if(stype == 3) {		
+		start	=	valtot + 10;
+	} else {
+		var content = $('#'+search).html();
+		$('#dateTypes').html(content);
+	}
+	
     $.ajax({
-        type: "POST",
-        url : chart_url,
-		data : "action=GET_CUSTOMERS&dataType="+search+"&cur_paging="+cur_page+"&per_paging="+per_page,
-        success: function(result){
-			result	=	$.trim(result);
-                $('#append_id').html(result);
-        },
-		beforeSend: function(){
-			// Code to display spinner
-			//alert('l start');
-			$('.loader-merchant').show();
-		},
-		complete: function(){
-		// Code to hide spinner.
-		//alert('end');
-			$('.loader-merchant').hide();
-		}				
+        type		: 	"POST",
+        url 		: 	chart_url,
+		data 		: 	"action=GET_CUSTOMERS&dataType="+search+"&Starts="+start+"&SearchText="+searchtext,
+        success		: 	function(result){
+							result	=	$.trim(result);
+							$('#append_id').html(result);
+						},
+		beforeSend	: 	function(){
+							$('.loader-merchant').show();
+						},
+		complete	: 	function(){
+							$('.loader-merchant').hide();
+						}				
     });
     return false;
 }
 function getProdComments(search,start)
 {
-	var content = $('#'+search).html();
+	var chart_url 	= 	'ProductCommentsList';
+	var content 	= 	$('#'+search).html();
 	$('#dateTypes').html(content);
-	var chart_url = 'ProductCommentsList';
     $.ajax({
-        type: "POST",
-        url : chart_url,
-		data : "action=GET_COMMENTS&dataType="+search+"&Starts="+start,
-        success: function(result){
-			result	=	$.trim(result);
-                $('#comment_append').html(result);
-        },
-		beforeSend: function(){
-			// Code to display spinner
-			//alert('l start');
-			$('.loader-merchant').show();
-		},
-		complete: function(){
-		// Code to hide spinner.
-		//alert('end');
-			$('.loader-merchant').hide();
-		}				
+        type		: 	"POST",
+        url 		: 	chart_url,
+		data 		: 	"action=GET_COMMENTS&dataType="+search+"&Starts="+start,
+        success		: 	function(result){
+							result	=	$.trim(result);
+							$('#comment_append').html(result);
+						},
+		beforeSend	: 	function(){
+							$('.loader-merchant').show();
+						},
+		complete	: 	function(){
+							$('.loader-merchant').hide();
+						}				
     });
     return false;
 }
 function getAnalytics(search,graghPage,dateTime)
 {
-	var content = $('#'+search).html();
+	var content 	= 	$('#'+search).html();
 	$('#dateTypes').html(content);
-	//alert(content);
 	if(graghPage == 1)
 		var chart_url = 'ProductSaleChart';
 	
     $.ajax({
-        type: "POST",
-        url : chart_url,
-		data : "action=GET_CHART&dataType="+search+"&timeOfDay="+dateTime,
-        success: function(result){
-            result	=	$.trim(result);
-                $('.graph').html(result);
-        },
-		beforeSend: function(){
-			// Code to display spinner
-			//alert('l start');
-			$('.loader-merchant').show();
-		},
-		complete: function(){
-		// Code to hide spinner.
-		//alert('end');
-			$('.loader-merchant').hide();
-		}		
-		
+        type		: 	"POST",
+        url 		: 	chart_url,
+		data 		: 	"action=GET_CHART&dataType="+search+"&timeOfDay="+dateTime,
+        success		: 	function(result){
+							result	=	$.trim(result);
+								$('.graph').html(result);
+						},
+		beforeSend	: 	function(){
+							$('.loader-merchant').show();
+						},
+		complete	: 	function(){
+							$('.loader-merchant').hide();
+						}		
     });
     return false;
 }
 /*----------get top sellers-------------*/
-function getTransactionDetails(search,graghType,dateTime)
-{
-	//var search = $( "#dataType option:selected" ).val();
-	var content = $('#'+search).html();
-	$('#dateTypes').html(content);
-	if(graghType == 1)
-		var chart_url = 'TransactionOverviewChart';
-	if(graghType == 2)
-		var chart_url = 'DemographicsChart';
+function getTransactionDetails(search,dateTimeVal,fromdate,vtype)
+{	
+	showtype	=	1;
+	if(vtype == 1) {
+		var content = $('#'+search).html();
+		$('#dateTypes').html(content);
+		$('#pickdate').val('');		
+		$('#selectedDate').val('');		
+	} if(vtype == 2) {
+		showtype = 0;
+	}else if(vtype == 3)
+		fromdate = $('#selectedDate').val();
+	var chart_url = 'AjaxTransactionOverview';
+	//console.log("action=GET_CHART&dataType="+search+"&timeOfDay="+dateTimeVal+'&fromdate='+fromdate)
     $.ajax({
-        type: "POST",
-        url : chart_url,
-		data : "action=GET_CHART&dataType="+search+"&timeOfDay="+dateTime,
-        success: function(result){
-            //alert(result);
-			result	=	$.trim(result);
-                $('.graph').html(result);
-        },
-		beforeSend: function(){
-			// Code to display spinner
-			//alert('l start');
-			$('.loader-merchant').show();
-		},
-		complete: function(){
-		// Code to hide spinner.
-		//alert('end');
-			$('.loader-merchant').hide();
-		}		
-		
+        type		: 	"POST",
+        url 		: 	chart_url,
+		data 		: 	"action=GET_CHART&dataType="+search+"&timeOfDay="+dateTimeVal+'&fromdate='+fromdate+'&showtype='+showtype,
+        success		: 	function(result){
+							result	=	$.trim(result);
+							$('.graph').html(result);
+						},
+		beforeSend	: 	function(){
+							$('.loader-merchant').show();
+						},
+		complete	: 	function(){
+							$('.loader-merchant').hide();
+						}		
     });
     return false;
+}
+
+function hideshowProduct(id){
+	var txt		=	'Product_'+id;
+	var dat		=	$('#hidevalue_'+id).val();
+	if(dat == 1) {
+		$('#Order_'+id).removeClass('hideline');
+		$('#arrow_'+id).removeClass('arrow-active');
+		$('#'+txt).slideUp();
+		$('#hidevalue_'+id).val('');
+	}
+	else {
+		$('#Order_'+id).addClass('hideline');
+		$('#arrow_'+id).addClass('arrow-active');
+		$('#'+txt).slideDown();		
+		$('#hidevalue_'+id).val(1);
+	}
+	$("div.hideshowProduct").each(function() {
+		var trid = $(this).attr('id');
+		var hiid = $(this).find('.hidevalue').attr('id');
+		var res = trid.split("_"); 
+		if(txt != trid) {
+			$('#Order_'+res[1]).removeClass('hideline');
+			$('#arrow_'+res[1]).removeClass('arrow-active');
+			$('#'+trid).slideUp();
+			$('#'+hiid).val('');			
+		}
+	});
+	
+}
+
+function getUserOredersList()
+{
+	var go_url 			= 	'AjaxUserOrders';	
+	viewId				=	$('#UserID').val();	
+	usertotalcounter	= 	$('#usertotalcounter').val()
+	start				=	parseInt($('#userstartcounter').val()) + 10;
+	$('#userstartcounter').val(start)
+	if($('#usertotalcounter').val() != '') {
+		$.ajax({
+			type		: 	"GET",
+			url 		: 	go_url,
+			data 		: 	"Start="+start+"&viewId="+viewId,
+			success		: 	function(result){
+								if(result != '') {					
+									$('#OrderListBody').append(result);
+								} else {
+									$('#usertotalcounter').val('')
+								}
+							},
+			beforeSend	: 	function(){
+								$('.loader-merchant').show();
+							},
+			complete	: 	function(){
+								$('.loader-merchant').hide();				
+							}					
+		});
+	}
+    return false;
+}
+/*transaction history*/
+function getTransactions(dateType,startLim,selecttype,statusType,Showtype){
+	//console.log(Showtype)
+	$('#greaterfrom').hide();
+	OrderStatus = FromDate = ToDate = '';
+	if(selecttype == 1) {
+		if(dateType == '') {
+			FromDate = $('#FromDateHide').val();
+			ToDate   = $('#ToDateHide').val();
+		}
+		$('#StartLimitHide').val('0');
+	}else if(selecttype == 2) {
+		$('#FromDateHide').val('');
+		$('#ToDateHide').val('');
+		$('#OrderStatusHide').val('');		
+		$('#DataTypeHide').val(dateType);
+		
+		var content = $('#'+dateType).html();
+		$('#dateTypes').html(content);
+		
+		$('#statusType').html('Select');
+		$('#OrderStatusHide').val('');
+		$('#StartLimitHide').val('0');
+		
+		$('select[name^="from_month"] option[value=""]').attr("selected","selected");
+		$('select[name^="from_date"] option[value=""]').attr("selected","selected");
+		$('select[name^="from_year"] option[value=""]').attr("selected","selected");
+		$('select[name^="from_hour"] option[value=""]').attr("selected","selected");
+		$('select[name^="from_min"] option[value=""]').attr("selected","selected");
+		$('select[name^="to_month"] option[value=""]').attr("selected","selected");
+		$('select[name^="to_date"] option[value=""]').attr("selected","selected");
+		$('select[name^="to_year"] option[value=""]').attr("selected","selected");
+		$('select[name^="to_hour"] option[value=""]').attr("selected","selected");
+		$('select[name^="to_min"] option[value=""]').attr("selected","selected");
+	} else if(selecttype == 3) {
+		var search = $('#dateTypes').html();
+		if(search != 'Select') {
+			if(search == 'Today')
+				search =	'day';
+			else if(search == '7 days')
+				search =	'7days';
+			else if(search == 'Month')
+				search =	'month';
+			else if(search == 'Year')
+				search =	'year';
+			dateType = search;
+		} else {
+			FromDate = $('#FromDateHide').val();
+			ToDate   = $('#ToDateHide').val();
+			dateType = '';
+		}
+		
+		if(statusType == 'New')
+			OrderStatus = '0';
+		else if(statusType == 'Accepted')
+			OrderStatus = '1';
+		else if(statusType == 'Rejected')
+			OrderStatus = '2';
+		else if(statusType == 'Refunded')
+			OrderStatus = '3';
+		
+		$('#statusType').html(statusType);
+		$('#OrderStatusHide').val(OrderStatus);
+		$('#StartLimitHide').val('0');
+	} else if(selecttype == 4 || selecttype == 5){
+		dateType 		= 	$('#DataTypeHide').val();
+		OrderStatus 	= 	$('#OrderStatusHide').val();
+		FromDate 		= 	$('#FromDateHide').val();
+		ToDate 			= 	$('#ToDateHide').val();
+		inc 			= 	parseInt($('#StartLimitHide').val());	
+		if(selecttype == 4)
+			inc		=	inc - 10;
+		if(selecttype == 5)
+			inc		=	inc + 10;			
+		startLim = inc;
+		$('#StartLimitHide').val(startLim);
+	} else if(selecttype == 6 || selecttype == 7) {
+		dateType 		= 	$('#DataTypeHide').val();
+		OrderStatus 	= 	$('#OrderStatusHide').val();
+		FromDate 		= 	$('#FromDateHide').val();
+		ToDate 			= 	$('#ToDateHide').val();
+		startLim		=	0;
+	}
+	if(selecttype == 7) {
+		startLim		=	$('#StartLimitHide').val();
+	}
+	var chart_url = 'AjaxCustomerTransaction';
+	$.ajax({
+		type		: 	"POST",
+		url 		: 	chart_url,
+		data 		: 	"action=GET_TRANSACTIONS&dataType="+dateType+"&Starts="+startLim+"&OrderStatus="+OrderStatus+"&FromDate="+FromDate+"&ToDate="+ToDate+"&Showtype="+Showtype,
+		success		: 	function(result){
+							$('#transaction_append').html(result);
+						},
+		beforeSend	: 	function(){
+							$('.loader-merchant').show();
+						},
+		complete	: 	function(){
+							$('.loader-merchant').hide();						
+						}				
+	});
+	return false;
+}
+
+/*------product analytics slider------------*/
+function getProductCategory(datetype,viewtype){
+	var sudoSlider = $("#slider").sudoSlider({ 
+        effect			: 	"slide",
+        speed			: 	1500,
+        customLink		: 	false,
+        controlsShow	: 	true,
+        controlsFadeSpeed: 	400,
+        controlsFade	: 	true,
+        insertAfter		: 	true,
+		ease			: 	"swing",
+        vertical		: 	false,//new
+		numeric			:	true,
+		responsive		:	true,
+		slideCount		: 	4,
+        moveCount		: 	4,
+        startSlide		: 	1,
+		prevNext		: 	true,
+		afterAnimation	: 	function(slide){
+								var total_category 		= 	$('#image_total_count').val();
+								var display_category 	= 	$('#image_display_count').val();
+								var totalSlides 		= 	sudoSlider.getValue('totalSlides');
+								var currentslides 		= 	sudoSlider.getValue('currentSlide');
+								var curr 				= 	$('.current').attr('data-target');
+								var total_pager 		= 	$('#productCategory .numericControls li').size();
+								if(currentslides == total_pager && totalSlides < total_category && total_category > 5){
+									var start 		= 	display_category;
+									var search 		= 	datetype;
+									var countValue 	= 	1;
+									$.ajax({
+										type		: 	"GET",
+										url			: 	actionPath+"AjaxProductAnalytics",
+										data		: 	'action=GET_MORE_CATEGORY&Start='+start,//+'&datetype='+search+'&type='+countValue,
+										success		: 	function (result){
+															if($.trim(result) != 'fails'){
+																var objres 	= jQuery.parseJSON(result);
+																var obj		= objres['result'];
+																$.each(obj, function(i, objects) {
+																	sudoSlider.insertSlide(objects, totalSlides, '');
+																	totalSlides =  (+totalSlides) + (+1);
+																});
+																display_category = (+display_category) + (+8);
+																$('#image_display_count').val(display_category);
+															}
+															else
+																return false;
+														},
+										beforeSend	: 	function(){
+															$('.loader-merchant').show();
+														},
+										complete	: 	function(){
+															$.ajax({
+																type	: 	"GET",
+																url		: 	actionPath+"ProductAnalyticsScript",
+																data	: 	'action=GET_MORE_CATEGORY',
+																success	: 	function (result){
+																				$('<div>'+result+'</div>').insertAfter("#category_no_results");
+																			}
+															});
+															setTimeout( function() {
+																$('.loader-merchant').hide();
+															},100);
+														}		
+									});
+								}
+							 },
+      });
+	 return sudoSlider;
+}
+
+
+/*-----------product analytics - categories slider--------*/
+function getCategory(type,datetype){
+	var sudoSlider = $("#categorySlider").sudoSlider({ 
+        effect			: 	"slide",
+        speed			: 	1500,
+        customLink		: 	false,
+        controlsShow	: 	true,
+        controlsFadeSpeed: 	400,
+        controlsFade	: 	true,
+        insertAfter		: 	true,
+		ease			: 	"swing",
+        vertical		: 	false,//new
+		numeric			:	true,
+		responsive		:	true,
+		slideCount		: 	5,
+        moveCount		: 	4,
+        startSlide		: 	1,
+		prevNext		: 	true,
+		afterAnimation	: 	function(slide){
+								var total_category 		= 	$('#image_total_count').val();
+								var display_category 	= 	$('#image_display_count').val();
+								var totalSlides 		= 	sudoSlider.getValue('totalSlides');
+								var currentslides 		= 	sudoSlider.getValue('currentSlide');
+								var curr 				= 	$('.current').attr('data-target');
+								var total_pager 		= 	$('#prdtCategory .numericControls li').size();
+								if(currentslides == total_pager && totalSlides < total_category && total_category > 5){
+									var start 			= 	display_category;
+									var search 			= 	datetype;
+									var countValue 		= 	1;
+									$.ajax({
+										type		: 	"GET",
+										url			: 	actionPath+"AjaxAnalyticsCategory",
+										data		: 	'action=GET_MORE_CATEGORY&Start='+start,//+'&datetype='+search+'&type='+countValue,
+										success		: 	function (result){
+															if($.trim(result) != 'fails' && $.trim(result) != ''){
+																var objres 	= jQuery.parseJSON(result);
+																var obj		= objres['result'];
+																$.each(obj, function(i, objects) {																	
+																	sudoSlider.insertSlide(objects, totalSlides, '');
+																	totalSlides =  (+totalSlides) + (+1);
+																});
+																display_category = (+display_category) + (+8);
+																$('#image_display_count').val(display_category);
+															}
+															else
+																return false;
+														},
+										beforeSend	: 	function(){
+															$('.loader-merchant').show();
+														},
+										complete	: 	function(){
+															$.ajax({
+																type	: 	"GET",
+																url		: 	actionPath+"CategoryAnalyticsScript",
+																data	: 	'action=GET_MORE_CATEGORY',
+																success	: 	function (result){
+																				$('<div>'+result+'</div>').insertAfter("#category_no_results");
+																			}
+															});
+															setTimeout( function() {
+																$('.loader-merchant').hide();
+															},100);
+														}		
+									});
+								}
+							},
+      });
+	 return sudoSlider;
+}
+function getCustOverveiw(type){
+	var urlVal 		= 	"CustomerAnalyticsOverview";
+	var content 	= 	$('#'+type).html();
+	$('#dateTypes').html(content);	
+	if($('#usertotalcounter').val() != '') {
+		$.ajax({
+			type		: 	"GET",
+			url 		: 	urlVal,
+			data 		: 	"action=GET_OVERVIEW_DATA&DataType="+type,
+			success		: 	function(result){
+								$('#append_div').html(result);
+							},
+			beforeSend	: 	function(){
+								$('.loader-merchant').show();
+							},
+			complete	: 	function(){
+								$('.loader-merchant').hide();				
+							}					
+		});
+	}
+    return false;
+}
+
+function raphCircleChart(text1,text2,radius,color,bordercolor,canvasId,type)
+{
+	//type - text2 position
+	if(radius > 40){
+		if(type == 1){
+			text2Ht	= 	120;
+			text2Wt	=	100;
+		
+		}else{
+			text2Ht	=	80;
+			text2Wt	=	130;
+		}
+		text1Ht	=	100;
+		textCl	=	"#ffffff";
+	}else{
+		if(type == 1){
+			text2Ht	= 	175;
+			text2Wt	=	100;
+			text1Ht	=	160;
+			textCl	=	"#000";
+		}else{
+			if(radius >30){
+				textCl	=	"#fff";
+				text2Ht	=	110;
+				text2Wt	=	125;
+				text1Ht	=	115;
+			}else{
+				textCl	=	"#000";
+				text2Ht	=	130;
+				text2Wt	=	125;
+				text1Ht	=	145;
+			}
+		}
+	}
+	var paper = Raphael(canvasId, 210, 210);
+	var circle = paper.circle(105, 105,radius);
+	circle.attr("stroke", bordercolor);
+	circle.attr("stroke-width", 5);
+	circle.attr("fill", color);
+	//var text = paper.text(100, text1Ht, text1+'<sup>'+text2+'</sup>');
+	var text = paper.text(100, text1Ht, text1);
+	var text1 = paper.text(text2Wt, text2Ht, text2);
+	text.attr({'font-size': 20, 'font-family': 'FranklinGothicFSCondensed-1, FranklinGothicFSCondensed-2'});
+    text.attr("fill", textCl);
+	text1.attr({'font-size': 12, 'font-family': 'FranklinGothicFSCondensed-1, FranklinGothicFSCondensed-2'});
+    text1.attr("fill", textCl);
+	if(type == 2){	
+		text1.node.setAttribute('class', 'text_super');
+	}
+}
+function raphSquare(text1,text2,color,bordercolor,canvasId){
+	var paper 	= Raphael(canvasId, 200, 200);
+	var square 	= paper.rect(6, 6, 150, 150);
+	square.attr("stroke", bordercolor);
+	square.attr("stroke-width", 5);
+	square.attr("fill", color);
+	var text = paper.text(80, 75, text1).attr({"fill":"white"}).attr({'font-size': 20, 'font-family': 'FranklinGothicFSCondensed-1, FranklinGothicFSCondensed-2'}).data({"id": "sq_txt1"});
+	var text2 = paper.text(80, 95,text2).attr({"fill":"white"}).attr({'font-size': 12, 'font-family': 'FranklinGothicFSCondensed-1, FranklinGothicFSCondensed-2'});
+}
+
+function validateFromToTime() {
+	var curmonth 	= 	(new Date).getMonth() + 1;
+	var curday 		= 	(new Date).getDate();
+	var curyear 	= 	(new Date).getFullYear();
+	$('#greaterfrom').hide();
+	//From Date
+	if($('#from_year').val() != '')	 		var from_yy 	=	$('#from_year').val(); 		else 		var from_yy 	=	curyear;
+	if($('#from_month').val() != '')	 	var from_mm 	=	$('#from_month').val(); 	else 		var from_mm 	=	curmonth;
+	if($('#from_date').val() != '')	 		var from_dd 	=	$('#from_date').val(); 		else 		var from_dd 	=	curday;
+	if($('#from_hour').val() != '')	 		var from_hh 	=	$('#from_hour').val(); 		else 		var from_hh 	=	0;
+	if($('#from_min').val() != '')	 		var from_mn 	=	$('#from_min').val(); 		else 		var from_mn 	=	0;
+	
+	//To Date
+	if($('#to_year').val() != '')	 		var to_yy 		=	$('#to_year').val(); 		else 		var to_yy 		=	curyear;
+	if($('#to_month').val() != '')	 		var to_mm 		=	$('#to_month').val(); 		else 		var to_mm 		=	curmonth;
+	if($('#to_date').val() != '')	 		var to_dd 		=	$('#to_date').val(); 		else 		var to_dd 		=	curday;
+	if($('#to_hour').val() != '')	 		var to_hh 		=	$('#to_hour').val(); 		else 		var to_hh 		=	23;
+	if($('#to_min').val() != '')	 		var to_mn 		=	$('#to_min').val(); 		else 		var to_mn 		=	59;
+		
+	var dateOne = new Date(from_yy, from_mm, from_dd, from_hh, from_mn, 0);
+	var dateTwo = new Date(to_yy, to_mm, to_dd, to_hh, to_mn, 0);
+	var currday = new Date(curyear, curmonth, curday, 23, 59, 59);
+	//console.log(currday)
+	if((dateOne > currday) || (dateTwo > currday)) {
+		$('#greaterfrom').html("Future date's not allowed");
+		$('#greaterfrom').show();
+		return false;
+	}	
+	if (dateOne > dateTwo) {
+		$('#greaterfrom').html('From date should be greater than To date');
+		$('#greaterfrom').show();
+		return false;
+	}
+	return true;	
+}
+
+function setCookie(cname, cvalue, exdays) {
+    var d = new Date();
+    d.setTime(d.getTime() + (exdays*24*60*60*1000));
+    var expires = "expires="+d.toUTCString();
+    document.cookie = cname + "=" + cvalue + "; " + expires;
+}
+
+function getCookie(cname) {
+    var name = cname + "=";
+    var ca = document.cookie.split(';');
+    for(var i=0; i<ca.length; i++) {
+        var c = ca[i];
+        while (c.charAt(0)==' ') c = c.substring(1);
+        if (c.indexOf(name) != -1) return c.substring(name.length, c.length);
+    }
+    return "";
+}
+function showBankType(val,type){
+	if(val != ''){
+		$("#display_msg").hide();
+		$.ajax({
+			type		: 	"GET",
+			url 		: 	actionPath+"models/AjaxAction.php",
+			data 		: 	"action=GET_BANK_TYPE&bank="+val+"&Type="+type,
+			success		: 	function(result){
+								//alert(result);
+								$('#showType').html(result);
+							},
+			beforeSend	: 	function(){
+								$('.loader-merchant').show();
+							},
+			complete	: 	function(){
+								$('.loader-merchant').hide();				
+							}					
+		});
+	}
 }

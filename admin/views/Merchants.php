@@ -49,7 +49,7 @@ if(isset($_GET['status']) && $_GET['status'] == '0'){
 	$del	=	1;
 }
 else{
-	$condition	= " ";//" and m.Status in (0,1,2)";
+	$condition	= " and m.Status in (0,1,2)";
 	$del		= 2;
 }
 
@@ -65,15 +65,16 @@ if($tot_rec!=0 && !is_array($merchantListResult)) {
 
 /*-------Comments List----------*/
 $fields 		= "com.*,u.FirstName,u.LastName,u.Photo";
-$condition 		= '';
+$condition 		= ' and u.Status = 1 and com.Status = 1';
 $commentlist 	= $commentObj->getCommentList($fields,$condition,$limit);
 $total_record 	= $commentObj->getTotalRecordCount();
 
 /*-------Transaction List----------*/
 $fields				= "";
+$condition_total	= "";
 $condition_week 	.= 	" and (DATE_FORMAT(OrderDate,'%Y-%m-%d') <= '".date('Y-m-d',strtotime($curr_date))."' and DATE_FORMAT(OrderDate,'%Y-%m-%d') > '".date('Y-m-d',strtotime("-7 days"))."') ";
 $condition_day		.= 	" and date(DATE_ADD(OrderDate,INTERVAL '".$time_zone_val."' HOUR_MINUTE))='".date('Y-m-d',strtotime($curr_date))."' ";
-$transactionTotal 	= $orderObj->getTotalRevenue($fields,$condition);
+$transactionTotal 	= $orderObj->getTotalRevenue($fields,$condition_total);
 $transactionWeekly 	= $orderObj->getTotalRevenue($fields,$condition_week);
 $transactiondays 	= $orderObj->getTotalRevenue($fields,$condition_day);
 
@@ -223,6 +224,7 @@ commonHead();
 										$j=0 ;$defaultMerchantId ='';
 										if(is_array($merchantListResult)){
 											$_GET['merchantId'] = $defaultMerchantId = $merchantListResult[0]->id;
+											$_GET['gettype']	=	1;
 										}
 										require_once('ProductImages.php'); ?>
 									</ul>
@@ -304,7 +306,6 @@ if($("#delStatus").val() == 1){
 }*/
 
 $(document).ready(function(){	
-	
 	 var sudoSlider 	= callSlider('load');
 	 var productSlider  = callProductSlider('load');
 	 // seeMoreComments('1');
@@ -315,12 +316,20 @@ $(document).ready(function(){
 		//return false;
 	}
 	$('#merchant_search').click(function() {
-         searchMerchants('search',1);
+			var clearPrdt = $("#merchantsearch").val();
+			if(clearPrdt == ''){
+				$('#searchproduct').val('');
+			}
+		 searchMerchants('search',1);
          return false;
       });
 	$('#merchantsearch').keypress(function(event) {	
 	    var keycode = (event.keyCode ? event.keyCode : event.which);
 	    if(keycode == '13') {
+			var clearPrdt = $("#merchantsearch").val();
+			if(clearPrdt == ''){
+				$('#searchproduct').val('');
+			}
 			 searchMerchants('search',1);
 	         return false;
 	    }
@@ -372,8 +381,8 @@ $(document).ready(function(){
 			}else{
 				$('#merchant-details').show();
 			}
-			var search 		= 	$('#merchantsearch').val();
-			var pro_search 	= 	$('#searchproduct').val();	
+			var search 		= 	$.trim($('#merchantsearch').val());
+			var	pro_search 	= 	$.trim($('#searchproduct').val());	
 			$('#image_display_count').val(0);
 			var countValue 	= 	1;
 			if(type == 'search'){

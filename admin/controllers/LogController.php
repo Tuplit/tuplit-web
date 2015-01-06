@@ -29,5 +29,12 @@ class LogController extends Controller
 		if ($this->LogModelObj)
 			return $this->LogModelObj->selectUserDetails($fields,$condition);
 	}
+	function MangoPayTracking($fields,$condition)
+	{
+		if (!isset($this->LogModelObj))
+			$this->loadModel('LogModel', 'LogModelObj');
+		if ($this->LogModelObj)
+			return $this->LogModelObj->MangoPayTracking($fields,$condition);
+	}
 }
 ?>

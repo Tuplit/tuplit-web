@@ -6,19 +6,23 @@ function merchant_login_check() {
 		header('location:Login');
 		die();
     }
+	/*if($_SERVER['REMOTE_ADDR'] == '172.21.4.102')
+		echo "<pre>";print_r($_SESSION['merchantDetailsInfo']);echo "</pre>";*/
 	if(isset($_SESSION['MerchantPortalAccessTime']) && !empty($_SESSION['MerchantPortalAccessTime'])  && !empty($_SESSION['merchantDetailsInfo']['AutoLock']) && !empty($_SESSION['merchantDetailsInfo']['Pincode']) ) {
 		$LastAccess 			= 	$_SESSION['MerchantPortalAccessTime'];
+		
 		if(!empty($_SESSION['merchantDetailsInfo'])){
 			$merchantDetails	=	$_SESSION['merchantDetailsInfo'];
 			$autoLock			=	$merchantDetails['AutoLock'];
-			if($autoLock > 0 ){
+			if($autoLock > 0 ){				
 				$autoTime	=	$AutoLock[$autoLock];
 				$_SESSION['tuplit_merchant_autolock']	=	$AutoLock[$autoLock];
-				if($_SERVER['REMOTE_ADDR'] == '172.21.4.50' || $_SERVER['REMOTE_ADDR'] == '172.21.4.102')
-					$CurrentAccess	= 	strtotime("-1 minutes");	
+				if($_SERVER['REMOTE_ADDR'] == '172.21.4.50' || $_SERVER['REMOTE_ADDR'] == '172.21.4.56')
+					$CurrentAccess	= 	time() - 60;	
 				else
-					$CurrentAccess	= 	strtotime("-$autoTime minutes");		
-				if($LastAccess >= $CurrentAccess) {			
+					$CurrentAccess	= 	time() - (60 * $autoTime);
+				
+				if($LastAccess >= $CurrentAccess) {						
 					$_SESSION['MerchantPortalAskPin']   	=	0;
 					$_SESSION['MerchantPortalAccessTime']   =	time();
 				} else {
@@ -30,7 +34,7 @@ function merchant_login_check() {
 			}
 		}
 	}
-	$Salesperson = array('Dashboard','Orders','OrderHistory','TransactionList','ProductList');
+	$Salesperson = array('Dashboard','CreateOrder','Orders','ProductList','CustomerTransaction','Category','Product','PrintOrder','OrderProductDetail');
 	if(isset($_SESSION['merchantSubuser']) && !empty($_SESSION['merchantSubuser'])) {
 		$page	=	getCurrPage();
 		if(!in_array($page,$Salesperson)) {
@@ -724,6 +728,35 @@ function convertIntocheckinGmtSite($meet_time, $time_zone=''){
 	//echo '<pre>';print_r($date);echo '</pre>';
 	return date('Y-m-d H:i:s',$date);
 }
+function convertIntocheckinGmtSiteMinus($meet_time, $time_zone=''){
+	 if($time_zone=='') {
+	 	if(!isset($_SESSION['tuplit_ses_from_timeZone']) || $_SESSION['tuplit_ses_from_timeZone'] == ''){
+			 $time_zone = getTimeZone();
+			 $_SESSION['tuplit_ses_from_timeZone'] = strval($time_zone);
+		} else {
+			$time_zone = $_SESSION['tuplit_ses_from_timeZone'];
+		}
+	 }
+	 if(substr($time_zone,0,1) == '-') {
+	 	$multiplier = 1;
+		$time_zone = substr($time_zone,1);
+	 }
+	 else
+	 	$multiplier = -1;
+	
+	$offset_array = explode(':',$time_zone);
+	$hour= $offset_array[0];
+	$minutes= $offset_array[1];
+	$offset = $multiplier*(($hour*60*60)+($minutes*60));
+	if($meet_time != '') {
+		$date = strtotime(gmdate($meet_time))+$offset;
+	}
+	else{
+		$date = strtotime(gmdate('Y-m-d H:i:s'))+$offset;
+	}
+	//echo '<pre>';print_r($date);echo '</pre>';
+	return date('Y-m-d H:i:s',$date);
+}
 /********************************************************
 * Function : displayDate
 ********************************************************/
@@ -1346,9 +1379,9 @@ function curlRequest($url, $method, $data = null, $access_token = '')
 		break;
 	}
 	$response = curl_exec($handle);
-	if($_SERVER['REMOTE_ADDR'] == '172.21.4.130'){
-		//echo'<div style="width:200px"><pre>';print_r($response);echo'</pre></div>';
-	}
+	/*if($_SERVER['REMOTE_ADDR'] == '172.21.4.130'){
+		echo'<div style="width:200px"><pre>';print_r($response);echo'</pre></div>';
+	}*/
 	
 	$response = json_decode($response, true);
 	return $response; 
@@ -1653,18 +1686,53 @@ function GetBetween($var1="",$var2="",$pool){
 	}
 	return substr($result,0,$dd);
 }
-function getStringForDayTime($dataArray) {
-//echo "<pre>"; print_r($dataArray ); echo "</pre>";
-$morning_arr = $noon_arr = $evening_arr  = $value_morning_arr = array();
-$value_morning_arr['Late Night'] = $value_morning_arr['Evening'] = $value_morning_arr['Afternoon'] =  $value_morning_arr['Morning']  = 0;
+function getStringForDayTime($dataArray,$timeofday='') {
+	$time_array = $category_arr = $x_labels = $values = array();
 	foreach($dataArray as $key => $value) {
-		if ($value["hour"] < 12) {
+		$hour_arr[] = $value["hour"];
+		$value_arr[$value["hour"]] = $value["TotalPrice"];
+	}
+	$hour_arr = array_unique($hour_arr);
+	if($timeofday == 1){
+		$time_array = array(4,5,6,7,8,9,10,11);
+	}
+	else if($timeofday == 2){
+		$time_array = array(12,13,14,15,16,17,18,19);
+	}
+	else if($timeofday == 3){
+		$time_array = array(20,21,22,23,24,1,2,3);
+	}
+	//echo "<pre>"; print_r($time_array); echo "</pre>";die();
+	foreach($time_array as $key=>$val) {
+		if(in_array($val,$hour_arr)) {
+			$category_arr[$val] = $value_arr[$val];
+		} else {
+			$category_arr[$val] = 0;
+		}
+	}
+	foreach($category_arr as $key => $value) {
+		if($key > 12){
+			$key = $key-12;
+			$x_labels[] = $key.'pm';
+		}
+		else{
+			$x_labels[] = $key.'am';
+		}
+		$values[] = $value;
+	}
+	$x_labels_string = implode(',',$x_labels);
+	$value_string = implode(',',$values);
+	return $x_labels_string.'###'.$value_string;
+	/*$morning_arr = $noon_arr = $evening_arr  = $value_morning_arr = array();
+	$value_morning_arr['Late Night'] = $value_morning_arr['Evening'] = $value_morning_arr['Afternoon'] =  $value_morning_arr['Morning']  = 0;
+	foreach($dataArray as $key => $value) {
+		if ($value["hour"] < 5 && $value["hour"] < 12 ) {
     		$morning_arr[] = $value["hour"];
 			$value_morning_arr['Morning'] += $value["TotalPrice"];
-		} else if ($value["hour"]  >= 12 && $value["hour"]  < 16) {
+		} else if ($value["hour"]  >= 12 && $value["hour"]  < 20) {
 		    $noon_arr[] = $value["hour"];
 			$value_morning_arr['Afternoon'] += $value["TotalPrice"];
-		} else if($value["hour"] >= 16 && $value["hour"]  < 22) {
+		} else if($value["hour"] >= 24) {
 		   $evening_arr[] = $value["hour"];
 		   $value_morning_arr['Evening'] += $value["TotalPrice"];
 		}
@@ -1681,7 +1749,7 @@ $value_morning_arr['Late Night'] = $value_morning_arr['Evening'] = $value_mornin
 	}
 	$x_labels_string 	= implode(',',$x_labels);
 	$value_string 		= implode(',',$values);
-	return $x_labels_string.'###'.$value_string;
+	return $x_labels_string.'###'.$value_string;*/
 }
 /* Chart Function Ends */
 

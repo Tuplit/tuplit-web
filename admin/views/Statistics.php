@@ -140,11 +140,11 @@ if(isset($OrderDonebyList) && is_array($OrderDonebyList) && count($OrderDonebyLi
 
 // Top 5 Users
 $fields = "o.*,sum(`TotalPrice`) as OrderdPrice,count(o.id) as TotalCount,u.FirstName,u.LastName,u.Photo";
-$condition = " Group BY fkUsersId order by OrderdPrice desc limit 5 ";
+$condition = " and u.Status = 1 Group BY fkUsersId order by OrderdPrice desc limit 5 ";
 $topuserlist = $StatisticsObj->getTopUsersList($fields,$condition);
 // Top 5 Merchants
 $fields = "o.*,sum(`TotalPrice`) as OrderdPrice,count(o.id) as TotalCount,m.CompanyName,m.Icon";
-$condition = " Group BY fkMerchantsId order by OrderdPrice desc limit 5 ";
+$condition = " and m.Status = 1 Group BY fkMerchantsId order by OrderdPrice desc limit 5 ";
 $topmerchantlist = $StatisticsObj->getTopMerchantsList($fields,$condition);
 ?>
 <body class="skin-blue">

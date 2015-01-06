@@ -67,7 +67,6 @@ if(isset($_GET['editId']) && $_GET['editId'] != '' ){
 	}
 }
 if(isset($_POST['submit']) && $_POST['submit'] != ''){
-
 	$_POST          =   unEscapeSpecialCharacters($_POST);
    	$_POST          =   escapeSpecialCharacters($_POST);
 	$IpAddress     	=   ipAddress();
@@ -246,7 +245,7 @@ if(isset($_POST['submit']) && $_POST['submit'] != ''){
 			$Mangopay								=	userRegister($MangopayDetails);
 			if( isset($Mangopay->Id) && $Mangopay->Id != ''){
 				$uniqueId					=	$Mangopay->Id;
-				$walletId					=	createWallet($uniqueId,'USD');			
+				$walletId					=	createWallet($uniqueId,DEFAULT_CURRENCY);			
 				$upwall		=	" MangoPayResponse='".serialize($Mangopay)."', MangoPayUniqueId='".$uniqueId."', WalletId='".$walletId."' ";
 				$upwallcon	=	" id ='".$insert_id."'";
 				$userObj->updateUserDetails($upwall,$upwallcon);
@@ -373,7 +372,7 @@ if(isset($_POST['submit']) && $_POST['submit'] != ''){
 						<input type="text" class="form-control" name="Email" id="Email" maxlength="100" value="<?php if(isset($Email) && $Email != '') echo $Email;  ?>" >
 					</div>
 					<div class="form-group col-sm-6">
-						<label>Cell Number</label>
+						<label>Phone</label>
 						<input type="text" class="form-control" id="CellNumber" name="CellNumber" maxlength="15" onkeypress="return isNumberKey_Phone(event);" value="<?php if(isset($CellNumber) && $CellNumber != '' ) echo $CellNumber; ?>" >
 					</div>
 					
@@ -505,37 +504,37 @@ if(isset($_POST['submit']) && $_POST['submit'] != ''){
 					<div class="form-group col-sm-6 col-xs-12">
 						<label class="notification col-xs-6   no-padding">Sounds</label>
 						<div class=" col-xs-6 no-padding">
-							<label class="col-xs-5 no-padding"><input type="Radio" onclick="return notification();" value="1" id="Sounds"  class="" name="Sounds" <?php if(isset($Sounds) && $Sounds == '1') echo 'checked';?> > &nbsp;&nbsp;On</label>&nbsp;&nbsp;&nbsp;&nbsp;
-							<label class="col-xs-5 no-padding"><input type="Radio" onclick="return notification();" value="0" id="Sounds" class="" name="Sounds" <?php if(isset($Sounds) && $Sounds == '0') echo 'checked';?> > &nbsp;&nbsp;Off</label>
+							<label class="col-xs-5 no-padding"><input type="Radio"  value="1" id="Sounds"  class="" name="Sounds" <?php if(isset($Sounds) && $Sounds == '1') echo 'checked';?> > &nbsp;&nbsp;On</label>&nbsp;&nbsp;&nbsp;&nbsp;
+							<label class="col-xs-5 no-padding"><input type="Radio"  value="0" id="Sounds" class="" name="Sounds" <?php if(isset($Sounds) && $Sounds == '0') echo 'checked';?> > &nbsp;&nbsp;Off</label>
 						</div>
 					</div>
 					<div class="form-group col-sm-6 col-xs-12">
 						<label class="notification col-xs-6   no-padding">Buy Something</label>
 						<div class=" col-xs-6   no-padding">
-							<label class="col-xs-5 no-padding"><input type="Radio" onclick="return notification();" value="1" class="pushOn" id="BuySomething"  name="BuySomething" <?php if(isset($BuySomething) && $BuySomething == '1') echo 'checked';?> > &nbsp;&nbsp;On</label>&nbsp;&nbsp;&nbsp;&nbsp;
-							<label class="col-xs-5 no-padding"><input type="Radio" onclick="return notification();" value="0" id="BuySomething" name="BuySomething" class="pushOff" <?php if(isset($BuySomething) && $BuySomething == '0') echo 'checked';?> > &nbsp;&nbsp;Off</label>
+							<label class="col-xs-5 no-padding"><input type="Radio"  value="1" class="pushOn" id="BuySomething"  name="BuySomething" <?php if(isset($BuySomething) && $BuySomething == '1') echo 'checked';?> > &nbsp;&nbsp;On</label>&nbsp;&nbsp;&nbsp;&nbsp;
+							<label class="col-xs-5 no-padding"><input type="Radio"  value="0" id="BuySomething" name="BuySomething" class="pushOff" <?php if(isset($BuySomething) && $BuySomething == '0') echo 'checked';?> > &nbsp;&nbsp;Off</label>
 						</div>
 					</div>	
 					
 					<div class="form-group col-sm-6 col-xs-12">
 						<label class="notification col-xs-6   no-padding">Passcode</label>
 						<div class=" col-xs-6 no-padding">
-							<label class="col-xs-5 no-padding"><input type="Radio" onclick="return notification();" value="1" id="Passcode"  class="" name="Passcode" <?php if(isset($Passcode) && $Passcode == '1') echo 'checked';?> > &nbsp;&nbsp;On</label>&nbsp;&nbsp;&nbsp;&nbsp;
-							<label class="col-xs-5 no-padding"><input type="Radio" onclick="return notification();" value="0" id="Passcode" class="" name="Passcode" <?php if(isset($Passcode) && $Passcode == '0') echo 'checked';?> > &nbsp;&nbsp;Off</label>
+							<label class="col-xs-5 no-padding"><input type="Radio"  value="1" id="Passcode"  class="" name="Passcode" <?php if(isset($Passcode) && $Passcode == '1') echo 'checked';?> > &nbsp;&nbsp;On</label>&nbsp;&nbsp;&nbsp;&nbsp;
+							<label class="col-xs-5 no-padding"><input type="Radio"  value="0" id="Passcode" class="" name="Passcode" <?php if(isset($Passcode) && $Passcode == '0') echo 'checked';?> > &nbsp;&nbsp;Off</label>
 						</div>
 					</div>	
 					<div class="form-group col-sm-6 col-xs-12">
 						<label class="notification col-xs-6   no-padding">Deals &amp; Offers</label>
 						<div class=" col-xs-6 no-padding">
-							<label class="col-xs-5 no-padding"><input type="Radio" onclick="return notification();" value="1" id="DealsOffers"  class="pushOn" name="DealsOffers" <?php if(isset($DealsOffers) && $DealsOffers == '1') echo 'checked';?> > &nbsp;&nbsp;On</label>&nbsp;&nbsp;&nbsp;&nbsp;
-							<label class="col-xs-5 no-padding"><input type="Radio" onclick="return notification();" value="0" id="DealsOffers" class="pushOff" name="DealsOffers" <?php if(isset($DealsOffers) && $DealsOffers == '0') echo 'checked';?> > &nbsp;&nbsp;Off</label>
+							<label class="col-xs-5 no-padding"><input type="Radio"  value="1" id="DealsOffers"  class="pushOn" name="DealsOffers" <?php if(isset($DealsOffers) && $DealsOffers == '1') echo 'checked';?> > &nbsp;&nbsp;On</label>&nbsp;&nbsp;&nbsp;&nbsp;
+							<label class="col-xs-5 no-padding"><input type="Radio"  value="0" id="DealsOffers" class="pushOff" name="DealsOffers" <?php if(isset($DealsOffers) && $DealsOffers == '0') echo 'checked';?> > &nbsp;&nbsp;Off</label>
 						</div>
 					</div>	
 					<div class="form-group col-sm-6 col-xs-12">
 						<label class="notification col-xs-6   no-padding">Remember Me</label>
 						<div class=" col-xs-6 no-padding">
-							<label class="col-xs-5 no-padding"><input type="Radio" onclick="return notification();" value="1" id="RememberMe" class="" name="RememberMe" <?php if(isset($RememberMe) && $RememberMe == '1') echo 'checked';?> > &nbsp;&nbsp;On</label>&nbsp;&nbsp;&nbsp;&nbsp;
-							<label class="col-xs-5 no-padding"><input type="Radio" onclick="return notification();" value="0" id="RememberMe"  class="" name="RememberMe" <?php if(isset($RememberMe) && $RememberMe == '0') echo 'checked';?> > &nbsp;&nbsp;Off</label>
+							<label class="col-xs-5 no-padding"><input type="Radio"  value="1" id="RememberMe" class="" name="RememberMe" <?php if(isset($RememberMe) && $RememberMe == '1') echo 'checked';?> > &nbsp;&nbsp;On</label>&nbsp;&nbsp;&nbsp;&nbsp;
+							<label class="col-xs-5 no-padding"><input type="Radio"  value="0" id="RememberMe"  class="" name="RememberMe" <?php if(isset($RememberMe) && $RememberMe == '0') echo 'checked';?> > &nbsp;&nbsp;Off</label>
 						</div>
 					</div>
 					
@@ -543,23 +542,23 @@ if(isset($_POST['submit']) && $_POST['submit'] != ''){
 					<div class="form-group col-sm-6 col-xs-12">
 						<label class="notification col-xs-6   no-padding">Send Credit</label>
 						<div class=" col-xs-6   no-padding">
-							<label class="col-xs-5 no-padding"><input type="Radio" onclick="return notification();" value="1" class="pushOn"   id="SendCredit"  name="SendCredit" <?php if(isset($SendCredit) && $SendCredit == '1') echo 'checked';?> > &nbsp;&nbsp;On</label>&nbsp;&nbsp;&nbsp;&nbsp;
-							<label class="col-xs-5 no-padding"><input type="Radio" onclick="return notification();" value="0" id="SendCredit" class="pushOff" name="SendCredit" <?php if(isset($SendCredit) && $SendCredit == '0') echo 'checked';?> > &nbsp;&nbsp;Off
+							<label class="col-xs-5 no-padding"><input type="Radio"  value="1" class="pushOn"   id="SendCredit"  name="SendCredit" <?php if(isset($SendCredit) && $SendCredit == '1') echo 'checked';?> > &nbsp;&nbsp;On</label>&nbsp;&nbsp;&nbsp;&nbsp;
+							<label class="col-xs-5 no-padding"><input type="Radio"  value="0" id="SendCredit" class="pushOff" name="SendCredit" <?php if(isset($SendCredit) && $SendCredit == '0') echo 'checked';?> > &nbsp;&nbsp;Off
 						</div>
 					</div>
 					<div class="form-group col-sm-6 col-xs-12">
 						<label class="notification col-xs-6   no-padding">Payment Preference</label>
 						<div class=" col-xs-6 no-padding">
-							<label class="col-xs-5 no-padding"><input type="Radio" onclick="return notification();" value="1" id="PaymentPreference" class="" name="PaymentPreference" <?php if(isset($PaymentPreference) && $PaymentPreference == '1') echo 'checked';?> > &nbsp;&nbsp;On</label>&nbsp;&nbsp;&nbsp;&nbsp;
-							<label class="col-xs-5 no-padding"><input type="Radio" onclick="return notification();" value="0" id="PaymentPreference" class="" name="PaymentPreference" <?php if(isset($PaymentPreference) && $PaymentPreference == '0') echo 'checked';?> > &nbsp;&nbsp;Off</label>
+							<label class="col-xs-5 no-padding"><input type="Radio"  value="1" id="PaymentPreference" class="" name="PaymentPreference" <?php if(isset($PaymentPreference) && $PaymentPreference == '1') echo 'checked';?> > &nbsp;&nbsp;On</label>&nbsp;&nbsp;&nbsp;&nbsp;
+							<label class="col-xs-5 no-padding"><input type="Radio"  value="0" id="PaymentPreference" class="" name="PaymentPreference" <?php if(isset($PaymentPreference) && $PaymentPreference == '0') echo 'checked';?> > &nbsp;&nbsp;Off</label>
 						</div>
 					</div>
 					
 					<div class="form-group col-sm-6 col-xs-12">
 						<label class="notification col-xs-6   no-padding">Recieve Credit</label>
 						<div class=" col-xs-6   no-padding">
-							<label class="col-xs-5 no-padding"><input type="Radio" onclick="return notification();" value="1" class="pushOn" id="RecieveCredit"  name="RecieveCredit" <?php if(isset($RecieveCredit) && $RecieveCredit == '1') echo 'checked';?> > &nbsp;&nbsp;On</label>&nbsp;&nbsp;&nbsp;&nbsp;
-							<label class="col-xs-5 no-padding"><input type="Radio" onclick="return notification();" value="0" id="RecieveCredit" class="pushOff" name="RecieveCredit" <?php if(isset($RecieveCredit) && $RecieveCredit == '0') echo 'checked';?> > &nbsp;&nbsp;Off</label>
+							<label class="col-xs-5 no-padding"><input type="Radio"  value="1" class="pushOn" id="RecieveCredit"  name="RecieveCredit" <?php if(isset($RecieveCredit) && $RecieveCredit == '1') echo 'checked';?> > &nbsp;&nbsp;On</label>&nbsp;&nbsp;&nbsp;&nbsp;
+							<label class="col-xs-5 no-padding"><input type="Radio"  value="0" id="RecieveCredit" class="pushOff" name="RecieveCredit" <?php if(isset($RecieveCredit) && $RecieveCredit == '0') echo 'checked';?> > &nbsp;&nbsp;Off</label>
 						</div>
 					</div>					
 					

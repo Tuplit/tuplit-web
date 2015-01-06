@@ -64,6 +64,7 @@ class Notifications extends RedBean_SimpleModel implements ModelBaseInterface {
 		$log_content 	= 	'';
 		$blockIds 		= 	$condition = '';
 		$sounds			=	'1';
+		$orderAmount	=	0;
 		 if($type == 1)//transfer
 		 {
 			 $users 	= 	R::find("users", " id = ? or id =? ",[$bean->userId,$bean->toUserId]);
@@ -95,7 +96,7 @@ class Notifications extends RedBean_SimpleModel implements ModelBaseInterface {
 					{
 						foreach($endpointsArn as $key=>$value){
 							$this->updateBadgeForToken($value['DeviceToken'],1);
-							$success = sendNotificationAWS($message,$value['EndpointARN'],$value['Platform'],$value['BadgeCount'],$type,$bean->toUserId,$bean->userId,$sounds,'','',$notes);
+							$success = sendNotificationAWS($message,$value['EndpointARN'],$value['Platform'],$value['BadgeCount'],$type,$bean->toUserId,$bean->userId,$sounds,'','',$notes,$orderAmount);
 							if($success == '1')
 								$log_content .= "\r\n To user(".$toId.") : ".$message." - Success ";
 							else
@@ -133,7 +134,7 @@ class Notifications extends RedBean_SimpleModel implements ModelBaseInterface {
 					{
 						foreach($endpointsArn as $key=>$value){
 							$this->updateBadgeForToken($value['DeviceToken'],1);
-							$success = sendNotificationAWS($message,$value['EndpointARN'],$value['Platform'],$value['BadgeCount'],$type,$bean->orderId,$bean->userId,$sounds,$bean->merchantId,$companyName,'');
+							$success = sendNotificationAWS($message,$value['EndpointARN'],$value['Platform'],$value['BadgeCount'],$type,$bean->orderId,$bean->userId,$sounds,$bean->merchantId,$companyName,'',$orderAmount);
 							if($success == '1')
 								$log_content .= "\r\n To user(".$bean->userId.") : ".$message." - Success ";
 							else
@@ -149,12 +150,15 @@ class Notifications extends RedBean_SimpleModel implements ModelBaseInterface {
 		 if($type == 3 || $type == 4)//Approve or reject
 		 {	
 		 	$companyName 	= '';
-		 	$sql			=	'SELECT  d.*,u.Sounds from users as u
+		 	$sql			=	'SELECT  d.*,u.Sounds,u.WalletId from users as u
 								 left join devicetokens as d on (u.id = d.fkUsersId) where u.id = '.$bean->userId.' and  u.Status = 1 and u.PushNotification = 1  and d.Status = 1 ';
 			$user			=	R::getAll($sql);
 			if($user)
-			{
-				$sounds		=	$user[0]['Sounds'];
+			{				
+				if(isset($bean->orderAmount) && $bean->orderAmount > 0)
+					$orderAmount	=	$bean->orderAmount;
+				
+				$sounds			=	$user[0]['Sounds'];
 				$merchants 		= 	R::find("merchants", " id = ? ",[$bean->merchantId]);		
 			 	if($merchants)
 			 	{
@@ -167,14 +171,17 @@ class Notifications extends RedBean_SimpleModel implements ModelBaseInterface {
 						$message 	 	= 	'Merchant "'.$companyName.'"  has approved your order.';
 					}
 					if($type ==	4) {
-						$log_content 	= 	"\r\n REJECT ORDER (".date('H:i:s A').")\r\n";
-						$message 		= 	'Merchant "'.$companyName.'"  has rejected your order.';
+						if($bean->orderId == 'Refund')
+							$log_content 	= 	"\r\n REJECT / REFUND ORDER (".date('H:i:s A').")\r\n";
+						else
+							$log_content 	= 	"\r\n REJECT ORDER (".date('H:i:s A').")\r\n";
+						$message 		= 	'Merchant "'.$companyName.'"  has rejected your order and amount has been refunded to your account';
 					}	
 					$endpointsArn 		= 	R::find('devicetokens','fkUsersId = ? and Status = 1',[$bean->userId]);
 					if($endpointsArn) {
 						foreach($endpointsArn as $key=>$value){
 							$this->updateBadgeForToken($value['DeviceToken'],1);
-							$success = sendNotificationAWS($message,$value['EndpointARN'],$value['Platform'],$value['BadgeCount'],$type,$bean->orderId,$bean->userId,$sounds,$bean->merchantId,$companyName,'');
+							$success = sendNotificationAWS($message,$value['EndpointARN'],$value['Platform'],$value['BadgeCount'],$type,$bean->orderId,$bean->userId,$sounds,$bean->merchantId,$companyName,'',$orderAmount);
 							if($success == '1')
 								$log_content .= "\r\n To user(".$bean->userId.") : ".$message." - Success ";
 							else
@@ -187,36 +194,46 @@ class Notifications extends RedBean_SimpleModel implements ModelBaseInterface {
 				}
 			}
 		 }
+		
     }
 	
 	/**
 	* @param array of update badge params
 	*/
     public function updateBadgeForToken($token,$process){
-		
-		$bean = $this->bean;
-		if($process == 2){
-			$rules 	= 	[
-							'required' => [
-								['DeviceToken']
-							],
-						];
-			$bean->DeviceToken	= 	$token;
-	        $v 					= 	new Validator($bean);
-	        $v->rules($rules);
-	        if (!$v->validate()) {
-	            $errors = $v->errors();
-	            throw new ApiException("Please check DeviceToken" , HttpStatusCode::BadRequest, $errors);
-	        }
+		if($process == 4){
+			if($token == ''){
+				throw new ApiException("Please check DeviceToken." ,  ErrorCodeType::SomeFieldsRequired);
+			}
 			$valueToken1 = ltrim($token,'<');
-		    $token = Rtrim( $valueToken1,'>');
-		
-		}
-		if($process == 1){
-			R::exec("update devicetokens set BadgeCount = BadgeCount + 1 where DeviceToken = '".$token."'");
+			$token = Rtrim( $valueToken1,'>');
+			R::exec("update devicetokens set BadgeCount = 0 where DeviceToken = '".$token."'");
 		}
 		else{
-			R::exec("update devicetokens set BadgeCount = 0 where DeviceToken = '".$token."'");
+			$bean 			= 	$this->bean;
+			if($process == 2){
+				$rules 	= 	[
+								'required' => [
+									['DeviceToken']
+								],
+							];
+				$bean->DeviceToken	= 	$token;
+		        $v 					= 	new Validator($bean);
+		        $v->rules($rules);
+		        if (!$v->validate()) {
+		            $errors = $v->errors();
+		            throw new ApiException("Please check DeviceToken" , HttpStatusCode::BadRequest, $errors);
+		        }
+				$valueToken1 = ltrim($token,'<');
+			    $token = Rtrim( $valueToken1,'>');
+			
+			}
+			if($process == 1){
+				R::exec("update devicetokens set BadgeCount = BadgeCount + 1 where DeviceToken = '".$token."'");
+			}
+			else{
+				R::exec("update devicetokens set BadgeCount = 0 where DeviceToken = '".$token."'");
+			}
 		}
 	}
 	

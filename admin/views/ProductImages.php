@@ -6,6 +6,9 @@ $ProductObj   	=   new ProductController();
 $condition		= '';
 $startLimit			=   "0";
 if(isset($_GET['gettype']) && !empty($_GET['gettype']) && $_GET['gettype'] == 1) {
+	
+}
+if(isset($_GET['gettype']) && !empty($_GET['gettype']) && $_GET['gettype'] == 1) {
 	if(isset($_GET['merchantId']) && $_GET['merchantId']!='' && isset($_GET['prosearch']) && $_GET['prosearch']!=''){
 		$condition 		.= 	" and p.fkMerchantsId ='".$_GET['merchantId']."' and p.ItemName like '%".addslashes($_GET['prosearch'])."%'";
 	} else if(isset($_GET['merchantId']) && $_GET['merchantId']!=''){

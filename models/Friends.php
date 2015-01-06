@@ -204,7 +204,6 @@ class Friends extends RedBean_SimpleModel implements ModelBaseInterface {
 				$sql 	=  	"SELECT SQL_CALC_FOUND_ROWS u.id,u.FirstName,u.LastName,u.Photo,u.Email,u.FBId,u.GooglePlusId,max( o.id ) AS orderid, o.fkMerchantsId AS merchantId FROM users u 
 						LEFT JOIN orders o ON ( u.id = o.fkUsersId ".$fri_con.")
 						where  u.id != ".$userId." and u.Status = 1 ".$condition."  GROUP BY u.id ".$orderlimit;
-				//echo $sql;
 				$friendsArray		=  	R::getAll($sql);
 			}
 			$totalRec 			=  	R::getAll('SELECT FOUND_ROWS() as count');
@@ -309,7 +308,7 @@ class Friends extends RedBean_SimpleModel implements ModelBaseInterface {
 			$friends =	R::getAll($sql);
 			if($friends) {
 				if($friends[0]['Status'] == 1) {
-					throw new ApiException("You're already friends with this user. Awesome!", ErrorCodeType::InvitingOwnFriends);
+					throw new ApiException("You're already friend with this user. Awesome!", ErrorCodeType::InvitingOwnFriends);
 				} else {
 					$sql = "update friends set Status=1 where id=".$friends[0]['id'];
 					R::exec($sql);
@@ -335,30 +334,6 @@ class Friends extends RedBean_SimpleModel implements ModelBaseInterface {
 	public function validateParams()
     {
 		$bean 		= 	$this->bean;
-		/*if($bean->GoogleId == ''){
-		  	$rules 	= 	[
-							'required' => [
-								 ['GoogleId']
-							],
-							
-						];
-		}
-		else if($bean->Email == ''){
-			$rules 	= 	[
-							'required' => [
-								 ['Email']
-							],
-							
-						];
-		}
-		else if($bean->CellNumber == ''){
-			$rules 	= 	[
-							'required' => [
-								 ['CellNumber']
-							],
-							
-						];
-		}*/
 		if($bean->GoogleId == '' && $bean->Email == '' && $bean->CellNumber == ''){
 			$rules 	= 	[
 							'required' => [
@@ -380,7 +355,7 @@ class Friends extends RedBean_SimpleModel implements ModelBaseInterface {
 	/**
 	* Validate the modification
 	*/
-	public function validateUser($userId)
+	public function validateUser($userId,$type='')
     {
 		/**
 		* Get the identity of the person requesting the details
@@ -388,7 +363,10 @@ class Friends extends RedBean_SimpleModel implements ModelBaseInterface {
 		$requestedBy = R::findOne('users', 'id = ? and Status = ?', [$userId,StatusType::ActiveStatus]);
         if (!$requestedBy) {
             // the User was not found
-            throw new ApiException("Your status is not in active state", ErrorCodeType::UserNotInActiveStatus);
+			if($type == 1)
+				throw new ApiException("User you requested was not in active state", ErrorCodeType::UserNotInActiveStatus);
+			else
+				throw new ApiException("Your status is not in active state", ErrorCodeType::UserNotInActiveStatus);
         }
     }
 	
@@ -454,6 +432,37 @@ class Friends extends RedBean_SimpleModel implements ModelBaseInterface {
 				if($i > 0)
 					R::storeAll($friends);
 			}
+		}
+	}
+	
+	/**
+    * Add Friend
+    */
+	public function AddFriend(){
+		
+		/**
+		* Get the bean
+		*/
+		$bean 	= 	$this->bean;
+		$this->validateUser($bean->ToUserId,1);
+		$friends	=	R::getAll("SELECT id,Status from friends where 1 and ((fkUsersId = '".$bean->UserId."' and fkFriendsId='".$bean->ToUserId."') or (fkUsersId = '".$bean->ToUserId."' and fkFriendsId='".$bean->UserId."'))");
+		if($friends) {
+			if($friends[0]['Status'] == 1) {
+				throw new ApiException("You're already friend with this user. Awesome!" ,  ErrorCodeType::InvitingOwnFriends);			
+			} else {
+				$sql	=	"update friends set Status = 1 where id = ".$friends[0]['id'];
+				$friendId 	=	R::exec($sql);
+				return $friendId;
+			}		
+		} else {
+			$friends 				= 	R::dispense('friends');
+			$friends->fkUsersId		=	$bean->UserId;
+			$friends->fkFriendsId	=	$bean->ToUserId;
+			$friends->Status		=	1;
+			$friends->DateCreated	=	date('Y-m-d H:i:s');
+			// save the bean to the friends table
+			$friendId 				= 	R::store($friends);
+			return $friendId;
 		}
 	}
 }

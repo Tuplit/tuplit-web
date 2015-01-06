@@ -232,7 +232,13 @@ commonHead();
 	</section><!-- /.content -->
 <?php commonFooter(); ?>
 </html>
-
+<style>
+.only-fcycontent{
+	background-color: #fff;
+	padding:0 15px 15px 15px;
+	width: 800px;
+}
+</style>
 <script type="text/javascript"> 
 
 tinymce.init({

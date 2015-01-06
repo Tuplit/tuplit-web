@@ -20,7 +20,7 @@
 }
 .jcarousel input { display : block; }
 /** Carousel Controls **/
-.jcarousel-control-prev, .jcarousel-control-next {
+.jcarousel-control-prev, .jcarousel-control-next, .prevBtn, .nextBtn {
     position: absolute;
     top:  120px;
     margin-top: 0;
@@ -28,13 +28,13 @@
     height: 27px;
 	background:url(../images/prev.png) no-repeat;
 	text-indent:-9999px;
-	margin-left:38px;
-	margin-right:38px;
+	margin-left:30px;
+	margin-right:36px;
 	z-index:1;
 }
-.jcarousel-control-prev:hover, .jcarousel-control-next:hover{  opacity:1;  }
-.jcarousel-control-prev { left:0; right :inherit; }
-.jcarousel-control-next { right: 0;background:url(../images/next.png) no-repeat;}
+.jcarousel-control-prev:hover, .jcarousel-control-next:hover, .prevBtn:hover, .nextBtn:hover{  opacity:1;  }
+.jcarousel-control-prev, .prevBtn { left:0; right :inherit; }
+.jcarousel-control-next, .nextBtn { right: 0;background:url(../images/next.png) no-repeat;}
 
 
 

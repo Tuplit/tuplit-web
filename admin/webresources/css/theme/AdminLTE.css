@@ -349,7 +349,7 @@ body > .header .logo,  body > .header .navbar{width:100%;float:none;position:rel
 body > .header .navbar{margin:0;}
 body.fixed > .header{position:fixed;}
 body.fixed > .wrapper,  body.fixed .sidebar-offcanvas{margin-top:100px!important;}
-
+.statistics_tabs .col-sm-2 {width:100% !important;}
 /*.wrapper{padding-top:100px}*/
 }
 /*  Component:Sidebar--------*/
@@ -381,6 +381,7 @@ body.fixed > .wrapper,  body.fixed .sidebar-offcanvas{margin-top:100px!important
 body.fixed .sidebar-offcanvas{margin-top:50px;left:-220px;}
 body.fixed .row-offcanvas-left.active .navbar{left:220px !important;right:0;}
 body.fixed .row-offcanvas-left.active .sidebar-offcanvas{left:0;}
+
 }
 
 .sidebar .sidebar-menu > li  span{
@@ -1319,7 +1320,6 @@ a.focusButton{color: #fff ;background-color: #00b3a4;border-color: #00b3a4}
 	background:url(../../images/edit_icon.png) no-repeat 0 5px;
 	height: 28px;
     width: 23px;
-	
 }
 #category_list  .fa-trash-o {
 	background:url(../../images/remove_icon.png) no-repeat 0 5px;
@@ -1377,7 +1377,9 @@ a.focusButton{color: #fff ;background-color: #00b3a4;border-color: #00b3a4}
 .Currency a,.Locations a{/*font-weight: bold*/font: 17px/17px "HelveticaNeueLTStd65Medium",arial}
 .Currency a.add-more , .Locations a.add-more {color: #777}
 .Currency a.add-more:hover, .Locations a.add-more:hover{color: #01a99a}
-
+.content-header h3.send_push a {
+	background:url("../../images/push-icon.png") no-repeat;
+}
 .content-header h3 a{
 	background:url("../../images/add-icon.png") no-repeat;
 	color:#fff;
@@ -1395,6 +1397,7 @@ a.focusButton{color: #fff ;background-color: #00b3a4;border-color: #00b3a4}
 .fa-plus-circle:before{
 	content: ' ';
 }
+#add_service_form .fa-plus-circle:before{content:"\f055"}
 #location_list_block ul li:last-child label{color:#ccc;cursor:pointer;}
 
 .name,#tabs ul li a{
@@ -1563,6 +1566,12 @@ a.focusButton{color: #fff ;background-color: #00b3a4;border-color: #00b3a4}
 	width: 400px;
 }
 .only-fcycontent .preview{padding-top: 10px}
+.preview a{color:#428BCA;}
+.preview h3 {color:#000;font-family:"HelveticaNeue-Light STd", "Helvetica Neue Lt STd", "HelveticaNeueLTStd55Roman",Helvetica, Arial, "Lucida Grande", sans-serif;}
+.preview strong {font-family:'Helvetica Neue LT Std 75 Bold', 'helvetica neue lt std 75 bold', 'HelveticaNeueLTStd75Bold', sans-serif, 'Arial';font-weight:700;}
+.preview ul {list-style-type:disc;color:#68696B;padding-left:15px !important;margin-bottom:10px !important;}
+.preview ol {color:#68696B;padding-left:15px !important;margin-bottom:10px !important;}
+.preview p {margin-bottom:0px;padding-top:6px;}
 #currency_list_block table td{
 	font-family:'HelveticaNeueLTStd65Medium',arial;
 	color:#202020;
@@ -1600,7 +1609,8 @@ a.focusButton{color: #fff ;background-color: #00b3a4;border-color: #00b3a4}
 	margin-left: 15px
 }
 .only-fcycontent ol,.only-fcycontent ul{margin: 0;padding: 0}
-.only-fcycontent img{width: 100%;height: auto}
+/*.only-fcycontent img{width: 100%;height: auto} */
+
 
 /****************************************LOGIN***********************************/
 .login-box {
@@ -1993,7 +2003,17 @@ h2.location-title{margin-top: 0;}
 	.slider_page .col-sm-6{width:40%}
 	.slider_page .box-body{	padding:0;}
 	.content-header .col-xs-8{	width:68%;}
-	
+}
+@media screen and (max-width:360px){
+	.edit_version  {min-width:170px;display:inline-block;float:left !important; }
+	#appstatus_form .butbor.save-button, #add_newapp .borbut.save-button{margin-left:4px;}
+}
+@media only screen 
+and (min-device-width : 320px) 
+and (max-device-width : 480px) 
+and (orientation : portrait) {
+	#add_newapp .col-xs-12.col-sm-2 { width:100% !important;margin-top:10px;}
+	#add_newapp	.button_center {text-align:center;width:100% !important;}
 }
 @media (max-width: 479px){
 	.only-fcycontent{width: 300px}
@@ -2059,6 +2079,20 @@ h2.location-title{margin-top: 0;}
 	h1,.h1{margin-bottom: 15px !important}
 	#location_list_block .radio{padding: 2px 50px 2px 0}
 	
+	
+	#appstatus_form #category_list td {min-width:127px;}
+	#add_newapp td {min-width:127px;}
+	#add_newapp	.button_center {text-align:center;width:100% !important;}
+	#appstatus_form .butbor, #add_newapp  .borbut{float:left !important;}
+	/*#add_newapp .borbut, #appstatus_form .butbor {width:64%;display:inline-block;margin-right:6px;}
+	#add_newapp .borbut.save-button, #appstatus_form .butbor.save-button {width:0%;display:inline-block;}*/
+	#add_newapp .borbut input, #appstatus_form .butbor input {min-width:56px !important;}
+	#add_newapp select#device_type {min-width:111px !important;}
+	#add_newapp  select.form-control, #appstatus_form select.form-control, #add_newapp  input.form-control, #appstatus_form input.form-control {min-width:134px;}
+	.edit_version  {min-width:170px;display:inline-block;float:left !important; }
+	#appstatus_form .butbor.save-button, #add_newapp .borbut.save-button{margin-left:4px;}
+
+	
 }
 @media (max-width: 767px){
 	h1, .h1{ margin-bottom: 10px !important;}
@@ -2095,6 +2129,10 @@ h2.location-title{margin-top: 0;}
 }
 @media only screen and (min-width:768px) and (max-width:1024px) {
 	.overview-perfamence .graph-initialised{width: 195px  !important}
+	#add_newapp .borbut, #appstatus_form .butbor {float:left;}
+	#add_newapp  select.form-control, #appstatus_form select.form-control, #add_newapp  input.form-control, #appstatus_form input.form-control {min-width:80px !important;}
+	#add_newapp .borbut input, #appstatus_form .butbor input {min-width:40px !important;}
+	
 }
 @media only screen and (min-device-width:768px) and (max-device-width:1024px) and (orientation:landscape){
 	#custom_report .table-responsive,#LocationBreakdown .table-responsive{
@@ -2105,13 +2143,15 @@ h2.location-title{margin-top: 0;}
 		width: 100%;
 	}
 	.overview-perfamence .graph-initialised{width:55%}
+	#add_newapp .borbut, #appstatus_form .butbor {float:none;}
+	.edit_version  {min-width:170px;display:inline-block; }
 	
 	
 }
 @media only screen and (min-device-width:768px) and (max-device-width:1024px) and (orientation:portrait){
 	.row_bg .col-sm-9{width:75%}
 	.row_bg .col-sm-3{width:25%}
-	
+	#add_newapp .borbut input, #appstatus_form .butbor input {min-width:52px !important;padding:10px 4px !important;}
 }
 
 
@@ -2188,3 +2228,18 @@ h2.location-title{margin-top: 0;}
     padding: 10px 0 !important;
 }
 .paging-margin  #per_page{margin-right: 0}
+
+/** Add Newapp **/
+#add_newapp .borbut input, #appstatus_form .butbor input {min-width:98px;padding:10px 10px;margin-right:0px;line-height:20px !important;margin-bottom:0px;}
+#add_newapp .borbut input.mR-button,  #appstatus_form .butbor input.mR-button {/*margin-bottom:25px;*/}
+#appstatus_form .butbor input, #appstatus_form .butbor input.mR-button {margin-bottom:0px;}
+.add_appversion a {	background:url("../../images/add-icon.png") no-repeat 5px #2F2F2F;
+	color:#fff;
+	/*height: 25px;*/
+    padding-left:38px;
+    display: inline-block;
+}
+/*#add_newapp .error_msg {padding-bottom:15px;}*/
+.error_msg {color:#F00;font-size:13px;text-align:left;}
+.statistics_tabs .col-sm-2 {width:20%;}
+.send_push_box {border:1px solid #DBDBDB;border-color:#DBDBDB !important;}

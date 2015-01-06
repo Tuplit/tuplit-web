@@ -225,27 +225,50 @@ class Comments extends RedBean_SimpleModel implements ModelBaseInterface {
 		}
 		$commantsArray 	= 	array();
 		
-		$sql		   	= 	"SELECT SQL_CALC_FOUND_ROWS c.id as CommentId,CommentsText,c.Platform, c.CommentDate as CommentDate ,u.Photo as UserPhoto,
-							u.id as UserId ,concat(u.FirstName,' ',u.LastName)as UserName,m.id as merchantId,m.CompanyName as MerchantName,m.Icon as MerchantIcon
-							from comments as c
-							left join users as u on (u.id = c.fkUsersId)
-							left join merchants as m on (m.id = c.fkMerchantsId)
-							where 1 ".$condition." and c.Status = 1 and u.Status = 1 order by c.id desc limit $start,$limit";
-
+		$leftJoin	=	$groupBy	=	'';
+		if($type == 3) {
+			$fields 	= 	" c.id as CommentId,c.fkUsersId as UsersId, concat(u.FirstName,' ',u.LastName)as UserName,c.CommentsText, c.CommentDate, c.Platform,p.ItemName,p.Photo as ProductImage ";
+			$leftJoin	=	" 	LEFT JOIN orders o ON (c.fkOrderId = o.id)
+								LEFT JOIN carts ca ON (o.fkCartId = ca.CartId)
+								LEFT JOIN products p ON (ca.fkProductsId = p.id && p.Status != 3)";
+			$groupBy 	=	" group by c.id ";
+		} else {
+			$fields 	= 	"c.id as CommentId,CommentsText,c.Platform, c.CommentDate as CommentDate ,u.Photo as UserPhoto,
+								u.id as UserId ,concat(u.FirstName,' ',u.LastName)as UserName,m.id as merchantId,m.CompanyName as MerchantName,m.Icon as MerchantIcon ";
+		}
+		
+		$sql		= 	"SELECT SQL_CALC_FOUND_ROWS ".$fields."from comments as c
+						left join users as u on (c.fkUsersId = u.id)
+						left join merchants as m on (c.fkMerchantsId = m.id) ".$leftJoin."
+						where 1 ".$condition." and u.Status = 1 and c.Status = 1 ".$groupBy." order by c.CommentDate desc limit $start,$limit";
+		//echo $sql;
 	   	$commentresult 	= 	R::getAll($sql);
 		$totalRec 		=  	R::getAll('SELECT FOUND_ROWS() as count');
 		$total 			= 	$totalRec[0]['count'];
 		if(is_array($commentresult) && count($commentresult) > 0){
 			foreach($commentresult as $key=>$value){
-				if($value['MerchantIcon'] !='')
-					$value['MerchantIcon'] 	= 	MERCHANT_ICONS_IMAGE_PATH.$value['MerchantIcon'];
-				else
-					$value['MerchantIcon'] 	= 	'';
+				if($type == 3) {
+					
+					if($value['ItemName'] !='')
+						$value['ItemName'] 		= $value['ItemName'];
+					else
+						$value['ItemName'] 		= '';
+					
+					if($value['ProductImage'] !='')
+						$value['ProductImage'] 	= 	PRODUCT_IMAGE_PATH.$value['ProductImage'];
+					else
+						$value['ProductImage'] 	= 	'';
+				} else {
+					if($value['MerchantIcon'] !='')
+						$value['MerchantIcon'] 	= 	MERCHANT_ICONS_IMAGE_PATH.$value['MerchantIcon'];
+					else
+						$value['MerchantIcon'] 	= 	'';
 
-				if($value['UserPhoto'] !='')
-					$value['UserPhoto'] 	= 	USER_THUMB_IMAGE_PATH.$value['UserPhoto'];
-				else
-					$value['UserPhoto'] = '';
+					if($value['UserPhoto'] !='')
+						$value['UserPhoto'] 	= 	USER_THUMB_IMAGE_PATH.$value['UserPhoto'];
+					else
+						$value['UserPhoto'] = '';					
+				}
 				$value['CommentsText'] 		= 	getCommentTextEmoji($bean->Platform,$value['CommentsText'],$value['Platform']);
 				unset($value['Platform']);
 				$commantsArray[$key] 		=	$value;
@@ -316,10 +339,10 @@ class Comments extends RedBean_SimpleModel implements ModelBaseInterface {
 		* Get the bean
 		* @var $bean Comments
 		*/
-        $bean 	 		=  $this->bean;
-		$merchantId 	=  $bean->MerchantId;
-		$start  		=  $bean->Start;
-		$limit  		=  $bean->Limit;
+        $bean 	 		=  	$this->bean;
+		$merchantId 	=  	$bean->MerchantId;
+		$start  		=  	$bean->Start;
+		$limit  		=  	$bean->Limit;
 		$comments		=	$output = array();
 		$this->validateMerchant();
 		$commentSql 	= " SELECT SQL_CALC_FOUND_ROWS c.fkUsersId as UsersId,c.CommentsText,c.CommentDate,c.Platform,u.FirstName,u.LastName,u.Photo  from comments c 
@@ -353,7 +376,7 @@ class Comments extends RedBean_SimpleModel implements ModelBaseInterface {
 		* Get the bean
 		* @var $bean Comments
 		*/
-		$condition 	= 	'';
+		$condition 	= 	$time_zone = '';
         $bean 	 	=  	$this->bean;
 		$merchantId =  	$bean->MerchantId;
 		$start  	=  	$bean->Start;
@@ -364,13 +387,9 @@ class Comments extends RedBean_SimpleModel implements ModelBaseInterface {
 			$merchantValid  = $this->validateMerchantId($merchantId);
 		}
 		$commantsArray 	= 	array();
-		if(!isset($_SESSION['tuplit_ses_from_timeZone']) || $_SESSION['tuplit_ses_from_timeZone'] == ''){
-			$time_zone 	= 	getTimeZone();
-			$_SESSION['tuplit_ses_from_timeZone'] = strval($time_zone);
-		} else {
-			$time_zone 	= 	$_SESSION['tuplit_ses_from_timeZone'];
-		}
 		$dataType 		= 	$bean->DataType;
+		if($bean->TimeZone)
+		$time_zone 		= 	$bean->DataType;
 		$curr_date 		= 	date('d-m-Y');
 		$cur_month 		= 	date('m');
 		$cur_year 		= 	date('Y');
@@ -379,34 +398,30 @@ class Comments extends RedBean_SimpleModel implements ModelBaseInterface {
 		} else if($dataType=='month') {
 			$condition .= 	"and DATE_FORMAT(CommentDate,'%m') = ".$cur_month." and DATE_FORMAT(CommentDate,'%Y') = ".$cur_year." ";
 		} else if($dataType=='day') {
-			$condition .= 	" and  DATE_FORMAT( CommentDate, '%Y-%m-%d' ) ='".date('Y-m-d',strtotime($curr_date))."'";
+			$condition .= 	" and date(DATE_ADD(CommentDate,INTERVAL '".$time_zone."' HOUR_MINUTE))='".date('Y-m-d',strtotime($curr_date))."'";
 		} else if($dataType=='7days') {
 			$condition 		.= 	"and (DATE_FORMAT(CommentDate,'%Y-%m-%d') <= '".date('Y-m-d',strtotime($curr_date))."' and DATE_FORMAT(CommentDate,'%Y-%m-%d') > '".date('Y-m-d',strtotime("-7 days"))."')";
 		}
 		$leftJoin	=	$groupBy	=	'';
-		$fields 	= 	" c.id as CommentId,c.fkUsersId as UsersId, concat(u.FirstName,' ',u.LastName)as UserName,c.CommentsText, c.CommentDate, c.Platform,p.ItemName,p.Photo as ProductImage ";
+		$fields 	= 	" c.id as CommentId,c.fkUsersId as UsersId, u.FirstName,u.LastName,c.CommentsText, c.CommentDate, c.Platform ";
 		$groupBy 	=	" group by c.id ";
-		
-		$sql		= 	"SELECT SQL_CALC_FOUND_ROWS ".$fields."from comments as c
-						left join users as u on (c.fkUsersId = u.id)
-						left join orders as o on (o.id = c.fkOrderId)
-						left join carts ca ON (ca.CartId = o.fkCartId)
-						left join products p ON (ca.fkProductsId = p.id and  p.Status = 1)
-						where 1 ".$condition." and c.fkOrderId != 0 and  c.fkMerchantsId = ".$merchantId." and   c.Status = 1 ".$groupBy." order by c.CommentDate desc limit $start,$limit";
+
+		/*$sql		=	"SELECT SQL_CALC_FOUND_ROWS  ".$fields." from comments as c
+							left join users as u on (c.fkUsersId = u.id)
+							left join orders as o on (o.id = c.fkOrderId)
+							left join (select * from carts ORDER BY RAND() ) as ca ON (ca.CartId = o.fkCartId)
+							left join products  as  p ON (ca.fkProductsId = p.id)
+							where 1 ".$condition."  and p.Status = 1 and c.fkOrderId != 0 and  c.fkMerchantsId = ".$merchantId." and   c.Status = 1  ".$groupBy."  order by c.CommentDate desc limit $start,$limit";*/
+		$sql		=	"SELECT SQL_CALC_FOUND_ROWS  ".$fields." from comments as c
+							left join users as u on (c.fkUsersId = u.id)
+							where 1 ".$condition." and c.fkMerchantsId = ".$merchantId." and   c.Status = 1  ".$groupBy."  order by c.CommentDate desc limit $start,$limit";
+		//echo"<br>===================>".$sql;
 	   	$commentresult 	= 	R::getAll($sql);
 		$totalRec 		=  	R::getAll('SELECT FOUND_ROWS() as count');
 		$total 			= 	$totalRec[0]['count'];
 		if(is_array($commentresult) && count($commentresult) > 0){
 			foreach($commentresult as $key=>$value){
-				if($value['ItemName'] !='')
-					$value['ItemName'] 		= $value['ItemName'];
-				else
-					$value['ItemName'] 		= '';
-				
-				if($value['ProductImage'] !='')
-					$value['ProductImage'] 	= 	PRODUCT_IMAGE_PATH.$value['ProductImage'];
-				else
-					$value['ProductImage'] 	= 	'';
+				$value['UserName'] 			= 	ucfirst($value['FirstName']).' '.$value['LastName'];
 				$value['CommentsText'] 		= 	getCommentTextEmoji($bean->Platform,$value['CommentsText'],$value['Platform']);
 				unset($value['Platform']);
 				$commantsArray[$key] 		=	$value;

@@ -1,5 +1,6 @@
 <?php
 
+ini_set('max_execution_time', 10000); 
 /**
  * Users endpoint
  * /v1/users
@@ -440,22 +441,20 @@ $app->put('/resetPassword', function () use ($app) {
         $request 	= 	$app->request();
     	$body 		= 	$request->getBody();
     	$input 		= 	json_decode($body); 
-		
-		// Create a json response object
-       $response 	= 	new tuplitApiResponse();
+	   
 		/**
          * Get a users table instance
          */
         $users = R::dispense('users');
 		if(isset($input->UserId)) 		$users->UserId 		= $input->UserId;
 		if(isset($input->Password)) 	$users->Password 	= $input->Password;
-		/*$users->UserId		= $req->params('UserId');
-		$users->Password 	= $req->params('Password');*/
 		
 		//Resetting password
 		$userId		 		= $users->updatePassword();
 		
 		if($userId != ''){
+			// Create a json response object
+			$response 	= 	new tuplitApiResponse();
      		$response->setStatus(HttpStatusCode::Created);
       		$response->meta->dataPropertyName = 'users';
 			$response->addNotification('Password updated successfully.');
@@ -492,9 +491,7 @@ $app->get('/forgetPassword', function () use ($app) {
     try {
 		// Create a http request
         $req = $app->request();
-		
-		// Create a json response object
-       $response = new tuplitApiResponse();
+
 		/**
          * Get a users table instance
          */
@@ -519,6 +516,9 @@ $app->get('/forgetPassword', function () use ($app) {
      		
 			$content	=	array("status"	    =>	"Success",
 						  	 	  "message"  	=>	"An email has been sent to you with link to reset your password.");
+			
+			// Create a json response object
+			$response = new tuplitApiResponse();
 			$response->returnedObject = $content;
 			$response->setStatus(HttpStatusCode::Created);
         	$response->meta->dataPropertyName = 'users';
@@ -639,25 +639,7 @@ $app->put('/',tuplitApi::checkToken(), function () use ($app) {
 			   }
 		}
 		$user->modify($userId,1);
-		
-		/*$userListResult  = R::getAll("select Photo from users where id ='".$userId."' and Status=1");
-		if($userListResult) {
-			if(isset($input->Photo) && $input->Photo !=''){			
-				$imageOriginalPath 		= 	UPLOAD_USER_PATH_REL.$imageName;
-				$imageThumbPath 		= 	UPLOAD_USER_THUMB_PATH_REL.$imageName;
-				copy($input->Photo,$imageOriginalPath);
-				
-				$phMagick = new phMagick($imageOriginalPath);
-				$phMagick->setDestination($imageThumbPath)->resize(100,100);
-				
-				if(SERVER){
-					uploadImageToS3($imageOriginalPath,1,$imageName);
-					uploadImageToS3($imageThumbPath,2,$imageName);
-					unlink($imageOriginalPath);
-					unlink($imageThumbPath);
-				}
-			}
-		}*/
+
         /**
          * New user creation was made success
          */
@@ -701,8 +683,7 @@ $app->post('/checkfriends',tuplitApi::checkToken(), function () use ($app) {
 		
     	$input = json_decode($body); 
 		$requestedById = tuplitApi::$resourceServer->getOwnerId();
-		// Create a json response object
-        $response = new tuplitApiResponse();
+
 		/**
          * Get a friends table instance
          */
@@ -724,7 +705,8 @@ $app->post('/checkfriends',tuplitApi::checkToken(), function () use ($app) {
          * Send mail to registered user
          */
 		 if($friendsDetails){
-
+			// Create a json response object
+			$response = new tuplitApiResponse();
 			$response->setStatus(HttpStatusCode::Created);
         	$response->meta->dataPropertyName = 'user';
 			$response->returnedObject = $friendsDetails;
@@ -767,9 +749,6 @@ $app->get('/friends',tuplitApi::checkToken(),function () use ($app) {
 		
 		$requestedById 		= 	tuplitApi::$resourceServer->getOwnerId();		
 		$start 				= 	0;
-
-		// Create a json response object
-        $response 			= 	new tuplitApiResponse();
 			
 		/**
          * Get a friends table instance
@@ -787,6 +766,8 @@ $app->get('/friends',tuplitApi::checkToken(),function () use ($app) {
 		$friendsList			= 	$friends->usersFriendsList();
 		
 		if($friendsList && $friendsList['listedCount'] != 0){
+			// Create a json response object
+			$response 			= 	new tuplitApiResponse();
      		$response->setStatus(HttpStatusCode::Created);
       		$response->meta->dataPropertyName 	= 	'userFriendsList';
 			$response->meta->totalCount  		= 	$friendsList['totalCount'];
@@ -966,7 +947,6 @@ $app->get('/',tuplitApi::checkToken(),function () use ($app) {
      		$response->setStatus(HttpStatusCode::Created);
       		$response->meta->dataPropertyName 	= 'userList';
       		$response->meta->TotalUsers 		= $usersList['TotalCount'];
-      		//$response->meta->TotalListed 		= $usersList['TotalListed'];
 			$response->returnedObject 			= $usersList['result'];
 			echo $response;
 		}
@@ -975,63 +955,6 @@ $app->get('/',tuplitApi::checkToken(),function () use ($app) {
 			* No users found in your location
 			*/
 			throw new ApiException(" No users found in your location." ,  ErrorCodeType::NoResultFound);
-		}
-    }
-    catch (ApiException $e){
-        // If occurs any error message then goes here
-        tuplitApi::showError(
-            $e,
-            $e->getHttpStatusCode(),
-            $e->getErrors()
-        );
-    }
-    catch (\Slim\Exception\Stop $e){
-        // If occurs any error message for slim framework then goes here
-    }
-    catch (Exception $e) {
-        // If occurs any error message then goes here
-        tuplitApi::showError($e);
-    }
-});
-
-/**
- * User's orders
- * GET/v1/users/
- */
-$app->get('/:userId/orders',tuplitApi::checkToken(),function ($userId) use ($app) {	
-    try {
-		// Create a http request		
-        $req = $app->request();			
-		
-		// Create a json response object
-        $response = new tuplitApiResponse();
-
-		/**
-         * Get a users table instance
-         */
-        $orders 	= R::dispense('orders');
-		if($req->params('Start') != '') 
-			$orders->Start	= $req->params('Start');
-		else
-			$orders->Start	= 0;
-		/**	
-		*	Getting orders List
-		*/
-		
-		$ordersList	= $orders->getUserOrderDetails($userId);
-		if($ordersList['Total'] > 0){
-     		$response->setStatus(HttpStatusCode::Created);
-      		$response->meta->dataPropertyName 	= 'OrdersList';
-      		$response->meta->TotalOrders 		= $ordersList['Total'];
-      		$response->meta->ListedOrders 		= count($ordersList['OrderDetails']);
-			$response->returnedObject 			= $ordersList['OrderDetails'];
-			echo $response;
-		}
-		else{
-			/** 
-			* No orders found
-			*/
-			throw new ApiException(" No Orders found for this user." ,  ErrorCodeType::NoResultFound);
 		}
     }
     catch (ApiException $e){
@@ -1062,7 +985,7 @@ $app->get('/transactions',tuplitApi::checkToken(), function () use ($app) {
 		if($req->params('UserId') != '') 
 			$userId		= $req->params('UserId');
 		else
-		$userId 		= 	tuplitApi::$resourceServer->getOwnerId();
+			$userId 	= 	tuplitApi::$resourceServer->getOwnerId();
 		// Create a json response object
         $response 		= 	new tuplitApiResponse();
 				
@@ -1116,9 +1039,9 @@ $app->get('/:userId',tuplitApi::checkToken(), function ($userId) use ($app) {
 
     try {		
 		// Create a http request
-        $req = $app->request();
-		$requestedById = tuplitApi::$resourceServer->getOwnerId();
-		$ownerType = tuplitApi::$resourceServer->getOwnerType();
+        $req 			= $app->request();
+		$requestedById 	= tuplitApi::$resourceServer->getOwnerId();
+		$ownerType 		= tuplitApi::$resourceServer->getOwnerType();
         /**
          * Get a user account details
          * @var Users $user
@@ -1290,41 +1213,30 @@ $app->post('/connect',tuplitApi::checkToken(),function () use ($app) {
 		// Create a http request
         $req 			= 	$app->request();		
 		$requestedById 	= 	tuplitApi::$resourceServer->getOwnerId();
-		// Create a json response object
-        $response 		= 	new tuplitApiResponse();
-		
+				
 		/**
          * Get a merchants table instance
          */
-		$users 				= R::dispense('users');		
+		$users 				= R::dispense('users');			
 		
-		
-		if($req->params('FirstName'))
-			$users->FirstName			=	$req->params('FirstName');
-		if($req->params('LastName'))
-			$users->LastName			=	$req->params('LastName');
-		if($req->params('Email'))
-			$users->Email				=	$req->params('Email');
-		if($req->params('Address'))
-			$users->Address				=	$req->params('Address');
-		if($req->params('Nationality'))
-	    	$users->Nationality			=	$req->params('Nationality');
-		if($req->params('Country'))
-			$users->Country				=	$req->params('Country');
-		if($req->params('Occupation'))
-			$users->Occupation			=	$req->params('Occupation');
-		if($req->params('Currency'))
-			$users->Currency			=	$req->params('Currency');
-		if($req->params('Birthday'))
-			$users->Birthday			=	$req->params('Birthday');
-		if($req->params('IncomeRange'))
-			$users->IncomeRange			=	$req->params('IncomeRange');
+		if($req->params('FirstName'))			$users->FirstName			=	$req->params('FirstName');
+		if($req->params('LastName'))			$users->LastName			=	$req->params('LastName');
+		if($req->params('Email'))				$users->Email				=	$req->params('Email');
+		if($req->params('Address'))				$users->Address				=	$req->params('Address');
+		if($req->params('Nationality'))	    	$users->Nationality			=	$req->params('Nationality');
+		if($req->params('Country'))				$users->Country				=	$req->params('Country');
+		if($req->params('Occupation'))			$users->Occupation			=	$req->params('Occupation');
+		if($req->params('Currency'))			$users->Currency			=	$req->params('Currency');
+		if($req->params('Birthday'))			$users->Birthday			=	$req->params('Birthday');
+		if($req->params('IncomeRange'))			$users->IncomeRange			=	$req->params('IncomeRange');
 			
 		$mangopayDetails				=   $users->addMangoPayDetails($requestedById);
 		if($mangopayDetails){
+			// Create a json response object
+			$response 		= 	new tuplitApiResponse();
 	        $response->setStatus(HttpStatusCode::Created);
 	        $response->meta->dataPropertyName 	= 'MangoPay Account';		
-			$response->addNotification('MangoPay account has been created successfully');
+			$response->addNotification('Mangopay account has been created successfully');
        		echo $response;
 		}
 		else {
@@ -1366,14 +1278,11 @@ $app->put('/currentLocation',tuplitApi::checkToken(), function () use ($app) {
 		$body 				= 	$req->getBody();
     	$input 				= 	json_decode($body); 
 		
-		//create a user table instance
-		
+		//create a user table instance		
         $users 				= 	R::dispense('users');
 		$users->UserId	 	= 	$userId;
-		if(isset($input->Latitude)) 
-		$users->Latitude 	= 	$input->Latitude;
-		if(isset($input->Longitude))
-		$users->Longitude 	= 	$input->Longitude;
+		if(isset($input->Latitude)) 		$users->Latitude 	= 	$input->Latitude;
+		if(isset($input->Longitude))		$users->Longitude 	= 	$input->Longitude;
 	    $locationUpdate		= 	$users->locationUpdate();		
 		 if($locationUpdate){
 			$response 			= 	new tuplitApiResponse();
@@ -1399,6 +1308,103 @@ $app->put('/currentLocation',tuplitApi::checkToken(), function () use ($app) {
         tuplitApi::showError($e);
     }
 });
+
+/**
+* Add friend
+* POST /v1/users/{USERID}/friend
+*/
+$app->post('/:userId/friend',tuplitApi::checkToken(), function ($userId) use ($app) {
+
+    try {		
+		// Create a http request
+		$req 				= 	$app->request();
+		$requestedById 		= 	tuplitApi::$resourceServer->getOwnerId();			
+		
+		if($requestedById == $userId) 
+			throw new ApiException("Oops! You can't add yourself!" ,  ErrorCodeType::NotAllowed);			
+			
+		$friends 				= 	R::dispense('friends');
+		$friends->UserId	 	= 	$requestedById;
+		$friends->ToUserId		= 	$userId;
+		$addFriend				= 	$friends->AddFriend();
+		if($addFriend) {
+			$response 			= 	new tuplitApiResponse();
+			$response->setStatus(HttpStatusCode::Created);
+			$response->meta->dataPropertyName = 'AddFriend';		
+			$response->addNotification('User you requested is added as your friend');
+			echo $response;	
+		}
+    }
+    catch (ApiException $e){
+        // If occurs any error message then goes here
+        tuplitApi::showError(
+            $e,
+            $e->getHttpStatusCode(),
+            $e->getErrors()
+        );
+    }
+    catch (\Slim\Exception\Stop $e){
+        // If occurs any error message for slim framework then goes here
+    }
+    catch (Exception $e) {
+        // If occurs any error message then goes here
+        tuplitApi::showError($e);
+    }
+});
+
+/*
+/**
+ * Get user Details
+ * GET /v1/users
+ */
+$app->get('/accountdetails/',tuplitApi::checkToken(), function () use ($app) {
+
+    try {	
+		// Create a http request
+        $req 			= $app->request();
+		$requestedById 	= tuplitApi::$resourceServer->getOwnerId();
+		
+        /**
+         * Get a user account details
+         * @var Users $user
+         */
+		$user 			= 	R::dispense('users');
+		$user->UserId 	= 	$requestedById;
+        $accountdetails 	= 	$user->getAccountDetails();	
+		if($accountdetails){
+	        $response = new tuplitApiResponse();
+	        $response->setStatus(HttpStatusCode::Ok);
+	        $response->meta->dataPropertyName 	= 	'AccountDetails';
+			$response->returnedObject 			= 	$accountdetails;
+	        $response->addNotification('Account Details has been retrieved successfully');
+	        echo $response;
+		}
+		else {
+			/** 
+			* Some error has occurred while getting user details
+			*/
+			throw new ApiException("User not found", ErrorCodeType::NoResultFound);
+		}
+
+    }
+    catch (ApiException $e){
+        // If occurs any error message then goes here
+        tuplitApi::showError(
+            $e,
+            $e->getHttpStatusCode(),
+            $e->getErrors()
+        );
+    }
+    catch (\Slim\Exception\Stop $e){
+        // If occurs any error message for slim framework then goes here
+    }
+    catch (Exception $e) {
+        // If occurs any error message then goes here
+        tuplitApi::showError($e);
+    }
+});
+
+
 /**
  * Start the Slim Application
  */

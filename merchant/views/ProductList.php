@@ -98,7 +98,7 @@ commonHead();
 			<!-- Total products -->
 			<div class="pull-left white_area">
 				<?php if($Totalproducts > 0)
-						echo "<big>".$Totalproducts."</big><span> items<br>Added</span>";
+						echo "<big id='toptotpro'>".$Totalproducts."</big><span> items<br>Added</span>";
 					else
 						echo "<span>No items added</span>";
 				?>
@@ -109,7 +109,7 @@ commonHead();
 			<div class="nodiscount" <?php if($Discounted == 1) echo ''?>>
 				<div class="pull-left">
 				<?php if($TotalDiscountApplied > 0)
-						echo "<big>".$TotalDiscountApplied."</big><p>items<br> discounted</p>";
+						echo "<big id='topdispro'>".$TotalDiscountApplied."</big><p>items<br> discounted</p>";
 					else
 						echo "<p>No items discounted</p>";
 				?>
@@ -161,7 +161,7 @@ commonHead();
 					<div class="col-xs-12">
 						<div align="center" id="alert_dragList_special" class="alert alert-success alert-dismissable  col-lg-5 col-sm-7  col-md-5 col-xs-12 hideshowalert" style="display:none;"><i class="fa fa-check"></i>&nbsp;&nbsp;Selected products deleted successfully.</div>
 					</div>	
-					<div class="row no-margin col-xs-12 clear draggableListspecial" id="dragList_special">										
+					<div class="row no-margin col-xs-12 clear draggableListspecial" id="dragList_special" style="margin-bottom:20px;">	
 						<?php 
 							if(isset($specialArray) && count($specialArray) > 0) {
 								foreach($specialArray as $key1=>$value1 ) {								
@@ -179,15 +179,17 @@ commonHead();
 													<?php 
 														if($value1['OriginalPrice'] != '0.00') {
 															echo "<div class='cal pull-center'><strong>".price_fomat($value1['Price'])."</strong></div>";  
-															echo "<div class='cal actual_price pull-center' style='color:gray;'>".price_fomat($value1['OriginalPrice'])."</div> "; 
+															echo "<div class='cal actual_price pull-center' style='color:gray;'>".price_fomat($value1['OriginalPrice'])."</div> ";
+														?> <input type="hidden" id="product_discount_type_<?php echo $value1["ProductId"]; ?>" value="1" /><?php
 														} else {
 															echo "<div class='cal actual_price' style='color:gray;'>".price_fomat($value1['Price'])."</div> "; 
+														?> <input type="hidden" id="product_discount_type_<?php echo $value1["ProductId"]; ?>" value="" /><?php
 														}
 													?>
-													</div>
 												</div>
+											</div>
 										</div> 
-						<?php }  }  }?>										
+						<?php }  }  }?>	
 					</div><!-- /row -->
 					</div>
 				</div>
@@ -222,7 +224,7 @@ commonHead();
 									$value = subval_sort($value,'Ordering');
 									foreach($value as $key1=>$value1 ) {
 										if($value1["ProductId"]!= ''){ ?>	
-											<div class="col-xs-6 col-md-2 col-sm-2 <?php //if($value1['Status'] == 2) echo "inactive";?> paneldragging" id="<?php echo $value1["ProductId"];?>">
+											<div class="col-xs-6 col-md-2 col-sm-2 <?php //if($value1['Status'] == 2) echo "inactive";?> paneldragging" id="<?php echo $value1["ProductId"];?>" onclick="clss(this);">
 												<div id="<?php echo $value1["ProductId"]."_pro";?>" class="small-box panel-heading" onclick="cls(this);">
 													<div class="list_box" style="background-image:url(<?php echo $value1['Photo']; ?>);">
 														<a onclick="return loaded;" href="<?php echo $value1['Photo'];?>" class="Product_fancybox" title="<?php echo ucfirst($value1['ItemName']);?>">
@@ -236,8 +238,10 @@ commonHead();
 														if($value1['DiscountPrice'] > 0){
 															echo "<div class='cal pull-center'><strong>".price_fomat($value1['DiscountPrice'])."</strong></div>";  
 															echo "<div class='cal actual_price pull-center' style='color:gray;'>".price_fomat($value1['Price'])."</div> "; 
+														?> <input type="hidden" id="product_discount_type_<?php echo $value1["ProductId"]; ?>" value="1" /><?php
 														} else {
 															echo "<div class='cal actual_price' style='color:gray;'><strong>".price_fomat($value1['Price'])."</strong></div> "; 	
+														?> <input type="hidden" id="product_discount_type_<?php echo $value1["ProductId"]; ?>" value="" /><?php
 														}
 													?>
 													</div>
@@ -373,5 +377,6 @@ commonHead();
 			}			
 		});	
 		
+		//select all and drag
 	</script>
 </html>

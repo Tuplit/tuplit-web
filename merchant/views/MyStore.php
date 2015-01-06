@@ -1,5 +1,5 @@
 <?php
-require_once('includes/CommonIncludes.php');
+require_once('includes/CommonIncludes.php');	
 if(isset($_GET['reset']) && $_GET['reset'] == 1){
 	$_SESSION['MerchantPortalAskPin']   =	0;
 	$focus  = 'Pincode';
@@ -25,7 +25,7 @@ if(isset($_GET['imgid']) && !empty($_GET['imgid']) && isset($_GET['ext']) && !em
 $merchantCategory = array();
 global $days_array;
 $slideshowcount	=	0;
-$remaining      = 10;
+$remaining      = 	10;
 $merchantId					= 	$_SESSION['merchantInfo']['MerchantId'];
 $url						=	WEB_SERVICE.'v1/merchants/'.$merchantId."?From=0";
 $curlMerchantResponse 		= 	curlRequest($url, 'GET', null, $_SESSION['merchantInfo']['AccessToken']);
@@ -54,6 +54,8 @@ if(isset($curlCategoryResponse) && is_array($curlCategoryResponse) && $curlCateg
 		$errorMessage			= 	"Bad Request";
 }
 if(isset($_POST) && !empty($_POST)){
+	//echo'<pre>';print_r($_FILES);echo'</pre>';//die();
+	//echo'<pre>';print_r($_POST);echo'</pre>';die();
 	if(isset($_POST['ShopName']))
 		$merchantInfo['CompanyName']		=	$_POST['ShopName'];
 	if(isset($_POST['Email']))
@@ -232,6 +234,7 @@ if(isset($merchantInfo['OpeningHours']) && !empty($merchantInfo['OpeningHours'])
 	$merchantInfo['OpeningHours']	=	formOpeningHours($merchantInfo['OpeningHours']);
 }
 
+//print_r($merchantInfo['OpeningHours'][0]['DateType']);
 //slideshow images
 $url							=	WEB_SERVICE.'v1/merchants/slideshows/';
 $curlSlideshowsResponse 			= 	curlRequest($url, 'GET', null, $_SESSION['merchantInfo']['AccessToken']);
@@ -264,7 +267,6 @@ $show_cat = $newCategory;
 ?>
 <?php top_header(); ?>
 <body class="skin-blue fixed body_height" onload="fieldfocus('<?php echo $focus;?>');">
-		
 		<div height="100%" width="100%" id="fancybox-loading" style="display:none;"><img src="./webresources/images/fetch_loader.gif"></img></div>
 		<section class="content mystore">
 			<div class="col-xs-12">
@@ -439,6 +441,8 @@ $show_cat = $newCategory;
 									<div class="row">
 								<?php $i = 0;	if(isset($slideshows) && count($slideshows) > 0) { 
 											$slideshowcount	=	count($slideshows);
+											//echo "---------";
+											//print_r($slideshows);
 											foreach($slideshows as $val) { 
 											$i = $i + 1;	
 										?>
@@ -560,7 +564,7 @@ $show_cat = $newCategory;
 								<div class="col-sm-12">
 									<div class="col-sm-6 col-xs-12 form-group no-padding" style="">
 									<div class="col-xs-12 no-padding">
-										<div class="col-xs-8 col-sm-6 col-md-6 no-padding" style="">
+										<div class="col-xs-8 col-sm-6 col-md-6 no-padding" style="line-height:28px;">
 											<b>Order Email Notification</b>
 										</div>
 										<div class="col-xs-4 col-sm-6 col-md-6 no-padding">
@@ -586,27 +590,39 @@ $show_cat = $newCategory;
 										<label class="col-sm-12 col-md-12 control-label no-padding border-right"><h3><span>Payment Account</span></h3></label>
 										<?php if(isset($merchantInfo['MangoPayUniqueId']) && $merchantInfo['MangoPayUniqueId']!= ''){?>
 										<div class="form-group col-md-12  no-padding" style="">
-											<h4 class="box-title text-teal" style="margin-bottom:0px;"><strong>Connected with Mango Pay</strong></h4>
+											<h4 class="box-title text-teal" style="margin-bottom:0px;"><strong>Connected with Mangopay</strong></h4>
 										</div>
-										<div class="form-group col-md-12  no-padding error_msg_align LH34">
-											<label class="pad5"></label><a onclick="return loaded;" href="MangoPayAccount?MId=<?php echo base64_encode($merchantInfo['MangoPayUniqueId']);?>" class="MangoPay">
-											<button type="button" name="MangoPay" id="MangoPay" value="" class="btn bg-olive btn-md ">
-												<!--<i class="fa fa-plus"></i>--> Edit Mangopay Account
+										<div class="form-group col-md-12  no-padding error_msg_align LH34 Mango_Pay">
+											<label class="pad5"></label><a onclick="return loaded;" href="MangoPayAccount?MId=<?php echo base64_encode($merchantInfo['MangoPayUniqueId']);?>" class="MangoPayEdit">
+											<button type="button" name="MangoPay" id="MangoPay" value="" class="btn bg-olive btn-md " title="Edit Mangopay Account">
+												Edit Mangopay Account
 											</button></a> 
 										</div>
 										<?php } else {?>
-										<div class="form-group col-md-12 no-padding error_msg_align ">
+										<div class="form-group col-md-12 no-padding error_msg_align Mango_Pay">
 											<label class="pad5"></label><a onclick="return loaded;" href="MangoPayAccount" class="MangoPay">
 											<button type="button" name="MangoPay" id="MangoPay" value="" class="btn bg-olive btn-md ">
 												<i class="fa fa-plus"></i> Add Mangopay Account
 											</button></a> 
 										</div>
 										<?php } ?>
-										<?php if(!SERVER && isset($merchantInfo['MangoPayUniqueId']) && $merchantInfo['MangoPayUniqueId']!= ''){?>
-										<div class="form-group col-md-12 no-padding error_msg_align ">
-											<label class="pad5"></label><a onclick="return loaded;" href="MangoPayBankAccount?MId=<?php echo base64_encode($merchantInfo['MangoPayUniqueId']);?>" class="MangoPay">
-											<button type="button" name="MangoPay" id="MangoPay" value="" class="btn bg-olive btn-md ">
+										<?php if( isset($merchantInfo['MangoPayUniqueId']) && $merchantInfo['MangoPayUniqueId']!= ''){?>
+										<div class="form-group col-md-12  no-padding error_msg_align LH34 Mango_Pay">
+											<label class="pad5"></label><a onclick="return loaded;" href="MangoPayBankAccount?MId=<?php echo base64_encode($merchantInfo['MangoPayUniqueId']);?>&Type=1" class="MangoPayEdit">
+											<button type="button" name="MangoPay" id="MangoPay" value="" class="btn bg-olive btn-md " title="Add Bank Account">
 												<i class="fa fa-plus"></i> Add Bank Account
+											</button></a> 
+										</div>
+										<div class="form-group col-md-12  no-padding error_msg_align LH34 Mango_Pay">
+											<label class="pad5"></label><a onclick="return loaded;" href="MangoPayBankAccount?MId=<?php echo base64_encode($merchantInfo['MangoPayUniqueId']);?>&WalletId=<?php echo base64_encode($merchantInfo['WalletId']);?>&Type=2" id="MangoPayEdit">
+											<button type="button" name="MangoPay" id="MangoPay" value="" class="btn bg-olive btn-md " title="Transfer to Bank Account">
+												<i class="fa fa-long-arrow-right"></i> Transfer to Bank Account
+											</button></a> 
+										</div>
+										<div class="form-group col-md-12  no-padding error_msg_align LH34 Mango_Pay">
+											<label class="pad5"></label><a onclick="return loaded;" href="MerchantBalance?MId=<?php echo base64_encode($merchantInfo['MangoPayUniqueId']);?>&WalletId=<?php echo base64_encode($merchantInfo['WalletId']);?>" class="MangoPayEdit">
+											<button type="button" name="MangoPay" id="MangoPay" value="" class="btn bg-olive btn-md" title="Current Wallet Balance">
+												<i class="fa fa-money"></i> Current Wallet Balance
 											</button></a> 
 										</div>
 										<?php } ?>
@@ -628,7 +644,7 @@ $show_cat = $newCategory;
 									<?php 
 									if(isset($days_array) && count($days_array)>0) {
 									foreach($days_array as $key=>$val){ ?>
-									<div class="col-xs-12 no-padding form-group <?php if($key != 0) echo "rowHide";?>"  <?php if(isset($merchantInfo['OpeningHours'][0]['DateType']) && $merchantInfo['OpeningHours'][0]['DateType'] == '1' && $key != 0) echo 'style="display:none;"'; ?>>
+									<div class="col-xs-12 no-padding form-group change_pwd_code <?php if($key != 0) echo "rowHide";?>"  <?php if(isset($merchantInfo['OpeningHours'][0]['DateType']) && $merchantInfo['OpeningHours'][0]['DateType'] == '1' && $key != 0) echo 'style="display:none;"'; ?>>
 										<?php if($key == 0) { ?>
 											<!-- <div class="col-xs-6 col-sm-4 col-xs-6 no-padding LH30">From :</div> -->
 											<!-- <div class="col-xs-5 col-sm-4 col-xs-6 no-padding LH30">To :</div> -->
@@ -636,6 +652,7 @@ $show_cat = $newCategory;
 										<div class="col-sm-3  col-lg-4 col-xs-12  no-padding LH30"><span class="<?php if($key == 0) echo "rowshow";?>"><?php if(isset($merchantInfo['OpeningHours'][0]['DateType']) && $merchantInfo['OpeningHours'][0]['DateType'] == '1' && $key == 0) echo "Monday - Sunday"; else echo $val.""; ?></span></div>
 										<div class="col-sm-3 col-lg-3 col-xs-6 select_sm no-left-pad">
 											<input type="text" rowid="<?php echo $key; ?>" class="form-control timepicker col-xs-6" id="from1_<?php echo $key; ?>" name="from1_<?php echo $key; ?>" value="<?php if(isset($merchantInfo['OpeningHours'][$key]['Start']['fromTime'])) echo $merchantInfo['OpeningHours'][$key]['Start']['fromTime']; ?>" readonly>
+											<input type="hidden" rowid="<?php echo $key; ?>" class="timepicker" id="valid_<?php echo $key; ?>" value="">
 											<input type="hidden" id="row_<?php echo $key; ?>" name="row_<?php echo $key; ?>" value="<?php if(!empty($merchantInfo['OpeningHours'][$key]['Start']['fromTime']) || !empty($merchantInfo['OpeningHours'][$key]['End']['toTime'])) echo "1"; ?>" />
 											<span id="error_<?php echo $key; ?>" style="color:red;"></span>
 											<span id="error_frm_<?php echo $key; ?>" style="color:red;"></span>
@@ -643,6 +660,7 @@ $show_cat = $newCategory;
 										
 										<div class="col-sm-3 col-lg-3 col-xs-6 select_sm no-left-pad">
 											<input type="text" rowid="<?php echo $key; ?>" class="form-control timepicker col-xs-6" id="to1_<?php echo $key; ?>" name="to1_<?php echo $key; ?>" value="<?php if(isset($merchantInfo['OpeningHours'][$key]['End']['toTime'])) echo $merchantInfo['OpeningHours'][$key]['End']['toTime']; ?>" readonly>
+											<input type="hidden" rowid="<?php echo $key; ?>" id="to2_<?php echo $key; ?>" value="<?php if(isset($merchantInfo['OpeningHours'][$key]['End']['toTime'])) echo date('H',strtotime($merchantInfo['OpeningHours'][$key]['End']['toTime'])); ?>">
 											<span id="error_to_<?php echo $key; ?>" style="color:red;"></span>
 										</div>
 										<?php if($key == 0) { ?>
@@ -660,19 +678,19 @@ $show_cat = $newCategory;
 								</div>
 								
 								
-								<div class="col-sm-12"><label class="col-sm-12  control-label no-padding"><h3 style="margin-bottom:10px;"><span>Contact Info</span></h3></label></div>
-								<div class="form-group col-xs-12 col-xs-12 contact-info">
+								<div class="form-group col-xs-12 col-md-12"><label class="col-sm-12  control-label no-padding"><h3 style="margin-bottom:10px;"><span>Contact Info</span></h3></label>
+								<div class="form-group col-xs-12 col-xs-12 contact-info no-padding">
 									<!--<div class="form-group col-sm-3 col-md-2 no-padding"><input type="button" title="Use my location" value="Use my location" class="btn bg-olive btn-md " onclick="return geolocation(1);"/></div>-->
 									<div class="col-sm-12 col-md-12 no-padding">
 										<div class="show-grid form-group col-sm-12 no-padding">
 											<div class="form-group col-xs-12 col-sm-5 no-padding" ><input type="text"  id="Street" name="Street" value="<?php if(isset($merchantInfo['Street']) && !empty($merchantInfo['Street'])) echo $merchantInfo['Street'];?>" placeholder="Street" class="form-control"></div>
 											<div class="form-group col-xs-12 col-sm-4 resp-no-pad"><input type="text"  id="City" name="City" value="<?php if(isset($merchantInfo['City']) && !empty($merchantInfo['City'])) echo $merchantInfo['City'];?>" placeholder="City" class="form-control"></div>
-											<div class="form-group col-xs-12 col-sm-3 no-padding"><input type="text"  id="ZipCode" name="ZipCode" value="<?php if(isset($merchantInfo['PostCode']) && !empty($merchantInfo['PostCode'])) echo $merchantInfo['PostCode'];?>" placeholder="ZIP Code" class="form-control"></div>
+											<div class="form-group col-xs-12 col-sm-3 no-padding"><input type="text"  id="ZipCode" maxlength="8" onpaste="return false;" onkeypress="return isNumberKey_postal(event);" name="ZipCode" value="<?php if(isset($merchantInfo['PostCode']) && !empty($merchantInfo['PostCode'])) echo $merchantInfo['PostCode'];?>" placeholder="ZIP Code" class="form-control"></div>
 											<div class="form-group col-xs-12 col-sm-5 no-padding"><input type="text"  id="State" name="State" value="<?php if(isset($merchantInfo['State']) && !empty($merchantInfo['State'])) echo $merchantInfo['State'];?>" placeholder="State" class="form-control"></div>	
 											<div class="form-group col-xs-12 col-sm-7 no-padding-right"><input type="text"  id="Country" name="Country" value="<?php if(isset($merchantInfo['Country']) && !empty($merchantInfo['Country'])) echo $merchantInfo['Country'];?>" placeholder="Country" class="form-control"></div>	
 										</div>
 										<div class="show-grid form-group col-sm-12 no-padding">
-											<div class="form-group col-xs-12 col-sm-5 no-padding"><input type="text"  id="Phone" name="Phone" value="<?php if(isset($merchantInfo['PhoneNumber']) && !empty($merchantInfo['PhoneNumber'])) echo $merchantInfo['PhoneNumber'];?>" placeholder="Phone" class="form-control"></div>	
+											<div class="form-group col-xs-12 col-sm-5 no-padding"><input type="text"  id="Phone" maxlength="15" onkeypress="return isNumberKey_Phone(event);" name="Phone" value="<?php if(isset($merchantInfo['PhoneNumber']) && !empty($merchantInfo['PhoneNumber'])) echo $merchantInfo['PhoneNumber'];?>" placeholder="Phone" class="form-control"></div>	
 											<div class="form-group col-xs-12 col-sm-7 no-padding-right"><input type="text"  id="Email" name="Email" value="<?php if(isset($merchantInfo['Email']) && !empty($merchantInfo['Email'])) echo $merchantInfo['Email'];?>" placeholder="Email" class="form-control"></div>	
 											<div class="form-group col-xs-12 col-sm-5 no-padding clear"><input type="text"  id="Website" name="Website" value="<?php if(isset($merchantInfo['WebsiteUrl']) && !empty($merchantInfo['WebsiteUrl'])) echo $merchantInfo['WebsiteUrl'];?>" placeholder="Website" class="form-control"></div>
 										</div>
@@ -688,7 +706,7 @@ $show_cat = $newCategory;
 										<input type="hidden" name="Longitude" id="Longitude" value="">
 									</div>
 								</div>	
-								
+								</div>
 								<!-- Security -->
 								<div class="col-sm-12 col-md-12 no-padding">
 									<div class="col-xs-12 col-sm-5 col-md-5 col-lg-5"><label class="col-sm-8 col-xs-12  control-label no-padding"><h3 style="padding:4px 0px;">Security</h3></label></div>
@@ -698,8 +716,8 @@ $show_cat = $newCategory;
 								
 								<!-- Change Password & PIN code -->
 								<div class="col-sm-12"><label class="col-sm-12  control-label no-padding"><h4 style="margin-top:30px;margin-bottom:10px;"><span>Change Password & PIN code</span></h4></label></div>
-								<div class="form-group col-xs-12 col-xs-12">	
-									<div class="col-sm-12 col-md-12 no-padding">
+								<div class="form-group col-sm-12 col-xs-12">	
+									<div class="col-sm-12 col-md-12 no-padding change_pwd_code">
 										<div class="show-grid form-group col-sm-12 no-padding">
 											<div class="form-group col-xs-12 col-sm-5 no-padding"><input type="text" onkeypress="return isNumberKey(event);"  id="Pincode" name="Pincode" value="" placeholder="New PIN code" class="form-control" maxlength="4"></div>	
 											<div class="form-group col-xs-12 col-sm-7 no-padding-right"><input type="text" onkeypress="return isNumberKey(event);"  id="CPincode" name="CPincode" value="" placeholder="Confirm new PIN code" maxlength="4" class="form-control"></div>	
@@ -714,7 +732,7 @@ $show_cat = $newCategory;
 								
 								<!-- Permissions -->
 								<?php if(isset($merchantInfo['SalespersonList']) && isset($merchantInfo['SalespersonList']['salesperson']) && count($merchantInfo['SalespersonList']['salesperson']) > 0) {  ?>
-								<div class="col-sm-12">
+								<!--<div class="col-sm-12">
 									<label class="col-sm-12 control-label no-padding "><h3><span>Permissions</span></h3></label>
 								</div>
 								<div class="col-sm-12 col-xs-12 form-group" style="margin-bottom:10px;">
@@ -726,7 +744,6 @@ $show_cat = $newCategory;
 										<?php foreach($merchantInfo['SalespersonList']['salesperson'] as $val) { ?>
 											<div class="col-sm-12 col-xs-12 form-group permission">
 												<div class="col-xs-6 no-padding"><strong><?php echo $val['Name']; ?></strong></div>
-												<!-- <div class="col-xs-2 no-padding" ><input type="radio" id="Basic_<?php echo $val['id'];?>" checked = "checked" name="Basic_<?php echo $val['id'];?>" value="1"></div> -->
 												<div class="col-xs-2 no-padding radio des_label text-center">
 													<span class="checkbox"><input type="radio" id="Basic_<?php echo $val['id'];?>" checked = "checked" name="Basic_<?php echo $val['id'];?>" value="1">
 													<label>&nbsp;</label>
@@ -735,21 +752,17 @@ $show_cat = $newCategory;
 												<div class="col-xs-2 no-padding radio des_label" align="center"><span class="checkbox"><input disabled type="radio" name="Pro" value="2"><label>&nbsp;</label></span></div>
 												<div class="col-xs-2 no-padding radio des_label" align="center"><span class="checkbox"><input disabled type="radio" name="Admin" value="3"><label>&nbsp;</label></span></div>
 											</div> 
-										<?php } } ?>
-								<!-- <div class="col-sm-12 col-xs-12 form-group">
-									<div class="col-xs-6 no-padding"><strong>Jones</strong></div>
-									<div class="col-xs-2 no-padding" align="center"><input type="radio" name="Jones" value="1"></div>
-									<div class="col-xs-2 no-padding" align="center"><input type="radio" name="Jones" value="2"></div>
-									<div class="col-xs-2 no-padding" align="center"><input type="radio" name="Jones" value="3"></div>
-								</div>  -->
-								<!-- Permissions -->
+										<?php } ?>
+										-->
+										<?php } ?>
+								<!--Permissions -->
 								
 								<!-- Security -->
-								<div class="col-sm-9">
+								<div class="col-sm-9 col-md-8 col-lg-9">
 									<label class="col-sm-12 control-label no-padding"><h3 class="no-bottom">Auto-Lock</h3></label>
 									<p class="help-block no-padding">When no activity is done, Tuplit portal will lock itself and ask for PIN code to reactivate.</p>
 								</div>
-								<div class="col-sm-3 mystore_pad">
+								<div class="col-sm-3 col-md-4 col-lg-3 mystore_pad no-left-pad">
 									<select name="AutoLock" id="AutoLock" class="form-control">
 										<option value="">No AutoLock</option>	
 										<?php if(isset($AutoLock) && !empty($AutoLock)) {
@@ -791,7 +804,7 @@ $show_cat = $newCategory;
 										</div>
 										<div class="col-xs-10 col-sm9 col-md-9 col-lg-10 add_more">
 											<div class="more_people col-sm-12 no-padding">
-												<strong>Add More People</strong>
+												<a onclick="return loaded;" class="add_people salesperson" href="<?php echo SITE_PATH; ?>/SalesPerson" title="Add More People"><strong>Add More People</strong></a>
 											</div>
 										</div>
 										</div>
@@ -811,14 +824,33 @@ $show_cat = $newCategory;
 				</form>
 			</div>
 		</section>
-		<?php footerLogin(); ?>
-		<?php commonFooter(); ?>
+<?php footerLogin(); ?>
+<input type="hidden" name="TuplitShareLocationSession" id="TuplitShareLocationSession" value="
+<?php if(isset($_SESSION['TuplitShareLocationSession']) && !empty($_SESSION['TuplitShareLocationSession']))
+		echo $_SESSION['TuplitShareLocationSession'];
+	else
+		echo '0'; 
+?>		
+"/>
+<?php	commonFooter();	?>
 		
-	<script type="text/javascript">		
-		geolocation();		
+	<script type="text/javascript">	
+		<?php if(!isset($_SESSION['TuplitShareLocationSession']))  { ?>
+			geolocation();	
+		<?php } ?>
 	</script>
 </html>
+
 <script type="text/javascript">
+
+
+function setSessionDeny() {
+	<?php $_SESSION['TuplitShareLocationSession'] = 1; ?>
+}
+function unsetSessionDeny() {
+	<?php unset($_SESSION['TuplitShareLocationSession']); ?>
+}
+
 function price_val(val){
 	$("#priceValidation").val(val);
 }
@@ -834,7 +866,7 @@ $(function() {
 	showCategory(<?php echo $show_cat;?>);
 });*/
 $(document).ready(function() {
-	//geolocation();		
+	//hideAllDayss();
 	$('.icon_fancybox').fancybox();	
 	$('.image_fancybox').fancybox();
 	
@@ -911,7 +943,8 @@ $(document).ready(function() {
 									}
 		});
 	$(".MangoPay").fancybox({
-				width: '320',
+				width: '400',
+				height:'500',
 				maxWidth: '100%',
 				scrolling: 'auto',			
 				type: 'iframe',
@@ -921,6 +954,42 @@ $(document).ready(function() {
 										location.reload();
 										return;
 									}
+				
+		});
+	$(".MangoPayEdit").fancybox({
+				width: '400',
+				height:'500',
+				maxWidth: '100%',
+				scrolling: 'auto',			
+				type: 'iframe',
+				fitToView: true,
+				autoSize: true
+		});
+	$("#MangoPayEdit").fancybox({
+				width: '400',
+				height:'500',
+				maxWidth: '100%',
+				scrolling: 'auto',			
+				type: 'iframe',
+				fitToView: true,
+				autoSize: true,
+				beforeLoad : function() {
+										if(confirm("Mangopay charges a fee for each withdrawal, for more info see https://www.mangopay.com/pricing/"))
+											return true;
+										else
+											return false;
+									}
+				
+		});
+	
+	$(".MangoPayBalance").fancybox({
+				width: '320',
+				height:'300',
+				maxWidth: '100%',
+				scrolling: 'auto',			
+				type: 'iframe',
+				fitToView: true,
+				autoSize: true
 		});
 	<?php for($i=1;$i<=10;$i++) { ?>
 		var myStore_<?php echo $i; ?> = {name: 'myStore_<?php echo $i; ?>', type : '0' , id : '<?php echo $i; ?>'};

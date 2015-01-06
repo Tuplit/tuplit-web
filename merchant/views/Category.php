@@ -43,7 +43,7 @@ commonHead();
 					</div>	
 					<div class="footer col-md-12 text-center clear"> 
 						<a href="#" class="link col-xs-3 cancel" onclick="parent.jQuery.fancybox.close();">CANCEL</a>
-						<?php if(isset($_GET['edit']) && $_GET['edit'] != '') {?>
+						<?php if(isset($_GET['edit']) && $_GET['edit'] != '') { ?>
 							<input type="button" name="merchant_category_submit" id="merchant_category_submit" value="Save" onclick="category_operation(2);" class="btn btn-success col-xs-9 ">
 						<?php }	else {  ?>
 							<input type="button" name="merchant_category_submit" id="merchant_category_submit" value="Add" onclick="category_operation(1);" class="btn btn-success col-xs-9 ">
@@ -56,9 +56,23 @@ commonHead();
 	<?php commonFooter(); ?>
 </html>
 <script type="text/javascript">
+	$('#CategoryName').keypress(function(event) {
+	    var keycode = (event.keyCode ? event.keyCode : event.which);
+	    if(keycode == '13') {
+			<?php if(isset($_GET['edit']) && $_GET['edit'] != '') { ?>
+				category_operation(2);
+			<?php } else{ ?>
+				category_operation(1);
+			<?php } ?>
+	         return false;
+	    }
+	});	
+	
 	function category_operation(val_type){
+		//alert(val_type);
 			var categoryName	=	$('#CategoryName').val();
 			var categoryId		=	$('#CategoryId').val();
+			//alert(categoryName);
 			cat_pro				=	<?php echo $cat_pro; ?>;
 			if((val_type == 3 && cat_pro == 0) || val_type == 4) {
 				if(confirm('Are you sure to delete?')) {
@@ -72,6 +86,7 @@ commonHead();
 			        url: '<?php echo SITE_PATH;?>/AjaxWork',
 			        data: "action=ADD_EDIT_DELETE_CATEGORY&CategoryName="+categoryName+"&CategoryId="+categoryId+"&type="+val_type,
 			        success: function (result){
+						//alert(result);
 						$('#error_msg').html('');
 						result 			= $.parseJSON(result);
 						var details 	= result.message.split("###");

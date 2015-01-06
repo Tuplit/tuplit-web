@@ -51,16 +51,18 @@ commonHead();
 ?>
 <body class="skin-blue fixed body_height popup_bg" onload="fieldfocus('user_name');">
 <div class="popup_white">
-		<section class="content-header col-xs-12 no-padding">
-			<h1 class=" "><?php if($show == 1)  echo '&nbsp;&nbsp;';  else  echo "Mangopay"; ?></h1>
-		</section>
 		
-		<div class="col-xs-12 no-padding" id="mangopay-box">
-			<?php if(isset($responseMessage) && $responseMessage != '') { ?>
-				<div class="<?php echo $msg_class; ?>"><i class="fa <?php echo $class_icon; ?>"></i>&nbsp;&nbsp;
+		<?php if(isset($responseMessage) && $responseMessage != '') { ?>
+				<div  style="margin: 50px auto" class="<?php echo $msg_class; ?> alert alert-dismissable col-xs-10 col-xs-offset-1"><i class="fa <?php echo $class_icon; ?>"></i>&nbsp;&nbsp;
 					<?php echo $responseMessage;?>
 				</div>
 			<?php  } 	if($show == 0) {	?>
+		<div class="col-xs-12 no-padding" id="mangopay-box">
+			
+			<section class="content-header col-xs-12 no-padding">
+				<h1 class=" "><?php if($show == 1)  echo '&nbsp;&nbsp;';  else  echo "Mangopay"; ?></h1>
+			</section>
+			
 			<form action="" name="add_mangopay_account" id="add_mangopay_account"  method="post">
 				<input type="hidden" name="MangopayId"  id="MangopayId" value="<?php if(isset($_GET['MId']) && !empty($_GET['MId'])) echo base64_decode($_GET['MId']); else echo '';?>">
 				<div class="col-xs-12">						

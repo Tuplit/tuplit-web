@@ -454,18 +454,44 @@ $("#ask_pin_popup").validate({
 //--------------Add Mangopay Bank---------------start
 $("#add_mangopay_bank_account").validate({
 		rules:{
-			FirstName          :	{ required:true},
-			LastName           :	{ required:true},
-			Address	       	   :    { required:true},
-            BankAccount		   :	{ required:true},
-			SortOrder		   :	{ required:true }
+			FirstName          	:	{ required:true},
+			LastName           	:	{ required:true},
+			Address	       	   	:   { required:true},
+            BankAccount		   	:	{ required:true},
+			SortCode		   	:	{ required:true,minlength:6},
+			BankName		   	:	{ required:true},
+			InstitutionNumber  	:	{ required:true},
+			BranchCode		   	:	{ required:true},
+			ABA		   			:	{ required:true,minlength:9},
+			IBAN		   		:	{ required:true},
+			BIC		  			:	{ required:true},
+			Country		   		:	{ required:true},
 		},
 		messages:{
 			FirstName       	:	{ required:'First Name is required'},
 			LastName       		:	{ required:'Last Name is required'},
 			Address				:	{ required:'Address is required'},
 			BankAccount			:	{ required:'Account Number is required'},
-			SortOrder		    :   { required:'Sort Order is required'}
+			SortCode		    :   { required:'Sort Code is required',minlength:'Sort Code should contain 6 numbers'},
+			BankName			:	{ required:'Bank Name is required'},
+			InstitutionNumber	:	{ required:'Institution Number is required'},
+			BranchCode			:	{ required:'Branch Code is required'},
+			ABA					:	{ required:'ABA is required',minlength:'ABA should contain 9 numbers'},
+			IBAN				:	{ required:'IBAN is required'},
+			BIC					:	{ required:'BIC is required'},
+			Country				:	{ required:'Country is required'},
 		}
 	});
 //--------------Add Mangopay Bank-----------End
+//--------------Transfer Money to Bank---------------start
+$("#transfer_to_bank").validate({
+		rules:{
+			BankAccountId    :	{ required:true},
+			Amount           :	{ required:true}
+		},
+		messages:{
+			BankAccountId     	:	{ required:'Bank account is required'},
+			Amount       		:	{ required:'Amount is required'}
+		}
+	});
+//--------------Transfer Money to Bank-----------End

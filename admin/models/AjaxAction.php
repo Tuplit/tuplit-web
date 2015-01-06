@@ -402,6 +402,7 @@ if(isset($_GET['action']) && $_GET['action'] == 'TRANSACTION_LIST'){
 	$condition			= '';
 	if(isset($_GET['searchType']) && $_GET['searchType'] == 1){
 		$fields    			= " o.OrderStatus,o.TotalPrice,o.TransactionId,o.Status,o.TotalItems,o.OrderDate,m.CompanyName,u.FirstName,u.LastName,o.fkCartId,o.Commision  ";
+		$condition			.=	" and m.Status = 1 and u.Status =1 ";
 	}else if(isset($_GET['searchType']) && $_GET['searchType'] == 2){
 		$fields    				= " o1.OrderStatus,o1.TotalPrice,o1.TransactionId,o1.TotalItems,o1.OrderDate,o1.Status,o1.fkCartId,m.CompanyName,m.Icon,u.FirstName,u.LastName,o1.fkUsersId,o1.fkMerchantsId,o1.Commision";
 		$cond					=	" o1.fkMerchantsId = o2.fkMerchantsId ";
@@ -415,8 +416,10 @@ if(isset($_GET['action']) && $_GET['action'] == 'TRANSACTION_LIST'){
 		$_SESSION['transactionsearch'] = $_GET['search'];
 			if($_GET['searchType'] == 3){
 				$condition = " and ( u.FirstName LIKE '%".$_GET['search']."%' || u.LastName LIKE '%".$_GET['search']."%' )";
-			}else {
+			}else if($_GET['searchType'] == 2){
 				$condition = " and ( m.CompanyName LIKE '%".$_GET['search']."%')";
+			}else{
+				$condition .= " and ( m.CompanyName LIKE '%".$_GET['search']."%')";
 			}
 		if(isset($_GET['type']) && $_GET['type'] == 0){
 			$limit			= 0;
@@ -507,13 +510,13 @@ if(isset($_GET['action']) && $_GET['action'] == 'MERCHANT_CUSTOMER_TRANSACTION')
 	}
 	if(isset($_GET['type']) && $_GET['type']== '2' ){
 		$fields    		=  " o.TotalPrice,o.TransactionId,o.TotalItems,o.OrderDate,o.Status,o.fkCartId,u.FirstName,u.LastName,o.Commision";
-		$condition		.= " and fkMerchantsId= ".$searchId;
+		$condition		.= " and u.Status = 1 and fkMerchantsId= ".$searchId;
 		$leftjoin		= " left join users as u on  (u.id	= o.fkUsersId ) ";
 		$displayCount	= 'Merchant';
 	}else{
 		$fields    		= " o.TotalPrice,o.TransactionId,o.TotalItems,o.OrderDate,o.Status,o.fkCartId,m.CompanyName,o.Commision";
-		$condition		.= " and fkUsersId= ".$searchId;
-		$leftjoin			= "left join merchants as m on (m.id = o.fkMerchantsId)";
+		$condition		.= " and m.Status = 1 and fkUsersId= ".$searchId;
+		$leftjoin		= "left join merchants as m on (m.id = o.fkMerchantsId)";
 		$displayCount	= 'Customer';
 	}
 	$sort				= 'o.OrderDate desc';
@@ -681,10 +684,27 @@ if(isset($_GET['action']) && !empty($_GET['action']) && $_GET['action'] == 'Save
 	$contentObj->updateContentDetail($_POST);	
 }
 if(isset($_GET['action']) && !empty($_GET['action']) && $_GET['action'] == 'APPROVE_MERCHANT') {
+	require_once('../controllers/AdminController.php');
+	$adminLoginObj   =   new AdminController();
 	require_once('../controllers/MerchantController.php');
-	$managementObj   =   new MerchantController();
-	if(isset($_POST['id']) && $_POST['id']!='')
-		$managementObj->approveMerchant($_POST['id'],"1");
+	$MerchantObj   =   new MerchantController();
+	if(isset($_POST['id']) && $_POST['id']!=''){
+		$approveId		= $_POST['id'];
+		$MerchantObj->approveMerchant($_POST['id'],"1");
+		$fields 				= '*';
+		$condition 				= ' 1';
+		$login_result 			=  $adminLoginObj->getAdminDetails($fields,$condition);
+		$merchantListResult  	=  $MerchantObj->selectMerchantDetail($approveId);
+	
+		if(isset($merchantListResult) && is_array($merchantListResult) && count($merchantListResult) > 0){
+			$mailContentArray['name'] 		= ucfirst($merchantListResult[0]->FirstName.' '. $merchantListResult[0]->LastName);
+			$mailContentArray['toemail'] 	= $merchantListResult[0]->Email;
+			$mailContentArray['subject'] 	= 'Merchant Approval Mail';		
+			$mailContentArray['from'] 		= $login_result[0]->EmailAddress;
+			$mailContentArray['fileName']	= 'merchant.html';
+			sendMail($mailContentArray,'7');
+		}	
+	}
 }
 
 /*if(isset($_GET['action']) && !empty($_GET['action']) && $_GET['action'] == 'MAP_LOAD') {

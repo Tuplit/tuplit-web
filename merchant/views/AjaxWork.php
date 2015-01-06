@@ -10,6 +10,12 @@ if(isset($_GET['action']) && $_GET['action'] == 'ADD_EDIT_DELETE_CATEGORY'){
 							'CategoryName' 			=> $_GET['CategoryName'],
 							'CategoryId'			=> $categoryId
 						);
+	/*if($_SERVER['REMOTE_ADDR'] == '172.21.4.113'){
+		echo "<br>=================>";
+		print_r($data);
+		die();
+	}*/
+	
 	$url			=	WEB_SERVICE.'v1/categories/products';
 	if($postType == 1){
 		$curlResponse	=	curlRequest($url,'POST',$data, $_SESSION['merchantInfo']['AccessToken']);	

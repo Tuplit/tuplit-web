@@ -12,8 +12,10 @@ if(isset($_SESSION['tuplit_merchant_user_name'])){
 
 $error 		= 	'';
 $subuser	=	0;
+$class_val	=  "col-md-3 col-sm-3 col-xs-12 paddingrg0";
 if(isset($_SESSION['merchantSubuser']) && !empty($_SESSION['merchantSubuser']) && $_SESSION['merchantSubuser'] == 1) {
 	$subuser	=	1;
+	$class_val	=  "col-md-6 col-sm-6 col-xs-12 paddingrg0";
 }
 
 if(isset($_POST['merchant_login_submit']) && $_POST['merchant_login_submit'] == 'Submit'){
@@ -68,40 +70,26 @@ commonHead();
                            </h3>
                        </div>
                    </div>
-               </div><!-- ./col -->
-			   <?php //$transaction = 'TransactionList?cs=1'; ?>
-              <!-- <div class="col-md-3 col-sm-4 col-xs-6" style="cursor:pointer" onclick="location.href='<?php echo $transaction;?>'"  title="Transactions">
-                   <!-- small box -->
-                   <!--<div class="small-box bg-teal">
-                       <div class="inner">
-                           <h3 class="text-center">
-								<i class="fa fa-exchange"></i> <br> <!-- fa  fa-money -->
-								<!--Transactions 
-                           </h3>
-                       </div>
-                   </div>
-               </div> --><!-- ./col -->
+               </div><!-- ./col  -->
 				  
 			 </div>
 			 <div class="col-lg-8  col-md-10 box-center white_box"> 
-				
-			
-			  
-				<?php if($subuser == 0) { $Analyticshref = 'CustomerList?cs=1'; ?>
-               	<div class="col-md-3 col-sm-3 col-xs-12 paddingrg0">
-				<div class="col-xs-12 no-padding" style="cursor:pointer" <?php if(!empty($Analyticshref)) echo 'onclick="location.href=\''.$Analyticshref.'\'"'; ?>  title="Analytics">
-                   <!-- small box -->
-                   <div class="small-box bg-teal">
-                       <div class="inner">
-                           <h3 class="text-center">
-								<i class="fa fa-bar-chart-o"></i> <br>
-								Analytics
-                           </h3>
-                       </div>
-                   </div>
-               </div><!-- ./col -->	
-				</div>
-				<div class="col-md-3 col-sm-3 col-xs-12 paddingrg0">
+				<?php if($subuser != 1) { $Analyticshref = 'CustomerAnalyticsOverview'; ?>
+					<div class="col-md-3 col-sm-3 col-xs-12 paddingrg0">
+					<div class="col-xs-12 no-padding" style="cursor:pointer" <?php if(!empty($Analyticshref)) echo 'onclick="location.href=\''.$Analyticshref.'\'"'; ?>  title="Analytics">
+					   <!-- small box -->
+					   <div class="small-box bg-teal">
+						   <div class="inner">
+							   <h3 class="text-center">
+									<i class="fa fa-bar-chart-o"></i> <br>
+									Analytics
+							   </h3>
+						   </div>
+					   </div>
+				   </div><!-- ./col -->	
+					</div>
+				<?php } ?>
+				<div class="<?php echo $class_val;?>">
 				<div class="col-xs-12 no-padding" onclick="location.href='ProductList'" style="cursor:pointer"  title="Products">
                    <!-- small box -->
                    <div class="small-box bg-teal" >
@@ -113,8 +101,9 @@ commonHead();
                        </div>
                    </div>
                </div><!-- ./col -->
-			   </div>			   
-			   <?php $MyStorehref = 'MyStore'; ?>
+			   </div>
+			   
+			   <?php if($subuser != 1) {  $MyStorehref = 'MyStore'; ?>
 			   <div class="col-md-3 col-sm-3 col-xs-12 paddingrg0">
                <div class="col-xs-12 no-padding" style="cursor:pointer" <?php if(!empty($MyStorehref)) echo 'onclick="location.href=\''.$MyStorehref.'\'"'; ?> title=" My Store">
                    <!-- small box -->
@@ -128,8 +117,9 @@ commonHead();
                    </div>
                </div><!-- ./col -->
 			 	</div>
-				<div class="col-md-3 col-sm-3 col-xs-12 paddingrg0">
-               <div class="col-xs-12 no-padding" style="cursor:pointer" onclick="location.href='TransactionList?cs=1'" title="Transactions">
+				<?php } ?>
+			   <div class="<?php echo $class_val;?>">
+               <div class="col-xs-12 no-padding" style="cursor:pointer" onclick="location.href='CustomerTransaction?cs=1'" title="Transactions">
                    <!-- small box -->
                    <div class="small-box bg-teal">
                        <div class="inner">
@@ -141,23 +131,6 @@ commonHead();
                    </div>
                </div><!-- ./col -->
 			 </div>
-              <!-- <div class="col-md-3 col-sm-4 col-xs-6" style="cursor:pointer" onclick="location.href='SalesPersonList'" title="SalesPersons">
-                   <!-- small box -->
-                  <!-- <div class="small-box bg-teal">
-                       <div class="inner">
-                           <h3 class="text-center">
-						   <div class="salesman_icons">	
-						   		<i class="fa fa-male one"></i>
-								<i class="fa fa-male two"></i>
-								<i class="fa fa-male three"></i>
-							</div>
-                              Salespersons
-                           </h3>
-                       </div>
-                   </div>
-               </div><!-- ./col -->
-			   <?php } ?>
-			  
 			  </div>
            </div><!-- /.row -->
 		</section>

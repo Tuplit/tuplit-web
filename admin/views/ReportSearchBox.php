@@ -15,7 +15,7 @@ $field				='id,CategoryName';
 $CategoryList  		= $managementObj->selectCategoryDetails($field,$condition);
 
 /*--------------City Array-----------------------------*/
-$condition       	= " City<>''  group by City order by City asc";
+$condition       	= " City<>'' and merchants.Status = 1 group by City order by City asc";
 $field				=	' City';
 $CityList			= 	$merchantObj->selectMerchantDetails($field,$condition);
 ?>
@@ -71,7 +71,7 @@ $CityList			= 	$merchantObj->selectMerchantDetails($field,$condition);
 						</div>
 						<div class="col-sm-3 col-xs-6 form-group">
 							
-							<input type="text" class="form-control" placeholder="Price" name="Merchant_Price" id="Vistit"  value="<?php  if(isset($_SESSION['loc_mer_price']) && $_SESSION['loc_mer_price'] != '') echo $_SESSION['loc_mer_price'];  ?>" >
+							<input type="text" class="form-control" placeholder="Price" onkeyPress = "return isNumberKey_Enter(event)" name="Merchant_Price" id="Vistit"  value="<?php  if(isset($_SESSION['loc_mer_price']) && $_SESSION['loc_mer_price'] != '') echo $_SESSION['loc_mer_price'];  ?>" >
 						</div>
 						<div class="col-sm-3 col-xs-6 form-group">
 						

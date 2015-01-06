@@ -190,7 +190,7 @@ function ajaxAdminFileUploadProcess(process_pram)
 		path = path+'../'*/
 	var loadingIMG  =  '<span class="photo_load load_upimg text-align"><i class="fa fa-spinner fa-spin fa-lg"></i></span>';	
     $(loadingIMG).insertAfter($("#"+process_pram+"_img"));
-    $("#"+process_pram+"_img").hide();	
+	$("#"+process_pram+"_img").hide();	
 	var hiddenVal = $("#empty_"+process_pram).val();
 	
    $.ajaxFileUpload
@@ -210,11 +210,11 @@ function ajaxAdminFileUploadProcess(process_pram)
 			    if(data.error != '')
                 {
                     alert(data.error);
-					if($('#'+process_pram+'_upload').val() == '')
+					/*if($('#'+process_pram+'_upload').val() == '')
 						$("#empty_"+process_pram).val(hiddenVal);
 					
 					 $("#empty_"+process_pram).val(hiddenVal);
-					 $("#"+process_pram+"_img").html('');
+					 $("#"+process_pram+"_img").html('');*/
 					
                 }else
                 {
@@ -1531,6 +1531,7 @@ $(document).ready(function() {
 		revert	: 10,
 		update	:function(event,ui){
 			var data = $(this).sortable('serialize');
+			alert(data);
 			$.ajax({
             data:{"my_order": data},
             type: 'POST',

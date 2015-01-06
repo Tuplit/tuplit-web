@@ -525,6 +525,7 @@ commonHead();
 						<div class="col-xs-12 clear text-center" id="loadmorehome"> <a style="cursor:pointer;margin-bottom:15px;" class="loadmore" id="loadmore" name="loadmore" class="btn btn-success" title="Load More" onclick="return loadMoreUser(<?php echo $userLoadMore; ?>);"><i class="fa fa-download"></i> <strong>Load More</strong></a></div>
 
 						<?php } ?>
+						
 				</div>				
 					</div><!-- /.box-body -->
 						<input type="hidden" id="UserStart" name="UserStart" value="0" />
@@ -795,8 +796,6 @@ function printReceipt(){
 function submitForm(){
 	$('#OrderForm').submit()
 }
-
-
 </script>
 <!--print div end-->
 <script type="text/javascript">

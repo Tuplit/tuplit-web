@@ -4,7 +4,7 @@ admin_login_check();
 require_once('controllers/OrderController.php');
 	$OrderObj   		=   new OrderController();
 	$condition			= '';
-	$fields    			= " o.TotalPrice,o.TransactionId,o.Status,o.OrderDate,m.CompanyName,u.FirstName,u.LastName,o.fkCartId,o.Commision ";
+	$fields    			= " o.TotalPrice,o.TransactionId,o.Status,o.OrderStatus,o.OrderDate,m.CompanyName,u.FirstName,u.LastName,o.fkCartId,o.Commision ";
 	if(isset($_GET['search']) && $_GET['search']!=''){
 		$condition .= $_GET['search'];
 	}
@@ -44,7 +44,7 @@ if(isset($OrderListResult) && is_array($OrderListResult) && count($OrderListResu
 			<?php if(isset($value->TransactionId) && $value->TransactionId != '' ) echo $value->TransactionId; else echo '-';?></td>
 		<td ><?php if(isset($value->TotalPrice) && $value->TotalPrice != '' ) echo price_fomat($value->TotalPrice);?></td>
 		<td ><?php if($value->Commision != '') echo price_fomat($value->Commision); else echo price_fomat('0');?></td>
-		<td  ><?php  if(isset($value->Status) && $value->Status != '' ) echo ($value->Status == 1?'Accepted':'Rejected');?></td>
+		<td  ><?php  if(isset($value->OrderStatus) && $value->OrderStatus != '') echo $order_status_array[$value->OrderStatus];?></td>
 	</tr>
 	<?php $i++; } ?>
 <?php } else { ?>

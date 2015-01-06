@@ -64,9 +64,9 @@ class Products extends RedBean_SimpleModel implements ModelBaseInterface {
 				else if(file_exists(PRODUCT_IMAGE_PATH_REL.$result[0]['Photo']))
 					$image_path = PRODUCT_IMAGE_PATH.$result[0]['Photo'];
 				else
-					$image_path = ADMIN_IMAGE_PATH.'no_image.jpeg';
+					$image_path = ADMIN_IMAGE_PATH_OTHER.'no_image.jpeg';
 			} else if(isset($result['Photo']) && $result[0]['Photo'] == '') {
-				$image_path = ADMIN_IMAGE_PATH.'no_image.jpeg';
+				$image_path = ADMIN_IMAGE_PATH_OTHER.'no_image.jpeg';
 			}
 			$result[0]['Photo']	=	$image_path;
 			
@@ -120,7 +120,7 @@ class Products extends RedBean_SimpleModel implements ModelBaseInterface {
 		else
 			$condition  = '';
 			
-		$fields 		= 'p.id as ProductId,p.ItemName,pc.id as fkCategoryId,p.Photo,p.DiscountApplied,p.Price,p.OriginalPrice,p.ItemType,p.ItemDescription,pc.CategoryName,pc.fkMerchantId as CategoryMerchnatId,p.Status,p.Ordering';
+		$fields 		= 	'p.id as ProductId,p.ItemName,pc.id as fkCategoryId,p.Photo,p.DiscountApplied,p.Price,p.OriginalPrice,p.ItemType,p.ItemDescription,pc.CategoryName,pc.fkMerchantId as CategoryMerchnatId,p.Status,p.Ordering';
 		$sql 			= 	"SELECT ".$fields." from productcategories  as pc 
 							left join products as p on (p.fkCategoryId = pc.id  and p.fkMerchantsId = ".$merchantId." and p.Photo!='' and p.Status in (1,2))
 							where pc.fkMerchantId IN(".$merchantId.") and  pc.Status=1 ".$condition." order by ".$orderby;
@@ -276,10 +276,6 @@ class Products extends RedBean_SimpleModel implements ModelBaseInterface {
 		$result2 		= 	R::getAll($sql2);
 		$tempSpecial	=	array();
 		foreach($result2 as $key=>$cat) {
-			/*if($cat['ItemType'] == 2) {
-				$result2[$key]['CategoryName'] = 'Deals';
-				$result2[$key]['fkCategoryId'] = '0';				
-			}*/
 			if($cat['ItemType'] == 3) {
 				$tempSpecial[]	=	$cat;
 				unset($result2[$key]);
@@ -397,7 +393,6 @@ class Products extends RedBean_SimpleModel implements ModelBaseInterface {
 			}
 			$productCategoryList 										= 	array_values($productCategoryList);
 			
-			//$productCategoryList = subval_sort($productCategoryList,'Ordering');
 			foreach($productCategoryList as $key=>$value) {
 				if(count($value) > 0) {
 					$temp 												=	array();
@@ -739,5 +734,301 @@ class Products extends RedBean_SimpleModel implements ModelBaseInterface {
 			R::exec($sql);
 		}
 		
+	}
+	
+	/**
+	* get Product Analytics
+	*/
+	public function getProductAnalytics($merchantId)
+    {
+		/**
+		* Get the bean
+		* @var $bean Products
+		*/
+        $bean 		= 	$this->bean;
+		$dataType	=	'day';
+		$field		=	$condition	=	$condition2	=	$case = '';
+		$dataType 	= 	$bean->DataType;
+		$Start		=	0;
+		if(isset($bean->Start))
+			$Start 		= 	$bean->Start;
+		if(isset($bean->TimeZone))
+			$time_zone	= 	$bean->TimeZone;
+		
+		$curr_date 		= 	date('Y-m-d');
+		$cur_month 		= 	date('m');
+		$cur_year 		= 	date('Y');
+		$cur_day 		= 	date('D');
+		
+		$case .=" , CASE WHEN HOUR(DATE_ADD(o.OrderDate,INTERVAL '".$time_zone."' HOUR_MINUTE)) BETWEEN '04' AND '11' THEN 1
+							WHEN HOUR(DATE_ADD(o.OrderDate,INTERVAL '".$time_zone."' HOUR_MINUTE)) BETWEEN '12' AND  '19' THEN 2
+							WHEN ((HOUR(DATE_ADD(o.OrderDate,INTERVAL ' 05:30' HOUR_MINUTE)) BETWEEN '20' AND '23') or (HOUR(DATE_ADD(o.OrderDate,INTERVAL ' 05:30' HOUR_MINUTE)) BETWEEN '00' AND '03')) THEN 3
+							END as period ";
+		if($dataType == 'day') {	
+			$condition	.=	" and Date(DATE_ADD(o.OrderDate,INTERVAL '".$time_zone."' HOUR_MINUTE)) = '".$curr_date."'";
+			$dateDiffer	=	date('Y-m-d',strtotime("-7 days"));
+		} else if($dataType == '7days') {	 
+			$dateDiffer	=	date('Y-m-d',strtotime("-7 days"));
+			$condition	.= 	" and (DATE(DATE_ADD(o.OrderDate,INTERVAL '".$time_zone."' HOUR_MINUTE)) <= '".$curr_date."' and DATE(DATE_ADD(o.OrderDate,INTERVAL '".$time_zone."' HOUR_MINUTE)) > '".$dateDiffer."')";
+		}else if($dataType == 'month') {	
+			$dateDiffer		=	date('Y-m-d',strtotime("-30 days"));
+			$condition	.= 	" and (Month(DATE_ADD(o.OrderDate,INTERVAL '".$time_zone."' HOUR_MINUTE)) = '".$cur_month."') and Year(DATE_ADD(o.OrderDate,INTERVAL '".$time_zone."' HOUR_MINUTE)) = '".$cur_year."'";
+		} else if($dataType == 'year') {	
+			$condition	.= 	" and Year(DATE_ADD(o.OrderDate,INTERVAL '".$time_zone."' HOUR_MINUTE)) = '".$cur_year."' ";
+		} 		
+		$sql	=	"SELECT SQL_CALC_FOUND_ROWS p.id as ProductId,p.ItemName as Name,p.Photo, count(o.id) as TotalOrder from orders as o 
+							left join carts as c ON (c.CartId = o.fkCartId)
+                         	left join products as p on(p.id = c.fkProductsId)
+							where 1   and o.Status = 1 and o.TransactionId != '' and  o.OrderStatus IN (1) ".$condition." and o.fkMerchantsId = ".$merchantId." and  
+							c.fkMerchantsId = ".$merchantId." and p.Status=1 and p.fkMerchantsId =  ".$merchantId."   group by p.id order by TotalOrder desc limit $Start,8";
+		// echo "<br>========================".$sql;
+		$result	=	R::getAll($sql);
+		
+		
+		$total				=	R::getAll('SELECT FOUND_ROWS() as count ');
+		$totalProducts		=	$total[0]['count'];
+	
+		if($result) {
+			$productIds	=	$ProductArray	=	$outArray = Array();
+			$outArray['totalProducts']	=	$totalProducts;
+			$outArray['listedProducts']	=	count($result);
+			foreach($result as $val) {
+				$productIds[] 	=	$val['ProductId'];
+				$image_path = MERCHANT_SITE_IMAGE_PATH.'no_image.jpeg';	
+				if(isset($val['Photo']) && $val['Photo'] != '')
+					$image_path = PRODUCT_IMAGE_PATH.$val['Photo'];	
+				
+				$ProductArray[$val['ProductId']]['ProductID'] 		= 	$val['ProductId'];
+				$ProductArray[$val['ProductId']]['ProductName'] 	= 	$val['Name'];
+				$ProductArray[$val['ProductId']]['ProductImage'] 	= 	$image_path;							
+			}
+			if(count($productIds) > 0) {
+				$sql 	= "SELECT c.fkProductsId as ProductId, Sum(c.ProductsQuantity) as TotalQty,DATE_FORMAT(o.OrderDate,'%a') as OrderDay, sum(c.TotalPrice * c.ProductsQuantity) as OriginalCost, sum(c.DiscountPrice * c.ProductsQuantity) as DiscountCost, count(o.id) as TotalOrder ".$case." from	carts as c
+							left join orders as o on(c.CartId = o.fkCartId) 
+							left join products as p on(c.fkProductsId = p.id) 
+							where 1 and o.Status = 1 and o.TransactionId != '' and p.Status=1 and  o.OrderStatus IN (1) and o.Status = 1 and p.id in (".implode(',',$productIds).") ".$condition." and o.fkMerchantsId = ".$merchantId." 
+							and c.fkMerchantsId = ".$merchantId." GROUP BY c.fkProductsId".trim($case," as period ").",Date(DATE_ADD(o.OrderDate,INTERVAL ' 05:30' HOUR_MINUTE))" ;
+				// echo "<br>========================".$sql;
+				
+				$ProductList 	=	R::getAll($sql);
+				if($ProductList ){	
+					$TempArray	=	Array();
+					foreach($ProductList as $value) {						
+						if($value['period'] == 1) {							
+							if(isset($TempArray[$value['ProductId']]['Morning'])) {
+								$TempArray[$value['ProductId']]['Morning']['OrgAmount'] = round($TempArray[$value['ProductId']]['Morning']['OrgAmount'] + $value['OriginalCost'],2);
+								$TempArray[$value['ProductId']]['Morning']['DisAmount'] = round($TempArray[$value['ProductId']]['Morning']['DisAmount'] + $value['DiscountCost'],2);
+								$TempArray[$value['ProductId']]['Morning']['TotOrder'] 	= $TempArray[$value['ProductId']]['Morning']['TotOrder'] + $value['TotalOrder'];
+							}
+							else {								
+								$TempArray[$value['ProductId']]['Morning']['OrgAmount'] = round($value['OriginalCost'],2);
+								$TempArray[$value['ProductId']]['Morning']['DisAmount'] = round($value['DiscountCost'],2);
+								$TempArray[$value['ProductId']]['Morning']['TotOrder'] 	= $value['TotalOrder'];
+							}							
+						}
+						else if($value['period'] == 2) {
+							if(isset($TempArray[$value['ProductId']]['Noon'])) {
+								$TempArray[$value['ProductId']]['Noon']['OrgAmount'] 	= round($TempArray[$value['ProductId']]['Noon']['OrgAmount'] + $value['OriginalCost'],2);
+								$TempArray[$value['ProductId']]['Noon']['DisAmount'] 	= round($TempArray[$value['ProductId']]['Noon']['DisAmount'] + $value['DiscountCost'],2);
+								$TempArray[$value['ProductId']]['Noon']['TotOrder'] 	= $TempArray[$value['ProductId']]['Noon']['TotOrder'] + $value['TotalOrder'];
+							}
+							else {								
+								$TempArray[$value['ProductId']]['Noon']['OrgAmount'] = round($value['OriginalCost'],2);
+								$TempArray[$value['ProductId']]['Noon']['DisAmount'] = round($value['DiscountCost'],2);
+								$TempArray[$value['ProductId']]['Noon']['TotOrder'] = $value['TotalOrder'];
+							}
+						}
+						else if($value['period'] == 3) {
+							if(isset($TempArray[$value['ProductId']]['Evening'])) {
+								$TempArray[$value['ProductId']]['Evening']['OrgAmount'] 	= round($TempArray[$value['ProductId']]['Evening']['OrgAmount'] + $value['OriginalCost'],2);
+								$TempArray[$value['ProductId']]['Evening']['DisAmount'] 	= round($TempArray[$value['ProductId']]['Evening']['DisAmount'] + $value['DiscountCost'],2);
+								$TempArray[$value['ProductId']]['Evening']['TotOrder'] 		= $TempArray[$value['ProductId']]['Evening']['TotOrder'] + $value['TotalOrder'];
+							}
+							else {								
+								$TempArray[$value['ProductId']]['Evening']['OrgAmount'] = round($value['OriginalCost'],2);
+								$TempArray[$value['ProductId']]['Evening']['DisAmount'] = round($value['DiscountCost'],2);
+								$TempArray[$value['ProductId']]['Evening']['TotOrder'] = $value['TotalOrder'];
+							}							
+						}
+						if(isset($TempArray[$value['ProductId']]['WeekList'][$value['OrderDay']]['TotalPrice'])) {
+							$TempArray[$value['ProductId']]['WeekList'][$value['OrderDay']]['TotalPrice']	=	round($TempArray[$value['ProductId']]['WeekList'][$value['OrderDay']]['TotalPrice'] + $value['DiscountCost'],2);
+						}
+						else {
+							$TempArray[$value['ProductId']]['WeekList'][$value['OrderDay']]['OrderDay']	=	$value['OrderDay'];
+							$TempArray[$value['ProductId']]['WeekList'][$value['OrderDay']]['TotalPrice']	=	round($value['DiscountCost'],2);
+						}
+					}
+					
+					foreach($TempArray as $key=>$value) {
+						$mqty = $nqty = $eqty = 0;
+						if(isset($value['Morning'])) {
+							$ProductArray[$key]['Morning'] 	= 	$value['Morning'];
+							$mqty							=	$value['Morning']['DisAmount'];
+						}
+						if(isset($value['Evening'])) {
+							$ProductArray[$key]['Evening'] 	= 	$value['Evening'];
+							$eqty							=	$value['Evening']['DisAmount'];
+						}
+						if(isset($value['Noon'])) {
+							$ProductArray[$key]['Noon'] 	= 	$value['Noon'];
+							$nqty							=	$value['Noon']['DisAmount'];
+						}
+						if(isset($value['WeekList']))
+							$ProductArray[$key]['WeekList'] 	= 	array_values($value['WeekList']);
+						
+						$tot	=	$mqty + $nqty + $eqty;
+						if($tot > 0) {
+							if(isset($ProductArray[$key]['Morning']['DisAmount']) && $ProductArray[$key]['Morning']['DisAmount'] > 0)
+								$ProductArray[$key]['Morning']['Percentage']	=	round(($mqty/$tot) * 100,2);
+							if(isset($ProductArray[$key]['Evening']['DisAmount']) && $ProductArray[$key]['Evening']['DisAmount'] > 0)
+								$ProductArray[$key]['Evening']['Percentage']	=	round(($eqty/$tot) * 100,2);
+							if(isset($ProductArray[$key]['Noon']['DisAmount']) && $ProductArray[$key]['Noon']['DisAmount'] > 0)
+								$ProductArray[$key]['Noon']['Percentage']		=	round(($nqty/$tot) * 100,2);
+						}						
+					}				
+				}			
+				$outArray['result'] = array_values($ProductArray);
+				return $outArray;
+			}
+		}
+	}
+	/**
+	* get Product Analytics
+	*/
+	public function getProductAnalytics_old($merchantId)
+    {
+		/**
+		* Get the bean
+		* @var $bean Products
+		*/
+        $bean 		= 	$this->bean;
+		$dataType	=	'day';
+		$field		=	$condition	=	$condition2	=	$case = '';
+		$dataType 	= 	$bean->DataType;
+		$Start		=	0;
+		if(isset($bean->Start))
+			$Start 		= 	$bean->Start;
+		if(isset($bean->TimeZone))
+			$time_zone	= 	$bean->TimeZone;
+		
+		$curr_date 		= 	date('Y-m-d');
+		$cur_month 		= 	date('m');
+		$cur_year 		= 	date('Y');
+		if($dataType == 'day') {
+			$case .=" , CASE WHEN HOUR(DATE_ADD(o.OrderDate,INTERVAL '".$time_zone."' HOUR_MINUTE)) BETWEEN '04' AND '11' THEN 1
+							WHEN HOUR(DATE_ADD(o.OrderDate,INTERVAL '".$time_zone."' HOUR_MINUTE)) BETWEEN '12' AND  '19' THEN 2
+							WHEN ((HOUR(DATE_ADD(o.OrderDate,INTERVAL ' 05:30' HOUR_MINUTE)) BETWEEN '20' AND '23') or (HOUR(DATE_ADD(o.OrderDate,INTERVAL ' 05:30' HOUR_MINUTE)) BETWEEN '00' AND '03')) THEN 3
+							END as period ";
+			$condition	.=	" and Date(DATE_ADD(o.OrderDate,INTERVAL '".$time_zone."' HOUR_MINUTE)) = '".$curr_date."'";
+			$condition2	.= 	" and (DATE(DATE_ADD(o.OrderDate,INTERVAL '".$time_zone."' HOUR_MINUTE)) <= '".date('Y-m-d',strtotime($curr_date))."' and DATE(DATE_ADD(o.OrderDate,INTERVAL '".$time_zone."' HOUR_MINUTE)) > '".date('Y-m-d',strtotime("-7 days"))."')";
+		} 		
+		$sql	=	"SELECT SQL_CALC_FOUND_ROWS p.id as ProductId,p.ItemName as Name,p.Photo,SUM(c.TotalPrice) as TotalPrice,count(o.id) as TotalOrder from orders as o 
+							left join carts as c ON (c.CartId = o.fkCartId)
+                         	left join products as p on(p.id = c.fkProductsId)
+							where 1   and o.Status = 1 and o.TransactionId != '' and  o.OrderStatus IN (1) ".$condition." and o.fkMerchantsId = ".$merchantId." and  
+							c.fkMerchantsId = ".$merchantId." and p.Status=1 and p.fkMerchantsId =  ".$merchantId."   group by p.id order by TotalOrder desc limit $Start,8";
+		$result	=	R::getAll($sql);
+		// echo "<br>========================".$sql;
+		
+		$total				=	R::getAll('SELECT FOUND_ROWS() as count ');
+		$totalProducts		=	$total[0]['count'];
+	
+		if($result) {
+			$productIds	=	$ProductArray	=	$outArray = Array();
+			$outArray['totalProducts']	=	$totalProducts;
+			$outArray['listedProducts']	=	count($result);
+			foreach($result as $val) {
+				$productIds[] 	=	$val['ProductId'];
+				$image_path = MERCHANT_SITE_IMAGE_PATH.'no_image.jpeg';	
+				if(isset($val['Photo']) && $val['Photo'] != '')
+					$image_path = PRODUCT_IMAGE_PATH.$val['Photo'];	
+				
+				$ProductArray[$val['ProductId']]['ProductID'] 		= 	$val['ProductId'];
+				$ProductArray[$val['ProductId']]['ProductName'] 	= 	$val['Name'];
+				$ProductArray[$val['ProductId']]['ProductImage'] 	= 	$image_path;							
+			}
+			if(count($productIds) > 0) {
+				$sql 	= "SELECT c.fkProductsId as ProductId, Sum(c.ProductsQuantity) as TotalQty, sum(c.TotalPrice) as OriginalCost, sum(c.DiscountPrice) as DiscountCost, count(o.id) as TotalOrder".$case." from	carts as c
+							left join orders as o on(c.CartId = o.fkCartId) 
+							left join products as p on(c.fkProductsId = p.id) 
+							where 1 and o.Status = 1 and o.TransactionId != '' and p.Status=1 and  o.OrderStatus IN (1) and o.Status = 1 and p.id in (".implode(',',$productIds).") ".$condition." and o.fkMerchantsId = ".$merchantId." 
+							and c.fkMerchantsId = ".$merchantId." GROUP BY c.fkProductsId".trim($case," as period ");
+				$ProductList 	=	R::getAll($sql);
+				// echo "<br>========================".$sql;
+				
+				//echo "<pre>";print_r($ProductList);echo "</pre>";
+				if($ProductList ){	
+					$TempArray	=	Array();
+					foreach($ProductList as $value) {
+						if(isset($value['period'])) {
+							if($value['period'] == 1)
+								$TempArray[$value['ProductId']]['Morning'] = $value;
+							else if($value['period'] == 2)
+								$TempArray[$value['ProductId']]['Noon'] = $value;
+							else if($value['period'] == 3)
+								$TempArray[$value['ProductId']]['Evening'] = $value;
+						}
+					}
+					
+					if(count($TempArray) > 0) {	
+						foreach($TempArray as $key=>$value) {	
+							$mqty = $nqty = $eqty = 0;
+							if(isset($value['Morning']) && count($value['Morning']) > 0) {							
+								$mqty	=	$value['Morning']['TotalQty'];
+								$ProductArray[$key]['Morning']['OrgAmount'] 	= round($value['Morning']['OriginalCost'],2);			
+								$ProductArray[$key]['Morning']['DisAmount'] 	= round($value['Morning']['DiscountCost'],2);			
+								$ProductArray[$key]['Morning']['TotOrder'] 		= $value['Morning']['TotalOrder'];
+							}
+							if(isset($value['Noon']) && count($value['Noon']) > 0) {							
+								$nqty	=	$value['Noon']['TotalQty'];
+								$ProductArray[$key]['Noon']['OrgAmount'] = round($value['Noon']['OriginalCost'],2);			
+								$ProductArray[$key]['Noon']['DisAmount'] = round($value['Noon']['DiscountCost'],2);			
+								$ProductArray[$key]['Noon']['TotOrder'] 	= $value['Noon']['TotalOrder'];			
+							}
+							if(isset($value['Evening']) && count($value['Evening']) > 0) {							
+								$eqty	=	$value['Evening']['TotalQty'];
+								$ProductArray[$key]['Evening']['OrgAmount'] = round($value['Evening']['OriginalCost'],2);			
+								$ProductArray[$key]['Evening']['DisAmount'] = round($value['Evening']['DiscountCost'],2);			
+								$ProductArray[$key]['Evening']['TotOrder'] 	= $value['Evening']['TotalOrder'];			
+							}	
+							
+							$totqty	=	$mqty + $nqty + $eqty;
+							
+							if(!empty($mqty))
+								$ProductArray[$key]['Morning']['Percentage'] 	= round(($mqty/$totqty) * 100,2);
+						
+							if(!empty($nqty))
+								$ProductArray[$key]['Noon']['Percentage'] 		= round(($nqty/$totqty) * 100,2);
+								
+							if(!empty($eqty))
+								$ProductArray[$key]['Evening']['Percentage'] 	= round(($eqty/$totqty) * 100,2);
+									
+						}
+					}		
+				}
+				
+				$sql = "SELECT  p.id as ProductId,Date(o.OrderDate) as OrderDate,SUM(c.TotalPrice) as TotalPrice,count(o.id) as TotalOrders from orders as o 
+						left join carts as c ON (c.CartId = o.fkCartId)
+						left join products as p on(p.id = c.fkProductsId)
+						where 1   and o.Status = 1 and o.TransactionId != '' and p.Status=1  and  o.OrderStatus IN (1) and o.fkMerchantsId = ".$merchantId." and  c.fkMerchantsId = ".$merchantId." 
+						".$condition2." and p.fkMerchantsId =  ".$merchantId." and p.id in (".implode(',',$productIds).") group by Date(DATE_ADD(o.OrderDate,INTERVAL '".$time_zone."' HOUR_MINUTE)),p.id  order by TotalPrice desc";
+				$WeekList 	=	R::getAll($sql);
+				// echo "<br>========================".$sql;
+				
+				if($WeekList){
+					
+					foreach($WeekList as $key=>$value) {
+						$TempArray	=	Array();
+						$TempArray['OrderDate'] 	= $value['OrderDate'];
+						$TempArray['TotalPrice'] 	= round($value['TotalPrice'],2);
+						$TempArray['TotalOrders'] 	= $value['TotalOrders'];
+						$ProductArray[$value['ProductId']]['WeekList'][] = $TempArray;
+					}
+				}
+				
+				$outArray['result'] = array_values($ProductArray);
+				return $outArray;
+			}
+		}
 	}
 }

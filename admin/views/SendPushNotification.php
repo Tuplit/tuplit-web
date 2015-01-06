@@ -125,11 +125,15 @@ if(!isset($userNameArr) ||  count($userNameArr) < 0 ){
 }
 
 ?>
-<body class="skin-blue" onload="">
+<style>
+.fancybox-inner { overflow: hidden; width: 700px;height: 50%;}
+
+</style>
+<body class="skin-blue fancy-popup" onload="">
 	<!-- Content Header (Page header) -->
 	<section class="content-header no-padding">
-		<div class="col-xs-10 col-sm-7">
-			<h1><i class="fa fa-envelope"></i> Send Push Notification</h1>
+		<div class="col-xs-12">
+			<h1 align="center"><i class="fa fa-envelope"></i> Send Push Notification</h1>
 		</div>
 	</section>
 	<!-- Main content -->
@@ -143,7 +147,7 @@ if(!isset($userNameArr) ||  count($userNameArr) < 0 ){
 		</div>
 	<?php if(isset($msg) && $msg != '') { ?>
 	 <div class="row">
-              <div align="center" class="alert <?php  echo $class;  ?> alert-dismissable col-xs-11  col-sm-4"><i class="fa fa-check"></i> <?php echo $msg; ?></div>
+              <div align="center" class="alert <?php  echo $class;  ?> alert-dismissable col-xs-6  col-sm-4"><i class="fa fa-check"></i> <?php echo $msg; ?></div>
 	 </div>	
 	
 	<?php } ?>
@@ -165,7 +169,7 @@ if(!isset($userNameArr) ||  count($userNameArr) < 0 ){
 					foreach($userNameArr as $id=>$user) {?>
 			<input type="hidden" value="<?php echo $user; ?>" name="user_name[<?php  echo $id;?>]">
 			<?php } } } ?>
-		<div class="box box-primary">
+		<div class="box box-primary box-padding send_push_box">
 			<div class="box-body no-padding" >	
 			<div class="row col-sm-12 form-group">
 				<div class="col-xs-2">
@@ -197,4 +201,4 @@ if(!isset($userNameArr) ||  count($userNameArr) < 0 ){
  </div>
  </section><!-- /.content -->
  <?php commonFooter(); ?>
-
+ 

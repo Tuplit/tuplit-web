@@ -70,7 +70,8 @@ h1, h2, h3, h4, h5 ,h6 { font-weight : normal; }
   background: #ffffff;
   width: 100%;
   box-shadow: 0  1px 3px rgba(0, 0, 0, 0.1);
-  overflow : hidden
+  overflow : hidden;
+  margin-bottom:20px;
 }
 .box.box-primary {
   border-top-color: #01b3a5;
@@ -361,11 +362,11 @@ font:13px/0 "HelveticaNeue-Light STd", "Helvetica Neue Lt STd", "HelveticaNeueLT
 #login-box .static_content h2 {font-size:30px;text-align:left;padding-bottom:0px !important;}
 #login-box .static_content h3 {font-size:24px;text-align:left;padding-bottom:0px !important;}
 #login-box .static_content p {padding-top:6px;}
-
 /* For mobile Device */
 @media screen and (max-width: 360px) {
 	.signup-bg .pull-right {height:74px;}
 	.error-req span.error {padding-top:14px;}
+	.login_check {padding-bottom:20px;}
 }
 @media screen and (max-width: 568px) {
 	.signup-bg {width:100%;}

@@ -26,6 +26,8 @@ if(isset($_COOKIE['tuplit_merchant_email']) && $_COOKIE['tuplit_merchant_email']
 //login after sign up process
 if(isset($_GET['type']) && $_GET['type'] == 1){
 	$responseMessage 	= 	'You have registered successfully. Please wait till you get approval mail.';
+	//$responseMessage 	= 	'You have registered successfully. An email is sent with activation link';
+	
 	$msg_class 		 	= 	"alert alert-success col-xs-8 col-md-6 col-lg-5";
 	$class_icon   		= 	"fa-check";
 }

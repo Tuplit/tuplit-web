@@ -104,14 +104,13 @@ $app->get('/',tuplitApi::checkToken(),function () use ($app) {
 		// Create a http request
         $req	 					= 	$app->request();
 		$userId 					= 	tuplitApi::$resourceServer->getOwnerId();
-		// Create a json response object
-        $response 					= 	new tuplitApiResponse();
 		
         $cards 						=  	R::dispense('cards');		
 		$cards->UserId				= 	$userId;	
 		$getCardDetails				=	$cards->getCards();		
 		if($getCardDetails && count($getCardDetails['result']) > 0){
-		
+			// Create a json response object
+			$response 					= 	new tuplitApiResponse();
 	        $response->setStatus(HttpStatusCode::Created);
 	        $response->meta->dataPropertyName 		= 'UserCardList';		
 			$response->returnedObject 				= $getCardDetails['result'];	
@@ -143,30 +142,28 @@ $app->get('/',tuplitApi::checkToken(),function () use ($app) {
 });
 /**
  * Topup a wallet
- * POST /v1/cards/
+ * POST /v1/cards/topup
  */
 $app->post('/topup',tuplitApi::checkToken(),function () use ($app) {
 	
     try {
 		// Create a http request
         $req	 					= 	$app->request();
-		$userId 					= 	tuplitApi::$resourceServer->getOwnerId();
-		// Create a json response object
-        $response 					= 	new tuplitApiResponse();
-		
+		$userId 					= 	tuplitApi::$resourceServer->getOwnerId();		
         $cards 						=  	R::dispense('cards');		
 		$cards->UserId				= 	$userId;	
-		//$cards->Currency 			= 	$req->params('Currency');
 		$cards->Currency 			= 	DEFAULT_CURRENCY;
 		$cards->Amount	 			= 	$req->params('Amount');
 		$cards->CardId	 			= 	$req->params('CardId');
 		
 		$TopupWallet				=	$cards->topup();
 		if(isset($TopupWallet->Id) && $TopupWallet->Id != ''){
-				$response->setStatus(HttpStatusCode::Created);
-		        $response->meta->dataPropertyName 	= 'Topup';		
-				$response->addNotification('Topup has been done successfully');
-	       		echo $response;
+			// Create a json response object
+			$response 					= 	new tuplitApiResponse();
+			$response->setStatus(HttpStatusCode::Created);
+			$response->meta->dataPropertyName 	= 'Topup';		
+			$response->addNotification('Topup has been done successfully');
+			echo $response;
 		}
 		else{
 			// Error occured while reseting password

@@ -34,7 +34,7 @@ function commonHead() {
 		}
 ?>
 <!DOCTYPE html>
-<html>
+<html class=""><!-- mm-opened mm-background mm-opening -->
 <head>
 	<meta charset="UTF-8">
 	<title> <?php echo SITE_TITLE; ?> <?php echo $PAGE_TITLE; ?></title>			
@@ -69,7 +69,10 @@ function commonHead() {
 	<?php } ?>
 	
 	<!-- Manage Orders-->
-	<?php if(isset($page) && $page == 'Orders'){ ?>
+	<?php if(isset($page) && ($page == 'Orders' || $page == 'UserOrders')){
+		if($page == 'UserOrders')
+			$_SESSION['MerchantPortalAskPin'] =0;
+	?>
 		<link rel="STYLESHEET" type="text/css" href="<?php echo MERCHANT_STYLE_PATH; ?>jquery.scrollbar.css">
 	<?php } ?>
 	
@@ -81,7 +84,37 @@ function commonHead() {
 			background-image : url(<?php echo  $url; ?>) !important;
 			background-repeat : no-repeat;
 		}
-	</style>
+		.fa fa-spinner fa-spin fa-lg
+		.fa-spin{display: none;}
+		.fancybox-loading,#fancybox-loading div{display: none;}
+		#fancybox-loading{display: none;}
+		.mercha-loader{
+			 background-color: #000;
+			left: 50%;
+		    margin-left: -22px;
+		    margin-top: -22px;
+		    position: fixed;
+		    text-align: center;
+		    top: 50%;
+		    z-index: 1000;
+			padding: 15px;
+			border-radius: 5px
+		}
+		.loader-merchant{    
+			background-color: rgba(0, 0, 0, 0.5);
+			left: 0;
+		    position: fixed;
+		    top: 0;
+		    z-index: 1000;
+			display: none;
+			width: 100%;
+			height: 100%;
+			font-size:15px;
+			color:#ccc;
+		
+		}
+
+</style>
 	<?php } ?>
 </head>
 <?php } 
@@ -100,7 +133,7 @@ $_SESSION['MerchantPortalAskPin'] =0;
 
    function top_header() {
 		$newOrder	=	$showback	=	0;
-		$active_class	=	$font_class	=	'';
+		$active_class	=	$font_class	= $sub_class	= '';
    		$page 			= getCurrPage();
 		if(isset($_GET['st']) && $_GET['st']!='') {
 			$page_st = 'st='.$_GET['st'];
@@ -129,14 +162,13 @@ $_SESSION['MerchantPortalAskPin'] =0;
 		/*elseif(isset($page ) && $page == 'CustomerList')
 		$PAGE_TITLE			=	'- Customer List';*/
 		
-		elseif(isset($page ) && ($page == 'TransactionAnalytics' || $page == 'CustomerList' || $page == 'ProductAnalytics')) {
-			$PAGE_TITLE			=	'- Analytics';
+		elseif(isset($page ) && ($page == 'TopSales' || $page == 'CustomerList' || $page == 'TopOrders')) {
+			$PAGE_TITLE		=	'- Analytics';
 			$font_class		=	'logo-xs';
 		}
-		
 		elseif(isset($page ) && $page == 'Dashboard') {
-		$PAGE_TITLE			=	'- Dashboard';
-		$showback			=	1;
+			$PAGE_TITLE			=	'- Dashboard';
+			$showback			=	1;
 		}
 		elseif(isset($page ) && $page == 'ProductList')
 		$PAGE_TITLE			=	'- Product List';
@@ -172,10 +204,22 @@ $_SESSION['MerchantPortalAskPin'] =0;
    
    
 	<!-- Start : Left Menu -->   
+	<div class="loader-merchant"><!--loader-->
+		<div class="mercha-loader">
+			<i class="fa fa-spinner fa-spin fa-lg"></i>
+		</div>
+	</div>
 	<?php  if(isset($_SESSION['merchantInfo']['AccessToken'])){ ?> 
-	<nav id="menu" class="navbar navbar-static-top" role="navigation">
+	<?php
+	$subuser		=	0;	
+	if(isset($_SESSION['merchantSubuser']) && !empty($_SESSION['merchantSubuser']) && $_SESSION['merchantSubuser'] == 1) { 
+		$subuser	=	1;
+	} else { ?>
+			<!-- <li class="user user-menu"><a href="Myaccount" title="Settings" class="<?php echo $active_class;?>" ><i class="fa msitting"></i><span>&nbsp;&nbsp;Settings</span></a></li> -->
+	<?php } ?>
+	<nav id="#navbar" class="navbar navbar-static-top mm-menu mm-horizontal mm-offcanvas " role="navigation"><!-- mm-current mm-opened -->
 		
-		<ul class="clear">
+		<ul class="clear mm-list mm-panel mm-opened mm-current">
 			<li style="height:171px;background:#01beae;width:210px;text-align:center;display:table-cell;vertical-align:middle;padding-top:24px;">
 				<a href="MyStore" class="no-padding no-margin"><img src="<?php if(isset($_SESSION['merchantDetailsInfo']['Icon']) && !empty($_SESSION['merchantDetailsInfo']['Icon'])) echo $_SESSION['merchantDetailsInfo']['Icon']; else echo MERCHANT_IMAGE_PATH."no_user.jpeg"; ?>" width="86" height="86" alt="" style="-webkit-border-radius: 43px; -moz-border-radius: 43px; -khtml-border-radius: 43px;border-radius: 43px;"></a><br>
 				<a href="MyStore" class="no-padding marginb20"><span style="font-size:20px;color:#fff;padding-top:0px;margin-top:10px;">
@@ -187,24 +231,33 @@ $_SESSION['MerchantPortalAskPin'] =0;
 					?>
 				</span></a>
 			</li>
-			<li> <a href="CreateOrder?cs=1" title="Create Order"><b class="fa mplus"></b> Create Order</a></li>
-			<li><a href="Orders?cs=1" title="Manage Orders"><b class="fa morder"></b> Manage Orders</a></li>
-			<li><a href="CustomerList?cs=1" title="Analytics"><b class="fa mnalytics"></b> Analytics</a></li>
-			<li><a href="ProductList" title="Products"><b class="fa mproduct"></b> Products</a></li>
-			<li><a href="MyStore" title="My Store"><b class="fa mshop"></b> My Store</a></li>
-			<li><a href="TransactionList?cs=1" title="Transactions"><b class="fa mtrans"></b> Transactions </a></li>
+			<li style="padding-bottom:18px;margin-bottom:22px;"><a href="CreateOrder?cs=1" title="Create Order"><b class="fa mplus"></b> Create Order</a></li>
+			<li style="padding-bottom:18px;margin-bottom:22px;"><a href="Orders?cs=1" title="Manage Orders"><b class="fa morder"></b> Manage Orders</a></li>
+			<?php if($subuser != 1) { ?>
+			<li class="menu_active" id="left_analytics" style="padding-bottom:36px;"><a class="menu-analytics" href="#" title="Analytics"><b class="fa mnalytics"></b> Analytics</a> <!-- menu_active -->
+				<ul class="treeview-menu">
+					<li id="customer_analytics"><a href="CustomerAnalyticsOverview?cs=1" title="Customer Analytics" ><b class="fa custanalytics"></b> Customer</a></li>
+					<li id="product_analytics"><a href="ProductAnalytics?cs=1" title="Product Analytics" ><b class="fa prodanalytics"></b> Product</a></li>
+					<li id="transaction_analytics"><a href="TransactionOverview?cs=1" title="Transaction Analytics"><b class="fa transanalytics"></b> Transaction</a></li>
+				</ul>
+			</li>
+			<?php } ?>
+			<li style="padding-bottom:18px;margin-bottom:22px;"><a href="ProductList" title="Products"><b class="fa mproduct"></b> Products</a></li>
+			<?php if($subuser != 1) { ?>
+			<li style="padding-bottom:18px;margin-bottom:22px;"><a href="MyStore" title="My Store"><b class="fa mshop"></b> My Store</a></li>
+			<?php } ?>
+			<li style="padding-bottom:18px;margin-bottom:22px;"><a href="CustomerTransaction?cs=1" title="Transactions"><b class="fa mtrans"></b> Transactions </a></li>
 
 			<!-- <li><a href="SalesPersonList" title=""><b class="fa msalespers"></b> Sales Person</a></li> -->
 			
-			<?php if(isset($_SESSION['merchantSubuser']) && !empty($_SESSION['merchantSubuser']) && $_SESSION['merchantSubuser'] == 1) { } else { ?>
-			<!-- <li class="user user-menu"><a href="Myaccount" title="Settings" class="<?php echo $active_class;?>" ><i class="fa msitting"></i><span>&nbsp;&nbsp;Settings</span></a></li> -->
-			<?php } ?>
-			<li><a href="Logout" class="logout" title="Log out"><i class="fa mlogout"></i><span>Logout</span></a></li>
+			
+			<li style="padding-bottom:18px;margin-bottom:22px;"><a href="Logout" class="logout" title="Log out"><i class="fa mlogout"></i><span>Logout</span></a></li>
 		</ul>	
 	</nav>
+
 	<?php } ?>
 	<!-- End : Left Menu -->   
-   
+   <div class="mm-page" style="">
    <div class="page-wrap"></div>
    <div class="header FixedTop">
 		
@@ -267,7 +320,7 @@ $_SESSION['MerchantPortalAskPin'] =0;
 				//getting new Order List
 				$url					=	WEB_SERVICE.'v1/orders/new';
 				$curlCategoryResponse 	= 	curlRequest($url, 'GET', null, $_SESSION['merchantInfo']['AccessToken']);
-				if(isset($curlCategoryResponse) && is_array($curlCategoryResponse) && $curlCategoryResponse['meta']['code'] == 201 && is_array($curlCategoryResponse['newOrderDetails']) ) {
+				if(isset($curlCategoryResponse) && is_array($curlCategoryResponse) && $curlCategoryResponse['meta']['code'] == 201 && isset($curlCategoryResponse['newOrderDetails']) ) {
 					if(isset($curlCategoryResponse['newOrderDetails']))
 						$newOrderList = $curlCategoryResponse['newOrderDetails'];
 				} 
@@ -342,8 +395,7 @@ $_SESSION['MerchantPortalAskPin'] =0;
 </body>
 
  	<!-- jquery.validate -->
-	<script src="http://ajax.googleapis.com/ajax/libs/jquery/2.0.0/jquery.min.js"></script> 
-<!--     <script src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.10.3/jquery-ui.min.js"></script> -->
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.0.0/jquery.min.js"></script> 
 
 	 	<!--  <script src="<?php echo MERCHANT_SCRIPT_PATH; ?>jquery-latest.js" type="text/javascript"></script> -->
 	<script src="<?php echo MERCHANT_SCRIPT_PATH; ?>Util.js" type="text/javascript"></script>
@@ -359,7 +411,10 @@ $_SESSION['MerchantPortalAskPin'] =0;
 	<script src="<?php echo MERCHANT_SCRIPT_PATH; ?>h5utils.js" type="text/javascript"></script> 
 	<?php if($page == 'MyStore') { ?>
 		<script src="<?php echo MERCHANT_SCRIPT_PATH; ?>GeoLocation.js" type="text/javascript"></script>
-		<script type="text/javascript" src="http://maps.google.com/maps/api/js?sensor=false"></script>
+		<script type="text/javascript" src="https://maps.google.com/maps/api/js?sensor=false"></script>
+		<script src="<?php echo MERCHANT_SCRIPT_PATH; ?>TimeSelect.js" type="text/javascript"></script> 
+	<?php } ?>		 
+	<?php if($page == 'TransactionOverview') { ?>
 		<script src="<?php echo MERCHANT_SCRIPT_PATH; ?>TimeSelect.js" type="text/javascript"></script> 
 	<?php } ?>		
 	<script src="<?php echo MERCHANT_SCRIPT_PATH; ?>jquery.ui.touch-punch.js" type="text/javascript"></script> 
@@ -368,11 +423,54 @@ $_SESSION['MerchantPortalAskPin'] =0;
 	<script src="<?php echo MERCHANT_SCRIPT_PATH; ?>bootstrap.min.js" type="text/javascript"></script>
 	
 	<!-- Manage Orders-->
-	<?php if(isset($page) && $page == 'Orders'){ ?>
+	<?php if(isset($page) && ($page == 'Orders' || $page == 'UserOrders')){ ?>
 		<script src="<?php echo MERCHANT_SCRIPT_PATH; ?>jquery.scrollbar.js" type="text/javascript"></script>
 	<?php } ?>
 	
 	<script type="text/javascript">
+		/*$('body').click(function(){
+			if($('.navbar').hasClass('mm-current mm-opened')){
+				$('html').removeClass('mm-opened mm-background mm-opening');
+				$('.navbar').removeClass('mm-current mm-opened');
+				//$('.mm-page').css('min-height','');
+			}
+		});*/
+		//$("body").click(function(e) {
+		$("body").on("click", function(e){ 
+			// :not(#navbar, #navbar *)
+			//
+			//alert('---------------------'+e.target.className);
+			 if (e.target.className == "navbar-btn" || e.target.className == "navbar-btn sidebar-toggle"  || e.target.className == "icon-bar" ) {
+				if($('.navbar').hasClass('mm-current mm-opened')){
+					$('html').removeClass('mm-opened mm-background mm-opening');
+					$('.navbar').removeClass('mm-current mm-opened');
+				}
+				else{
+					$('html').addClass('mm-opened mm-background mm-opening');
+					$('.navbar').addClass('mm-current mm-opened');
+				}
+				
+    		}
+			else{
+				if(e.target.className == "menu-analytics"){
+					$('html').addClass('mm-opened mm-background mm-opening');
+					$('.navbar').addClass('mm-current mm-opened');
+					$('.treeview-menu').show();
+					if($('#left_analytics').hasClass('opened')){
+						$('.treeview-menu').hide();
+						$('#left_analytics').removeClass('opened');
+					}
+					else{
+						$('#left_analytics').addClass('opened');
+						
+					}
+				}
+				else { 
+					
+				}
+			}
+		});
+
 		$(window).scroll(function() {    
 			var scroll = $(window).scrollTop();
 			if (scroll >= 100) {
@@ -381,7 +479,8 @@ $_SESSION['MerchantPortalAskPin'] =0;
 				$(".adm_head").removeClass("fixed");
 			}
 		});	
-
+		
+		
 		function slideSwitch() {
    		 	var $active = $('#slideshow div.active');
 		    if ( $active.length == 0 ) $active = $('#slideshow div:last');
@@ -543,7 +642,7 @@ $_SESSION['MerchantPortalAskPin'] =0;
 				return false;
 			});	
 		});// end document.ready
-					
+		
 </script>
 	
 	<?php if(isset($page) && $page == 'CreateOrder'){ ?>
@@ -569,11 +668,17 @@ $_SESSION['MerchantPortalAskPin'] =0;
 	</a>
 
 	</div>
+	</div>
 	<script type="text/javascript">
 		var loaded = false;
-		function SetLoaded() { loaded = true; }
+		function SetLoaded() { 
+		loaded = true; 
+		$('html').removeClass('mm-opened mm-background mm-opening');
+		$('.navbar').removeClass('mm-current mm-opened');
+		}
 		window.onload = SetLoaded;
 	</script>
+	
 	<!--<nav id="menu">
 		<ul>
 			<li><a href="#content">Introduction</a></li>
@@ -593,25 +698,128 @@ function AnalyticsTab() {
 			$c_class		=	'btn-success';
 		else if(isset($page ) && $page == 'TransactionAnalytics') 
 			$t_class		=	'btn-success';
-		else if(isset($page ) && $page == 'ProductAnalytics') 
+		else if(isset($page ) && $page == 'TopOrders') 
 			$p_class		=	'btn-success';
 		else if(isset($page ) && $page == 'TransactionList')
 			$l_class		=	'btn-success';
 		else
 			$c_class = $p_class = $t_class = $l_class = '';?>
-		<div class="row">
-			<div class="col-xs-12 ">
+		
+			<div class="col-xs-8 ">
 				<div class="btn-inline space_top">
-				<a href="CustomerList?cs=1" title="Customer List" class="col-xs-12 btn  <?php if(isset($c_class) && $c_class != '') echo $c_class; else  echo 'btn-default';?>">Customer Analytics</a>
+				<a href="ProductCustomer" title="Customer List" class="col-xs-12 btn  <?php if(isset($c_class) && $c_class != '') echo $c_class; else  echo 'btn-default';?>">Customer Analytics</a>
 				</div>
 				<div class="btn-inline">
-				<a href="ProductAnalytics?cs=1" title="Product Analytics" class="col-xs-12 btn <?php if(isset($p_class) && $p_class != '') echo $p_class; else  echo 'btn-default'; ?>">Product Analytics</a>
+				<a href="TopOrders?cs=1" title="Product Analytics" class="col-xs-12 btn <?php if(isset($p_class) && $p_class != '') echo $p_class; else  echo 'btn-default'; ?>">Product Analytics</a>
 				</div>
 				<div class="btn-inline">
 				<a href="TransactionAnalytics?cs=1" title="Transaction Analytics" class="col-xs-12 btn <?php if(isset($t_class) && $t_class != '') echo $t_class; else  echo 'btn-default'; ?>">Transaction Analytics</a>
 				</div>				
 			</div>
-		</div>
+	
+<?php } 
+
+	function CustomerAnalyticsTab() { 
+		$page 		= 	getCurrPage();		
+		$success	=	0;
+		if(isset($page ) && $page == 'CustomerAnalyticsOverview') 
+			$success		=	1;
+		if(isset($page ) && $page == 'ProductCustomer') 
+			$success		=	2;
+		if(isset($page ) && $page == 'ProductComments') 
+			$success		=	3;
+		if(isset($page ) && $page == 'CustomerTransaction') 
+			$success		=	4;
+		if(isset($page ) && $page == 'Demographics') 
+			$success		=	6;
+		if(isset($page ) && $page == 'Performance') 
+			$success		=	5;
+		
+		?>
+			
+			<div class="col-xs-12 col-sm-10 col-md-10 col-lg-10 product_analytics LH56 no-padding">
+				<div class="btn-inline">
+					<a href="CustomerAnalyticsOverview?cs=1" title="Overview" class="col-xs-12 btn  <?php if($success == 1) echo ' btn-success btn-list'; else  echo ' btn-default btn-list'; ?>">Overview</a>
+				</div>
+				<div class="btn-inline">
+					<a href="ProductCustomer" title="Customer List" class="col-xs-12 btn  <?php if($success == 2) echo ' btn-success btn-list'; else  echo ' btn-default btn-list';?>">Customers</a>
+				</div>				
+				<div class="btn-inline">
+					<a href="ProductComments?cs=1&analytics=customer" title="Comments" class="col-xs-12 btn  <?php if($success == 3) echo ' btn-success btn-list'; else  echo ' btn-default btn-list';?>">Comments</a>
+				</div>
+				<div class="btn-inline">
+					<a href="CustomerTransaction?analytics=customer" title="Transaction history" class="col-xs-12 btn  <?php if($success == 4) echo ' btn-success btn-list'; else  echo ' btn-default btn-list';?>">Transaction history</a>
+				</div>
+				<div class="btn-inline">
+					<a href="Performance?cs=1" title="Performance" class="col-xs-12 btn  <?php if($success == 5) echo ' btn-success btn-list'; else  echo ' btn-default btn-list';?>">Performance</a>
+				</div>
+				<div class="btn-inline">
+					<a href="Demographics?cs=1" title="Demographics" class="col-xs-12 btn  <?php if($success == 6) echo ' btn-success btn-list'; else  echo ' btn-default btn-list';?>">Demographics</a>
+				</div>					
+			</div>		
+		<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.0.0/jquery.min.js"></script> 
+		<script>
+			$(document).ready(function(){
+				$("#left_analytics").addClass("menu_active");
+				$("#customer_analytics").addClass("sub_menu_active");
+				$('.treeview-menu').show();
+				$('#left_analytics').addClass('opened');
+			});
+		</script>
+<?php }
+	function ProductAnalyticsTab() { 
+		$page 		= 	getCurrPage();
+		
+		$success	=	0;
+		/*if(isset($page ) && $page == 'TopOrders') 
+			$success		=	1;
+		if(isset($page ) && $page == 'ProductComments') 
+			$success		=	3;
+		if(isset($page ) && $page == 'ProductSales') 
+			$success		=	4;
+		if(isset($page ) && $page == 'Performance') 
+			$success		=	5;*/
+		if(isset($page ) && $page == 'AnalyticsCategory') 
+			$success		=	6;
+		if(isset($page ) && $page == 'TopSellers') 
+			$success		=	7;
+		if(isset($page ) && $page == 'ProductAnalytics') 
+			$success		=	8;
+		?>
+	
+			<div class="col-xs-12 col-sm-10 col-md-10 col-lg-10 product_analytics LH56 no-padding">
+				<!--<div class="btn-inline">
+					<a href="TopOrders?cs=1" title="Top Sellers" class="col-xs-12 btn  <?php if($success == 1) echo ' btn-success btn-list'; else  echo ' btn-default btn-list';?>">Orders</a>
+				</div>
+				<div class="btn-inline">
+					<a href="ProductComments?cs=1&analytics=product" title="" class="col-xs-12 btn  <?php if($success == 3) echo ' btn-success btn-list'; else  echo ' btn-default btn-list';?>">Comments</a>
+				</div>
+				<div class="btn-inline">
+					<a href="ProductSales?cs=1" title="" class="col-xs-12 btn  <?php if($success == 4) echo ' btn-success btn-list'; else  echo ' btn-default btn-list';?>">Sales</a>
+				</div>-->
+				<!--<div class="btn-inline">
+					<a href="CustomerTransaction?analytics=product" title="" class="col-xs-12 btn  <?php if($success == 5) echo ' btn-success btn-list'; else  echo ' btn-default btn-list';?>">Transactions</a>
+				</div>-->
+				<div class="btn-inline">
+					<a href="ProductAnalytics?cs=1" title="Products" class="col-xs-12 btn  <?php if($success == 8) echo ' btn-success btn-list'; else  echo ' btn-default btn-list';?>">Products</a>
+				</div>
+				<div class="btn-inline">
+					<a href="AnalyticsCategory?cs=1" title="Categories" class="col-xs-12 btn  <?php if($success == 6) echo ' btn-success btn-list'; else  echo ' btn-default btn-list';?>">Categories</a>
+				</div>	
+				<div class="btn-inline">
+					<a href="TopSellers?cs=1" title="" class="col-xs-12 btn  <?php if($success == 7) echo ' btn-success btn-list'; else  echo ' btn-default btn-list';?>">Top Sellers</a>
+				</div>
+			</div>
+		<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.0.0/jquery.min.js"></script> 
+		<script>
+			$(document).ready(function(){
+				$("#left_analytics").addClass("menu_active");
+				$("#product_analytics").addClass("sub_menu_active");
+				$('.treeview-menu').show();
+				$('#left_analytics').addClass('opened');
+			});
+		</script>
+
 <?php } function top_header_before_login () { 
 	global $backgroundSliderArray;?>
 	<div class="page-wrap">
@@ -626,5 +834,6 @@ function AnalyticsTab() {
 		</div>
 		<div class="content" id="login-box">
 				<!--<h1 align="center"><span>Tuplit</span><a href="Login" class="logo"><img src="webresources/images/tuplit_logo.png" width="120" height="120" alt=""></a></h1>-->
-				<h1 align="center">	<a href="Login" class="logo"><img src="webresources/images/tuplit_logo.png" width="120" height="120" alt=""></a></h1>
+				<h1 align="center">	<a href="Login" class="logo">
+					<img src="webresources/images/tuplit_logo.png" width="120" height="120" alt=""></a></h1>
 <?php } ?>

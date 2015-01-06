@@ -103,7 +103,7 @@ function popup_head(){ ?>
 	$main_link_array['Category Management'] 	=	array('CategoryManage','CategoryDetail','CategoryList');
 	$main_link_array['Manage Content'] 			=	array('ManageContent');
 	$main_link_array['Webservice Management'] 	=	array('ServiceList','ServiceDetail','ServiceManage');
-	$main_link_array['Statistics/Tracking'] 	=	array('LogTracking','Statistics','Transfer','ServiceList','ServiceManage','ServiceDetail');
+	$main_link_array['Statistics/Tracking'] 	=	array('LogTracking','Statistics','Transfer','ServiceList','ServiceManage','ServiceDetail','Versions');
 	$main_link_array['Logout'] 					=	array('Logout');
 	$main_link_array['Manage Transactions'] 	=	array('Transactions');
 	$page = getCurrPage();
@@ -189,7 +189,7 @@ function popup_head(){ ?>
 							<span class="icon-bar"></span>
 							<span class="icon-bar"></span>
 						</a>
-						<a class="logo-icon" href="#" title="tuplit"></a>
+						<a class="logo-icon" href="CommonSettings" title="tuplit"></a>
 						<!-- <a class="alert-icon" class="dropdown notifications-menu" id='merchant_approve' style="display:none;"  href="MerchantList?cs=1&status=0"   data-placement="bottom" title="Merchant waiting for approval" href="" title="">data-toggle="tooltip"
 							<span class="label label-warning" id="merchant_approve_value"></span>
 						</a> -->
@@ -227,6 +227,7 @@ function popup_head(){ ?>
 	<script src="<?php echo ADMIN_SCRIPT_PATH; ?>AjaxFileUpload.js" type="text/javascript"></script>
 	<script src="<?php echo ADMIN_SCRIPT_PATH; ?>fancybox/jquery.fancybox.js" type="text/javascript"></script>
 	<script src="<?php echo ADMIN_SCRIPT_PATH; ?>jquery-ui.js" type="text/javascript"></script>
+	<script src="<?php echo ADMIN_SCRIPT_PATH; ?>functions.js" type="text/javascript"></script>
 		
 	<?php if(isset($page) && $page	==	'MerchantManage') { ?>	
 	<script src="<?php echo ADMIN_SCRIPT_PATH; ?>TimeSelect.js" type="text/javascript"></script>

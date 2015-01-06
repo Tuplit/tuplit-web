@@ -491,7 +491,7 @@ h2.tabsection a, h2.tabsection span {
 						</div>
 					</div>
 					<!-- CATEGORY LIST END -->
-					<div class="Locations sett-menu">
+					<div class="Locations sett-menu" style="display:none;">
 						<h2 class="tabsection" id="location_list">Locations</h2>
 						<div id="location_list_block" class="locations-list table-responsive" style="display:<?php if(isset($_GET['msg']) && ($_GET['msg'] == 8  || $_GET['msg'] == 10 || $_GET['msg'] == 11 )){ echo "block";} else {echo "none";}?>;">
 						<?php if(isset($msg_loc) && $msg_loc != '') { ?><div class="alert  alert-dismissable <?php  echo $class_loc;  ?> col-sm-5  col-xs-10" align="center"><span><i class="fa <?php  echo $class_icon_loc;  ?>"></i> <?php echo $msg_loc;  ?></span></div><?php } ?>
@@ -519,7 +519,7 @@ h2.tabsection a, h2.tabsection span {
 							</table>
 						</div>
 					</div>					
-					<div class="Currency">
+					<div class="Currency" style="display:none;">
 						<h2 class="tabsection" id="currency_list">Currency<span>Tuplit is to work with multi-currency</span></h2>
 						<div id="currency_list_block" class="currency-list table-responsive" style="display:<?php if(isset($_GET['msg']) &&  ( $_GET['msg'] == 9 ||  $_GET['msg'] == 12 ||  $_GET['msg'] == 13 )){ echo "block";} else {echo "none";}?>;">
 						<?php if(isset($msg_cur) && $msg_cur!= '') { ?><div class="alert  alert-dismissable <?php  echo $class_cur;  ?> col-sm-5  col-xs-10" align="center"><span><i class="fa <?php  echo $class_icon_cur;  ?>"></i> <?php echo $msg_cur;  ?></span></div><?php } ?>

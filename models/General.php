@@ -181,13 +181,69 @@ class General extends RedBean_SimpleModel implements ModelBaseInterface {
     }
 	
 	/**
+     * get & check version, build
+     */
+    public function checkCurrentVersion(){
+		
+		// validate the model
+        $this->validate();
+		
+		$bean 		= 	$this->bean;
+		$device 	= 	$bean->device_type;
+		$status 	= 	$bean->app_type;
+		$version 	= 	$bean->version;
+		$build 		=	$bean->build;
+		
+		$app_exists = 	R::findOne('appversions','device_type =? and app_type=? order by id desc ',array($device,$status ));
+		if($app_exists){
+			if($version == $app_exists->version && $build == $app_exists->build){
+				$message 		= 	'Up to date';
+				$message_code 	= 	1;
+			}
+			else if($version <= $app_exists->version && $build <= $app_exists->build){
+				$message_code 	= 	2;
+				$message 		= 	'You are using an older version '.$version.(($build!='')?' build '.$build:'');
+				$message 	   .= 	' - New version '.$app_exists->version.(($app_exists->build!='')?' build '.$app_exists->build:'');
+			}
+			else if($version < $app_exists->version){
+				$message_code 	= 	2;
+				$message 		=  	'You are using an older version '.$version.(($build!='')?' build '.$build:'');
+				$message 		.= 	' - New version '.$app_exists->version.(($app_exists->build!='')?' build '.$app_exists->build:'');
+			}
+			else{
+				$message 		= 	'Invalid version detail';
+				$message_code 	= 	3;
+			}
+			$result['status_code'] = $message_code;
+			$result['message'] 	= $message;
+			return $result;
+		}
+		else{
+			return false;
+		}
+	}
+	
+	
+	/**
 	* Validate the model
 	* @throws ApiException if the models fails to validate required fields
 	*/
     public function validate()
     {
+		$bean 	=	 $this->bean;
+		$rules 	= 	[
+						'required' => [
+							['version'],['build'],['device_type'],['app_type']
+						],
+					];
+        $v 		= 	new Validator($this->bean);
+        $v->rules($rules);
+        if (!$v->validate()) {
+            $errors = $v->errors();
+            throw new ApiException("Please check version, build, device_type, app_type" ,  ErrorCodeType::SomeFieldsRequired, $errors);
+        }		
+    }
 	
-	}
 	
 	/*
 	* validate create
@@ -217,9 +273,7 @@ class General extends RedBean_SimpleModel implements ModelBaseInterface {
 			*/
 			foreach($result as $key=>$value){
 				if($value['Content'] != ''){
-					//$str = str_replace("\r\n","<br>",trim($value['Content']));
 					$content  .= '<h1>'.ucfirst($value['PageName']).'</h1>';
-					//$content .= '<p>'.ucfirst(nl2br($str)).'</p>';
 					$content .= '<p>'.ucfirst($value['Content']).'</p>';
 					
 				}

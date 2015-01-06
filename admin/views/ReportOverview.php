@@ -12,14 +12,14 @@ require_once('controllers/ManagementController.php');
 $managementObj  =   new ManagementController();
 $searchCond		=	$cond 	= $condition = $search_merchant = '';
 $search_city 	=  $search_category = $search_price = '';
-$having			=  $transCond = $leftjoin = $lj= '';
+$having			=  $transCond = $leftjoin = $lj= $cat_leftjoin = '';
 $limit			= 0;
 $type			= 2;
 if(isset($_GET['cs']) && $_GET['cs'] == 1){
-	unset($_SESSION['loc_mer_name']);
-	unset($_SESSION['loc_mer_price']);
-	unset($_SESSION['loc_mer_city']);
-	unset($_SESSION['loc_mer_category']);
+	//unset($_SESSION['loc_mer_name']);
+	//unset($_SESSION['loc_mer_price']);
+	//unset($_SESSION['loc_mer_city']);
+	//unset($_SESSION['loc_mer_category']);
 }
 if(isset($_POST['Search'])){
 	if(isset($_POST['Merchant_Name']) && $_POST['Merchant_Name']!= ''){
@@ -30,8 +30,8 @@ if(isset($_POST['Search'])){
 	if(isset($_POST['Merchant_Price']) && $_POST['Merchant_Price']!= ''){
 		$_SESSION['loc_mer_price'] 	 =  $_POST['Merchant_Price'];
 		//$cond						.= " and o.TotalPrice = ".trim($_SESSION['loc_mer_price']);
-		$cond 						.= " and ".$_SESSION['loc_mer_price']." between substring_index(m.PriceRange,',',1) and substring_index(m.PriceRange,',',-1)"; 
-		$having						.= " Having TotalPrice <= ".trim($_SESSION['loc_mer_price']);
+		$cond 						.= " and '".$_SESSION['loc_mer_price']."' between substring_index(m.PriceRange,',',1) and substring_index(m.PriceRange,',',-1)"; 
+		$having						.= " Having TotalPrice <= '".trim($_SESSION['loc_mer_price'])."'";
 	}else unset($_SESSION['loc_mer_price']);
 	if(isset($_POST['Merchant_city']) && $_POST['Merchant_city']!= ''){
 		$_SESSION['loc_mer_city'] 	 = $_POST['Merchant_city'];
@@ -49,11 +49,12 @@ $fields    			= " o.TotalPrice,o.TransactionId,o.OrderDate,o.Status,m.CompanyNam
 $sort				= " o.id desc ";
 $leftjoin			= " left join users as u on  (u.id	= o.fkUsersId ) left join merchants as m on (m.id = o.fkMerchantsId)";
 if(isset($_SESSION['loc_mer_category']) && $_SESSION['loc_mer_category']!=''){
-	$leftjoin		.= "left join merchantcategories as mc on (m.id = mc.fkMerchantId) left join categories as c on (c.id = mc.fkCategoriesId)";
+	$cat_leftjoin		.= "left join merchantcategories as mc on (m.id = mc.fkMerchantId) left join categories as c on (c.id = mc.fkCategoriesId)";
+	$leftjoin			.= "left join merchantcategories as mc on (m.id = mc.fkMerchantId) left join categories as c on (c.id = mc.fkCategoriesId)";
 }
 $OrderListResult  	= $OrderObj->getTransactionDetails($fields,$leftjoin,$transCond,$sort,$limit,$type);
 $fields 			= '';
-$analyticsList  	= $analyticsObj->getCustomerReport($fields,$condition,$having,$limit,$type,$lj);
+$analyticsList  	= $analyticsObj->getCustomerReport($fields,$condition,$having,$limit,$type,$cat_leftjoin);
 $tot_rec 			= $analyticsObj->getTotalRecordCount();
 $fields				= "group_concat(fkUsersId) as userArray,c.CategoryName,mc.fkCategoriesId,count(o.id) as transCount,count(distinct fkUsersId) as uniqueCustomers,fkMerchantsId,sum(TotalPrice) as TotalPrice,Min(OrderDate) as FirstTrans,m.City";
 $locationResult		= $analyticsObj->getLocationReport($fields,$condition,$having);
@@ -142,6 +143,9 @@ function load(){
 								}
 								if(isset($having) && $having != ''){
 									$_GET['having'] = $having;
+								}
+								if(isset($cat_leftjoin) && $cat_leftjoin != ''){
+									$_GET['left_join'] = $cat_leftjoin;
 								}
 								require_once("CustomerReportDetails.php");
 							?>

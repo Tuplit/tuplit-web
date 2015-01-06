@@ -8,6 +8,8 @@
 define("TITLE","Tuplit");
 if (isset($_SERVER['HTTPS']) && ($_SERVER["HTTPS"] == 'on' ) )
 	$site = 'https://';
+elseif (!empty($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] == 'https' || !empty($_SERVER['HTTP_X_FORWARDED_SSL']) && $_SERVER['HTTP_X_FORWARDED_SSL'] == 'on')
+	$site = 'https://';
 else
 	$site = 'http://';
 
@@ -33,8 +35,10 @@ else
 }
 if ($_SERVER['HTTP_HOST'] == '172.21.4.104'){
 	define('BUCKET_NAME','localtuplit');
+	define('ADMIN_IMAGE_PATH_OTHER', ADMIN_SITE_PATH.'/webresources/images/'); 
 }
 else{
+	define('ADMIN_IMAGE_PATH_OTHER', 'https://api.tuplit.com/admin/webresources/images/');
 	define('BUCKET_NAME','tuplit');
 }
 //dl2k2hrieev.cloudfront.net
@@ -42,9 +46,8 @@ else{
 define('SITE_TITLE', 'Tuplit');
 define('ADMIN_SCRIPT_PATH', ADMIN_SITE_PATH.'/webresources/js/');
 define('ADMIN_STYLE_PATH', ADMIN_SITE_PATH.'/webresources/css/');
-define('ADMIN_IMAGE_PATH', ADMIN_SITE_PATH.'/webresources/images/');
 define('ADMIN_UPLOAD_PATH', ADMIN_SITE_PATH.'/webresources/uploads/');
-
+define('ADMIN_IMAGE_PATH', ADMIN_SITE_PATH.'/webresources/images/');
 //Images related constants
 define('UPLOAD_USER_PATH_REL', ABS_PATH.'/admin/webresources/uploads/users/');
 define('UPLOAD_USER_THUMB_PATH_REL', ABS_PATH.'/admin/webresources/uploads/users/thumbnail/');
@@ -85,11 +88,11 @@ if($_SERVER['HTTP_HOST']=='172.21.4.104')
 else{
 	// common path //http://'.BUCKET_NAME.'.s3.amazonaws.com/
 	//admin
-	define('SITE_PATH_UPLOAD','http://dru4vhpkosqqc.cloudfront.net/');
-	define('ABS_PATH_UPLOAD','http://dru4vhpkosqqc.cloudfront.net/');
+	define('SITE_PATH_UPLOAD','https://dru4vhpkosqqc.cloudfront.net/');
+	define('ABS_PATH_UPLOAD','https://dru4vhpkosqqc.cloudfront.net/');
 	//merchant
-	define('MERCHANT_SITE_PATH_UPLOAD','http://dru4vhpkosqqc.cloudfront.net/');
-	define('MERCHANT_ABS_PATH_UPLOAD','http://dru4vhpkosqqc.cloudfront.net/');
+	define('MERCHANT_SITE_PATH_UPLOAD','https://dru4vhpkosqqc.cloudfront.net/');
+	define('MERCHANT_ABS_PATH_UPLOAD','https://dru4vhpkosqqc.cloudfront.net/');
 }
 define('MERCHANT_SITE_IMAGE_PATH',SITE_PATH.'/merchant/webresources/images/');	
 define('MERCHANT_SITE_IMAGE_PATH_REL', SITE_PATH.'/merchant/webresources/images/');
@@ -490,8 +493,14 @@ $ProductVAT = array('0'=>'0','5'=>'5','20'=>'20');
 
 define('FRIEND_INVITE_MESSAGE','Hi.......
 Welcome to tuplit....');
-define('ITUNES_URL','http://tuplit.elasticbeanstalk.com');
+define('ITUNES_URL','http://api.tuplit.com/');
 
 global $GenderArray;
 $GenderArray = array('0'=>'Unspecified','1'=>'Male','2'=>'Female');
+
+/*------APP VERSION----*/
+global $device_name_array,$app_type_array;
+$device_name_array		= array('1'=>'IOS','2'=>'Android');
+$app_type_array			= array('1'=>'Live','2'=>'Beta','3'=>'Local');
+
 ?>

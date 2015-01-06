@@ -90,7 +90,9 @@ class Favorites extends RedBean_SimpleModel implements ModelBaseInterface {
 		
 		//Check for total products   - 27/10/2014
 		$merchantsIdNot	=	'';
-		$sql		=	"SELECT `fkMerchantsId`,count(*) as totcount FROM `products` WHERE 1 and `ItemType` in (1,3) and `Status` in (1,2) group by `fkMerchantsId` HAVING totcount > 20 ";
+		$sql		=	"SELECT p.`fkMerchantsId`,count(p.id) as totcount FROM `products` as p
+							left join merchants as m on (p.fkMerchantsId = m.id)
+							WHERE 1 and p.`ItemType` in (1,3) and m.Status = 1 and p.`Status` in (1,2) group by p.`fkMerchantsId` HAVING totcount >= 20 ";
 		$producttot = 	R::getAll($sql);
 		if($producttot) {
 			$merchantsIdNotArray = Array();

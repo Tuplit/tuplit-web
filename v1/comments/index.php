@@ -16,7 +16,7 @@ require_once "../../admin/includes/CommonFunctions.php";
 /**
 * Load models
 */
- require_once '../../lib/ModelBaseInterface.php';            // base interface class for RedBean models
+ require_once '../../lib/ModelBaseInterface.php';       // base interface class for RedBean models
 require_once '../../models/Comments.php';              // comments model
 
 /**
@@ -39,7 +39,7 @@ $app = new \Slim\Slim();
 
 /**
 * Comments
-* POST /v1/
+* POST /v1/comments/
 */
 $app->post('/',tuplitApi::checkToken(), function () use ($app) {
 
@@ -103,7 +103,7 @@ $app->post('/',tuplitApi::checkToken(), function () use ($app) {
 
 /**
 * Delete Comments
-* DELETE /v1/Comments
+* DELETE /v1/comments/
 */
 $app->delete('/:CommentId',tuplitApi::checkToken(), function ($CommentId) use ($app) {
 
@@ -152,7 +152,7 @@ $app->delete('/:CommentId',tuplitApi::checkToken(), function ($CommentId) use ($
 
 /**
 * Get User  - comments
-* GET /v1/
+* GET /v1/comments/
 */
 $app->get('/', function () use ($app) {
 	try {
@@ -236,14 +236,14 @@ $app->get('/', function () use ($app) {
 $app->get('/productcomments',tuplitApi::checkToken(), function () use ($app) {
 	try {
 		 // Create a http request
-		$merchantId = $userId = $dataType = '';
+		$merchantId = $userId = $dataType = $timeZone = '';
         $req 			= 	$app->request();
 		$merchantId 	= 	tuplitApi::$resourceServer->getOwnerId();
 		
 		// Create a json response object
         $response 		= 	new tuplitApiResponse();
 		$start 			= $type = 0;
-		$limit			= 20;
+		$limit			= 10;
 		if($req->params('Platform')){
 			$platformText 	= $req->params('Platform');
 		}
@@ -257,6 +257,8 @@ $app->get('/productcomments',tuplitApi::checkToken(), function () use ($app) {
 			$limit		 	= $req->params('Limit');
 		if($req->params('DataType'))
 			$dataType		= $req->params('DataType');
+		if($req->params('TimeZone'))
+			$timeZone		= $req->params('TimeZone');
 		/**
          * @var Comments $comments
          */
@@ -266,6 +268,7 @@ $app->get('/productcomments',tuplitApi::checkToken(), function () use ($app) {
 		$comments->Start 				= $start;
 		$comments->Limit 				= $limit;
 		$comments->DataType				= $dataType;
+		$comments->TimeZone				= $timeZone;
 		$commentsList           		= $comments->productCommentsLists();
 		if($commentsList){
 			$response = new tuplitApiResponse();

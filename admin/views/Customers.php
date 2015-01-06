@@ -96,10 +96,11 @@ commonHead();
 	<?php top_header(); ?>
 	<!-- Content Header (Page header) -->
 	<section class="content-header">
-		<div class="col-sm-5 col-xs-12 col-lg-7">
+		<div class="col-sm-5 col-xs-12 col-lg-5">
 			<h1><i class="fa fa-list"></i>Tuplit Customers</h1>
 		</div>
-		<div class="col-sm-7 col-xs-12 col-lg-5 align">
+		<div class="col-sm-7 col-xs-12 col-lg-7 align">
+			<h3 class="send_push"><a href="UserList?cs=1" id="sendPushNotification" title="Send Push Notification"><i class="fa fa-plus-circle"></i> SEND PUSH NOTIFICATION </a></h3>
 			<h3><a href="CustomerManage" target="_blank" title="Add Customer"><i class="fa fa-plus-circle"></i> Add Customer</a></h3>
 			<!--<div class="search-box col-sm-7 col-lg-7 no-padding align">
 				<input type="text" placeholder="Search Customers" value="<?php if(!empty($_SESSION['customersearch'])) echo $_SESSION['customersearch']; ?>" name="customersearch" id="customersearch">
@@ -155,6 +156,7 @@ commonHead();
 				<div class="h1">Customer</div>
 		</div>
 		<div class="col-xs-12 col-sm-6 mtop text-right"> 
+				
 				<a class="add-button" href="javascript:void(0);" id="editCustomer" title="Edit Customer">EDIT CUSTOMER </a>&nbsp;&nbsp;
 				<a class="cancel-button" href="javascript:void(0);" id="deleteCustomer" title="Suspend User">SUSPEND USERS</a>
 		</div>
@@ -220,7 +222,7 @@ $(document).ready(function(){
 	function searchCustomers(type){
 			$('#customer_no_results').hide();
 			$('#customer-details').show();
-			var search = $('#customersearch').val();
+			var search = $.trim($('#customersearch').val());
 			$('#customer_display_count').val(0);
 			var countValue = 1;
 			if(type == 'search'){

@@ -58,7 +58,6 @@ if(isset($_GET['delete']) && !empty($_GET['delete'])) {
 		if(isset($curlCategoryResponse['productCategoryDetails']))
 			$productCategories = $curlCategoryResponse['productCategoryDetails'];	
 	} 
-
 	//Product List
 	$merchantId				= 	$_SESSION['merchantInfo']['MerchantId'];
 	$url					=	WEB_SERVICE.'v1/products/?Type=1';
@@ -80,7 +79,7 @@ if(isset($_GET['delete']) && !empty($_GET['delete'])) {
 				$ProductDetail			=	$ProductDetail[0];
 				if(isset($ProductDetail) && count($ProductDetail) > 0) {
 					$ProductId			= 	$ProductDetail['id'];
-					$Photo 				= 	$ProductDetail['Photo'];
+					$Photo 				= 	$ProductDetail['Photo']; 
 					$Category 			= 	$ProductDetail['fkCategoryId'];
 					$ItemName 			= 	$ProductDetail['ItemName'];
 					$ItemDescription	= 	$ProductDetail['ItemDescription'];
@@ -147,7 +146,7 @@ if(isset($_GET['delete']) && !empty($_GET['delete'])) {
 		if($_POST['productType'] == 3) {
 			$ItemType				= 	'3';
 			$Category 				= 	'0';
-			$Discount 				= 	'0';
+			$Discount 				= 	'1';
 			$original_Price			= 	$_POST['TotalPrice'];
 			$rowids					= 	explode(',',$_POST['TotalRowIds']);
 			foreach($rowids as $val) {			

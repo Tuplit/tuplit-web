@@ -11,7 +11,7 @@ if(isset($_GET['cs']) && $_GET['cs'] == '1'){
 /*-----------------Common Transaction List---------------------*/
 $limit				= 0;
 $fields    			= " o.OrderStatus,o.TotalPrice,o.TransactionId,o.TotalItems,o.OrderDate,o.Status,m.CompanyName,u.FirstName,u.LastName,o.fkCartId,o.Commision ";
-$condition 			= " and o.Status in (1,2)";
+$condition 			= " and o.Status in (1,2) and u.Status = 1 and m.Status = 1";
 $sort				= " o.id desc ";
 $leftjoin			= " left join users as u on  (u.id	= o.fkUsersId ) left join merchants as m on (m.id = o.fkMerchantsId)";
 $OrderListResult  	= $OrderObj->getOrderList($fields,$leftjoin,$condition,$sort,$limit);
@@ -64,10 +64,10 @@ $tot_rec_cust 		= $OrderObj->getTotalRecordCount();
 						</div>	
 						<div class="col-xs-12 next-prev">
 							<div id="prevTransaction"  class="col-xs-6 col-sm-6" align="center">	
-								<a class="" href="javascript:void(0);" onclick="prevNextTransaction('prev')"  title="BACK">BACK</a>
+								<a class="" href="javascript:void(0);" onclick="prevNextTransaction('prev')"  title="PREVIOUS">PREVIOUS</a>
 							</div>
 						
-							<div id="nextTransaction"  class="col-xs-6 col-sm-6" align="center">
+							<div id="nextTransaction"  class="col-xs-6 col-sm-6" align="center" style="float:right;">
 								<a class="" href="javascript:void(0);" onclick="prevNextTransaction('next')"  title="NEXT">NEXT</a>
 							</div>
 						</div>
@@ -117,11 +117,7 @@ $tot_rec_cust 		= $OrderObj->getTotalRecordCount();
 		   return false;
 	    }
 	});
-	/*$(document).ready(function() {
-		
-
-	});
-*/
+	/*$(document).ready(function() {});*/
 $("#Merchant_transaction_button").click(function(){
 	$('#define_search_type').val('2');
 	$('#transactionsearch').attr('placeholder','Search Merchant');
@@ -169,7 +165,7 @@ function prevNextTransaction(direction)
 		$("#prevCount").val('1');
 	}
 	if($("#transactionsearch").val() != ''){	
-		searchVal 	= $("#transactionsearch").val();
+		searchVal 	= $.trim($("#transactionsearch").val());
 		$("#count").val('1');
 	}else{
 		searchVal	= ""; 

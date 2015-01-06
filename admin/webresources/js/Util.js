@@ -135,16 +135,21 @@ function isNumberKey_Qty_check(evt) {
 	if ((keyCode < 48) || (keyCode > 57)) return false;
 	return true;
 }
-
-function isNumberKey_Phone(evt) {
+function isNumberKey_Phone(evt){
 	var keyCode = (evt.which?evt.which:(evt.keyCode?evt.keyCode:0))
-	//alert( keyCode);
 	// backspace, delete, left arrow, right arrow, tab keys
-	if ((keyCode == 8) || (keyCode == 37) || (keyCode == 39) || (keyCode == 9) || (keyCode == 46) || (keyCode == 13) || (keyCode == 40) || (keyCode == 41) || (keyCode == 45)  || (keyCode  == 43	)) return true;
-	if ((keyCode < 48) || (keyCode > 57)) return false;
+	if ((keyCode == 8) || (keyCode == 37)  || (keyCode == 9) || (keyCode == 13) || (keyCode == 40) || (keyCode == 41) || (keyCode == 45)  || (keyCode  == 43	)) return true;
+	if ((keyCode < 48) || (keyCode > 57) ) return false;
 	return true;
 }
-
+function isNumberKey_postal(evt){
+	var keyCode = (evt.which?evt.which:(evt.keyCode?evt.keyCode:0))
+	// backspace, delete, left arrow, right arrow, tab keys
+	// alphanumeric
+	if((keyCode >= 48 && keyCode <= 57) || (keyCode >= 65 && keyCode <= 90) || (keyCode >= 97 && keyCode <= 122) || (keyCode == 8) || (keyCode == 37)  || (keyCode == 9) || (keyCode == 13) ){ 
+		return true;
+	}else return false;
+}
 function isNumberKey_numbers(evt) {
 	var keyCode = (evt.which?evt.which:(evt.keyCode?evt.keyCode:0))
 	//alert(keyCode)
@@ -166,8 +171,8 @@ function isNumberKey_minus(evt) {
 function isNumberKey_Enter(evt) {
 	var keyCode = (evt.which?evt.which:(evt.keyCode?evt.keyCode:0))
 	// backspace, delete, left arrow, right arrow, tab keys
-	if ((keyCode == 8) || (keyCode == 46) || (keyCode == 37) || (keyCode == 39) || (keyCode == 9) || (keyCode == 13)) return true;
-	if ((keyCode < 48) || (keyCode > 57)) return false;
+	if ((keyCode == 8) || (keyCode == 46) || (keyCode == 37)  || (keyCode == 9) || (keyCode == 13)) return true;
+	if ((keyCode < 48) || (keyCode > 57) || (keyCode == 39)) return false;
 	return true;
 }
 //Begin: check character function

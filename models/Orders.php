@@ -94,10 +94,24 @@ class Orders extends RedBean_SimpleModel implements ModelBaseInterface {
 			$result1 	= 	R::getAll($sql1);
 			if(count($result1) == $productcount) {
 				if($bean->OrderDoneBy == 1) {
-					//validate amount
-						//$this->validateAmount($bean->TotalPrice);
+
 					//when user done order
-					$walletDetails								=	getWalletDetails($user->WalletId);
+					$logStart				=	microtime(true);
+					$walletDetails			=	getWalletDetails($user->WalletId);
+					
+					//MangoPay Log
+					$logArray				=	Array();	
+					$logArray['UserId']		=	$bean->UserId;
+					$logArray['MerchantId']	=	$bean->MerchantId;
+					$logArray['URL']		=	'getWalletDetails';
+					$logArray['Content']	=	Array('WalletId'=>$user->WalletId);
+					$logArray['Start']		=	$logStart;
+					$logArray['End']		=	microtime(true);
+					$logArray['Response']	=	$walletDetails;
+					
+					$log 	=	R::dispense('users');
+					$log->storeMangoPayLog($logArray);					
+					
 					if($walletDetails) {
 						if(isset($walletDetails->Balance->Amount) && ($walletDetails->Balance->Amount >= getCents($TotalPrice))) {
 							$userDetails1['AuthorId']			=	$user->MangoPayUniqueId;
@@ -107,7 +121,23 @@ class Orders extends RedBean_SimpleModel implements ModelBaseInterface {
 							$userDetails1['DebitedWalletId']	=	$user->WalletId;
 							$userDetails1['CreditedWalletId']	=	$merchant->WalletId;
 							$userDetails1['FeesAmount']			=	$admin->MangoPayFees;
+							
+							$logStart							=	microtime(true);
 							$result								=	payment($userDetails1);
+							
+							//MangoPay Log
+							$logArray				=	Array();	
+							$logArray['UserId']		=	$bean->UserId;
+							$logArray['MerchantId']	=	$bean->MerchantId;
+							$logArray['URL']		=	'payment';
+							$logArray['Content']	=	$userDetails1;
+							$logArray['Start']		=	$logStart;
+							$logArray['End']		=	microtime(true);
+							$logArray['Response']	=	$result;
+							$log 	=	R::dispense('users');
+							$log->storeMangoPayLog($logArray);
+							
+							
 							if($result && isset($result->Id) && !empty($result->Id) && isset($result->Status) && $result->Status == 'SUCCEEDED') {
 								$transId						= 	$result->Id;								
 							} else {
@@ -313,8 +343,8 @@ class Orders extends RedBean_SimpleModel implements ModelBaseInterface {
 						$result[$key]['ThumbPhoto'] = 	USER_THUMB_IMAGE_PATH.$value['Photo'];
 					}
 					else{
-						$result[$key]['Photo']		= 	$result[$key]['Photo'] = ADMIN_IMAGE_PATH."no_user.jpeg";
-						$result[$key]['ThumbPhoto']	= 	$result[$key]['ThumbPhoto'] = ADMIN_IMAGE_PATH."no_user.jpeg";
+						$result[$key]['Photo']		= 	$result[$key]['Photo'] = ADMIN_IMAGE_PATH_OTHER."no_user.jpeg";
+						$result[$key]['ThumbPhoto']	= 	$result[$key]['ThumbPhoto'] = ADMIN_IMAGE_PATH_OTHER."no_user.jpeg";
 					}
 					$fields1			= 	"c.fkProductsId,p.ItemName,c.ProductsQuantity,c.ProductsCost,c.DiscountPrice,c.TotalPrice,c.Refund";
 					$joincondition1		= 	"left join products p on (c.fkProductsId = p.id)";
@@ -384,6 +414,8 @@ class Orders extends RedBean_SimpleModel implements ModelBaseInterface {
 				
 		if($Type == 0) {			
 			$condition	= 	"ord.OrderStatus in (0,1,2)";
+		} else if($Type == 2) {			
+			$condition	= 	"ord.OrderStatus in (1) and ord.fkMerchantsId = ".$merchantId;
 		} else {
 			$condition	= 	"ord.OrderStatus in (1,2) and ord.OrderDate like '".date('Y-m-d')."%' order by ord.OrderDate desc";
 		}
@@ -413,10 +445,10 @@ class Orders extends RedBean_SimpleModel implements ModelBaseInterface {
 			$condition .= " AND ord.TotalPrice >=".$Price."";
 		}	
 		if($userId != '')
-			$condition	.= 	" and u.id = ".$userId."  order by ord.id desc limit $start,$limit";
+			$condition	.= 	" and u.id = ".$userId."  order by ord.OrderDate desc limit $start,$limit";
 		else if($Type == 0)
 			$condition	.= 	" order by ord.id desc limit $start,$limit";
-		$sql 			= 	"SELECT SQL_CALC_FOUND_ROWS ".$fields." from orders as ord  ".$joincondition." where u.Status = 1  and ord.fkMerchantsId = ".$merchantId." and ".$condition." ";
+		$sql 			= 	"SELECT SQL_CALC_FOUND_ROWS ".$fields." from orders as ord  ".$joincondition." where u.Status = 1 and ord.Status=1 and ord.TransactionId != '' and ord.fkMerchantsId = ".$merchantId." and ".$condition." ";
    		//echo $sql;
 		$result 		= 	R::getAll($sql);
 		$totalRec 		= 	R::getAll('SELECT FOUND_ROWS() as count ');
@@ -432,8 +464,8 @@ class Orders extends RedBean_SimpleModel implements ModelBaseInterface {
 					$result[$key]['ThumbPhoto'] = 	USER_THUMB_IMAGE_PATH.$value['Photo'];
 				}
 				else{
-					$result[$key]['Photo']		= 	$result[$key]['Photo'] = ADMIN_IMAGE_PATH."no_user.jpeg";
-					$result[$key]['ThumbPhoto']	= 	$result[$key]['ThumbPhoto'] = ADMIN_IMAGE_PATH."no_user.jpeg";
+					$result[$key]['Photo']		= 	$result[$key]['Photo'] = ADMIN_IMAGE_PATH_OTHER."no_user.jpeg";
+					$result[$key]['ThumbPhoto']	= 	$result[$key]['ThumbPhoto'] = ADMIN_IMAGE_PATH_OTHER."no_user.jpeg";
 				}
 				$fields1			= 	"c.fkProductsId,p.ItemName,p.Photo,c.ProductsQuantity,c.ProductsCost,c.DiscountPrice,c.TotalPrice";
 				$joincondition1		= 	"left join products p on (c.fkProductsId = p.id)";
@@ -462,6 +494,124 @@ class Orders extends RedBean_SimpleModel implements ModelBaseInterface {
 			throw new ApiException("No results Found", ErrorCodeType::NoResultFound);
 		}
 	}
+	
+	
+	/**
+	* getTransactionSummary
+	*/
+	public function getTransactionSummary($merchantId)
+    {
+		$bean 		= 	$this->bean;
+		
+		//Parameters
+		$transactionSummary		=	$orderList =	Array();		
+		$limit 			= 	10;	
+		$start			=	0;
+		$curr_date 		= 	date('d-m-Y');
+		$cur_month 		= 	date('m');
+		$cur_year 		= 	date('Y');		
+		
+		if(isset($bean->Start))				$start 			= 	$bean->Start;
+		if(isset($bean->FromDate))			$fromDate		=	$bean->FromDate;
+		if(isset($bean->ToDate))			$toDate			=	$bean->ToDate;			
+		if(isset($bean->DataType))			$dataType 		= 	$bean->DataType;
+		if(isset($bean->OrderStatus))		{
+			if($bean->OrderStatus !='' && ($bean->OrderStatus =='0' || $bean->OrderStatus =='1'))
+				$OrderStatus 	= 	" and ord.OrderStatus in (".$bean->OrderStatus.") ";
+			else if($bean->OrderStatus !='' && ($bean->OrderStatus =='2'))
+				$OrderStatus 	= 	" and ord.OrderStatus in (".$bean->OrderStatus.") and  ord.RefundStatus != 2 ";
+			else if($bean->OrderStatus !='' && $bean->OrderStatus =='3')
+				$OrderStatus 	= 	" and ord.RefundStatus = 2 ";
+			else
+				$OrderStatus	=	"";
+		}
+			
+		//Search condition
+		if(isset($OrderStatus) && $OrderStatus !='')
+			$condition	= 	" and ord.fkMerchantsId = ".$merchantId." and ord.Status = 1 ".$OrderStatus;
+		else
+			$condition	= 	" and ord.fkMerchantsId = ".$merchantId." and ord.Status = 1 and ord.OrderStatus in (0,1,2) ";
+		
+		$filtercondition	=	'';
+		if(isset($dataType) && !empty($dataType)) {
+			if($dataType=='year') {
+				$filtercondition 	.=	 "  and DATE_FORMAT(OrderDate,'%Y') = ".$cur_year."";
+			} else if($dataType=='month') {
+				$filtercondition 	.= 	"and DATE_FORMAT(OrderDate,'%m') = ".$cur_month." and DATE_FORMAT(OrderDate,'%Y') = ".$cur_year." ";
+			} else if($dataType=='day') {
+				$filtercondition 	.= 	" and  DATE_FORMAT( OrderDate, '%Y-%m-%d' ) ='".date('Y-m-d',strtotime($curr_date))."'";
+			} else if($dataType=='7days') {
+				$filtercondition 	.= 	"and (DATE_FORMAT(OrderDate,'%Y-%m-%d') <= '".date('Y-m-d',strtotime($curr_date))."' and DATE_FORMAT(OrderDate,'%Y-%m-%d') > '".date('Y-m-d',strtotime("-7 days"))."')";
+			}
+		} else {		
+			if(isset($fromDate) && $fromDate != ''	&&	isset($toDate) && $toDate != '')
+				$filtercondition 	.= " AND ((OrderDate >=  '".date('Y-m-d H:i:s',$fromDate)."' and OrderDate <= '".date('Y-m-d H:i:s',$toDate)."') ) ";
+			else if(isset($fromDate) && $fromDate != '')
+				$filtercondition 	.= " AND OrderDate >=  '".date('Y-m-d H:i:s',$fromDate)."'";
+			else if(isset($toDate) && $toDate != '')
+				$filtercondition 	.= " AND OrderDate <=  '".date('Y-m-d H:i:s',$toDate)."'";		
+		}
+		
+		if(isset($bean->LimitType) && !empty($bean->LimitType) && $bean->LimitType == 1) {
+			$LimitType	=	'';
+		} else {
+			$LimitType	=	" limit $start,$limit ";
+		}
+		$condition		.=	$filtercondition;
+		$sql 			= 	"SELECT SQL_CALC_FOUND_ROWS u.id as UserId,u.FirstName,u.LastName,u.Photo,ord.id as OrderId,ord.TotalPrice,ord.RefundStatus,ord.TransactionId,ord.OrderStatus,ord.OrderDate as OrderDate,ord.OrderDoneBy,ord.Commision from orders as ord
+								left join users u on (ord.fkUsersId = u.id)
+								where u.Status = 1 and ord.Status = 1  ".$condition." order by ord.OrderDate desc ".$LimitType;
+   		//echo $sql;
+		$orderList 		= 	R::getAll($sql);
+		$totalRec 		= 	R::getAll('SELECT FOUND_ROWS() as count ');
+		$total 			= 	(integer)$totalRec[0]['count'];
+		$listedCount	= 	count($orderList);
+		if($orderList){			
+			foreach($orderList as $key=>$value) {
+				if(!empty($value['Photo'])){
+					$orderList[$key]['Photo'] 		= 	USER_IMAGE_PATH.$value['Photo'];
+					$orderList[$key]['ThumbPhoto'] = 	USER_THUMB_IMAGE_PATH.$value['Photo'];
+				}						
+			}				
+			
+			if(isset($OrderStatus) && !empty($OrderStatus))
+				$filtercondition	.=	$OrderStatus;
+			else
+				$filtercondition	.=	"  and OrderStatus in (1,2) ";
+			
+			$sql 	= 	"SELECT count(ord.id) as TotalTransaction,sum(ord.TotalPrice) as TotalAmount,ord.OrderStatus,ord.RefundStatus FROM orders as ord
+						WHERE 1 and ord.fkMerchantsId=".$merchantId." and ord.TransactionId != '' ".$filtercondition." group by OrderStatus";
+			//echo $sql;
+			$transaction = 	R::getAll($sql);
+			if(count($transaction) > 0) {
+				$transactionSummary['transactions']	=	0;
+				$transactionSummary['sales']		=	0;
+				$transactionSummary['refunds']		=	0;
+				$transactionSummary['refunded']		=	0;
+				foreach($transaction as $value) {
+					if($value['OrderStatus'] == 1){
+						$transactionSummary['transactions']	= $value['TotalTransaction'];
+						$transactionSummary['sales']		= $value['TotalAmount'];
+					} else if($value['OrderStatus'] == 2 && $value['RefundStatus'] == 2){
+						$transactionSummary['refunds']	= $value['TotalTransaction'];
+						$transactionSummary['refunded']		= $value['TotalAmount'];
+					}							
+				}
+			}			
+			
+			$outArray['list'] 			=	$orderList;
+			$outArray['summary'] 		=	$transactionSummary;			
+			$outArray['totalCount']		= 	$total;
+			$outArray['listedCount']	= 	$listedCount;
+			return $outArray;
+		}
+		else{
+			/**
+			* throwing error when no data found
+			*/
+			throw new ApiException("No results Found", ErrorCodeType::NoResultFound);
+		}
+	}	
 	
 	/**
 	* @param Modify the Orders	 
@@ -499,8 +649,7 @@ class Orders extends RedBean_SimpleModel implements ModelBaseInterface {
 				$bean->Amount		=	$orderdetails->TotalPrice;
 				$bean->Currency		=	DEFAULT_CURRENCY;
 				$paymentDetails 	= 	$this->doPayment();
-				//echo "<pre>"; print_r($paymentDetails); echo "</pre>";die();
-				if($paymentDetails && isset($paymentDetails->Id) && !empty($paymentDetails->Id)) {
+				if($paymentDetails && isset($paymentDetails->Id) && !empty($paymentDetails->Id) && isset($paymentDetails->Status) && $paymentDetails->Status == 'SUCCEEDED') {
 					$commision		= 	$bean->Amount*($adminFees/100);
 					$transId		= 	$paymentDetails->Id;
 					$payment		=	$paymentDetails;
@@ -508,8 +657,10 @@ class Orders extends RedBean_SimpleModel implements ModelBaseInterface {
 					$sql1 			=	"update carts set  Refund = '1' where CartId='".$orderdetails->fkCartId."'";
 					R::exec($sql1);
 				} else {
-					// Error occurred during transaction
-					throw new ApiException("Error occurred during payment", ErrorCodeType::CheckBalanceError);
+					if(isset($paymentDetails->ResultMessage) && !empty($paymentDetails->ResultMessage)) 
+						throw new ApiException($paymentDetails->ResultMessage, ErrorCodeType::CheckBalanceError);
+					else
+						throw new ApiException("Error occurred during payment", ErrorCodeType::CheckBalanceError);
 				}
 				
 				
@@ -519,14 +670,16 @@ class Orders extends RedBean_SimpleModel implements ModelBaseInterface {
 				$bean->OrderId		=	$bean->OrderId;
 				$bean->MerchantId	=	$orderdetails->fkMerchantsId;			
 				$refundDetails 		= 	$this->getRefundDetails();
-				if($refundDetails && isset($refundDetails->Id) && !empty($refundDetails->Id)) {
+				if($refundDetails && isset($refundDetails->Id) && !empty($refundDetails->Id)  && isset($refundDetails->Status) && $refundDetails->Status == 'SUCCEEDED') {
 					$payment		=	$refundDetails;
 					$re_status		=	'2';
 					$sql1 			=	"update carts set  Refund = '2' where CartId='".$orderdetails->fkCartId."'";
 					R::exec($sql1);
 				} else {
-					// Error occurred during transaction
-					throw new ApiException("Error occurred during refunding old order", ErrorCodeType::CheckBalanceError);
+					if(isset($refundDetails->ResultMessage) && !empty($refundDetails->ResultMessage)) 
+						throw new ApiException($refundDetails->ResultMessage, ErrorCodeType::CheckBalanceError);
+					else
+						throw new ApiException("Error occurred during refunding old order", ErrorCodeType::CheckBalanceError);
 				}	
 			} 
 			if(isset($commision) && !empty($commision)) 
@@ -535,9 +688,11 @@ class Orders extends RedBean_SimpleModel implements ModelBaseInterface {
 				$trans	=	", TransactionId ='".$transId."' ";
 			if(!empty($re_status)) {
 				if($re_status == '1')
-					$re_status	=	" , OrderStatus='1' ";
+					$re_status	=	" , OrderStatus='1', RefundStatus = 1 ";
+				//$re_status	=	" , OrderStatus='1' ";
 				if($re_status == '2')
-					$re_status	=	" , OrderStatus='2', Message='Order Rejected by Merchant' ";
+					$re_status	=	" , OrderStatus='2', RefundStatus = 2, Message='Order Rejected by Merchant' ";
+					//$re_status	=	" , OrderStatus='2', Message='Order Rejected by Merchant' ";
 				}
 			
 			// updating the orders
@@ -552,6 +707,7 @@ class Orders extends RedBean_SimpleModel implements ModelBaseInterface {
 					$notification->orderId 				= 	$bean->OrderId;
 					$notification->userId 				= 	$orderdetails->fkUsersId;
 					$notification->merchantId 			= 	$orderdetails->fkMerchantsId;
+					$notification->orderAmount 			= 	$orderdetails->TotalPrice;
 					if($bean->OrderStatus == 1)
 						$notification->sendNotification(3);// if Approved
 					else if($bean->OrderStatus == 2)
@@ -661,7 +817,7 @@ class Orders extends RedBean_SimpleModel implements ModelBaseInterface {
 				$result[0]['Photo'] = USER_THUMB_IMAGE_PATH.$result[0]['Photo'];
 			}
 			else{
-				$result[0]['Photo']=  ADMIN_IMAGE_PATH."no_user.jpeg";
+				$result[0]['Photo']=  ADMIN_IMAGE_PATH_OTHER."no_user.jpeg";
 			}			
 			
 			$result[0]['Address'] = '';
@@ -821,72 +977,148 @@ class Orders extends RedBean_SimpleModel implements ModelBaseInterface {
     */
     public function getTransactionList($merchantId)
     {
-		$condition 		= $field = '';
+		$condition 		= 	$condition2	= 	$field = $time_zone = $check = '';
+		$pre_total		=	$cur_total	=	$pre_order		=	$cur_order	=	$difference 	=	$currentPercent 	=	0;		
+		$CurrentListArray	=	$OutputArray	=	$TransactionSummary = Array();
 		$bean 			= 	$this->bean;
 		$this->validateMerchants($merchantId,1);
-		if(!isset($_SESSION['tuplit_ses_from_timeZone']) || $_SESSION['tuplit_ses_from_timeZone'] == ''){
-			$time_zone 	= 	getTimeZone();
-			$_SESSION['tuplit_ses_from_timeZone'] = strval($time_zone);
-		} else {
-			$time_zone 	= 	$_SESSION['tuplit_ses_from_timeZone'];
-		}
+		if($bean->TimeZone)
+			$time_zone 	= 	$bean->TimeZone;
 		$dataType 		= 	$bean->DataType;
-		$startDate 		= 	$bean->StartDate;
-		$endDate   		= 	$bean->EndDate;
+		
 		$curr_date 		= 	date('d-m-Y');
 		$cur_month 		= 	date('m');
 		$cur_year 		= 	date('Y');
-		if($dataType=='year') {
-			$field 		= 	" , MONTH(DATE_ADD(OrderDate,INTERVAL '".$_SESSION['tuplit_ses_from_timeZone']."' HOUR_MINUTE)) AS month";
-			$condition 	.=	 "  and DATE_FORMAT(OrderDate,'%Y') = ".$cur_year." group by month";
-		} else if($dataType=='month') {
-			$field 		= 	" , DATE_FORMAT(DATE_ADD(OrderDate,INTERVAL '".$_SESSION['tuplit_ses_from_timeZone']."' HOUR_MINUTE), '%m/%d/%Y') AS day";
-			$condition .= 	"and DATE_FORMAT(OrderDate,'%m') = ".$cur_month." and DATE_FORMAT(OrderDate,'%Y') = ".$cur_year." group by day";
-		} else if($dataType=='day') {
-			$field 		= 	" , HOUR(DATE_ADD(OrderDate,INTERVAL '".$_SESSION['tuplit_ses_from_timeZone']."' HOUR_MINUTE)) AS hour";
-			$condition .= 	" and date(DATE_ADD(OrderDate,INTERVAL '".$_SESSION['tuplit_ses_from_timeZone']."' HOUR_MINUTE))='".date('Y-m-d',strtotime($curr_date))."' group by hour";
-		} else if($dataType=='between') {
-			$field 		= 	" , DATE_FORMAT(DATE_ADD(OrderDate,INTERVAL '".$_SESSION['tuplit_ses_from_timeZone']."' HOUR_MINUTE), '%m/%d/%Y') AS day";
-			if(isset($startDate) && $startDate!='' && isset($endDate) && $endDate !='')
-			{
-				$condition 	.= 	" and DATE(DATE_ADD(OrderDate,INTERVAL '".$_SESSION['tuplit_ses_from_timeZone']."' HOUR_MINUTE)) between '".date('Y-m-d',strtotime($startDate))."' and '".date('Y-m-d',strtotime($endDate))."'";
-			} else if(isset($startDate) && $startDate!='') {
-				$condition 	.= 	" and DATE(DATE_ADD(OrderDate,INTERVAL '".$_SESSION['tuplit_ses_from_timeZone']."' HOUR_MINUTE)) >= '".date('Y-m-d',strtotime($startDate))."'";
-			} else if(isset($endDate) && $endDate!='') {
-				$condition 	.= 	" and DATE(DATE_ADD(OrderDate,INTERVAL '".$_SESSION['tuplit_ses_from_timeZone']."' HOUR_MINUTE)) <= '".date('Y-m-d',strtotime($endDate))."'";
-			} 
-			$condition 		.= 	' group by day';
-		} else if($dataType=='7days') {
-			$field 			 = 	" , DATE_FORMAT(DATE_ADD(OrderDate,INTERVAL '".$_SESSION['tuplit_ses_from_timeZone']."' HOUR_MINUTE), '%m/%d/%Y') AS day";
-			$condition 		.= 	"and (DATE_FORMAT(OrderDate,'%Y-%m-%d') <= '".date('Y-m-d',strtotime($curr_date))."' and DATE_FORMAT(OrderDate,'%Y-%m-%d') > '".date('Y-m-d',strtotime("-7 days"))."')  group by day";
+		if(isset($bean->StartDate) && !empty($bean->StartDate)) {
+			$field 			= 		" , HOUR(DATE_ADD(OrderDate,INTERVAL '".$time_zone."' HOUR_MINUTE)) AS hour";
+			$condition 		.= 		" and date(DATE_ADD(OrderDate,INTERVAL '".$time_zone."' HOUR_MINUTE))='".date('Y-m-d',strtotime($bean->StartDate))."' group by hour";
+			$condition2 	.= 		" and date(DATE_ADD(OrderDate,INTERVAL '".$time_zone."' HOUR_MINUTE))='".date('Y-m-d',strtotime('-1 day',strtotime($bean->StartDate)))."'";
+		} else {
+			if($dataType=='year') {
+				$field 			= 		" , MONTH(DATE_ADD(OrderDate,INTERVAL '".$time_zone."' HOUR_MINUTE)) AS month";
+				$condition 		.=	 	"  and DATE_FORMAT(OrderDate,'%Y') = ".$cur_year." group by month";
+				$condition2		.=	 	"  and DATE_FORMAT(OrderDate,'%Y') = ".($cur_year - 1)."";
+			} else if($dataType=='month') {
+				$field 			= 		" , DATE_FORMAT(DATE_ADD(OrderDate,INTERVAL '".$time_zone."' HOUR_MINUTE), '%m/%d/%Y') AS day";
+				$condition 		.= 		" and DATE_FORMAT(OrderDate,'%m') = ".$cur_month." and DATE_FORMAT(OrderDate,'%Y') = ".$cur_year." group by day";
+				$condition2 	.= 		" and DATE_FORMAT(OrderDate,'%m') = ".($cur_month - 1)." and DATE_FORMAT(OrderDate,'%Y') = ".$cur_year."";
+			} else if($dataType=='day') {
+				$field 			= 		" , HOUR(DATE_ADD(OrderDate,INTERVAL '".$time_zone."' HOUR_MINUTE)) AS hour";
+				$condition 		.= 		" and date(DATE_ADD(OrderDate,INTERVAL '".$time_zone."' HOUR_MINUTE))='".date('Y-m-d',strtotime($curr_date))."' group by hour";
+				$condition2 	.= 		" and date(DATE_ADD(OrderDate,INTERVAL '".$time_zone."' HOUR_MINUTE))='".date('Y-m-d',strtotime('-1 day',strtotime($curr_date)))."'";
+			}  else if($dataType=='7days') {
+				$field 			 = 		" , DATE_FORMAT(DATE_ADD(OrderDate,INTERVAL '".$time_zone."' HOUR_MINUTE), '%m/%d/%Y') AS day";
+				$condition 		.= 		" and (DATE_FORMAT(OrderDate,'%Y-%m-%d') <= '".date('Y-m-d',strtotime($curr_date))."' and DATE_FORMAT(OrderDate,'%Y-%m-%d') > '".date('Y-m-d',strtotime("-7 days"))."')  group by day";
+				$condition2		.= 		" and (DATE_FORMAT(OrderDate,'%Y-%m-%d') <= '".date('Y-m-d',strtotime('-7 day',strtotime($curr_date)))."' and DATE_FORMAT(OrderDate,'%Y-%m-%d') > '".date('Y-m-d',strtotime("-14 days"))."') ";
+			}
 		}
-		else if($dataType=='timeofday') {
-			$field 			= 	" , HOUR(DATE_ADD(OrderDate,INTERVAL '".$_SESSION['tuplit_ses_from_timeZone']."' HOUR_MINUTE)) AS hour";
-			$condition 		.= 	" and date(DATE_ADD(OrderDate,INTERVAL '".$_SESSION['tuplit_ses_from_timeZone']."' HOUR_MINUTE))='".date('Y-m-d',strtotime($curr_date))."' group by hour";
-		}
-		$sql 				= 	"SELECT  count(id) as TotalOrders,SUM(TotalPrice) as TotalPrice ".$field." from orders as o 
-								where 1 and  o.OrderStatus IN (1) and o.fkMerchantsId = ".$merchantId."  ".$condition."";	
+		$sql 			= 	"SELECT  count(id) as TotalOrders,SUM(TotalPrice) as TotalPrice,SUM(VAT) as TotalVAT ".$field." from orders as o 
+							where 1 and  o.OrderStatus IN (1) and o.Status = 1 and o.TransactionId != '' and o.fkMerchantsId = ".$merchantId."  ".$condition."";	
 		//echo $sql;
-		$TransactionList 	=	R::getAll($sql);
-		if($TransactionList ){
-			foreach($TransactionList as $key=>$value){
-				$totalOrders						=	$value["TotalOrders"];
-				$totalPrice							=	$value["TotalPrice"];
-				$averageTransaction					=	$totalPrice/$totalOrders;
-				$value["TotalPrice"]				=	number_format((float)$totalPrice, 2, '.', '');
-				$value["Average"]					=	number_format((float)$averageTransaction, 2, '.', '');
-				$TransactionListArray[] 			= 	$value;
+		$CurrentList 	=	R::getAll($sql);
+		if($CurrentList ){
+			$totvat	=	0;
+			foreach($CurrentList as $key=>$value){
+				$totalOrders				=	$value["TotalOrders"];
+				$totalPrice					=	$value["TotalPrice"];
+				$averageTransaction			=	$totalPrice/$totalOrders;
+				$cur_total					=	$cur_total + $totalPrice;
+				$cur_order					=	$cur_order + $totalOrders;
+				$totvat						=	$totvat + $value["TotalVAT"];
+				$value["TotalPrice"]		=	number_format((float)$totalPrice, 2, '.', '');
+				$value["Average"]			=	number_format((float)$averageTransaction, 2, '.', '');
+				$CurrentListArray[] 		= 	$value;
+			}
+
+			$sql 			= 	"SELECT  SUM(c.TotalPrice) as TotalPrice,SUM(c.ProductsCost* c.ProductsQuantity) as ProductPrice  ".$field." from carts as c 
+								left join orders as o on(c.CartId = o.fkCartId) 
+								where 1 and  o.OrderStatus IN (1) and o.Status = 1  and o.TransactionId != '' and o.fkMerchantsId = ".$merchantId." and c.fkMerchantsId = ".$merchantId." ".$condition."";	
+			//echo $sql;
+			$Discounts	 	=	R::getAll($sql);
+			$ProductAmount = $DiscountedAmount	= $TotalAmount	= $subTotal = 0 ;
+			if($Discounts ){
+				foreach($Discounts as $d_key=>$d_value){
+					$ProductPrice			=	$d_value["ProductPrice"];
+					$TotalPrice				=	$d_value["TotalPrice"];
+					$ProductAmount			+=  $ProductPrice;
+					$TotalAmount			+=  $TotalPrice;
+				}
+				$DiscountedAmount	=	$ProductAmount - $TotalAmount;
+				$TransactionSummary['GrossTotal'] 	= round($ProductAmount,2);
+				$TransactionSummary['SubTotal'] 	= round($TotalAmount,2);
+				$TransactionSummary['Discount'] 	= round($DiscountedAmount,2);
+				$TransactionSummary['Vat'] 			= round($totvat,2);
 			}
 			
-			$TransactionArray['result']            	=  	$TransactionListArray;
-			return $TransactionArray;
-		}
-		else{
+			$sql 			= 	"SELECT  count(id) as TotalOrders,SUM(TotalPrice) as TotalPrice ".$field." from orders as o 
+							where 1 and  o.OrderStatus IN (1) and o.Status = 1 and o.TransactionId != '' and o.fkMerchantsId = ".$merchantId."  ".$condition2."";	
+			$PreviousList 	=	R::getAll($sql);
+			//echo $sql;
+			if($PreviousList && isset($PreviousList[0]['TotalOrders']) > 0){
+				$pre_total		=	$PreviousList[0]['TotalPrice'];				
+				$pre_order		=	$PreviousList[0]['TotalOrders'];
+			}
+			
+			//Summary process - Start			
+			
+			//AmountProcess
+			$TransactionSummary['Amount'] 		= 	round($cur_total,2);
+			$difference		=	$currentPercent	=	0;
+			$difference		=	$cur_total - $pre_total;
+			//echo "====>".$cur_total;
+			//echo "====>".$pre_total;
+			
+			if($cur_total > $pre_total && $cur_total > 0)
+				$currentPercent	=	(abs($difference)/$cur_total) * 100;	
+			else if($pre_total > 0)
+				$currentPercent	=	(abs($difference)/$pre_total) * 100;
+			/*if($pre_total > 0) {
+				if($cur_total > $pre_total)
+					$currentPercent	=	(($cur_total - $pre_total)/$pre_total) * 100;	
+				else 
+					$currentPercent	=	(($pre_total - $cur_total)/$pre_total) * 100;
+			}*/
+			$TransactionSummary['AmountPercentage'] 	= 	round($currentPercent,2);
+			$TransactionSummary['AmountDifference'] 	= 	round($difference,2);
+			
+			
+			//TransactionProcess
+			$TransactionSummary['Transaction'] 	= 	$cur_order;
+			$difference		=	$currentPercent	=	0;
+			$difference		=	$cur_order - $pre_order;
+			if($cur_order > $pre_order && $cur_order > 0)
+				$currentPercent	=	(abs($difference)/$cur_order) * 100;	
+			else if($pre_order > 0)				
+				$currentPercent	=	(abs($difference)/$pre_order) * 100;	
+			$TransactionSummary['TransactionPercentage'] 	= 	round($currentPercent,2);
+			$TransactionSummary['TransactionDifference'] 	= 	round($difference,2);
+			
+			
+			//AverageAmountProcess
+			$TransactionSummary['Average'] 		= 	round(($cur_total/$cur_order),2);
+			$difference		=	$currentPercent	=	$currentAvg = $perviousAvg = 0;			
+			if($cur_order > 0)
+				$currentAvg = $cur_total/$cur_order;
+			if($pre_order > 0)
+				$perviousAvg = $pre_total/$pre_order;			
+			$difference		=	$currentAvg - $perviousAvg;
+			if($currentAvg > $perviousAvg && $currentAvg > 0)
+				$currentPercent	=	(abs($difference)/$currentAvg) * 100;	
+			else if($perviousAvg > 0)
+				$currentPercent	=	(abs($difference)/$perviousAvg) * 100;	
+			$TransactionSummary['AveragePercentage'] 	= 	round($currentPercent,2);
+			$TransactionSummary['AverageDifference'] 	= 	round($difference,2);
+			
+			$OutputArray['Summary']			=	$TransactionSummary;
+			$OutputArray['CurrentList']		=	$CurrentListArray;	
+			
+			return $OutputArray;
+		} else {
 			/**
 	        * throwing error when no data found
 	        */
 			throw new ApiException("No results Found", ErrorCodeType::NoResultFound);
-		}
+		}					
 	}
 	
 	/**
@@ -917,123 +1149,6 @@ class Orders extends RedBean_SimpleModel implements ModelBaseInterface {
     }
 	
 	/**
-    * get Product Analysis
-    */
-    public function getProductAnalysis($merchantId)
-    {
-		$condition 		= $field = $sort_condition =  $group_condition = '';
-		$averageTransaction	= 0;
-		$bean 			= 	$this->bean;
-		$this->validateMerchants($merchantId,1);
-		if(!isset($_SESSION['tuplit_ses_from_timeZone']) || $_SESSION['tuplit_ses_from_timeZone'] == ''){
-			$time_zone 	= 	getTimeZone();
-			$_SESSION['tuplit_ses_from_timeZone'] = strval($time_zone);
-		} else {
-			$time_zone 	= 	$_SESSION['tuplit_ses_from_timeZone'];
-		}
-		$type 			= 	$bean->Type;
-		$dataType 		= 	$bean->DataType;
-		$startDate 		= 	$bean->StartDate;
-		$endDate   		= 	$bean->EndDate;
-		$sortVal   		= 	$bean->Sorting;
-		$fieldVal  		= 	$bean->Field;
-		$curr_date 		= 	date('d-m-Y');
-		$cur_month 		= 	date('m');
-		$cur_year 		= 	date('Y');
-		if($type == 2)
-		 	 $group_condition	= 'group by p.fkCategoryId,p.ItemType ';
-		else if($type == 1)
-			$group_condition	= ' group by p.id';
-		if($dataType=='year') {
-			$field 		= 	" , MONTH(DATE_ADD(OrderDate,INTERVAL '".$_SESSION['tuplit_ses_from_timeZone']."' HOUR_MINUTE)) AS month";
-			$condition 	.=	 "  and DATE_FORMAT(OrderDate,'%Y') = ".$cur_year."   ".$group_condition."";
-		} else if($dataType=='month') {
-			$field 		= 	" , DATE_FORMAT(DATE_ADD(OrderDate,INTERVAL '".$_SESSION['tuplit_ses_from_timeZone']."' HOUR_MINUTE), '%m/%d/%Y') AS day";
-			$condition .= 	"and DATE_FORMAT(OrderDate,'%m') = ".$cur_month." and DATE_FORMAT(OrderDate,'%Y') = ".$cur_year." ".$group_condition."";
-		} else if($dataType=='day') {
-			$field 		= 	" , HOUR(DATE_ADD(OrderDate,INTERVAL '".$_SESSION['tuplit_ses_from_timeZone']."' HOUR_MINUTE)) AS hour";
-			$condition .= 	" and date(DATE_ADD(OrderDate,INTERVAL '".$_SESSION['tuplit_ses_from_timeZone']."' HOUR_MINUTE))='".date('Y-m-d',strtotime($curr_date))."'  ".$group_condition."";
-		} else if($dataType=='between') {
-			$field 		= 	" , DATE_FORMAT(DATE_ADD(OrderDate,INTERVAL '".$_SESSION['tuplit_ses_from_timeZone']."' HOUR_MINUTE), '%m/%d/%Y') AS day";
-			if(isset($startDate) && $startDate!='' && isset($endDate) && $endDate !='')
-			{
-				$condition 	.= 	" and DATE(DATE_ADD(OrderDate,INTERVAL '".$_SESSION['tuplit_ses_from_timeZone']."' HOUR_MINUTE)) between '".date('Y-m-d',strtotime($startDate))."' and '".date('Y-m-d',strtotime($endDate))."'";
-			} else if(isset($startDate) && $startDate!='') {
-				$condition 	.= 	" and DATE(DATE_ADD(OrderDate,INTERVAL '".$_SESSION['tuplit_ses_from_timeZone']."' HOUR_MINUTE)) >= '".date('Y-m-d',strtotime($startDate))."'";
-			} else if(isset($endDate) && $endDate!='') {
-				$condition 	.= 	" and DATE(DATE_ADD(OrderDate,INTERVAL '".$_SESSION['tuplit_ses_from_timeZone']."' HOUR_MINUTE)) <= '".date('Y-m-d',strtotime($endDate))."'";
-			} 
-			$condition 		.= 	'  '.$group_condition.'';
-		} else if($dataType=='7days') {
-			$field 			 = 	" , DATE_FORMAT(DATE_ADD(OrderDate,INTERVAL '".$_SESSION['tuplit_ses_from_timeZone']."' HOUR_MINUTE), '%m/%d/%Y') AS day";
-			$condition 		.= 	"and (DATE_FORMAT(OrderDate,'%Y-%m-%d') <= '".date('Y-m-d',strtotime($curr_date))."' and DATE_FORMAT(OrderDate,'%Y-%m-%d') > '".date('Y-m-d',strtotime("-7 days"))."')  ".$group_condition."";
-		}
-		if($sortVal != '' && $fieldVal != '' ){
-			$sort_condition = ' order by '.$fieldVal.' '.$sortVal.'';
-		}
-		else{
-			$sort_condition = ' order by Name asc';
-		}
-		if($type == 2 ){
-			$sql 				= 	"SELECT  pc.CategoryName as Name,p.ItemType,p.fkCategoryId as CategoryId,SUM(ProductsQuantity) as TotalQuantity,SUM(c.TotalPrice) as TotalPrice,
-									COUNT(o.id) as TotalOrders ".$field." from orders as o
-									left join carts as c ON (c.CartId = o.fkCartId)
-		                         	left join products as p on(p.id = c.fkProductsId)
-									left join productcategories as pc on(pc.id = p.fkCategoryId )
-									where 1  and  o.OrderStatus IN (1) and o.fkMerchantsId =   ".$merchantId." and c.fkMerchantsId = ".$merchantId." and p.fkMerchantsId =  ".$merchantId."   ".$condition." ".$sort_condition."";	
-		}
-		else {
-			$sql 			= 		"SELECT  p.ItemName as Name,p.id as ProductId ,SUM(ProductsQuantity) as TotalQuantity,SUM(c.TotalPrice) as TotalPrice,
-									COUNT(o.id) as TotalOrders ".$field." from orders as o 
-									left join carts as c ON (c.CartId = o.fkCartId)
-		                         	left join products as p on(p.id = c.fkProductsId)
-									where 1   and  o.OrderStatus IN (1) and c.fkMerchantsId = ".$merchantId." and p.fkMerchantsId =  ".$merchantId."  ".$condition." ".$sort_condition."";	
-		}
-		$productAnalysis 	=	R::getAll($sql);
-		
-		$pie_sql 			= 		"select (select sum( c.TotalPrice ) from `carts` AS c
-											left join orders as o on (c.CartId = o.fkCartId)
-											left join products as p on (p.id = c.fkProductsId)
-											where ( (c.`ProductsCost` = c.DiscountPrice and p.ItemType IN(2,3)) or (c.`ProductsCost` > c.DiscountPrice and p.ItemType = 1)) and o.OrderStatus IN (1) and c.fkMerchantsId = ".$merchantId."  ".$condition."  
-											limit 0,1)  as specialProducts ,
-											(select sum( c.TotalPrice ) from `carts` AS c
-											left join orders as o on (c.CartId = o.fkCartId)
-											left join products as p on (p.id = c.fkProductsId)
-											where (c.`ProductsCost` = c.DiscountPrice and p.ItemType IN(1)) and o.OrderStatus IN (1)  and c.fkMerchantsId = ".$merchantId."  ".$condition." 
-											limit 0,1)  as normalProducts
- 									from `carts` where 1  limit 0,1" ;	
-	   $pieChartData 		=	R::getAll($pie_sql);
-		if($productAnalysis ){
-			foreach($productAnalysis as $key=>$value){
-				if($type == 2 ){
-					if($value["ItemType"] == 2 && $value["CategoryId"] == 0)
-						$value["Name"]	=	'Deals';
-					else if($value["ItemType"] == 3 && $value["CategoryId"] == 0)
-						$value["Name"]	=	'Specials';
-				}
-				$totalOrders						=	$value["TotalQuantity"];
-				$totalPrice							=	$value["TotalPrice"];
-				if($totalOrders	> 0)
-					$averageTransaction					=	$totalPrice/$totalOrders;
-				$value["TotalPrice"]				=	number_format((float)$totalPrice, 2, '.', ',');
-				$value["Average"]					=	number_format((float)$averageTransaction, 2, '.', ',');
-				$ProductListArray[] 				= 	$value;
-			}
-			$ProductArray['result']            		=  	$ProductListArray;
-			if($pieChartData){
-				$ProductArray['pieChart']  			=	$pieChartData;
-			}
-			return $ProductArray;
-		}
-		else{
-			/**
-	        * throwing error when no data found
-	        */
-			throw new ApiException("No results Found", ErrorCodeType::NoResultFound);
-		}
-	}
-	
-	/**
     * Payment amount between user and merchant
     */
     public function doPayment(){
@@ -1056,7 +1171,23 @@ class Orders extends RedBean_SimpleModel implements ModelBaseInterface {
 			$user									=	$userInfo['fromuser'];
 			$merchant								=	$userInfo['touser'];
 			$admin									=	$userInfo['admin'];
-			$walletDetails							=	getWalletDetails($user->WalletId);
+			
+			$logStart				=	microtime(true);
+			$walletDetails			=	getWalletDetails($user->WalletId);
+			
+			//MangoPay Log
+			$logArray				=	Array();	
+			$logArray['UserId']		=	$user->id;
+			$logArray['MerchantId']	=	$merchant->id;
+			$logArray['URL']		=	'getWalletDetails';
+			$logArray['Content']	=	Array('WalletId'=>$user->WalletId);
+			$logArray['Start']		=	$logStart;
+			$logArray['End']		=	microtime(true);
+			$logArray['Response']	=	$walletDetails;
+			
+			$log 	=	R::dispense('users');
+			$log->storeMangoPayLog($logArray);
+			
 			if($walletDetails) {
 				if(isset($walletDetails->Balance->Amount) && ($walletDetails->Balance->Amount >= getCents($bean->Amount))) {
 					$userDetails['AuthorId']			=	$user->MangoPayUniqueId;
@@ -1066,7 +1197,21 @@ class Orders extends RedBean_SimpleModel implements ModelBaseInterface {
 					$userDetails['DebitedWalletId']		=	$user->WalletId;
 					$userDetails['CreditedWalletId']	=	$merchant->WalletId;
 					$userDetails['FeesAmount']			=	$admin->MangoPayFees;
-					$result								=	payment($userDetails);					
+					$logStart							=	microtime(true);
+					
+					$logStart							=	microtime(true);
+					$result								=	payment($userDetails);
+					//MangoPay Log
+					$logArray				=	Array();	
+					$logArray['UserId']		=	$user->id;
+					$logArray['MerchantId']	=	$merchant->id;
+					$logArray['URL']		=	'payment';
+					$logArray['Content']	=	$userDetails;
+					$logArray['Start']		=	$logStart;
+					$logArray['End']		=	microtime(true);
+					$logArray['Response']	=	$result;
+					$log 	=	R::dispense('users');
+					$log->storeMangoPayLog($logArray);
 					return $result;
 				} else {
 					// low balance
@@ -1177,30 +1322,58 @@ class Orders extends RedBean_SimpleModel implements ModelBaseInterface {
 			} else {
 				$details['Amount']			=	$orders['TotalPrice'];			
 			}
+			
+			$logStart	=	microtime(true);
 			$result		=	refundTransfer($details);
+			//MangoPay Log
+			$logArray				=	Array();	
+			$logArray['UserId']		=	$users['UsersId'];
+			$logArray['MerchantId']	=	$bean->MerchantId;
+			$logArray['URL']		=	'refundTransfer';
+			$logArray['Content']	=	$details;
+			$logArray['Start']		=	$logStart;
+			$logArray['End']		=	microtime(true);
+			$logArray['Response']	=	$result;
+			$log 	=	R::dispense('users');
+			$log->storeMangoPayLog($logArray);
+			
 			if($result && isset($result->Id) && !empty($result->Id)) {
-				if($type == '')
-					return $result;	
-				else if($type == 1 || $type == 2){
-					$productcon	=	'';
-					if(isset($bean->ProductId) && !empty($bean->ProductId)) 
-						$productcon	=	" and fkProductsId = '".$bean->ProductId."'";
-						
-					//updating cart table
-					if(!empty($orders['fkCartId'])) {
-						$sql1 			=	"update carts set  Refund = '2' where CartId='".$orders['fkCartId']."' ".$productcon;
-						R::exec($sql1);
-					//$cartOrder 	= 	R::findOne('carts', 'CartId = ? and Refund=2', array($orders['fkCartId']));
-					//if(is_array($cartOrder) && count($cartOrder) == $orders['TotalItems']) {
-						//order table
-						$msg	=	'';
-						if(isset($bean->msg) && !empty($bean->msg))
-							$msg	=	$bean->msg;
-						$sql2 			=	"update orders set OrderStatus='2', RefundStatus = '2', Message='".$msg."' where fkCartId='".$orders['fkCartId']."'";
-						R::exec($sql2);
-					//}
+				if($result->Status == 'FAILED'){
+					// Error occurred during payment/transaction
+					throw new ApiException($result->ResultMessage, ErrorCodeType::CheckBalanceError);
+				}
+				else{
+					if($type == '')
+						return $result;	
+					else if($type == 1 || $type == 2){
+						$productcon	=	'';
+						if(isset($bean->ProductId) && !empty($bean->ProductId)) 
+							$productcon	=	" and fkProductsId = '".$bean->ProductId."'";
+							
+						//updating cart table
+						if(!empty($orders['fkCartId'])) {
+							$sql1 			=	"update carts set  Refund = '2' where CartId='".$orders['fkCartId']."' ".$productcon;
+							R::exec($sql1);
+						//$cartOrder 	= 	R::findOne('carts', 'CartId = ? and Refund=2', array($orders['fkCartId']));
+						//if(is_array($cartOrder) && count($cartOrder) == $orders['TotalItems']) {
+							//order table
+							$msg	=	'';
+							if(isset($bean->msg) && !empty($bean->msg))
+								$msg	=	$bean->msg;
+							$sql2 			=	"update orders set OrderStatus='2', RefundStatus = '2', Message='".$msg."' where fkCartId='".$orders['fkCartId']."'";
+							R::exec($sql2);
+							
+							$notification 						= 	R::dispense('notifications');
+							$notification->orderId 				= 	'Refund';
+							$notification->userId 				= 	$orders['fkUsersId'];
+							$notification->merchantId 			= 	$bean->MerchantId;
+							$notification->orderAmount 			= 	$orders['TotalPrice'];
+							$notification->sendNotification(4);// if refunded
+							
+						//}
+						}
+						return $result;	
 					}
-					return $result;	
 				}
 			} else {
 				// Error occurred during payment/transaction
@@ -1269,162 +1442,18 @@ class Orders extends RedBean_SimpleModel implements ModelBaseInterface {
 		return	$orders;
     }
 	
-	/**
-	* get User Friends order Details
-	*/
-	/*public function getFriendsOrderDetails($userId)
-    {
-		/**
-		* Get the bean
-		* @var $bean Orders
-		*/			
-		/*$bean 			= 	$this->bean;
-		$friendIds		=	'';
-		$friendsArray	=	$orderArray	= 	array();
-		
-		$friendSql 		= 	"SELECT * from friends where Status = 1 and fkUsersId=".$userId." ";
-		$friend 		= 	R::getAll($friendSql);
-		if($friend) {
-			foreach($friend as $val)
-				$friendsArray[]	=	$val['fkFriendsId'];
-		}		
-		$friendIds		=   implode(',',$friendsArray);
-		if(!empty($friendIds)){
-			$orderSql 		= 	"SELECT u.id as FriendId,u.FirstName,u.LastName,m.CompanyName,u.Photo from orders ord 
-								LEFT JOIN users as u ON (u.id = ord.fkUsersId) 
-								LEFT JOIN merchants as m ON (ord.fkMerchantsId = m.id) 
-								where ord.Status = 1 and m.Status=1 and u.Status=1 and ord.fkUsersId IN (".$friendIds.") group by ord.fkUsersId order by ord.OrderDate desc limit 0,3";
-			$orders 		= 	R::getAll($orderSql);
-			if($orders){
-				foreach($orders as $key => $value){
-					//FriendId
-					if(isset($value['FriendId']) && !empty($value['FriendId']))
-						$orderArray[$key]['FriendId']	= 	$value['FriendId'];
-				
-					//Friend name
-					$FriendName							=	'';
-					if(isset($value['FirstName']) && !empty($value['FirstName']))
-						$FriendName						.=	$value['FirstName'];
-					if(isset($value['LastName']) && !empty($value['LastName'])){
-						if(!empty($FriendName))
-							$FriendName					.=	' '.$value['LastName'];
-						else
-							$FriendName					.=	$value['LastName'];
-					}
-					$orderArray[$key]['FriendName']		= 	$FriendName;				
-					
-					//Friend photo
-					$orderArray[$key]['Photo'] 			= 	MERCHANT_SITE_IMAGE_PATH.'no_user.jpeg';	
-					if(isset($value['Photo']) && !empty($value['Photo'])) {
-						if(file_exists(USER_THUMB_IMAGE_PATH_REL.$value['Photo']))
-							$orderArray[$key]['Photo'] 	= 	USER_THUMB_IMAGE_PATH.$value['Photo'];
-					}
-					
-					//Merchant Name
-					$orderArray[$key]['MerchantName']	= 	'';
-					if(isset($value['CompanyName']) && !empty($value['CompanyName']))
-						$orderArray[$key]['MerchantName']	= 	$value['CompanyName'];
-															
-				}	
-				//echo "<pre>"; echo print_r($orderArray); echo "</pre>";
-				$orderDetails['OrderDetails'] 		= 	$orderArray;
-				return $orderDetails;
-			}
-		}
-	}*/
-	
-	/*
-	* get friends order/user details
-	*/
-	public function getFriendsInfo($type = ''){
-		/**
-		* Get the bean
-		*/
-		$bean 				= 	$this->bean;
-		$condition			=	$merchantIds	=	$limit	=	'';
-		$condition			=	$bean->condition;
-		// have to remove after friends model implementation
-		$search				=	$bean->search;
-		if(isset($bean->condition) && $type == 1)
-			$condition		=	$bean->condition.' and o.Status=1 ';
-		
-		$limit				=	' limit '.$bean->start.', 20';	
-		if(isset($bean->start) && $type == 1)
-			$limit			=	' limit '.$bean->start.', 3';
-					
-		$friendsListArray	= 	$friendsIdArray	=	$merchantIdsArray	=	$MerchantDetails	=	array();		
-		// have to remove after friends model implementation
-		if(isset($search) && !empty($search)){
-			$sql 				=  	"SELECT SQL_CALC_FOUND_ROWS u.id,u.FirstName,u.LastName,u.Photo,u.Email,u.FBId,max( o.id ) AS orderid, o.fkMerchantsId AS merchantId FROM users u 
-									LEFT JOIN orders o ON ( u.id = o.fkUsersId )
-									where  u.id != ".$bean->userId." and u.Status = 1 ".$condition."  GROUP BY u.id ORDER BY u.FirstName asc ".$limit;
-		
-		}
-		else{
-			if($type != '')
-				$condition		.= " and u.id IN (".$bean->friendsId.")";
-		
-			$sql 				=  	"SELECT SQL_CALC_FOUND_ROWS u.id,u.FirstName,u.LastName,u.Photo,u.Email,u.FBId,max( o.id ) AS orderid, o.fkMerchantsId AS merchantId FROM users u 
-									LEFT JOIN orders o ON ( u.id = o.fkUsersId )
-									where  u.id != ".$bean->userId." and u.Status = 1 ".$condition."  GROUP BY u.id ORDER BY u.FirstName asc ".$limit;
-		}
-		$friendsArray		=  	R::getAll($sql);
-		$totalRec 			=  	R::getAll('SELECT FOUND_ROWS() as count');
-		$total 				= 	(integer)$totalRec[0]['count'];
-		$listedCount		=  	count($friendsArray);
-		if($friendsArray){
-			foreach($friendsArray as $key => $value){
-				if(!empty($value['merchantId'])){
-					if(!in_array($value['merchantId'],$merchantIdsArray))
-						$merchantIdsArray[]	=	$value['merchantId'];
-				}								
-			}
-			if(count($merchantIdsArray) > 0)
-				$merchantIds	=	implode(',',$merchantIdsArray);
-			if(!empty($merchantIds)) {
-				$sql1 			 =  "SELECT id as MerchantId,CompanyName from merchants where id in (".$merchantIds.")";
-				$temp =  R::getAll($sql1);
-				if($temp) {
-					foreach($temp as $tval) 
-						$MerchantDetails[$tval['MerchantId']]	=	$tval['CompanyName'];
-				}
-			}
-			
-			foreach($friendsArray as $key => $value){
-				$user_image_path 			= 	MERCHANT_SITE_IMAGE_PATH.'no_user.jpeg';
-				if(isset($value['Photo']) && $value['Photo'] != '')
-					$user_image_path 		= 	USER_IMAGE_PATH.$value['Photo'];
-				$value['Photo'] 			= 	$user_image_path;
-				
-				$value['CompanyName']		=	'';
-				if(!empty($value['merchantId']) && isset($MerchantDetails[$value['merchantId']]))
-					$value['CompanyName']	=	$MerchantDetails[$value['merchantId']];
-					
-				unset($value['orderid']);
-				unset($value['merchantId']);
-				$friendsListArray[]			= 	$value;
-			}			
-		}
-		//echo "<pre>"; echo print_r($friendsListArray); echo "</pre>";
-		if(count($friendsListArray) == 0) {
-			// No friends found for this user
-			throw new ApiException("No friends found for this user." ,  ErrorCodeType::UserFriendsListError);
-		} else {
-			$usersFriendsList['result'] 		= 	$friendsListArray;
-			$usersFriendsList['totalCount']   	= 	$total;
-			$usersFriendsList['listedCount']   	= 	count($friendsListArray);
-			return $usersFriendsList;
-		}
-	}
-	
 	/*
 	* get Special Orders Count
 	*/
 	public function getSpecialOrdersCount($merchantId){
 		
-		$sql		=	"SELECT SUM(c.ProductsQuantity) as SpecialScold FROM `products` p 
+		/*$sql		=	"SELECT SUM(c.ProductsQuantity) as SpecialScold FROM `products` p 
 							left join carts c on (p.id = c.fkProductsId)
-							WHERE 1 and p.`fkMerchantsId` ='".$merchantId."' and p.`ItemType` = 3 and p.Status = 1";	
+							WHERE 1 and p.`fkMerchantsId` ='".$merchantId."' and p.`ItemType` = 3 and p.Status = 1";	*/
+		$sql		=	"SELECT SUM(c.ProductsQuantity) as SpecialScold FROM `products` p 
+						left join carts c on (p.id = c.fkProductsId)
+						left join orders o on (c.CartId = o.fkCartId)
+						WHERE 1 and p.`fkMerchantsId` ='".$merchantId."' and p.`ItemType` = 3 and p.Status = 1 and o.OrderStatus = 1";
 		$result		=  	R::getAll($sql);
 		if(isset($result[0]['SpecialScold']) && !empty($result[0]['SpecialScold']) && $result[0]['SpecialScold'] > 0)
 			return	$result[0]['SpecialScold'];
@@ -1432,91 +1461,67 @@ class Orders extends RedBean_SimpleModel implements ModelBaseInterface {
 			return '0';
 	}
 	
-	/*
-	* get Wallet balance
-	*/
-	public function getWalletBalance(){
-		/**
-		* Get the bean
-		*/
-		$bean 				= 	$this->bean;
-		
-		$walletDetails		=	getWalletDetails($bean->WalletId);
-		if($walletDetails)
-			return $walletDetails->Balance->Amount;
-		else 
-			return 0;
-	}
-	
 	/**
     * get getTopsales List
     */
     public function getTopsales($merchantId)
     {
-		$condition 		= $field = '';
+		$condition 		= $field = $time_zone = '';
 		$TransactionArray = array();
 		$bean 			= 	$this->bean;
 		$this->validateMerchants($merchantId,1);
-		if(!isset($_SESSION['tuplit_ses_from_timeZone']) || $_SESSION['tuplit_ses_from_timeZone'] == ''){
-			$time_zone 	= 	getTimeZone();
-			$_SESSION['tuplit_ses_from_timeZone'] = strval($time_zone);
-		} else {
-			$time_zone 	= 	$_SESSION['tuplit_ses_from_timeZone'];
-		}
+		if($bean->TimeZone)
+		$time_zone 		= 	$bean->TimeZone;
 		$dataType 		= 	$bean->DataType;
 		$curr_date 		= 	date('d-m-Y');
 		$cur_month 		= 	date('m');
 		$cur_year 		= 	date('Y');
 		if($dataType=='day') {
-			$field 		= 	" , HOUR(DATE_ADD(OrderDate,INTERVAL '".$_SESSION['tuplit_ses_from_timeZone']."' HOUR_MINUTE)) AS hour";
-			$condition .= 	" and date(DATE_ADD(OrderDate,INTERVAL '".$_SESSION['tuplit_ses_from_timeZone']."' HOUR_MINUTE))='".date('Y-m-d',strtotime($curr_date))."' group by hour";
+			$field 		= 	" , HOUR(DATE_ADD(OrderDate,INTERVAL '".$time_zone."' HOUR_MINUTE)) AS hour";
+			$condition .= 	" and date(DATE_ADD(OrderDate,INTERVAL '".$time_zone."' HOUR_MINUTE))='".date('Y-m-d',strtotime($curr_date))."' group by hour";
 		}
 		 else if($dataType=='7days') {
-			$field 			 = 	" , DATE_FORMAT(DATE_ADD(OrderDate,INTERVAL '".$_SESSION['tuplit_ses_from_timeZone']."' HOUR_MINUTE), '%m/%d/%Y') AS day";
+			$field 			 = 	" , DATE_FORMAT(DATE_ADD(OrderDate,INTERVAL '".$time_zone."' HOUR_MINUTE), '%m/%d/%Y') AS day";
 			$condition 		.= 	"and (DATE_FORMAT(OrderDate,'%Y-%m-%d') <= '".date('Y-m-d',strtotime($curr_date))."' and DATE_FORMAT(OrderDate,'%Y-%m-%d') > '".date('Y-m-d',strtotime("-7 days"))."')  group by day";
 		}else if($dataType=='month') {
-			$field 		= 	" , DATE_FORMAT(DATE_ADD(OrderDate,INTERVAL '".$_SESSION['tuplit_ses_from_timeZone']."' HOUR_MINUTE), '%m/%d/%Y') AS day";
+			$field 		= 	" , DATE_FORMAT(DATE_ADD(OrderDate,INTERVAL '".$time_zone."' HOUR_MINUTE), '%m/%d/%Y') AS day";
 			$condition .= 	"and DATE_FORMAT(OrderDate,'%m') = ".$cur_month." and DATE_FORMAT(OrderDate,'%Y') = ".$cur_year." group by day";
 		}
 		else if($dataType=='year') {
-			$field 		= 	" , MONTH(DATE_ADD(OrderDate,INTERVAL '".$_SESSION['tuplit_ses_from_timeZone']."' HOUR_MINUTE)) AS month";
+			$field 		= 	" , MONTH(DATE_ADD(OrderDate,INTERVAL '".$time_zone."' HOUR_MINUTE)) AS month";
 			$condition 	.=	 "  and DATE_FORMAT(OrderDate,'%Y') = ".$cur_year." group by month";
 		}
-		/*else if($dataType=='timeofday') {
-			$field 			= 	" , HOUR(DATE_ADD(OrderDate,INTERVAL '".$_SESSION['tuplit_ses_from_timeZone']."' HOUR_MINUTE)) AS hour";
-			$condition 		.= 	" and date(DATE_ADD(OrderDate,INTERVAL '".$_SESSION['tuplit_ses_from_timeZone']."' HOUR_MINUTE))='".date('Y-m-d',strtotime($curr_date))."' group by hour";
-		}*/
-		
 		$sql 				= 	"SELECT  SUM(o.TotalPrice) as TotalPrice,SUM(o.SubTotal) as SubTotal,SUM(o.VAT) as VATTotal ".$field." from orders as o 
-								
 								where 1 and  o.OrderStatus IN (1) and o.fkMerchantsId = ".$merchantId."  ".$condition."";	
 		$TransactionList 	=	R::getAll($sql);
-		$sql 				= 	"SELECT  SUM(c.DiscountPrice) as DiscountPrice  ".$field." from carts as c left join orders as o on(c.CartId = o.fkCartId) where 1 and  o.OrderStatus IN (1) and o.fkMerchantsId = ".$merchantId." and c.fkMerchantsId = ".$merchantId." ".$condition."";	
-		$Discounts	 	=	R::getAll($sql);
-		$DiscountAmount = 0 ;
+		$sql 				= 	"SELECT  SUM(c.TotalPrice) as TotalPrice,SUM(c.ProductsCost*c.ProductsQuantity) as ProductPrice  ".$field." from carts as c left join orders as o on(c.CartId = o.fkCartId) where 1 and  o.OrderStatus IN (1)  and o.fkMerchantsId = ".$merchantId." and c.fkMerchantsId = ".$merchantId." ".$condition."";	
+		$Discounts	 		=	R::getAll($sql);
+		//echo "<pre>"; print_r($Discounts); echo "</pre>";
+		$DiscountAmount = $ProductAmount = $DiscountedAmount	= $TotalAmount	 = $grossSales = $subTotal = 0 ;
 		if($Discounts ){
 			foreach($Discounts as $d_key=>$d_value){
-				$DiscountPrice						=	$d_value["DiscountPrice"];
-				$DiscountAmount						+=  $DiscountPrice;
+				$ProductPrice						=	$d_value["ProductPrice"];
+				$TotalPrice							=	$d_value["TotalPrice"];
+				$ProductAmount						+=  $ProductPrice;
+				$TotalAmount						+=  $TotalPrice;
 			}
+			$DiscountedAmount						=	$ProductAmount - $TotalAmount;
+			$subTotal								=	$TotalAmount ;
 		}
 		if($TransactionList ){
-			$SubTotalAmount =  $VATAmount = $TotalAmount =  0;
+			$VATAmount =  0;
 			foreach($TransactionList as $key=>$value){
-				$TotalPrice							=	$value["TotalPrice"];
-				$SubTotal							=	$value["SubTotal"];
 				$VATTotal							=	$value["VATTotal"];
-				$value["TotalPrice"]				=	number_format((float)$TotalPrice, 2, '.', '');
-				$value["SubTotal"]					=	number_format((float)$SubTotal, 2, '.', '');
 				$value["VATTotal"]					=	number_format((float)$VATTotal, 2, '.', '');
+				$TotalOrderPrice					=	$value["TotalPrice"];
+				$value["TotalPrice"]				=	number_format((float)$TotalOrderPrice, 2, '.', '');
 				$TransactionListArray[] 			= 	$value;
-				$TotalAmount						+=  $TotalPrice;
-				$SubTotalAmount						+=  $SubTotal;
 				$VATAmount							+=  $VATTotal;
 			}
-			$TransactionArray['GrossSale']        	=  	number_format((float)$TotalAmount, 2, '.', '');
-			$TransactionArray['SubTotal']        	=   number_format((float)$SubTotalAmount, 2, '.', '');
-			$TransactionArray['DiscountPrice']    	=	number_format((float)$DiscountAmount, 2, '.', '');
+			$overAllTotal							=	$VATAmount+$grossSales;
+			$TransactionArray['GrossSale']        	=	number_format((float)$ProductAmount, 2, '.', '');
+			$TransactionArray['Discount']    		=	number_format((float)$DiscountedAmount, 2, '.', '');
+			$TransactionArray['SubTotal']        	=   number_format((float)$subTotal, 2, '.', '');
 			$TransactionArray['VATTotal']           =  	number_format((float)$VATAmount, 2, '.', '');
 			$TransactionArray['result']            	=  	$TransactionListArray;
 			return $TransactionArray;
@@ -1534,16 +1539,12 @@ class Orders extends RedBean_SimpleModel implements ModelBaseInterface {
     */
     public function getTopProducts($merchantId)
     {
-		$condition 		=	$field = '';
+		$condition 		=	$time_zone = '';
 		$dataType		=	'day';
 		$bean 			= 	$this->bean;
 		$this->validateMerchants($merchantId,1);
-		if(!isset($_SESSION['tuplit_ses_from_timeZone']) || $_SESSION['tuplit_ses_from_timeZone'] == ''){
-			$time_zone 	= 	getTimeZone();
-			$_SESSION['tuplit_ses_from_timeZone'] = strval($time_zone);
-		} else {
-			$time_zone 	= 	$_SESSION['tuplit_ses_from_timeZone'];
-		}
+		if(isset($bean->TimeZone))
+		$time_zone 			= 	$bean->TimeZone;
 		if(isset($bean->DataType))
 		$dataType 			= 	$bean->DataType;
 		$curr_date 			= 	date('d-m-Y');
@@ -1555,22 +1556,45 @@ class Orders extends RedBean_SimpleModel implements ModelBaseInterface {
 		} else if($dataType=='month') {
 			$condition .= 	"and DATE_FORMAT(OrderDate,'%m') = ".$cur_month." and DATE_FORMAT(OrderDate,'%Y') = ".$cur_year." ";
 		} else if($dataType=='day') {
-			$condition .= 	" and  DATE_FORMAT( OrderDate, '%Y-%m-%d' ) ='".date('Y-m-d',strtotime($curr_date))."'";
+			$condition .= 	" and date(DATE_ADD(OrderDate,INTERVAL '".$time_zone."' HOUR_MINUTE))='".date('Y-m-d',strtotime($curr_date))."'";
 		} else if($dataType=='7days') {
 			$condition 		.= 	"and (DATE_FORMAT(OrderDate,'%Y-%m-%d') <= '".date('Y-m-d',strtotime($curr_date))."' and DATE_FORMAT(OrderDate,'%Y-%m-%d') > '".date('Y-m-d',strtotime("-7 days"))."')";
 		}
-		$sql 			= 	"SELECT  p.ItemName as Name,SUM(p.Price) as TotalPrice from orders as o 
+		$sql 			= 	"SELECT  p.ItemName as Name,SUM(c.TotalPrice) as TotalPrice from orders as o 
 							left join carts as c ON (c.CartId = o.fkCartId)
                          	left join products as p on(p.id = c.fkProductsId)
 							where 1   and  o.OrderStatus IN (1) and o.fkMerchantsId = ".$merchantId." and  c.fkMerchantsId = ".$merchantId." and p.fkMerchantsId =  ".$merchantId."  ".$condition." group by p.id order by TotalPrice desc limit 0,10 ";
 		$productAnalysis 	=	R::getAll($sql);
+		
+		$pie_sql 			= 		"select (select sum( c.TotalPrice ) from `carts` AS c
+											left join orders as o on (c.CartId = o.fkCartId)
+											left join products as p on (p.id = c.fkProductsId)
+											where c.`ProductsCost` > c.DiscountPrice  and o.OrderStatus IN (1) and c.fkMerchantsId = ".$merchantId."  ".$condition."  
+											limit 0,1)  as specialProducts ,
+											(select sum( c.TotalPrice ) from `carts` AS c
+											left join orders as o on (c.CartId = o.fkCartId)
+											left join products as p on (p.id = c.fkProductsId)
+											where (c.`ProductsCost` = c.DiscountPrice) and o.OrderStatus IN (1)  and c.fkMerchantsId = ".$merchantId."  ".$condition." 
+											limit 0,1)  as normalProducts
+ 											from `carts` where 1  limit 0,1" ;	//echo "================>".$pie_sql."</br>";//( (c.`ProductsCost` = c.DiscountPrice and p.ItemType IN(2,3)) 
+	   $pieChartData 		=	R::getAll($pie_sql);
 		if($productAnalysis ){
 			foreach($productAnalysis as $key=>$value){
 				$totalPrice							=	$value["TotalPrice"];
-				$value["TotalPrice"]				=	number_format((float)$totalPrice, 2, '.', ',');
+				$value["TotalPrice"]				=	$totalPrice;//number_format((float)$totalPrice, 2, '.', ',');
 				$ProductListArray[] 				= 	$value;
 			}
 			$ProductArray['result']            		=  	$ProductListArray;
+			if($pieChartData){
+				/*foreach($pieChartData as $key=>$value){
+					$normalPrice						=	$value["normalProducts"];
+					$value["normalProducts"]			=	number_format((float)$normalPrice, 2, '.', ',');
+					$specialPrice						=	$value["specialProducts"];
+					$value["specialProducts"]			=	number_format((float)$specialPrice, 2, '.', ',');
+					$PieChartArray[] 					= 	$value;
+				}*/
+				$ProductArray['pieChart']  				=	$pieChartData;
+			}
 			return $ProductArray;
 		}
 		else{

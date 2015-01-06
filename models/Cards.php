@@ -17,6 +17,8 @@ use Valitron\Validator as Validator;
 use Helpers\RedBeanHelper as RedBeanHelper;
 
 //Require needed models
+require_once 'Users.php';
+
 require_once '../../admin/includes/mangopay/functions.php';
 require_once '../../admin/includes/mangopay/config.php';
 require_once '../../admin/includes/mangopay/MangoPaySDK/mangoPayApi.inc';
@@ -59,8 +61,24 @@ class Cards extends RedBean_SimpleModel implements ModelBaseInterface {
 		$UserDetails['cardNumber']			=	$bean->CardNumber;		
 		$UserDetails['cardExpirationDate']	=	$bean->CardExpirationDate;		
 		$UserDetails['cvv']					=	$bean->CVV;	
+		
+		$logStart							=	microtime(true);
 		$result								=	addCreditCard($UserDetails);
-		if($result->CardId){			
+		
+		//MangoPay Log
+		$logArray				=	Array();	
+		$logArray['UserId']		=	$bean->UserId;
+		$logArray['URL']		=	'addCreditCard';
+		$logArray['Content']	=	$UserDetails;
+		$logArray['Start']		=	$logStart;
+		$logArray['End']		=	microtime(true);
+		$logArray['Response']	=	$result;
+		
+		$log 	=	R::dispense('users');
+		$log->storeMangoPayLog($logArray);
+		
+		
+		if(isset($result->CardId) && $result->CardId != ''){			
 			$UserDetails['cardId']			=	$result->CardId;		
 		}
 		return $result;
@@ -145,9 +163,20 @@ class Cards extends RedBean_SimpleModel implements ModelBaseInterface {
 		else
 			$userAccountId				=	$userInfo->MangoPayUniqueId;
 		if($userAccountId != ''){
-			//echo"<br>see here====sdfsfsdf===========";
+			$logStart					=	microtime(true);
 			$result						=	getUserCards($userAccountId);
-			//echo'<pre>';print_r($result);echo'</pre>';
+			
+			//MangoPay Log
+			$logArray				=	Array();	
+			$logArray['UserId']		=	$bean->UserId;
+			$logArray['URL']		=	'getUserCards';
+			$logArray['Content']	=	Array('MangoPayId'=>$userAccountId);
+			$logArray['Start']		=	$logStart;
+			$logArray['End']		=	microtime(true);
+			$logArray['Response']	=	$result;
+			$log 	=	R::dispense('users');
+			$log->storeMangoPayLog($logArray);
+			
 			if($result){
 			  foreach($result as $key=>$val){
 			  	if(isset($val->Active) && $val->Active == 1){
@@ -161,7 +190,7 @@ class Cards extends RedBean_SimpleModel implements ModelBaseInterface {
 					  $cardArray['Image']   			= $cardTypeArray[$val->CardType];
 					}
 					else{
-						$cardArray['Image']   			= ADMIN_SITE_PATH.'/webresources/cards/card.png';
+						$cardArray['Image']   		= ADMIN_IMAGE_PATH_OTHER.'/webresources/cards/card.png';
 					}
 					$cardListArray[]				= $cardArray;
 				}
@@ -199,15 +228,25 @@ class Cards extends RedBean_SimpleModel implements ModelBaseInterface {
 		$UserDetails['userCurrency']		=	$bean->Currency;
 		$UserDetails['userWalletId']		=	$userInfo->WalletId;
 		$UserDetails['amount']				=	$bean->Amount;		
-		$UserDetails['cardId']				=	$bean->CardId;		
+		$UserDetails['cardId']				=	$bean->CardId;	
+
+		$logStart							=	microtime(true);
 		$result								=	topupWallet($UserDetails);
+		//MangoPay Log
+		$logArray				=	Array();	
+		$logArray['UserId']		=	$bean->UserId;
+		$logArray['URL']		=	'topupWallet';
+		$logArray['Content']	=	$UserDetails;
+		$logArray['Start']		=	$logStart;
+		$logArray['End']		=	microtime(true);
+		$logArray['Response']	=	$result;
+		$log 	=	R::dispense('users');
+		$log->storeMangoPayLog($logArray);
+		
 		if(isset($result) && $result->Status != 'FAILED'){
 		  return $result;
 		} else if(isset($result)){
-			// error
-			//throw new ApiException($result->ResultMessage, ErrorCodeType::NoResultFound);
-				
-				throw new ApiException("Error in topup", ErrorCodeType::NoResultFound);
+			throw new ApiException("Error in topup", ErrorCodeType::NoResultFound);
 		}
     }
 	 /**
@@ -268,7 +307,19 @@ class Cards extends RedBean_SimpleModel implements ModelBaseInterface {
 			if(in_array($bean->CardId,$cardArray)) {
 				$cardId			=	$bean->CardId;
 				//deleting the card
+				$logStart		=	microtime(true);
 				$result			=	deleteCard($cardId);
+				//MangoPay Log
+				$logArray				=	Array();	
+				$logArray['UserId']		=	$bean->UserId;
+				$logArray['URL']		=	'deleteCard';
+				$logArray['Content']	=	Array('CardId'=>$cardId);
+				$logArray['Start']		=	$logStart;
+				$logArray['End']		=	microtime(true);
+				$logArray['Response']	=	$result;
+				$log 	=	R::dispense('users');
+				$log->storeMangoPayLog($logArray);
+				
 				if(isset($result) && count($result) > 0)
 					return $result;
 			} else {

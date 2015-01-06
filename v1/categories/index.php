@@ -47,10 +47,10 @@ $app->get('/', function () use ($app) {
 		/**
 		* Retrieving category list array
 		*/
-		$req 				= 	$app->request();
+		$req 					= 	$app->request();
 		$categories 			= 	R::dispense('categories');
-		if($req->params('From'))
-			$categories->From 	= 	$req->params('From');
+		if($req->params('UserId'))		$categories->UserId	= 	$req->params('UserId');
+		if($req->params('From'))		$categories->From 	= 	$req->params('From');
 	 	$categoryDetails 	 	=   $categories->getCategoryDetails();
 		if($categoryDetails){
 			$response 	   	= 	new tuplitApiResponse();
@@ -133,6 +133,7 @@ $app->get('/products',tuplitApi::checkToken(), function () use ($app) {
     }
 
 });
+
 
 /**
 * add category
@@ -239,52 +240,6 @@ $app->put('/products',tuplitApi::checkToken(), function () use ($app) {
 });
 
 /**
-* get product category list
-* GET /v1/categories/productcategories/
-*/
-$app->get('/productcategories/:categoryId',tuplitApi::checkToken(), function ($categoryId) use ($app) {
-
-    try {
-		$merchantId 		= 	tuplitApi::$resourceServer->getOwnerId();
-		
-		/**
-		* Retrieving product category list array
-		*/
-		$categories 		= 	R::dispense('categories');
-	 	$categoryDetails 	=  	$categories->getSingleProdctCategory($merchantId,$categoryId);
-		if($categoryDetails){
-			$response 	   	= 	new tuplitApiResponse();
-	        $response->setStatus(HttpStatusCode::Created);
-	        $response->meta->dataPropertyName 	= 	'singleCategoryDetails';
-			$response->returnedObject 			= 	$categoryDetails;	
-			echo $response;
-		}
-		else{
-			/**
-			* throwing error when static data
-			*/
-			throw new ApiException("No results Found", ErrorCodeType::NoResultFound);
-		}
-    }
-    catch (ApiException $e){
-        // If occurs any error message then goes here
-        tuplitApi::showError(
-            $e,
-            $e->getHttpStatusCode(),
-            $e->getErrors()
-        );
-    }
-    catch (\Slim\Exception\Stop $e){
-        // If occurs any error message for slim framework then goes here
-    }
-    catch (Exception $e) {
-        // If occurs any error message then goes here
-        tuplitApi::showError($e);
-    }
-});
-
-
-/**
 * Delete categories
 * DELETE /v1/categories
 */
@@ -365,6 +320,59 @@ $app->get('/productscount/:CategoryId',tuplitApi::checkToken(), function ($Categ
         tuplitApi::showError($e);
     }
 
+});
+
+/**
+ * product analytics  - Categories
+ * GET /v1/categories/analytics
+ */
+$app->get('/analytics/',tuplitApi::checkToken(), function () use ($app) {
+
+    try {
+		 // Create a http request
+         $req = $app->request();
+		 $merchantId = tuplitApi::$resourceServer->getOwnerId();
+		
+		 /**
+         * Retrieving product analytics - category list array
+         */
+		$categories 	= 	R::dispense('categories');
+		if($req->params('DataType') !='')		$categories->DataType	=  $req->params('DataType');
+		if($req->params('Start') !='')			$categories->Start		=  $req->params('Start');
+		if($req->params('TimeZone') !='')		$categories->TimeZone		=  $req->params('TimeZone');
+	 	$CategoryAnalytics 	= $categories->getCategoryAnalytics($merchantId);
+		if($CategoryAnalytics){
+			$response 	= new tuplitApiResponse();
+	        $response->setStatus(HttpStatusCode::Created);
+	        $response->meta->dataPropertyName 	= 'CategoryAnalytics';			
+	        $response->meta->TotalCategory 		= $CategoryAnalytics['totalCategory'];			
+	        $response->meta->ListedCategory		= $CategoryAnalytics['listedCategory'];			
+			$response->returnedObject 			= $CategoryAnalytics['result'];			
+			echo $response;
+		}
+		else{
+			 /**
+	         * throwing error when no products found
+	         */
+			  throw new ApiException("No products Found", ErrorCodeType::NoResultFound);
+		}
+		
+    }
+    catch (ApiException $e){
+        // If occurs any error message then goes here
+        tuplitApi::showError(
+            $e,
+            $e->getHttpStatusCode(),
+            $e->getErrors()
+        );
+    }
+    catch (\Slim\Exception\Stop $e){
+        // If occurs any error message for slim framework then goes here
+    }
+    catch (Exception $e) {
+        // If occurs any error message then goes here
+        tuplitApi::showError($e);
+    }
 });
 
 

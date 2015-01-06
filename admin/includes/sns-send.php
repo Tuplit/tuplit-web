@@ -23,7 +23,8 @@ $badge = $badge + 1;
 								'userId' => $userId,
 								'merchantId' => $merchantId,
 								'merchantName' => $merchantName,
-								'notes' => $notes );
+								'notes' => $notes,
+								'balance' => $userbalance );
 			if($sound == 1)
 				$pushdata['sound'] = $sound;
 		
@@ -50,7 +51,8 @@ $badge = $badge + 1;
 								'type' => $type,
 								'merchantId' => $merchantId,
 								'merchantName' => $merchantName,
-								'notes' => $notes );
+								'notes' => $notes,
+								'OrderAmount' => $orderAmount );
 			if($sound == 1)
 				$pushdata['sound'] = $sound;
 			

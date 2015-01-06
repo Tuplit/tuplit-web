@@ -13,16 +13,16 @@ $total			= 	0;
 $cond			= 	'';
 $join			= 	'';
 if(isset($_GET['cs']) && $_GET['cs'] == 1){
- 	unset($_SESSION['loc_mer_name']);
-	unset($_SESSION['mer_sess_Category']);
-	unset($_SESSION['merchant_sess_city']);
-	unset($_SESSION['merchant_sess_price']);
-	unset($_SESSION['mer_sess_name']);
+ 	//unset($_SESSION['loc_mer_name']);
+	//unset($_SESSION['mer_sess_Category']);
+	//unset($_SESSION['merchant_sess_city']);
+	//unset($_SESSION['merchant_sess_price']);
+	//unset($_SESSION['mer_sess_name']);
 	unset($_SESSION['ordertype']);
 	unset($_SESSION['sortBy']); 
-	unset($_SESSION['loc_mer_price']);
-	unset($_SESSION['loc_mer_city']);
-	unset($_SESSION['loc_mer_category']);	
+	//unset($_SESSION['loc_mer_price']);
+	//unset($_SESSION['loc_mer_city']);
+	//unset($_SESSION['loc_mer_category']);	
 		
 }
 

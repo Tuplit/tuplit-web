@@ -127,16 +127,7 @@ commonHead();
 			<div class="col-xs-12 col-md-12 col-lg-12 box-center row" >				
 				<section class="content-header">
 	                <h1 class="col-xs-12 col-sm-9 col-md-9 col-lg-10 no-padding text-left" style="margin-top:0px;margin-bottom:20px;">New Orders <?php if(!SERVER) { if(isset($_SESSION['tuplitNewOrderTotal']) && !empty($_SESSION['tuplitNewOrderTotal'])) echo " - ".$_SESSION['tuplitNewOrderTotal']; }  ?></h1>
-					<a href="OrderHistory?cs=1" class="col-xs-12 col-sm-3 col-md-3 col-lg-2  btn btn-success margin-bottom padding10" title="View Orders History"><i class="fa fa-history"></i> View Orders History</a>
-	                <?php  if ($_SERVER['HTTP_HOST'] == '172.21.4.104') { ?>
-						<!-- <div class="no-padding col-xs-12 text-left" style="color:#01a99a;font-size:20px;" id="OrdersDisplayed" name="OrdersDisplayed">Orders Displayed  -->
-							<?php 
-								/*if(isset($totalorderlist) && !empty($totalorderlist)) {
-									echo " - ".$totalorderlist; 
-								}*/
-							?>
-						<!-- </div>		 -->
-					<?php } ?>
+					
 				</section>
 				<div class="clear order_list row">
 					<div class="no-padding" id="NewOrderListHtml">
@@ -184,7 +175,7 @@ commonHead();
 												<?php } ?>
 											</div>
 											<div class="col-xs-12 no-padding"><hr></div>
-											<div class="col-xs-12 clear scroll-content-orders mCustomScrollbar" style="height:60px;">
+											<div class="col-xs-12 clear scroll-content-orders" style="height:60px;">
 												<?php if(!empty($value['Products'])) {											
 														foreach($value['Products'] as $key1=>$pro_val) { ?>		
 															<div class="items_rows">																										
@@ -307,7 +298,7 @@ commonHead();
 										<?php } ?>
 									</div>
 									<div class="col-xs-12 no-padding"><hr></div>
-									<div class="col-xs-12 clear scroll-content-orders mCustomScrollbar" style="height:60px;">
+									<div class="col-xs-12 clear scroll-content-orders" style="height:60px;">
 										<?php if(!empty($value['Products'])) {											
 												foreach($value['Products'] as $key1=>$pro_val) { ?>																												
 													<div class="col-xs-2 no-padding clear"><?php echo $pro_val['ProductsQuantity']; ?>pc</div>
@@ -431,6 +422,19 @@ commonHead();
 </section>
 <?php footerLogin();  commonFooter(); ?>
 	<script type="text/javascript">
+		(function($){
+					$(window).load(function(){
+					   $(".scroll-content-orders").mCustomScrollbar({
+						callbacks:{
+								onTotalScroll: function(){
+									/*if($('#usertotalcounter').val() != '' && $('#userstartcounter').val() <= $('#usertotalcounter').val())
+										getUserOredersList();*/
+										//alert($('#mCSB_1_container').height());
+								}
+							}
+						});
+					});
+				})(jQuery);
 		function showFullOrder(orderId){
 			var OrderContent	 =   $('#showFullOrder'+orderId).html(); 
 			    $.fancybox({
@@ -492,7 +496,7 @@ commonHead();
 						});
 					});
 				})(jQuery);*/
-			 $(".scroll-content-orders").mCustomScrollbar({});
+			// $(".scroll-content-orders").mCustomScrollbar({});
 			 
 		});
 		

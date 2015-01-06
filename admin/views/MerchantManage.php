@@ -157,8 +157,8 @@ if(isset($_POST['submit']) && $_POST['submit'] != ''){
 					if ( !file_exists(UPLOAD_MERCHANT_ICONS_IMAGE_PATH_REL) ){
 				  		mkdir (UPLOAD_MERCHANT_ICONS_IMAGE_PATH_REL, 0777);
 					}
-					//copy($tempIconPath,$iconPath);
-					imagethumb_addbg($tempIconPath, $iconPath,'','',100,100);
+					copy($tempIconPath,$iconPath);
+					//imagethumb_addbg($tempIconPath, $iconPath,'','',100,100);
 					/*$phMagick = new phMagick($tempIconPath);
 					$phMagick->setDestination($iconPath)->resize(100,100);*/
 					if (SERVER){
@@ -182,8 +182,8 @@ if(isset($_POST['submit']) && $_POST['submit'] != ''){
 					if ( !file_exists(UPLOAD_MERCHANT_IMAGE_PATH_REL) ){
 				  		mkdir (UPLOAD_MERCHANT_IMAGE_PATH_REL, 0777);
 					}
-					//copy($tempImagePath,$imagePath);
-					imagethumb_addbg($tempImagePath, $imagePath,'','',640,260);
+					copy($tempImagePath,$imagePath);
+					//imagethumb_addbg($tempImagePath, $imagePath,'','',640,260);
 					/*$phMagick = new phMagick($tempImagePath);
 					$phMagick->setDestination($imagePath)->resize(640,240);*/
 					
@@ -320,7 +320,7 @@ commonHead();
 					</div> -->
 					<div class="form-group col-sm-6 clear">
 						<label>Postcode</label>
-						<input type="text" class="form-control" id="Postcode" name="Postcode" maxlength="8" onkeypress="return isNumberKey_Phone(event);" value="<?php if(isset($Postcode) && $Postcode != '') echo $Postcode;  ?>" >
+						<input type="text" class="form-control" id="Postcode" name="Postcode" maxlength="8" onpaste="return false;" onkeypress="return isNumberKey_postal(event);" value="<?php if(isset($Postcode) && $Postcode != '') echo $Postcode;  ?>" >
 					</div>
 					<!-- <div class="form-group col-sm-6 ">
 						<label>Address</label>

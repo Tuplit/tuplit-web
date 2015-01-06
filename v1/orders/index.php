@@ -44,58 +44,41 @@ $app = new \Slim\Slim();
 $app->post('/', tuplitApi::checkToken(),function () use ($app) {
 
     try {
-		if($_SERVER['REMOTE_ADDR'] == '172.21.4.56'){
-		
-			$order 					= 	R::dispense('orders');
-			$order->UserId			= 	'3';		
-			$order->MerchantId		=	'1';
-			$order->OrderDoneBy		= 	'2';
-			$order->TotalItems		= 	'2';
-			$order->TotalPrice		= 	'340';
-			$order->Amount			= 	'340';
-			$order->CartDetails		= 	'[ { "ProductId":"1", "ProductsQuantity":"2", "ProductsCost":"100", "DiscountPrice":"15"},{ "ProductId":"1", "ProductsQuantity":"2", "ProductsCost":"100", "DiscountPrice":"15"}]';
 			
-			$type					=	'2';
-			$userId					=	'3';
-			$MerchantId				=	'1';	
-			
-		} else {
-						
-			// Create a http request
-			$req 					= 	$app->request();
-			$userType 				= 	tuplitApi::$resourceServer->getOwnerType();
-			$requestedById 			= 	tuplitApi::$resourceServer->getOwnerId();
-			$userId		=	$MerchantId	=	$type	=	'';
-			if($userType == 'user')	{	
-				$userId				= 	$requestedById;
-				$type				=	'1';
-			}
-			else if($userType == 'merchant') {
-				$MerchantId			=	$requestedById;
-				$type				=	'2';
-			}
-			
-			/**
-			 * Place a new order
-			 */
-			$order 					= 	R::dispense('orders');
-			if(!empty($userId)) {		
-				$order->UserId	 	= 	$userId;
-				$order->MerchantId	= 	$req->params('MerchantId');
-				$MerchantId			= 	$req->params('MerchantId');
-			}
-			else if(!empty($MerchantId)) {
-				$order->MerchantId 	= 	$MerchantId;
-				$order->UserId		= 	$req->params('UserId');
-				$userId				= 	$req->params('UserId');
-			}
-			
-			$order->OrderDoneBy		= 	$type;
-			$order->TotalItems		= 	$req->params('TotalItems');
-			$order->TotalPrice		= 	$req->params('TotalPrice');
-			$order->Amount			= 	$req->params('TotalPrice');
-			$order->CartDetails		= 	$req->params('CartDetails');
+		// Create a http request
+		$req 					= 	$app->request();
+		$userType 				= 	tuplitApi::$resourceServer->getOwnerType();
+		$requestedById 			= 	tuplitApi::$resourceServer->getOwnerId();
+		$userId		=	$MerchantId	=	$type	=	'';
+		if($userType == 'user')	{	
+			$userId				= 	$requestedById;
+			$type				=	'1';
 		}
+		else if($userType == 'merchant') {
+			$MerchantId			=	$requestedById;
+			$type				=	'2';
+		}
+		
+		/**
+		 * Place a new order
+		 */
+		$order 					= 	R::dispense('orders');
+		if(!empty($userId)) {		
+			$order->UserId	 	= 	$userId;
+			$order->MerchantId	= 	$req->params('MerchantId');
+			$MerchantId			= 	$req->params('MerchantId');
+		}
+		else if(!empty($MerchantId)) {
+			$order->MerchantId 	= 	$MerchantId;
+			$order->UserId		= 	$req->params('UserId');
+			$userId				= 	$req->params('UserId');
+		}
+		
+		$order->OrderDoneBy		= 	$type;
+		$order->TotalItems		= 	$req->params('TotalItems');
+		$order->TotalPrice		= 	$req->params('TotalPrice');
+		$order->Amount			= 	$req->params('TotalPrice');
+		$order->CartDetails		= 	$req->params('CartDetails');
 		
 		//getting user details
 		$userDetails 				=   R::findOne('users', 'id=?', [$userId]);
@@ -139,10 +122,7 @@ $app->post('/', tuplitApi::checkToken(),function () use ($app) {
 				$mailContentArray['CartDetails']		=   $CartDetails;
 				$mailContentArray['orderId']			=	$orderId;
 				$mailContentArray['TransactionId']		=	$TransactionId;
-				if($_SERVER['REMOTE_ADDR'] == '172.21.4.56')
-					$mailContentArray['TotalPrice']		=	'340';
-				else
-					$mailContentArray['TotalPrice']		=	number_format((float)$result['Total'], 2, '.', '');
+				$mailContentArray['TotalPrice']			=	number_format((float)$result['Total'], 2, '.', '');
 				$mailContentArray['SubTotal']			=   number_format((float)$result['SubTotal'], 2, '.', '');
 				$mailContentArray['VAT']				=   number_format((float)$result['VAT'], 2, '.', '');
 				$mailContentArray['fileName']			=	'newordertouser.html';
@@ -180,10 +160,10 @@ $app->post('/', tuplitApi::checkToken(),function () use ($app) {
 						$mailContentArray['name1']			=	$userName;
 						$mailContentArray['address']		=	$useraddress;
 						$mailContentArray['byname']			=	'Tuplit Team';
+						
 						sendMail($mailContentArray,8); //Send mail user to merchant
 					}
 					$mailContentArray['content']		= 	"Here are the details of your latest order.";
-					//$mailContentArray['toemail']		= 	$mailContentArray['from'];
 					$mailContentArray['toemail']		= 	$userMailId;
 					$mailContentArray['from']			=	$adminMailId;
 					$mailContentArray['toemail']		=	$userMailId;
@@ -191,9 +171,9 @@ $app->post('/', tuplitApi::checkToken(),function () use ($app) {
 					$mailContentArray['name1']			=	$merchantName;
 					$mailContentArray['address']		=	$merchantAddress;
 					$mailContentArray['byname']			=	'Tuplit Team';
+					
 					sendMail($mailContentArray,8); //Send mail user to user
 				}
-				
 			} else {
 				//throws when MailContent
 				throw new ApiException("Unable to send email. Some email contents missing", ErrorCodeType::NotAllowed);
@@ -232,25 +212,16 @@ $app->post('/', tuplitApi::checkToken(),function () use ($app) {
 $app->get('/new', tuplitApi::checkToken(), function () use ($app) {
 
     try {
-		  /**
-         * Retreiving new orders
-         */
-		 $request 								= 	$app->request();
-		 $requestedById 						= 	tuplitApi::$resourceServer->getOwnerId();
-		 if($request->params('Type'))
-		 	$type							 	= 	$request->params('Type');
-		else
-			$type								=	0;
-		
-		if($request->params('Start'))
-		 	$Start							 	= 	$request->params('Start');
-		else
-			$Start								=	0;
-			
-		if($request->params('End'))
-		 	$End							 	= 	$request->params('End');
-		else
-			$End								=	12;
+		/**
+		* Retreiving new orders
+		*/
+		$request 		= 	$app->request();
+		$requestedById 	= 	tuplitApi::$resourceServer->getOwnerId();
+		$type			=	$Start	=	0;
+		$End			=	12;
+		if($request->params('Type'))	 	$type	= 	$request->params('Type');
+		if($request->params('Start'))	 	$Start 	= 	$request->params('Start');
+		if($request->params('End'))		 	$End 	= 	$request->params('End');
 			
 		 $orders 								= 	R::dispense('orders');
 		 $orders->MerchantID					=	$requestedById;
@@ -258,7 +229,6 @@ $app->get('/new', tuplitApi::checkToken(), function () use ($app) {
 		 $orders->Start							=	$Start;
 		 $orders->End							=	$End;
 		 $newOrderDetails						= 	$orders->getNewOrderDetails();
-		 //echo "<pre>"; echo print_r($newOrderDetails); echo "</pre>";
 		 if($newOrderDetails){
 			$response 	   						= 	new tuplitApiResponse();
 			$response->setStatus(HttpStatusCode::Created);
@@ -353,41 +323,29 @@ $app->get('/:OrderId', tuplitApi::checkToken(), function ($OrderId) use ($app) {
  * GET /v1/orders/
  */
 $app->get('/', tuplitApi::checkToken(), function () use ($app) {
-
-    try {
-		  /**
-         * Retreiving order list
-         */
-		 $request 				= 	$app->request();
-		 $requestedById 		= 	tuplitApi::$resourceServer->getOwnerId();
-		 $orders 				= 	R::dispense('orders');		
-		 if($request->params('UserId'))
-		 	$orders->UserId	 	= 	$request->params('UserId');
-		 if($request->params('Start'))
-		 	$orders->Start 		= 	$request->params('Start');
-		 if($request->params('Limit'))
-		 	$orders->Limit		= 	$request->params('Limit');
-		 if($request->params('Type'))
-		 	$Type			 	= 	$request->params('Type');//Type only for manage orders page otherwise default type=0
-		else
-			$Type				= 	0;
-		if($request->params('UserName') !='')
-			$orders->UserName 	= 	$request->params('UserName');
-		if($request->params('OrderStatus') !='')
-			$orders->OrderStatus=	$request->params('OrderStatus');
-		if($request->params('OrderDoneBy') !='')
-			$orders->OrderDoneBy=	$request->params('OrderDoneBy');
-		if($request->params('Price') !='')
-			$orders->Price		=	$request->params('Price');
-		if($request->params('TransactionId') !='')
-			$orders->TransactionId 	= 	$request->params('TransactionId');
-		if($request->params('FromDate') !='')
-			$orders->FromDate 	= 	$request->params('FromDate');
-		if($request->params('ToDate') !='')
-			$orders->ToDate 	= 	$request->params('ToDate');
-		 $OrderList				= 	$orders->getOrderList($requestedById,$Type);    
-		 if($OrderList){
-			$response 	   		= 	new tuplitApiResponse();
+     try {
+		/**
+		* Retreiving order list
+		*/
+		$request 			= 	$app->request();
+		$requestedById 	= 	tuplitApi::$resourceServer->getOwnerId();
+		$Type				= 	0;
+		$orders 			= 	R::dispense('orders');		
+		if($request->params('UserId'))				$orders->UserId	 		= 	$request->params('UserId');
+		if($request->params('Start'))			 	$orders->Start 			= 	$request->params('Start');
+		if($request->params('Limit'))			 	$orders->Limit			= 	$request->params('Limit');
+		if($request->params('Type'))			 	$Type			 		= 	$request->params('Type');//Type only for manage orders page otherwise default type=0
+		if($request->params('UserName') !='')		$orders->UserName 		= 	$request->params('UserName');
+		if($request->params('OrderStatus') !='')	$orders->OrderStatus	=	$request->params('OrderStatus');
+		if($request->params('OrderDoneBy') !='')	$orders->OrderDoneBy	=	$request->params('OrderDoneBy');
+		if($request->params('Price') !='')			$orders->Price			=	$request->params('Price');
+		if($request->params('TransactionId') !='')	$orders->TransactionId 	= 	$request->params('TransactionId');
+		if($request->params('FromDate') !='')		$orders->FromDate 		= 	$request->params('FromDate');
+		if($request->params('ToDate') !='')			$orders->ToDate 		= 	$request->params('ToDate');
+		 
+		$OrderList		= 	$orders->getOrderList($requestedById,$Type);    
+		if($OrderList){
+			$response 	= 	new tuplitApiResponse();
 	        $response->setStatus(HttpStatusCode::Created);
 	        $response->meta->dataPropertyName 	= 	'OrderList';
 			$response->meta->totalCount 		= 	$OrderList['totalCount'];
@@ -420,6 +378,72 @@ $app->get('/', tuplitApi::checkToken(), function () use ($app) {
     }
 
 });
+
+/**
+ * get orders transactions list
+ * GET /v1/orders/transactions
+ */
+$app->get('/transactions/', tuplitApi::checkToken(), function () use ($app) {
+
+    try {
+		  /**
+         * Retreiving order list
+         */
+		 $request 		= 	$app->request();
+		 $merchantID	= 	tuplitApi::$resourceServer->getOwnerId();
+		 
+		 $orders 		= 	R::dispense('orders');		 
+		if($request->params('Start'))				$orders->Start 			= 	$request->params('Start');		
+		if($request->params('FromDate') !='')		$orders->FromDate 		= 	$request->params('FromDate');
+		if($request->params('ToDate') !='')			$orders->ToDate 		= 	$request->params('ToDate');
+		if($request->params('DataType') !='')		$orders->DataType		=  	$request->params('DataType');
+		if($request->params('OrderStatus') !='')	$orders->OrderStatus	=  	$request->params('OrderStatus');
+		if($request->params('LimitType') !='')		$orders->LimitType		=  	$request->params('LimitType');
+		
+		//get data
+		$OrderList		= 	$orders->getTransactionSummary($merchantID);  
+		 
+		 if($OrderList){
+			$response 	   	= 	new tuplitApiResponse();
+	        $response->setStatus(HttpStatusCode::Created);
+	        $response->meta->dataPropertyName 	= 	'OrderList';
+			$response->meta->totalCount 		= 	$OrderList['totalCount'];
+			$response->meta->listedCount 		= 	$OrderList['listedCount'];
+			if(isset($OrderList['summary']) && !empty($OrderList['summary'])) {
+				$response->meta->transactions 	= 	$OrderList['summary']['transactions'];
+				$response->meta->sales 			= 	$OrderList['summary']['sales'];
+				$response->meta->refunds 		= 	$OrderList['summary']['refunds'];
+				$response->meta->refunded 		= 	$OrderList['summary']['refunded'];
+			}
+			$response->returnedObject 			= 	$OrderList['list'];
+			echo $response;
+		}
+		else{
+			 /**
+	         * throwing error when static data
+	         */
+			  throw new ApiException("No results Found", ErrorCodeType::NoResultFound);
+		}
+		
+    }
+    catch (ApiException $e){
+        // If occurs any error message then goes here
+        tuplitApi::showError(
+            $e,
+            $e->getHttpStatusCode(),
+            $e->getErrors()
+        );
+    }
+    catch (\Slim\Exception\Stop $e){
+        // If occurs any error message for slim framework then goes here
+    }
+    catch (Exception $e) {
+        // If occurs any error message then goes here
+        tuplitApi::showError($e);
+    }
+
+});
+
 
 /**
  * Update order details as Approved/Rejected
@@ -495,7 +519,7 @@ $app->put('/', tuplitApi::checkToken(), function () use ($app) {
 
 /**
  * POST Do payment
- * POST /v1/orders
+ * POST /v1/orders/payment
  */
 $app->post('/payment',tuplitApi::checkToken(), function () use ($app) {
 
@@ -560,13 +584,12 @@ $app->get('/refund/:OrderId', tuplitApi::checkToken(), function ($OrderId) use (
 		}
 		
 		//get merchant id 
-		$requestedById 							= 	tuplitApi::$resourceServer->getOwnerId();
-		
+		$requestedById 				= 	tuplitApi::$resourceServer->getOwnerId();
 		
 		//order table dispense
-		$orders	 								=	R::dispense('orders');
-		$orders->OrderId						=	$OrderId;
-		$orders->MerchantId						=	$requestedById;
+		$orders	 					=	R::dispense('orders');
+		$orders->OrderId			=	$OrderId;
+		$orders->MerchantId			=	$requestedById;
 		
 		$type	=	'';     //Type = 1 is for refunding order from manage
 		if($request->params('Type') !='') {
@@ -593,57 +616,6 @@ $app->get('/refund/:OrderId', tuplitApi::checkToken(), function ($OrderId) use (
 			$response->addNotification($refundDetails->ResultMessage);
 			echo $response;
 			}
-		}
-		else{
-			 /**
-	         * throwing error when error in refund
-	         */
-			  throw new ApiException("No refund data's found", ErrorCodeType::NoResultFound);
-		}
-		
-    }
-    catch (ApiException $e){
-        // If occurs any error message then goes here
-        tuplitApi::showError(
-            $e,
-            $e->getHttpStatusCode(),
-            $e->getErrors()
-        );
-    }
-    catch (\Slim\Exception\Stop $e){
-        // If occurs any error message for slim framework then goes here
-    }
-    catch (Exception $e) {
-        // If occurs any error message then goes here
-        tuplitApi::showError($e);
-    }
-});
-
-/**
- * Refunding the order amount 
- * GET /v1/orders/refund/{ORDER ID}
- */
-$app->get('/balance/', tuplitApi::checkToken(), function () use ($app) {
-
-    try {
-		// Create a http request
-        $request					= 	$app->request();
-			
-		if($request->params('WalletId') !='') {
-			$WalletId 	= 	$request->params('WalletId');
-		}
-	
-		//order table dispense
-		$orders	 								=	R::dispense('orders');
-		$orders->WalletId						=	$WalletId;
-		$balanceDetails							= 	$orders->getWalletBalance();    
-		if($balanceDetails){			
-			$response 	   						= 	new tuplitApiResponse();
-	        $response->setStatus(HttpStatusCode::Created);
-	        $response->meta->dataPropertyName 	= 	'balanceDetails';
-			$response->returnedObject 			= 	$balanceDetails;
-			$response->addNotification('success');
-			echo $response;			
 		}
 		else{
 			 /**

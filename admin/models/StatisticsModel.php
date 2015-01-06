@@ -1,4 +1,3 @@
-
 <?php
 class StatisticsModel extends Model
 {
@@ -63,6 +62,44 @@ class StatisticsModel extends Model
 		$result	=	$this->sqlQueryArray($sql);
 		if(count($result) == 0) return false;
 		else return $result;		
+	}
+	/*------APP VERSION------*/
+	function getAppversionList()
+	{
+		$query = "SELECT * FROM appversions WHERE 1 ORDER BY id desc";
+		$result = $this->sqlQueryArray($query);
+		if(is_array($result) && count($result)>0 ) return $result;
+		else return false;
+	}
+	function checkAppVersionExists($device_type,$app_type) // admin, api
+	{
+		$query = "SELECT * FROM appversions WHERE device_type = '".$device_type."' AND app_type = '".$app_type."' ";
+		$result = $this->sqlQueryArray($query);
+		if(is_array($result) && count($result)>0 ) return $result;
+		else return false;
+	}
+	
+	function addAppversion($postArray)
+	{
+		$query = "INSERT INTO appversions SET	device_type		= '".trim($postArray['device_type'])."',
+												app_type		= '".trim($postArray['status'])."',
+												version			= '".trim($postArray['device_version'])."',
+												build			= '".trim($postArray['device_build'])."' ";
+		$this->insertInto($query);
+	}
+	
+	function updateAppversion($postArray,$id)
+	{
+		$query = "UPDATE appversions SET	app_type		= '".trim($postArray['status'])."',
+											version			= '".trim($postArray['device_version'])."',
+											build			= '".trim($postArray['device_build'])."'
+											where id = '".$id."' ";
+		$this->updateInto($query);
+	}
+	function deleteAppversion($id)
+	{
+		$query = "DELETE FROM appversions where id = '".$id."' ";
+		$this->deleteInto($query);
 	}
 }
 ?>

@@ -15,10 +15,10 @@ $cond	= $having = $left_join = '';
 $class_count  = '5';
 $image_path = $original_image_path = '';
 if(isset($_GET['cs']) && $_GET['cs'] == 1){
-	unset($_SESSION['loc_mer_name']);
-	unset($_SESSION['loc_mer_price']);
-	unset($_SESSION['loc_mer_city']);
-	unset($_SESSION['loc_mer_category']);
+	//unset($_SESSION['loc_mer_name']);
+	//unset($_SESSION['loc_mer_price']);
+	//unset($_SESSION['loc_mer_city']);
+	//unset($_SESSION['loc_mer_category']);
 }
 
 if(isset($_POST['Search']) && $_POST['Search']!='' ){
@@ -32,7 +32,7 @@ if(isset($_POST['Search']) && $_POST['Search']!='' ){
 	}else unset($_SESSION['loc_mer_name']);
 	if(isset($_POST['Merchant_Price']) && $_POST['Merchant_Price']!=''){
 		$_SESSION['loc_mer_price'] 	 = trim($_POST['Merchant_Price']);
-		$having						.= " Having TotalPrice <= ".trim($_SESSION['loc_mer_price']);
+		$having						.= " Having TotalPrice <= '".trim($_SESSION['loc_mer_price'])."'";
 	}else unset($_SESSION['loc_mer_price']);
 	if(isset($_POST['Merchant_city']) && $_POST['Merchant_city']!=''){
 		$_SESSION['loc_mer_city'] 	 = $_POST['Merchant_city'];
@@ -85,10 +85,10 @@ $tot_rec 		= $analyticsObj->getTotalRecordCount();
 						<div class="manage-transactions">
 							<div class="col-xs-12 next-prev">
 								<div id="prevCustHist"  class="col-xs-6 col-sm-6" align="center">	
-									<a class="" href="javascript:void(0);" onclick="custHistTransaction('prev')"  title="Prev Page">Back</a>
+									<a class="" href="javascript:void(0);" onclick="custHistTransaction('prev')"  title="Prev Page">Previous</a>
 								</div>
 							
-								<div id="nextCustHist"  class="col-xs-6 col-sm-6" align="center">
+								<div id="nextCustHist"  class="col-xs-6 col-sm-6" align="center" style="float:right;">
 									<a class="" href="javascript:void(0);" onclick="custHistTransaction('next')"  title="Next Page">Next</a>
 								</div>
 							</div>
@@ -150,7 +150,7 @@ function custHistTransaction(direction)
 		$("#count").val('1');
 	}
 	if(search_price != ''){
-		having = '<?php if(isset($_SESSION['loc_mer_price']) && $_SESSION['loc_mer_price'] != '') echo " Having TotalPrice <=".$_SESSION['loc_mer_price']; ?>';	
+		having = '<?php if(isset($_SESSION['loc_mer_price']) && $_SESSION['loc_mer_price'] != '') echo " Having TotalPrice <= ".$_SESSION['loc_mer_price'] ?>';	
 		$("#count").val('1');
 	}
 	if(search_city != ''){
