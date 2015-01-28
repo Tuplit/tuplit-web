@@ -8,7 +8,6 @@ else{
 	merchant_login_check();
 	$focus  = 'ShopName';
 }
-
 if(isset($_GET['ajax']) && $_GET['ajax'] == 1) {
 	echo $_POST['img'];
 	echo $_POST['img'];
@@ -508,8 +507,8 @@ $show_cat = $newCategory;
 								
 								<!-- Price Scheme -->
 								<div class="col-sm-9">
-									<label class="control-label"><h3 class="no-bottom">Price Scheme</h3></label>
-									<p class="help-block col-sm-12 no-padding">Price Scheme defines how much will all product be discounted</p>
+									<label class="control-label"><h3 class="no-bottom">Discount Scheme</h3></label>
+									<p class="help-block col-sm-12 no-padding">Discount Scheme defines how much will all product be discounted</p>
 								</div>
 								<div class="col-sm-3">
 									<div class="custom-select top-margin24">
