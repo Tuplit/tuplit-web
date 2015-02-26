@@ -430,10 +430,13 @@ class MerchantModel extends Model
 		$sorting_clause = 'm.id desc';
 		$leftjoin = '';
 		if($join == 'category'){
-			$leftjoin = " left join {$this->merchantcategoriesTable} as mca on (mca.fkMerchantId = m.id)";
+			$leftjoin .= " left join {$this->merchantcategoriesTable} as mca on (mca.fkMerchantId = m.id)";
+			$leftjoin .= " left join categories as c on (c.id = mca.fkCategoriesId)"; //
+			
 		}	
 		$sql = "select SQL_CALC_FOUND_ROWS ".$fields." from {$this->merchantTable} as m	".$leftjoin. "
 				WHERE 1".$condition." AND m.UserType = 1 group by m.id ORDER BY ".$sorting_clause;
+		
 		$result	=	$this->sqlQueryArray($sql);
 		if(count($result) == 0) return false;
 		else {	

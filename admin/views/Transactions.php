@@ -117,7 +117,11 @@ $tot_rec_cust 		= $OrderObj->getTotalRecordCount();
 		   return false;
 	    }
 	});
-	/*$(document).ready(function() {});*/
+	/*$(document).ready(function() {
+		
+
+	});
+*/
 $("#Merchant_transaction_button").click(function(){
 	$('#define_search_type').val('2');
 	$('#transactionsearch').attr('placeholder','Search Merchant');

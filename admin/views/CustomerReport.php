@@ -126,6 +126,7 @@ function custHistTransaction(direction)
 	var	startVal 		= ''; 
 	var searchVal		= '';
 	var having			= '';
+	var left_join		= '';
 	if(direction == 'search'){
 		$('#cust_hist_display_count').val('0');
 	}
@@ -158,7 +159,8 @@ function custHistTransaction(direction)
 		$("#count").val('1');
 	}
 	if(search_category != ''){
-		searchVal = searchVal+'<?php if(isset($_SESSION['loc_mer_category']) && $_SESSION['loc_mer_category'] != '') echo " and c.id = ".$_SESSION['loc_mer_category']." "; ?>';	
+		searchVal = searchVal+'<?php if(isset($_SESSION['loc_mer_category']) && $_SESSION['loc_mer_category'] != '') echo " and c.id = ".$_SESSION['loc_mer_category']." "; ?>';
+		left_join = 'left join merchantcategories as mc on (m.id = mc.fkMerchantId)	left join categories as c on (c.id = mc.fkCategoriesId)';	
 		$("#count").val('1');
 	}
 	//alert(searchVal);
@@ -167,7 +169,7 @@ function custHistTransaction(direction)
 	        //url: actionPath+"models/AjaxAction.php",
 	         url: actionPath+"CustomerReportDetails",
 			 global: false,
-			data: 'action=TRANSACTION_HISTORY&start='+startVal+'&search='+searchVal+'&type='+countValue+'&having='+having,
+			data: 'action=TRANSACTION_HISTORY&start='+startVal+'&search='+searchVal+'&type='+countValue+'&having='+having+'&left_join='+left_join,
 	        success: function (result){
 				$("#cust_hist_List").html(result);
 	        },

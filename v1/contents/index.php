@@ -52,8 +52,8 @@ $app->get('/', function () use ($app) {
         $response->setStatus(HttpStatusCode::Ok);
         $response->meta->dataPropertyName = 'staticContent';
 		$cms = R::dispense('general');
-		
-		$pages['cms'] 				= $cms->getStaticPages();
+		$data 						= $cms->getStaticPages();
+		$pages['cms'] 				= $data['StaticArray'];
 		$pages['HomeSlider'] 		= $cms->getSliderImages(1);
 		$pages['TutorialSlider'] 	= $cms->getSliderImages(2);
 		$pages['Legal'] 			= $cms->getLegalContent();
@@ -67,6 +67,8 @@ $app->get('/', function () use ($app) {
 		}
 		$pages['FriendInviteMessage'] 	= ucfirst(nl2br(str_replace("\r\n","<br>",trim(FRIEND_INVITE_MESSAGE))));
 		$pages['ItunesURL'] 			= ITUNES_URL;
+		$pages['ContactEmail'] 			= $data['ContactEmail'];
+		$pages['Phone'] 				= $data['Phone'];
 	    $response->returnedObject 	= $pages;
         $response->addNotification('Static content has been retrieved successfully');
         echo $response;

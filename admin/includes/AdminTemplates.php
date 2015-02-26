@@ -218,6 +218,12 @@ function popup_head(){ ?>
 		</aside><!-- /.right-side -->
      </div><!-- ./wrapper -->
 </body>
+<?php
+if(isset($_GET['echo']) && $_GET['echo'] == 'query'){
+	global $GLOBAL_REQUESTS_QUERIES;
+	echo'<pre>';print_r($GLOBAL_REQUESTS_QUERIES);echo'</pre>';
+}
+?>
  	<!-- jquery.validate -->
  	<script src="<?php echo ADMIN_SCRIPT_PATH; ?>jquery-latest.js" type="text/javascript"></script>
 	<script src="<?php echo ADMIN_SCRIPT_PATH; ?>Util.js" type="text/javascript"></script>

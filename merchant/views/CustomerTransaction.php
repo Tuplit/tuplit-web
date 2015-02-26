@@ -331,7 +331,7 @@ commonHead();
 								</ul>
 								</div>
 						</div>
-						<span class="error col-xs-12" id="greaterfrom" style="display:none">From date is greater than To date</span>
+						<span class="error col-xs-12" id="greaterfrom" style="display:none">To date should be greater than From date</span>
 						</div>
 						
 						<div class="box-footer col-sm-12" align="center">

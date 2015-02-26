@@ -124,7 +124,7 @@ commonHead();
 						</div>
 					</div>
 				</div>
-				<div class="box box-primary">
+				<!--<div class="box box-primary">
 					<h2  class="tabsection" id="custom_cms" >Custom Content</h2>
 					<div id='custom_cms_block' class="row" style="display:none;">
 						<div  class='col-sm-12'>
@@ -173,7 +173,7 @@ commonHead();
 							</div>
 						</div>							
 					</div>
-				</div>
+				</div>-->
 				<div class="box box-primary">
 					<h2 class="tabsection" id="help_cms">Help</h2>
 					<div id="help_cms_block" style="display:none;" class="row">
@@ -223,6 +223,30 @@ commonHead();
 						</div>	
 					</div>
 				</div><!-- /.box -->
+				<div class="box box-primary">
+					<h2 class="tabsection" id="faq_cms">FAQ</h2>
+					<div id="faq_cms_block" style="display:none;" class="row">
+						<div  class='col-sm-12'>
+							<div  class='col-sm-12'>
+								<textarea  class="form-control fanc " name="content" id="text-faq" value=""><?php if(!empty($ContentData['faq'])) echo $ContentData['faq'];?></textarea>								
+				                
+							</div>	
+							<div id="faq_hidden" style="display:none;">
+								<?php  if(!empty($ContentData['faq'])) echo $ContentData['faq'];?>
+							</div>
+							<input type='hidden' name='faq_id' id="faq_id" value='<?php   if(!empty($hidden['faq'])) echo $hidden['faq'];?>'>
+								
+							<div class="legal-cms clear">
+								<div class="col-xs-12 col-sm-6  talign-left"><a class="trans-button fancybox" id="faq" title="PREVIEW" href="#fancy-div"  onclick="fancybox(this.id)">PREVIEW </a></div>
+								<div  class="col-xs-12 col-sm-6 talign-right">
+									<a class="add-button mR-button" title="SAVE"  id="faq-save" onclick="save(this.id)">SAVE </a>
+									<a class="cancel-button" title="CANCEL" id="faq_cancel" onclick="cancel(this.id)">CANCEL</a>
+								</div>
+								<div class="clear"></div>	
+							</div>
+						</div>	
+					</div>
+				</div>
 			</div>
 			<div id="fancy-div" class="only-fcycontent" style="display:none;list-style:desc;"><!--width:700px;height:450px;background-color:#fff;-->
 				<h4 id="title" class="title"></h4>

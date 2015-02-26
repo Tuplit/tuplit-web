@@ -11,10 +11,12 @@ $where		  =	" 1 ";
 $fees         = '';
 $user_details = $adminLoginObj->getAdminDetails($fields,$where);
 if(isset($user_details) && is_array($user_details) && count($user_details)>0){
-		$user_name 	= 	$user_details[0]->UserName;
-		$email		=	$user_details[0]->EmailAddress;
-		$limit 		=	$user_details[0]->LocationLimit;
-		$fees 		=	$user_details[0]->MangoPayFees;
+		$user_name 			= 	$user_details[0]->UserName;
+		$email				=	$user_details[0]->EmailAddress;
+		$limit 				=	$user_details[0]->LocationLimit;
+		$fees 				=	$user_details[0]->MangoPayFees;
+		$contactEmail 		=	$user_details[0]->ContactEmail;
+		$phone 				=	$user_details[0]->Phone;
 }
 if(isset($_POST['general_settings_submit']) && $_POST['general_settings_submit'] != '' )
 {	
@@ -48,7 +50,13 @@ if(isset($_POST['general_settings_submit']) && $_POST['general_settings_submit']
 		unlink(TEMP_USER_IMAGE_PATH_REL.$_POST['admin_logo_upload']);
 		
 	}
-	$updateString   =   " UserName  = '".$_POST['user_name']."',EmailAddress = '".$_POST['email']."',LocationLimit= '".$_POST['limit']."',MangoPayFees='".$_POST['fees']."' ".$photoUpdateString."";
+	$updateString   =   " UserName  = '".$_POST['user_name']."',
+						  EmailAddress = '".$_POST['email']."',
+						  LocationLimit= '".($_POST['limit']/1000)."',
+						  MangoPayFees='".$_POST['fees']."' ,
+						  ContactEmail='".$_POST['contactEmail']."' ,
+						  Phone='".$_POST['phone']."' 
+						  ".$photoUpdateString."";
 	$condition      =   " id = 1 ";
 	$adminLoginObj->updateAdminDetails($updateString,$condition);
 	header('location:CommonSettings?msg=1');

@@ -200,7 +200,7 @@ function sendMail($mailContentArray,$type)
 		$headers        .= 	"From: $from\r\n";
 		$headers 		.= 	"Content-type: text/html\r\n";
 		if ($_SERVER['HTTP_HOST'] == '172.21.4.104'){
-			if($_SERVER['REMOTE_ADDR'] == '172.21.4.215' || $_SERVER['REMOTE_ADDR'] == '172.21.4.102'){
+			if($_SERVER['REMOTE_ADDR'] == '172.21.4.215' || $_SERVER['REMOTE_ADDR'] == '172.21.4.130'){
 				echo "<pre>"; print_r($mailData); echo "</pre>";
 			}	
 			if($_SERVER['REMOTE_ADDR'] == '172.21.4.113'){

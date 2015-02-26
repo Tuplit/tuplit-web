@@ -62,12 +62,17 @@ $("#general_settings_form").validate({
 	rules:{			
 		email       		:	{ required:true,email:true },
 		fees       			:	{  fees_amount:true },
-		empty_admin_logo	:	{ required:true}
+		empty_admin_logo	:	{ required:true},
+		contactEmail		:	{ required:true,email:true },
+		phone				:	{ required:true}
 	},
 	messages:{
 		email      			:	{ required:'Email address is required',email:'Please enter a valid email address.'},
 		fees       			:	{ fees_amount:'MangoPay fees is required'},
-		empty_admin_logo	:	{ required:'Admin logo is required'}
+		empty_admin_logo	:	{ required:'Admin logo is required'},
+		contactEmail		:	{ required:'Contact email is required',email:'Please enter a valid email address.'},
+		phone				:	{ required:'Phone is required'}
+		
 	}
 });
 $.validator.addMethod("fees_amount", function(value, element) {

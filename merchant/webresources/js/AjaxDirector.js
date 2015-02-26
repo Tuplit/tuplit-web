@@ -2092,6 +2092,7 @@ function validateOpenHours() {
 						$('#error_'+i).show();
 						validatetime = '0';
 					}
+					// Not to Validate opening hours from and to time
 					if(validChk == 1){
 						$('#error_'+i).html('Enter valid from time and to time ');
 						$('#error_'+i).show();
@@ -2954,7 +2955,7 @@ function validateFromToTime() {
 		return false;
 	}	
 	if (dateOne > dateTwo) {
-		$('#greaterfrom').html('From date should be greater than To date');
+		$('#greaterfrom').html('To date should be greater than From date');
 		$('#greaterfrom').show();
 		return false;
 	}

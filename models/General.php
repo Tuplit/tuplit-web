@@ -32,12 +32,9 @@ class General extends RedBean_SimpleModel implements ModelBaseInterface {
 		/**
 		* Query to get static contents
 		*/
-		$sql	 	=	"SELECT PageName,Content FROM staticpages";
+		/*$sql	 	=	"SELECT PageName,Content FROM staticpages";
    		$result 	= 	R::getAll($sql);
 		if(is_array($result) && count($result) >0){
-			/**
-			* The users were found
-			*/
 			foreach($result as $key=>$value){
 					$str = str_replace("\r\n","<br>",trim($value['Content']));
 					$content    = array("PageName"			=>		$value['PageName'],
@@ -46,12 +43,44 @@ class General extends RedBean_SimpleModel implements ModelBaseInterface {
 					$StaticArray[]	=	$content;
 			}
 			return $StaticArray;
+		}*/
+		/**
+		* Query to get web-page content
+		*/
+		$sql 		= 	"SELECT PageName,Content FROM webcontent where PageUrl like 'about_tuplit' or PageUrl like 'terms_of_service' or PageUrl like 'privacy_policy' or PageUrl like 'faq'";
+   		$result 	= 	R::getAll($sql);
+		if(is_array($result) && count($result) >0){
+			/**
+			* The Contents were found
+			*/
+			foreach($result as $key=>$value){
+				$page_name = $value['PageName'];
+				if($value['PageName'] == 'About Tuplit') $page_name = 'About';
+				//if($value['PageName'] == 'Privacy Policy') $page_name = 'Privacy Policy';
+				if($value['PageName'] == 'Terms of Service') $page_name = 'Terms of Use';
+				//if($value['PageName'] == 'About Tuplit') $page_name = 'FAQ';
+				//$str = str_replace("\r\n","<br>",trim($value['Content']));
+				$content    = array("PageName"			=>		$page_name,
+									"Content"			=>		ucfirst(($value['Content'])),
+									);
+				$StaticArray[]	=	$content;
+			}
+			//echo'<pre>';print_r($StaticArray);echo'</pre>';
+			$sql 		= 	"select ContactEmail, Phone from admins where 1";
+	   		$result 	= 	R::getAll($sql);
+			//echo'<pre>';print_r($result);echo'</pre>';
+			if(is_array($result) && count($result) >0){
+				$resulting['ContactEmail'] = $result[0]['ContactEmail'];
+				$resulting['Phone'] = $result[0]['Phone'];
+			}
+			$resulting['StaticArray'] = 	$StaticArray;		
+			return $resulting;
 		}
 		else{
 			/**
-			* throwing error when static data
+			* throwing error when Content not Found
 			*/
-			throw new ApiException("No results Found", ErrorCodeType::NoResultFound);
+			throw new ApiException("Content not Found", ErrorCodeType::NoResultFound);
 		}
 	}
 	

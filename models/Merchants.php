@@ -2059,6 +2059,11 @@ class Merchants extends RedBean_SimpleModel implements ModelBaseInterface {
 		$curr_date 		= 	date('Y-m-d');
 		$cur_month 		= 	date('m');
 		$cur_year 		= 	date('Y');
+		$last7days 		= 	date('Y-m-d',strtotime("-7 days"));
+		/*$curr_date 		= 	'2014-12-21';
+		$cur_month 		= 	'12';
+		$cur_year 		= 	'2014';
+		$last7days 		= 	'2014-12-15';*/
 		
 		$fields			=	" o.fkUsersId as UserId, count( o.id ) AS TotalOrders,  sum(o.TotalPrice) as TotalAmount ";
 		$leftjoin		=	" left join users as u on (o.fkUsersId = u.id) ";
@@ -2067,19 +2072,19 @@ class Merchants extends RedBean_SimpleModel implements ModelBaseInterface {
 		if($DataType == 'day') {
 			$fields		.=	" , max(date(o.OrderDate)) as OrderDate ";
 			$condition  .= 	" and date(DATE_ADD(o.OrderDate,INTERVAL '".$time_zone."' HOUR_MINUTE)) = '".$curr_date."'";
-			$having  	.= 	"  and max(date(DATE_ADD(o.OrderDate,INTERVAL '".$time_zone."' HOUR_MINUTE))) = '".$curr_date."'";
+			$having  	.= 	"  and date(DATE_ADD(max(o.OrderDate),INTERVAL '".$time_zone."' HOUR_MINUTE)) = '".$curr_date."'";
 		} else if($DataType == '7days') {
 			$fields		.=	" , max(date(o.OrderDate)) as OrderDate ";
-			$condition  .= 	" and date(DATE_ADD(o.OrderDate,INTERVAL '".$time_zone."' HOUR_MINUTE)) <= '".$curr_date."' and date(DATE_ADD(o.OrderDate,INTERVAL '".$time_zone."' HOUR_MINUTE)) >= '".date('Y-m-d',strtotime("-7 days"))."' ";
-			$having  	.= 	"  and max(date(DATE_ADD(o.OrderDate,INTERVAL '".$time_zone."' HOUR_MINUTE))) <= '".$curr_date."' and max(date(DATE_ADD(o.OrderDate,INTERVAL '".$time_zone."' HOUR_MINUTE))) >= '".date('Y-m-d',strtotime("-7 days"))."' ";
+			$condition  .= 	" and date(DATE_ADD(o.OrderDate,INTERVAL '".$time_zone."' HOUR_MINUTE)) <= '".$curr_date."' and date(DATE_ADD(o.OrderDate,INTERVAL '".$time_zone."' HOUR_MINUTE)) >= '".$last7days."' ";
+			$having  	.= 	"  and date(DATE_ADD(max(o.OrderDate),INTERVAL '".$time_zone."' HOUR_MINUTE)) <= '".$curr_date."' and date(DATE_ADD(max(o.OrderDate),INTERVAL '".$time_zone."' HOUR_MINUTE)) >= '".$last7days."' ";
 		}else if($DataType == 'month') {
 			$fields		.=	" , max(date(o.OrderDate)) as OrderDate ";
 			$condition  .= 	" and month(DATE_ADD(o.OrderDate,INTERVAL '".$time_zone."' HOUR_MINUTE)) = '".$cur_month."' and year(DATE_ADD(o.OrderDate,INTERVAL '".$time_zone."' HOUR_MINUTE)) = '".$cur_year."' ";
-			$having  	.= 	"  and max(month(DATE_ADD(o.OrderDate,INTERVAL '".$time_zone."' HOUR_MINUTE))) = '".$cur_month."' and max(year(DATE_ADD(o.OrderDate,INTERVAL '".$time_zone."' HOUR_MINUTE))) = '".$cur_year."' ";
+			$having  	.= 	"  and month(DATE_ADD(max(o.OrderDate),INTERVAL '".$time_zone."' HOUR_MINUTE)) = '".$cur_month."' and year(DATE_ADD(max(o.OrderDate),INTERVAL '".$time_zone."' HOUR_MINUTE)) = '".$cur_year."' ";
 		}else if($DataType == 'year') {	
 			$fields		.=	" , max(month(o.OrderDate)) as OrderDate ";
 			$condition  .= 	" and year(DATE_ADD(o.OrderDate,INTERVAL '".$time_zone."' HOUR_MINUTE)) = '".$cur_year."'";
-			$having  	.= 	"  and max(year(DATE_ADD(o.OrderDate,INTERVAL '".$time_zone."' HOUR_MINUTE))) = '".$cur_year."'";
+			$having  	.= 	"  and year(DATE_ADD(max(o.OrderDate),INTERVAL '".$time_zone."' HOUR_MINUTE)) = '".$cur_year."'";
 			$groupby	=	" group by year(DATE_ADD(o.OrderDate,INTERVAL '".$time_zone."' HOUR_MINUTE)),month(DATE_ADD(o.OrderDate,INTERVAL '".$time_zone."' HOUR_MINUTE)) ";
 		}
 		

@@ -334,7 +334,7 @@
 					}
 				}
 			}
-			if(hr1>hr2 ){
+			/*if(hr1>hr2 ){
 				$('#valid_'+id).val('1');
 			}else if(hr1 == hr2){
 				if(min1 > min2){
@@ -343,9 +343,9 @@
 					$('#valid_'+id).val('0');
 				}
 			}	
-			else{
+			else{*/
 				$('#valid_'+id).val('0');
-			}
+			//}
 			/* validation end*/
 			$('#row_'+id).val('1');
 		}

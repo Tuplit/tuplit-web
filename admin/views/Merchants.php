@@ -64,20 +64,20 @@ if($tot_rec!=0 && !is_array($merchantListResult)) {
 
 
 /*-------Comments List----------*/
-$fields 		= "com.*,u.FirstName,u.LastName,u.Photo";
+/*$fields 		= "com.*,u.FirstName,u.LastName,u.Photo";
 $condition 		= ' and u.Status = 1 and com.Status = 1';
 $commentlist 	= $commentObj->getCommentList($fields,$condition,$limit);
-$total_record 	= $commentObj->getTotalRecordCount();
+$total_record 	= $commentObj->getTotalRecordCount();*/
 
 /*-------Transaction List----------*/
-$fields				= "";
+/*$fields				= "";
 $condition_total	= "";
 $condition_week 	.= 	" and (DATE_FORMAT(OrderDate,'%Y-%m-%d') <= '".date('Y-m-d',strtotime($curr_date))."' and DATE_FORMAT(OrderDate,'%Y-%m-%d') > '".date('Y-m-d',strtotime("-7 days"))."') ";
 $condition_day		.= 	" and date(DATE_ADD(OrderDate,INTERVAL '".$time_zone_val."' HOUR_MINUTE))='".date('Y-m-d',strtotime($curr_date))."' ";
 $transactionTotal 	= $orderObj->getTotalRevenue($fields,$condition_total);
 $transactionWeekly 	= $orderObj->getTotalRevenue($fields,$condition_week);
 $transactiondays 	= $orderObj->getTotalRevenue($fields,$condition_day);
-
+*/
 /*-------Delete  Merchant----------*/
 if(isset($_GET['delId']) && $_GET['delId']!=''){
 	$delete_id  = $_GET['delId'];

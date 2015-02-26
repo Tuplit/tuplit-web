@@ -3,7 +3,6 @@ require_once 'config.php';
 require_once 'MangoPaySDK/mangoPayApi.inc';
 require_once 'MangoPaySDK/mangoPayApi.inc';
 
-
 /**/
 	//demo things
 	$userDetails['CompanyName']	=	'Burger';
@@ -17,11 +16,6 @@ require_once 'MangoPaySDK/mangoPayApi.inc';
 	$userDetails['Country']		=	'US';
 	$userDetails['CompanyName']	=	'Burgerking';
 	
-	//register as legal user
-	//$register = merchantRegister($userDetails);
-	$merchantAccountId = 2689052;
-	
-	
 	
 	$normalUserDetails['FirstName']		=	'kalpana';
 	$normalUserDetails['LastName']		=	'D';
@@ -33,31 +27,12 @@ require_once 'MangoPaySDK/mangoPayApi.inc';
 	$normalUserDetails['Occupation'] 	=	'';
 	$normalUserDetails['IncomeRange'] 	=	'';
 	
-	//register as user
-	if($_SERVER['REMOTE_ADDR'] == '172.21.4.102'){
-	//define('ABS_PATH','C:/wamp/www/tuplit');	
-	//payAmountToBank($userDetails);
-	//echo "================>";
-		
-		/*$normalRegister = userRegister($normalUserDetails);
-		echo'<pre>';print_r($normalRegister);echo'</pre>';die();*/
-	}
-	$userAccountId = 2754966;//2689185;
 	
-	$userDetails['merchantAccountId'] 	= $merchantAccountId;
-	$userDetails['userAccountId'] 		= $userAccountId;
 	$userDetails['userCurrency']		= 'USD';
 	$userDetails['amount']				= '1000';
 	$userDetails['userWalletId']		= '2754968';
 	$userDetails['CardId']				= '2755103';
-	//create wallet
-	//$walletId = createWallet($userDetails['userAccountId'],$userDetails['userCurrency']);
-	$userWalletId = 2692790;
 	
-	//$merchantWalletId = createWallet($userDetails['merchantAccountId'],$userDetails['userCurrency']);
-	$merchantWalletId = 2692796;
-	/*if($_SERVER['REMOTE_ADDR']=='172.21.4.81') {
-	refundTransfer($userDetails);}*/
 	//« EUR »,« USD »,« GBP »,« PLN »,« CHF ».
 	//http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#US
 	//http://en.wikipedia.org/wiki/ISO_4217
@@ -85,6 +60,7 @@ function userRegister($userDetails){
 	$mangoPayApi->Config->ClientId = MangoPayDemo_ClientId;
 	$mangoPayApi->Config->ClientPassword = MangoPayDemo_ClientPassword;
 	$mangoPayApi->Config->TemporaryFolder = ABS_PATH.'/admin/includes/mangopay/temp/';
+	//$mangoPayApi->Config->BaseUrl = 'https://api.sandbox.mangopay.com';
 
 	try {
 		$user = new MangoPay\UserNatural();
@@ -185,7 +161,7 @@ function addCreditCard($userDetails){
 	$errorCodeArray = array();
 	try{
 	
-		$cardRegister 						= 	new \MangoPay\CardRegistration();
+		$cardRegister 						= 	new \MangoPay\CardRegistration();	
 		$cardRegister->UserId 				= 	$userDetails['userAccountId'];
 		$cardRegister->Currency 			= 	$userDetails['userCurrency'];
 		$cardRegister						= 	$mangoPayApi->CardRegistrations->Create($cardRegister);
@@ -245,7 +221,7 @@ function getWalletDetails($walletid){
 /**
  * Get registration data from Payline service
  * @param \MangoPay\CardRegistration $cardRegistration
- * @return string
+ * @return string ##
  */
 function getPaylineCorrectRegistartionData($cardRegistration,$userDetails) {
 
@@ -588,25 +564,57 @@ function merchantEdit($userDetails){
 }
 // to create a bank account in mangopay
 function createBankAccount($userDetails){
+	$result		=	array();
 	require_once 'mangopayAPI.php';
 	$mangoPayApi = new \MangoPay\MangoPayApi();
 	$mangoPayApi->Config->ClientId = MangoPayDemo_ClientId;
 	$mangoPayApi->Config->ClientPassword = MangoPayDemo_ClientPassword;
 	$mangoPayApi->Config->TemporaryFolder = ABS_PATH.'/admin/includes/mangopay/temp/';
-	 
 	try{
 		//Build the parameters for the request
 		$UsersId = $userDetails['MangoPayId'];
 		$BankAccount = new \MangoPay\BankAccount();
-		$BankAccount->OwnerName = $userDetails['UserName'];
-		$BankAccount->OwnerAddress = $userDetails['Address'];
-		$BankAccount->Details = new MangoPay\BankAccountDetailsGB();
-		$BankAccount->Details->AccountNumber = $userDetails['BankAccount'];
-		$BankAccount->Details->SortCode = $userDetails['SortCode'];
-		$BankAccount->Id = $userDetails['MangoPayId'];
+		$BankAccount->OwnerName 	= $userDetails['UserName'];
+		$BankAccount->OwnerAddress 	= $userDetails['Address'];
+		//$BankAccount->Id			= $userDetails['MangoPayId'];
+		$BankAccount->UserId 		= $userDetails['MangoPayId'];
+		$BankAccount->Type	 		= strtoupper($userDetails['BankType']);
+		if($userDetails['BankType'] == 'Gb'){
+			$BankAccount->Type = "GB";
+			$BankAccount->Details = new MangoPay\BankAccountDetailsGB();
+			$BankAccount->Details->AccountNumber 	= $userDetails['AccountNumber'];
+			$BankAccount->Details->SortCode 		= $userDetails['SortCode'];
+		}
+		else if($userDetails['BankType'] == 'Ca'){
+			$BankAccount->Type = "CA";
+			$BankAccount->Details = new MangoPay\BankAccountDetailsCA();
+			$BankAccount->Details->BankName 			=  $userDetails['BankName'];
+			$BankAccount->Details->InstitutionNumber 	=  $userDetails['InstitutionNumber'];
+			$BankAccount->Details->BranchCode 			=  $userDetails['BranchCode'];
+			$BankAccount->Details->AccountNumber 		=  $userDetails['AccountNumber'];
+		}
+		else if($userDetails['BankType'] == 'Us'){
+			$BankAccount->Type = "US";
+			$BankAccount->Details = new MangoPay\BankAccountDetailsUS();
+			$BankAccount->Details->AccountNumber 	= $userDetails['AccountNumber'];
+			$BankAccount->Details->ABA 				= $userDetails['ABA'];
+		}
+		else if($userDetails['BankType'] == 'Iban'){
+			$BankAccount->Type = "IBAN";
+			$BankAccount->Details = new MangoPay\BankAccountDetailsIBAN();
+			$BankAccount->Details->IBAN = $userDetails['IBAN'];
+			$BankAccount->Details->BIC =  $userDetails['BIC'];
+		}
+		else if($userDetails['BankType'] == 'Other'){
+			$BankAccount->Type = "OTHER";
+			$BankAccount->Details = new MangoPay\BankAccountDetailsOTHER();
+			$BankAccount->Details->Country 			= $userDetails['Country'];
+			$BankAccount->Details->BIC 				= $userDetails['BIC'];
+			$BankAccount->Details->AccountNumber 	= $userDetails['AccountNumber'];
+		}
 		//Send the request
 		$result = $mangoPayApi->Users->CreateBankAccount($UsersId, $BankAccount);
-		return $result;
+  		return $result;
 		//Analyse the request
 	}
 	catch(Exception $e) {
@@ -630,17 +638,16 @@ function payAmountToBank($userDetails){
 		$PayOut->AuthorId 							= $userDetails['MangoPayId'];
 		$PayOut->DebitedWalletID 					= $userDetails['WalletId'];
 		$PayOut->DebitedFunds						= new \MangoPay\Money();
-		$PayOut->DebitedFunds->Currency 			= "GBP";
+		$PayOut->DebitedFunds->Currency 			= DEFAULT_CURRENCY;
 		$PayOut->DebitedFunds->Amount 				= $amt;
 		$PayOut->Fees 								= new \MangoPay\Money();
-		$PayOut->Fees->Currency 					= "GBP";
+		$PayOut->Fees->Currency 					= DEFAULT_CURRENCY;
 		$PayOut->Fees->Amount 						= $fees;
 		$PayOut->PaymentType 						= "BANK_WIRE";
 		$PayOut->MeanOfPaymentDetails 				= new \MangoPay\PayOutPaymentDetailsBankWire();
 		$PayOut->MeanOfPaymentDetails->BankAccountId = $userDetails['BankAccountId'];
 		//Send the request
 		$result = $mangoPayApi->PayOuts->Create($PayOut);
-		
 		return $result;
 	}
 	catch(Exception $e) {
@@ -651,21 +658,21 @@ function payAmountToBank($userDetails){
 function getUserTrans($UserId){
 
 		require_once 'mangopayAPI.php';
-	$mangoPayApi = new \MangoPay\MangoPayApi();
-	$mangoPayApi->Config->ClientId = MangoPayDemo_ClientId;
-	$mangoPayApi->Config->ClientPassword = MangoPayDemo_ClientPassword;
-	$mangoPayApi->Config->TemporaryFolder = ABS_PATH.'/admin/includes/mangopay/temp/';
+		$mangoPayApi = new \MangoPay\MangoPayApi();
+		$mangoPayApi->Config->ClientId = MangoPayDemo_ClientId;
+		$mangoPayApi->Config->ClientPassword = MangoPayDemo_ClientPassword;
+		$mangoPayApi->Config->TemporaryFolder = ABS_PATH.'/admin/includes/mangopay/temp/';
 		 $Filter = array();
 		//Build the parameters for the request
-		$UserId = 3710735;
+		$UserId = 4898616;
 		$Pagination 						= 	new \MangoPay\Pagination();
 		 
 		//$Filter = new \MangoPay\Filter();
 		 
 		 
 		//Send the request
-		//$result = $mangoPayApi->Users->GetTransactions($UserId, $Pagination, $Filter);
-		$result = $mangoPayApi->Wallets->GetTransactions($UserId, $Pagination, $Filter);
+		$result = $mangoPayApi->Users->GetTransactions($UserId, $Pagination, $Filter);
+		//$result = $mangoPayApi->Wallets->GetTransactions($UserId, $Pagination, $Filter);
 		//Analyse the request
 
 }

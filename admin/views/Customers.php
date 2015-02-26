@@ -1,7 +1,6 @@
 <?php 
 require_once('includes/CommonIncludes.php');
 admin_login_check();
-commonHead();
 require_once('controllers/UserController.php');
 $userObj   		=   new UserController();
 $time_zone		= getTimeZone();
@@ -156,14 +155,12 @@ commonHead();
 				<div class="h1">Customer</div>
 		</div>
 		<div class="col-xs-12 col-sm-6 mtop text-right"> 
-				
 				<a class="add-button" href="javascript:void(0);" id="editCustomer" title="Edit Customer">EDIT CUSTOMER </a>&nbsp;&nbsp;
 				<a class="cancel-button" href="javascript:void(0);" id="deleteCustomer" title="Suspend User">SUSPEND USERS</a>
 		</div>
 		<!--CUSTOMERS LIST END-->
 		<!-- Transactions list start-->
 			<div class="box transactions  col-xs-12">
-				
 				<div id="customerTransactions"><?php 
 							$defaultCustomerId ='';
 							if(is_array($userListResult)){

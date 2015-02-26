@@ -69,23 +69,7 @@ if(isset($_SESSION['sess_logtrack_searchUserName'])	&&	$_SESSION['sess_logtrack_
 }
 
 setPagingControlValues('l.id',ADMIN_PER_PAGE_LIMIT);
-if($searchUserIds	!=	'noresult') {
-$searchUserIds	=	rtrim($searchUserIds,',');
-	if(	$searchUserIds !=	'')
-		$where      .=	" AND ( l.user IN(".$searchUserIds.") AND l.user !='' )";
 
-	$FinalResult 		= 	$logObj->logtrackDetails($where);
-	$logtracksResult  	=	$FinalResult['result'];
-	$tot_rec 		  	= 	$FinalResult['total'];
-		
-	if($tot_rec == 0 && !is_array($logtracksResult)) {
-		$_SESSION['curpage'] = 1;
-		$logtracksResult	=	$logObj->logtrackDetails($where);
-	}
-		
-}
-
-/*
 if($searchUserIds	!=	'noresult') {
 $searchUserIds	=	rtrim($searchUserIds,',');
 	if(	$searchUserIds !=	'')
@@ -97,35 +81,32 @@ $searchUserIds	=	rtrim($searchUserIds,',');
 		$logtracksResult	=	$logObj->logtrackDetails($where);
 	}
 }
-*/
-if(isset($_SESSION['sess_logtrack_searchUserName']) && $_SESSION['sess_logtrack_searchUserName'] != ''){	
-	$fields		=	" atk.access_token,u.FirstName,u.LastName,ac.device_type ";
-	if(isset($logtracksResult) && is_array($logtracksResult) && count($logtracksResult) > 0){
-		foreach($logtracksResult as $key=>$value){
-			if(isset($value->user)	&&	$value->user !='')
-				$logUserTokensArray[]	=	$value->user;
-		}
-		$logUserTokensArray	=	array_unique($logUserTokensArray);
-		foreach($logUserTokensArray as $key1=>$value1){
-			$logUserTokens .= '"'.$value1.'",';
-		}
-		$logUserTokens .= rtrim($logUserTokens,',');
-		if(isset($logUserTokens)	&&	$logUserTokens !='')
-			$logUsersResult	=	$logObj->logUsersDetails($fields,$logUserTokens);
-		if(isset($logUsersResult) && is_array($logUsersResult) && count($logUsersResult) > 0){ 
-			foreach($logUsersResult as $userKey=>$userValue){
-				if(isset($userValue->access_token)	&& $userValue->access_token != ''){
-					if((isset($userValue->FirstName)	&& $userValue->FirstName != '') 	&& (isset($userValue->LastName)	&& $userValue->LastName != '') )
-						$userName	=	ucfirst($userValue->FirstName).' '.ucfirst($userValue->LastName);
-					else if((isset($userValue->FirstName)	&& $userValue->FirstName != '') )	
-						$userName	=	 ucfirst($userValue->FirstName);
-					else if((isset($userValue->LastName)	&& $userValue->LastName != '') )	
-						$userName	=	ucfirst($userValue->LastName);
-					if(isset($userValue->device_type)	&& $userValue->device_type != ''){
-						$deviceType	=	$userValue->device_type;
-					}
-					$logUserArray[$userValue->access_token]	=	array('user'=>$userName,'device_type'=>$deviceType);
+$fields		=	" atk.access_token,u.FirstName,u.LastName,ac.device_type ";
+if(isset($logtracksResult) && is_array($logtracksResult) && count($logtracksResult) > 0){
+	foreach($logtracksResult as $key=>$value){
+		if(isset($value->user)	&&	$value->user !='')
+			$logUserTokensArray[]	=	$value->user;
+	}
+	$logUserTokensArray	=	array_unique($logUserTokensArray);
+	foreach($logUserTokensArray as $key1=>$value1){
+		$logUserTokens .= '"'.$value1.'",';
+	}
+	$logUserTokens .= rtrim($logUserTokens,',');
+	if(isset($logUserTokens)	&&	$logUserTokens !='')
+		$logUsersResult	=	$logObj->logUsersDetails($fields,$logUserTokens);
+	if(isset($logUsersResult) && is_array($logUsersResult) && count($logUsersResult) > 0){ 
+		foreach($logUsersResult as $userKey=>$userValue){
+			if(isset($userValue->access_token)	&& $userValue->access_token != ''){
+				if((isset($userValue->FirstName)	&& $userValue->FirstName != '') 	&& (isset($userValue->LastName)	&& $userValue->LastName != '') )
+					$userName	=	ucfirst($userValue->FirstName).' '.ucfirst($userValue->LastName);
+				else if((isset($userValue->FirstName)	&& $userValue->FirstName != '') )	
+					$userName	=	 ucfirst($userValue->FirstName);
+				else if((isset($userValue->LastName)	&& $userValue->LastName != '') )	
+					$userName	=	ucfirst($userValue->LastName);
+				if(isset($userValue->device_type)	&& $userValue->device_type != ''){
+					$deviceType	=	$userValue->device_type;
 				}
+				$logUserArray[$userValue->access_token]	=	array('user'=>$userName,'device_type'=>$deviceType);
 			}
 		}
 	}

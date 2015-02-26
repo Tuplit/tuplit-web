@@ -739,7 +739,8 @@ jQuery(function() {
 		$(".notification_popup").fancybox({
 			type:"iframe", 
 			width:"700", 
-			height:"100%",
+			height:"350",
+			'autoSize' : false,
 			 onClosed: function () {
             	$('.pnclass').attr('href','');
 				$('.pnclass').removeClass('notification_popup');
@@ -1531,7 +1532,6 @@ $(document).ready(function() {
 		revert	: 10,
 		update	:function(event,ui){
 			var data = $(this).sortable('serialize');
-			alert(data);
 			$.ajax({
             data:{"my_order": data},
             type: 'POST',

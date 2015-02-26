@@ -415,7 +415,7 @@ class Categories extends RedBean_SimpleModel implements ModelBaseInterface {
 		}
 		$catresultIds	=	trim($catresultIds,',');
 		$sql	=	"SELECT SQL_CALC_FOUND_ROWS p.fkCategoryId as CategoryId, COUNT(o.id) as TotalOrders,p.id as ProductId,p.ItemName,p.Photo from orders as o
-						".$leftjoin." where 1 ".$condition." and p.fkCategoryId in (".$catresultIds.") group by p.fkCategoryId,p.ItemType order by TotalOrders desc limit $Start,8";
+						".$leftjoin." where 1 ".$condition." and p.fkCategoryId in (".$catresultIds.") group by p.fkCategoryId order by TotalOrders desc limit $Start,8";
 		$result				=	R::getAll($sql);		
 		$total				=	R::getAll('SELECT FOUND_ROWS() as count ');
 		$totalProducts		=	$total[0]['count'];	
@@ -443,7 +443,7 @@ class Categories extends RedBean_SimpleModel implements ModelBaseInterface {
 			if(count($categoryIds) > 0) {
 				
 				$sql	=	"SELECT SQL_CALC_FOUND_ROWS p.fkCategoryId as CategoryId,SUM(c.ProductsQuantity) as TotalQty,DATE_FORMAT(o.OrderDate,'%a') as OrderDay,SUM(c.DiscountPrice * c.ProductsQuantity) as TotalPrice, COUNT(o.id) as TotalOrders".$case." from orders as o
-							".$leftjoin." where 1 ".$condition." and p.fkCategoryId in (".implode(',',$categoryIds).") group by p.fkCategoryId,p.ItemType".trim($case," as period ")."".$groupby." order by TotalOrders desc";
+							".$leftjoin." where 1 ".$condition." and p.fkCategoryId in (".implode(',',$categoryIds).") group by p.fkCategoryId".trim($case," as period ")."".$groupby." order by TotalOrders desc";
 				$CategorytList 	=	R::getAll($sql);
 				if($CategorytList ){				
 					$TempArray	=	Array();

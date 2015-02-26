@@ -390,6 +390,7 @@ $(document).ready(function() {
 		});
 	})
 	$(".notification_popup").fancybox({
+			
 			type : 'iframe',
 			width:"700", 
 			height:"100%",

@@ -5,7 +5,8 @@ require_once('includes/CommonIncludes.php');
 if(isset($_GET['search']) && !empty($_GET['search'])) {
 	if(isset($_GET['productsearch'])) {
 		$Search 				= 	$_GET['productsearch'];
-		$Search 				= 	urlencode($Search);
+		//$Search 				= 	urlencode($Search);
+		$Search 				= 	addslashes($Search);
 		if(!empty($Search))
 			$url1					=	WEB_SERVICE."v1/products/?Search=".$Search."";
 		else

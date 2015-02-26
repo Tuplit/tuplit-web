@@ -132,7 +132,7 @@ commonHead();
 					<div class="row box box-primary no-padding" id="chart-container">
 						<div class="col-xs-12 col-sm-12  col-lg-12  box-center">
 							<div class="col-xs-12 col-sm-6 col-md-6 col-lg-6 per_graphic">
-								<h3 class="col-lg-6 no-padding" style="color:#202020;">Percentage graphic</h3>
+								<h3 class="col-lg-6 no-padding" style="color:#202020;">% of Customers ordered</h3>
 								<div class="col-lg-6 no-padding text-right" style="margin-top:35px;">
 										<a id='bar_week' onclick="get_areachart(this.id,1,'<?php if(isset($PercentageGraphicWeek) && !empty($PercentageGraphicWeek)) echo htmlspecialchars(json_encode($PercentageGraphicWeek)); ?>');" class='area-chart chart-active'>Week</a>
 										<a id='bar_month' onclick="get_areachart(this.id,2,'<?php if(isset($PercentageGraphicMonth) && !empty($PercentageGraphicMonth)) echo htmlspecialchars(json_encode($PercentageGraphicMonth)); ?>');" class='area-chart'>Month</a>									
@@ -143,7 +143,7 @@ commonHead();
 
 							</div>
 							<div class="col-xs-12 col-sm-6 col-md-6 col-lg-6 pur_graphic">
-								<h3 class="col-lg-6 no-padding" style="color:#202020;">Purchases</h3>
+								<h3 class="col-lg-6 no-padding" style="color:#202020;">Number of Customer ordered</h3>
 								<div class="col-lg-6 no-padding text-right" style="margin-top:35px;">										
 										<a class="area-chart chart-active" id="line_week" onclick="get_linechart(this.id,1,'<?php if(isset($Purchasesweek) && !empty($Purchasesweek)) echo htmlspecialchars(json_encode($Purchasesweek)); ?>');">Week</a>
 										<a class="area-chart" id="line_month" onclick="get_linechart(this.id,2,'<?php if(isset($Purchasesmonth) && !empty($Purchasesmonth)) echo htmlspecialchars(json_encode($Purchasesmonth)); ?>');">Month</a>

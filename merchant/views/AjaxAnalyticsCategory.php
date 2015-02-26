@@ -78,33 +78,32 @@ if(isset($CategoryList) && is_array($CategoryList)){
 			$eve_price		= (isset($value['Evening']['Amount']) && $value['Evening']['Amount'] != '' ? price_fomat($value['Evening']['Amount']) :'') ;
 		?>
 		<?php if(isset($_GET['action']) && $_GET['action'] == 'GET_MORE_CATEGORY'){ ?>
-		
 			<?php  
-			
 			$output[] = 
-'<div><h3 class="prod_analy slide">'.$value['CategoryName'].'</h3><img id='.$value['CategoryName'].'  title="'.$value['CategoryName'].'" class="productImage" width="115" height="110" align="top" src="'.$value["ProductImage"].'">
-<p class="HelveticaNeueBold">Orders per time of the day</p><div class="col-xs-12 products_canvas"><div id="day_canvas_'.$value['CategoryId'].'" style="width:240px;height:100px;"></div>
-<div class="col-xs-4 col-sm-4 col-md-4 col-lg-4 no-padding"><span><div style="font-size:9px;">Morning</div><br><div class="morning_per">'.floor($day_arr[$value["CategoryId"]]["Morning"]).'%</div>
-<div class="morning_per">'.$mrng_price.'</div></span></div><div class="col-xs-4 col-sm-4 col-md-4 col-lg-4 no-right-pad"><span><div style="font-size:9px;">Noon</div><br><div class="noon_per">'.floor($day_arr[$value["CategoryId"]]["Noon"]).'%</div>
-<div class="morning_per">'.$noon_price.'</div></span></div><div class="col-xs-4 col-sm-4 col-md-4 col-lg-4 no-right-pad"><span><div style="font-size:9px;">Evening</div><br><div class="evening_per">'.floor($day_arr[$value["CategoryId"]]["Evening"]).'%</div>
-<div class="morning_per">'.$eve_price.'</div></span></div></div><div class="col-xs-12 no-padding"><p class="HelveticaNeueBold">Orders per day in the week</p>
+'<div class="col-xs-12"><h3 class="col-xs-12 prod_analy_name">'.$value['CategoryName'].'</h3><img id='.$value['CategoryName'].'  title="'.$value['CategoryName'].'" class="productImage" width="115" height="110" align="top" src="'.$value["ProductImage"].'">
+<div class="line_bottom"><p class="HelveticaNeueBold">Orders per time of the day</p><div class="col-xs-12 no-padding"><div id="day_canvas_'.$value['CategoryId'].'" class="chart_canvas" style="height:100px"></div>
+<div class="col-xs-12">
+<div class="col-xs-4 col-sm-4 col-md-4 col-lg-4 no-padding"><span><div style="font-size:9px;">Morning</div><div class="morning_per">'.floor($day_arr[$value["CategoryId"]]["Morning"]).'%</div>
+<div class="dis_amount">'.$mrng_price.'</div></span></div><div class="col-xs-4 col-sm-4 col-md-4 col-lg-4 no-padding"><span><div style="font-size:9px;">Noon</div><div class="noon_per">'.floor($day_arr[$value["CategoryId"]]["Noon"]).'%</div>
+<div class="dis_amount">'.$noon_price.'</div></span></div><div class="col-xs-4 col-sm-4 col-md-4 col-lg-4 no-padding"><span><div style="font-size:9px;">Evening</div><div class="evening_per">'.floor($day_arr[$value["CategoryId"]]["Evening"]).'%</div>
+<div class="dis_amount">'.$eve_price.'</div></span></div></div></div></div><div class="col-xs-12 no-padding"><p class="HelveticaNeueBold">Orders per day in the week</p>
 <input type="hidden" id="day_color_'.$value["CategoryId"].'" value="1"><div id="week_canvas_'.$value["CategoryId"].'" style="width:250px;height:100px;"></div></div></div>';
 			 ?>
 		
 		<?php } else{ ?>
-			<li class="prod_analy">
+			<li>
 				<div class="col-xs-12">
-					<h3 class="prod_analy slide"><?php if(isset($value["CategoryName"]) && $value["CategoryName"] != ""){ echo ucfirst($value["CategoryName"]); } ?></h3>
+					<h3 class="col-xs-12 prod_analy_name"><?php if(isset($value["CategoryName"]) && $value["CategoryName"] != ""){ echo ucfirst($value["CategoryName"]); } ?></h3>
 					<img id="<?php echo $value["ProductName"] ;?>"  title="<?php if(isset($value["CategoryName"]) && $value["CategoryName"] != ""){ echo ucfirst($value["CategoryName"]); } ?>" class="merchantImage " width="115" height="110" align="top" src="<?php echo $value["ProductImage"];?>" >
 					<div class="line_bottom">
 					<p class="HelveticaNeueBold">Orders per time of the day</p>
 					<div class="col-xs-12 no-padding">
-						<div id="day_canvas_<?php echo $value["CategoryId"]?>" style="width:315px;height:100px;"></div>
+						<div id="day_canvas_<?php echo $value["CategoryId"]?>" class="chart_canvas" style="height:100px"></div>
 					</div>
 					<div class="col-xs-12">
 					<div class="col-xs-4 col-sm-4 col-md-4 col-lg-4">
 						<?php if($day_arr[$value["CategoryId"]]["Morning"] != ""){ ?>
-						<span>Morning<br>
+						<span><span style="font-size:9px;">Morning</span><br>
 							<div class="morning_per"><?php echo floor($day_arr[$value["CategoryId"]]["Morning"])."%";?></div>
 							<div class="dis_amount"><?php echo (isset($value['Morning']['Amount']) && $value['Morning']['Amount'] != '' ? price_fomat($value['Morning']['Amount']) :'') ;?></div>
 						</span>
@@ -112,7 +111,7 @@ if(isset($CategoryList) && is_array($CategoryList)){
 					</div>
 					<div class="col-xs-4 col-sm-4 col-md-4 col-lg-4">
 						<?php if($day_arr[$value["CategoryId"]]["Noon"] != ""){ ?>
-						<span>Noon<br>
+						<span><span style="font-size:9px;">Noon</span><br>
 							<div class="noon_per"><?php echo floor($day_arr[$value["CategoryId"]]["Noon"])."%";?></div>
 							<div class="dis_amount"><?php echo (isset($value['Noon']['Amount']) && $value['Noon']['Amount'] != '' ? price_fomat($value['Noon']['Amount']) :'') ;?></div>
 						</span>
@@ -121,7 +120,7 @@ if(isset($CategoryList) && is_array($CategoryList)){
 					</div>
 					<div class="col-xs-4 col-sm-4 col-md-4 col-lg-4">
 						<?php if($day_arr[$value["CategoryId"]]["Evening"] != ""){ ?>
-						<span>Evening<br>
+						<span><span style="font-size:9px;">Evening</span><br>
 							<div class="evening_per"><?php echo floor($day_arr[$value["CategoryId"]]["Evening"])."%";?></div>
 							<div class="dis_amount"><?php echo (isset($value['Evening']['Amount']) && $value['Evening']['Amount'] != '' ? price_fomat($value['Evening']['Amount']) :'') ;?></div>
 						</span>

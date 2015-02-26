@@ -83,13 +83,13 @@ commonHead();
 				<div class="box">
 				    <div class="box-body table-responsive no-padding no-margin">
 						<form action="" method="post" id="appstatus_form" name="appstatus_form">
-							<table class="table table-hover" id="category_list" width="100%">
+							<table class="table table-hover" id="category_list">
 								<tr>
 									<th width="10%">Device Name</th>
 									<th width="10%">App Type</th>
 									<th width="10%" align="center">Version</th>
 									<th width="10%" class="text-right">Build</th>									
-									<th width="10%" class="text-left">Action</th>
+									<th width="20%" class="text-left">Action</th>
 								</tr>
 								<?php if(isset($app_array) && is_array($app_array) && count($app_array) > 0 ) { 
 									foreach($app_array as $key=>$value){
@@ -135,10 +135,8 @@ commonHead();
 									<td><?php echo $version; ?></td>
 									<td><?php echo $build; ?></td>
 									<td>
-										<span class="edit_version">
-											<a href="Versions?edit=<?php echo $value->id; ?>#e<?php echo $value->id; ?>" title="Edit"><i class="fa fa-edit "></i></a>
-											<a href="Versions?delete=<?php echo $value->id; ?>#d<?php echo $value->id; ?>" class="viewUser" title="Delete" onclick="return confirm('Are you sure to delete');">&nbsp;&nbsp;&nbsp;<i class="fa fa-trash-o "></i></a>
-										</span>
+										<a href="Versions?edit=<?php echo $value->id; ?>#e<?php echo $value->id; ?>" title="Edit"><i class="fa fa-edit "></i></a>&nbsp;&nbsp;&nbsp;
+										<a href="Versions?delete=<?php echo $value->id; ?>#d<?php echo $value->id; ?>" class="viewUser" title="Delete" onclick="return confirm('Are you sure to delete');">&nbsp;&nbsp;&nbsp;<i class="fa fa-trash-o "></i></a>
 									</td>
 								</tr>
 								<?php } } } ?>
@@ -153,9 +151,9 @@ commonHead();
 				</div>
 			</div>
 		</div>	
-		<!-- <div style="height:10px;"></div> -->
-		<div class="box" style="margin-top:15px;margin-bottom:15px;">
-			<div class="box-body table-responsive no-padding no-margin" style="border:0px solid #fff;">
+		<div style="height:10px;"></div>
+		<div class="box" style="margin-bottom:15px;">
+			<div class="box-body table-responsive no-padding no-margin">
 				<form action="Versions"  method="POST" id="add_appstatus_form" name="add_appstatus_form" onsubmit="return validateAppStatus('');">
 					<table id="add_newapp" style="display:none;" class="headertable user_table user_actions table">
 						<tr>					
@@ -189,11 +187,9 @@ commonHead();
 							<input type="text" class="inputbox form-control" onpaste="return false;" title="Enter Build"  onkeypress="return isNumberKey_Enter(event);" id="device_build" name="device_build" value=""  />
 							<div id="device_build_msg_container" style="display:none;"><div id="device_build_msg" class="error_msg"></div></div>
 						</td>
-						<td width="10%">
-							<span class="edit_version">
-								<span class="borbut"><a id="ins" name="ins"></a><input class="trans-button" type="button" onclick="Cancel('add_newapp')" id="cancel_add" value="Cancel" title="Cancel" style="margin-right:16px;"/></span>
-								<span class="borbut save-button"><input type="submit" id="status_save" name="status_save" value="Save" title="Save" class="btn btn-success mR-button" /></span>
-							</span>
+						<td width="20%">
+							<span class="borbut"><a id="ins" name="ins"></a><input class="trans-button" type="button" onclick="Cancel('add_newapp')" id="cancel_add" value="Cancel" title="Cancel" style="margin-right:16px;"/></span>
+							<span class="borbut save-button"><input type="submit" id="status_save" name="status_save" value="Save" title="Save" class="btn btn-success mR-button" /></span>
 						</td>
 						</tr>
 						<input type="hidden" id="errorFlag" name="errorFlag" value="0">

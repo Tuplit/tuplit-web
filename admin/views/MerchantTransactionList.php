@@ -78,9 +78,10 @@ if(is_array($transactionTotal) && count($transactionTotal)>0){ ?>
 			<span class="fright"><?php echo price_fomat($val->TotalPrice); ?></span>
 		</li>
 		 <?php }?>
+		 <?php  }?>
 	</ul>
 </div>
-<?php  }?>
+
  <script src="<?php echo SITE_PATH;?>/admin/webresources/js/jquery-latest.js" type="text/javascript"></script>
  <script type="text/javascript">
 <?php if(isset($TransactionArray) && !empty($TransactionArray)) {?>

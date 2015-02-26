@@ -33,6 +33,8 @@ if(isset($user_details) && is_array($user_details) && count($user_details)>0){
 		$email		=	$user_details[0]->EmailAddress;
 		$limit 		=	$user_details[0]->LocationLimit;
 		$fees 		=	$user_details[0]->MangoPayFees;
+		$contactEmail 		=	$user_details[0]->ContactEmail;
+		$phone 				=	$user_details[0]->Phone;
 		if(isset($user_details[0]->AdminLogo) && $user_details[0]->AdminLogo != ''){
 		$AdminLogoName 		= 	$user_details[0]->AdminLogo;
 		$AdminLogoPath 	= 	$AdminLogoPath = '';
@@ -232,9 +234,9 @@ h2.tabsection a, h2.tabsection span {
 									<div class="form-group col-sm-5 col-xs-12">
 										<label>Location Limit</label>
 										<div class="col-sm-8 col-xs-5  no-padding">
-											<input type="text" class="form-control" name="limit" id="limit" maxlength="6" onkeypress="return isNumberKey_numbers(event);" value="<?php if(isset($limit)) echo $limit; ?>"  >
+											<input type="text" class="form-control" name="limit" id="limit" maxlength="6" onkeypress="return isNumberKey_numbers(event);" value="<?php if(isset($limit)) echo $limit * 1000; ?>"  >
 										</div>
-										<span class="help-block LH30">&nbsp;&nbsp;(In kilometer)</span>
+										<span class="help-block LH30">&nbsp;&nbsp;(In Metre)</span>
 									</div>
 									<div class="form-group col-sm-5 col-xs-12">
 										<label>MangoPay Fees </label>
@@ -242,6 +244,18 @@ h2.tabsection a, h2.tabsection span {
 											<input type="text" class="form-control" name="fees" id="fees" maxlength="3" onkeypress="return isNumberKey_numbers(event);" value="<?php if(isset($fees)) echo $fees; ?>"  >
 										</div>
 										<span class="help-block LH30">&nbsp;&nbsp;(In %)</span>
+									</div>
+									<div class="form-group col-sm-5 col-xs-12">
+										<label>Contact Email</label>
+										<div class="col-sm-8 col-xs-5  no-padding">
+											<input type="text" class="form-control" name="contactEmail" id="contactEmail" value="<?php if(isset($contactEmail)) echo $contactEmail ; ?>"  >
+										</div>
+									</div>
+									<div class="form-group col-sm-5 col-xs-12">
+										<label>Phone</label>
+										<div class="col-sm-8 col-xs-12  no-padding">
+											<input type="text" class="form-control" name="phone" id="phone" maxlength="10" onkeypress="return isNumberKey_Phone(event);" value="<?php if(isset($phone)) echo $phone; ?>"  >
+										</div>
 									</div>
 									<div class="form-group col-sm-6 col-lg-6 clear">
 										<label>Logo</label>

@@ -8,7 +8,6 @@ $userObj   =   new userController();
 $msg = $message   =  $class 	=  $tot_user = '';
 //$userArray = $userObj->getUserListPN('id,FirstName,LastName',' Notification = 1 and Status!=3 order by FirstName asc ');
 if((isset($_GET['checkdelete']) && is_array($_GET['checkdelete']) && count($_GET['checkdelete']) > 0) || (isset($_GET['cs']) && $_GET['cs'] == 1)) {
-	
 	if(!isset($_GET['cs'])){
 		$userId			=	implode(",",$_GET['checkdelete']);
 		$con = "and id in ($userId) ";
@@ -29,6 +28,7 @@ if((isset($_GET['checkdelete']) && is_array($_GET['checkdelete']) && count($_GET
 				$userDisplayName = $user->FirstName.' '.$user->LastName;
 				
 			$userNameArr[$user->id]	=	$userDisplayName ;
+			
 			if($user_key <= 49){
 				$userNameDisp .= $userDisplayName.', ';
 			}
@@ -38,8 +38,9 @@ if((isset($_GET['checkdelete']) && is_array($_GET['checkdelete']) && count($_GET
 		}
 		$userName  = implode(",",$userNameArr);	
 		$userNameDisp = trim($userNameDisp,', ');
-		if($tot_user > 50)
-			$userNameDisp .= '<b> ....More</b>';
+		$userCount	= count($userNameArr);
+		//if($tot_user > 50)
+			//$userNameDisp .= "<b>.....<a href='javascript:void(0);' id='showfulltext'>More</a></b>";
 	}
 }
 if(isset($_POST['user_id']) && isset($userIdArray) && !isset($_POST['Delete']) ){ 
@@ -59,7 +60,8 @@ if(isset($_POST['user_id']) && isset($userIdArray) && !isset($_POST['Delete']) )
 			if(isset($endpointsArn) && is_array($endpointsArn) && count($endpointsArn) > 0){
 				foreach($endpointsArn as $endkey=>$endvalue){
 					if(trim($endvalue->DeviceToken) !=''){
-						$status = sendNotificationAWS($message,$endvalue->EndpointARN,'',$endvalue->BadgeCount,1,'','','');
+						$status = sendNotificationAWS($message,$endvalue->EndpointARN,'',$endvalue->BadgeCount,0,'','',1,'','','','');
+						//          sendNotificationAWS($message,$EndpointArn,$platform,$badge,$type,$processId,$userId,$sound,$merchantId,$merchantName,$notes,$orderAmount)
 						if($status) {
 							$userObj->updateBadge($endvalue->DeviceToken);
 							$statusCount[$user_id]['Success']++;
@@ -125,10 +127,6 @@ if(!isset($userNameArr) ||  count($userNameArr) < 0 ){
 }
 
 ?>
-<style>
-.fancybox-inner { overflow: hidden; width: 700px;height: 50%;}
-
-</style>
 <body class="skin-blue fancy-popup" onload="">
 	<!-- Content Header (Page header) -->
 	<section class="content-header no-padding">
@@ -176,7 +174,12 @@ if(!isset($userNameArr) ||  count($userNameArr) < 0 ){
 					<label>User</label>
 				</div>
 				<div class="col-xs-10">
-				<?php if(isset($userNameDisp)) echo $userNameDisp;?>
+					<div id="alltext" style="display:none;">
+						<?php if(isset($userName)) echo $userName."<b>&nbsp;&nbsp;<a href='javascript:void(0);' id='showrestext'>Hide</a></b>"; ?>
+					</div>
+					<div id="restext">
+						<?php if(isset($userNameDisp)) echo $userNameDisp; if($userCount> 50){ echo "<b>.....<a href='javascript:void(0);' id='showfulltext'>More</a></b>";}?>
+					</div>
 				</div>
 			</div>
 			<div class="row col-sm-12 form-group">
@@ -201,4 +204,13 @@ if(!isset($userNameArr) ||  count($userNameArr) < 0 ){
  </div>
  </section><!-- /.content -->
  <?php commonFooter(); ?>
- 
+ <script type="text/javascript">
+	$("#showfulltext").click(function() {
+		$("#restext").hide();
+		$("#alltext").show();
+	});
+	$("#showrestext").click(function() {
+		$("#alltext").hide();
+		$("#restext").show();
+	});
+ </script>
